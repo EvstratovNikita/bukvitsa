@@ -82,7 +82,7 @@ export function DailyReward() {
           onMouseDown={(e) => e.preventDefault()}
           disabled={claimed}
         >
-          {claimed ? 'Забрано!' : `Забрать +${amount}`}
+          {claimed ? 'Забрано!' : 'Забрать'}
         </button>
 
         <p className="daily__hint">
