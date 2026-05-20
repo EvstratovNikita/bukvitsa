@@ -60,7 +60,7 @@ function Toast() {
 
 function GameShell() {
   useKeyboard(true);
-  const { stats, resetStats, reset } = useGameContext();
+  const { stats, resetStats } = useGameContext();
   const [statsOpen, setStatsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
@@ -70,7 +70,6 @@ function GameShell() {
       <Header
         onOpenStats={() => setStatsOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
-        onNewGame={reset}
       />
       <div className="topbar">
         <Coins />

@@ -1,0 +1,207 @@
+import { useState } from 'react';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
+import { useGameContext } from '../../context/GameContext.jsx';
+import { Modal } from '../Modal/Modal.jsx';
+import { GoogleIcon, LogoutIcon, MailIcon, UserIcon } from '../icons/Icon.jsx';
+
+export function AuthButton() {
+  const { auth } = useGameContext();
+  const [open, setOpen] = useState(false);
+
+  // Hide when Supabase isn't configured — no point offering sign-in
+  // if the backend isn't wired up.
+  if (!isSupabaseConfigured) return null;
+
+  const isLinked = auth?.user && auth.isAnonymous === false;
+  const label = isLinked ? 'Аккаунт' : 'Войти';
+
+  return (
+    <>
+      <button
+        type="button"
+        className="iconbtn iconbtn--accent"
+        onClick={() => setOpen(true)}
+        onMouseDown={(e) => e.preventDefault()}
+        aria-label={label}
+        title={label}
+      >
+        <UserIcon />
+      </button>
+      <AuthModal open={open} onClose={() => setOpen(false)} />
+    </>
+  );
+}
+
+function AuthModal({ open, onClose }) {
+  const { auth } = useGameContext();
+  const isLinked = auth?.user && auth.isAnonymous === false;
+
+  return (
+    <Modal open={open} onClose={onClose} title={isLinked ? 'Аккаунт' : 'Сохранить прогресс'}>
+      {isLinked ? <AccountPanel onClose={onClose} /> : <SignInPanel />}
+    </Modal>
+  );
+}
+
+function SignInPanel() {
+  const [phase, setPhase] = useState('default'); // 'default' | 'email' | 'sent'
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+
+  const onGoogle = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.linkIdentity({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      });
+      if (error) throw error;
+      // Browser navigates away on success.
+    } catch (e) {
+      setError(e.message || 'Не удалось войти через Google');
+      setBusy(false);
+    }
+  };
+
+  const onSendEmail = async (ev) => {
+    ev.preventDefault();
+    if (!email.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: email.trim() });
+      if (error) throw error;
+      setPhase('sent');
+    } catch (e) {
+      setError(e.message || 'Не удалось отправить письмо');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (phase === 'sent') {
+    return (
+      <div className="auth-menu">
+        <div className="auth-sent">
+          <div className="auth-sent__icon"><MailIcon /></div>
+          <h3 className="auth-sent__title">Письмо отправлено</h3>
+          <p className="auth-sent__text">
+            Открой письмо на <b>{email}</b> и нажми на ссылку, чтобы привязать
+            аккаунт. После этого можешь закрыть это окно.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-menu">
+      <p className="auth-menu__lead">
+        Привяжи аккаунт — и прогресс не потеряется при сбросе данных или
+        переходе на другое устройство.
+      </p>
+
+      <button
+        type="button"
+        className="auth-option"
+        onClick={onGoogle}
+        onMouseDown={(e) => e.preventDefault()}
+        disabled={busy}
+      >
+        <div className="auth-option__icon auth-option__icon--white">
+          <GoogleIcon />
+        </div>
+        <div className="auth-option__body">
+          <div className="auth-option__title">Войти через Google</div>
+          <div className="auth-option__sub">Один клик — без пароля</div>
+        </div>
+      </button>
+
+      {phase === 'default' ? (
+        <button
+          type="button"
+          className="auth-option"
+          onClick={() => setPhase('email')}
+          onMouseDown={(e) => e.preventDefault()}
+          disabled={busy}
+        >
+          <div className="auth-option__icon auth-option__icon--soft">
+            <MailIcon />
+          </div>
+          <div className="auth-option__body">
+            <div className="auth-option__title">Войти по email</div>
+            <div className="auth-option__sub">Пришлём ссылку на почту</div>
+          </div>
+        </button>
+      ) : (
+        <form className="auth-email" onSubmit={onSendEmail}>
+          <input
+            type="email"
+            className="auth-email__input"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+            disabled={busy}
+          />
+          <button
+            type="submit"
+            className="btn btn--primary auth-email__submit"
+            disabled={busy || !email.trim()}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            {busy ? 'Отправляем…' : 'Отправить ссылку'}
+          </button>
+        </form>
+      )}
+
+      {error && <div className="auth-error">{error}</div>}
+    </div>
+  );
+}
+
+function AccountPanel({ onClose }) {
+  const { auth } = useGameContext();
+  const [busy, setBusy] = useState(false);
+  const email = auth.user?.email || '—';
+  const initial = (email[0] || '?').toUpperCase();
+
+  const onLogout = async () => {
+    setBusy(true);
+    try {
+      await supabase.auth.signOut();
+      // useAuth's onAuthStateChange listener fires; on next render the hook
+      // will sign back in as a fresh anonymous user automatically? No — our
+      // hook only signs in once on mount. Force a reload so the cycle restarts.
+      window.location.reload();
+    } finally {
+      setBusy(false);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="auth-account">
+      <div className="auth-account__head">
+        <div className="auth-account__avatar">{initial}</div>
+        <div className="auth-account__email" title={email}>{email}</div>
+      </div>
+      <p className="auth-account__hint">
+        Прогресс сохранён. Можно войти под этим аккаунтом на любом устройстве.
+      </p>
+      <button
+        type="button"
+        className="btn btn--ghost auth-account__logout"
+        onClick={onLogout}
+        onMouseDown={(e) => e.preventDefault()}
+        disabled={busy}
+      >
+        <LogoutIcon />
+        <span>{busy ? 'Выходим…' : 'Выйти'}</span>
+      </button>
+    </div>
+  );
+}

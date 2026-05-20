@@ -1,12 +1,14 @@
-import { HelpIcon, StatsIcon, RefreshIcon } from '../icons/Icon.jsx';
+import { AuthButton } from '../Auth/Auth.jsx';
+import { HelpIcon, StatsIcon } from '../icons/Icon.jsx';
 
-export function Header({ onOpenStats, onOpenHelp, onNewGame }) {
+export function Header({ onOpenStats, onOpenHelp }) {
   return (
     <header className="header">
       <button
         type="button"
         className="iconbtn"
         onClick={onOpenHelp}
+        onMouseDown={(e) => e.preventDefault()}
         aria-label="Как играть"
         title="Как играть"
       >
@@ -23,20 +25,13 @@ export function Header({ onOpenStats, onOpenHelp, onNewGame }) {
           type="button"
           className="iconbtn"
           onClick={onOpenStats}
+          onMouseDown={(e) => e.preventDefault()}
           aria-label="Статистика"
           title="Статистика"
         >
           <StatsIcon />
         </button>
-        <button
-          type="button"
-          className="iconbtn iconbtn--accent"
-          onClick={onNewGame}
-          aria-label="Новая игра"
-          title="Новая игра"
-        >
-          <RefreshIcon />
-        </button>
+        <AuthButton />
       </div>
     </header>
   );

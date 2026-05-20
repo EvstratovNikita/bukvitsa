@@ -85,6 +85,96 @@ export function EnterIcon(props) {
   );
 }
 
+export function UserIcon(props) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8.5" r="3.6" />
+      <path d="M4.5 20.5c1.4-3.6 4.2-5.4 7.5-5.4s6.1 1.8 7.5 5.4" />
+    </svg>
+  );
+}
+
+export function MailIcon(props) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="14" rx="2.5" />
+      <path d="M3.5 7l8.5 6 8.5-6" />
+    </svg>
+  );
+}
+
+export function LogoutIcon(props) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+      aria-hidden="true"
+    >
+      <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+      <path d="M16 8l4 4-4 4" />
+      <path d="M20 12H10" />
+    </svg>
+  );
+}
+
+export function GoogleIcon(props) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      {...props}
+      aria-hidden="true"
+    >
+      <path
+        d="M21.6 12.23c0-.7-.06-1.4-.18-2.06H12v3.9h5.4a4.62 4.62 0 0 1-2 3.03v2.5h3.24c1.9-1.74 3-4.32 3-7.37z"
+        fill="#4285F4"
+      />
+      <path
+        d="M12 22c2.7 0 4.97-.9 6.64-2.4l-3.24-2.51c-.9.6-2.04.96-3.4.96-2.62 0-4.83-1.77-5.62-4.15h-3.35v2.6A10 10 0 0 0 12 22z"
+        fill="#34A853"
+      />
+      <path
+        d="M6.38 13.9a6 6 0 0 1 0-3.8V7.5H3.03a10 10 0 0 0 0 9l3.35-2.6z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M12 5.98c1.47 0 2.79.5 3.83 1.5l2.87-2.87C16.97 2.99 14.7 2 12 2A10 10 0 0 0 3.03 7.5l3.35 2.6C7.17 7.74 9.38 5.98 12 5.98z"
+        fill="#EA4335"
+      />
+    </svg>
+  );
+}
+
 export function HintIcon(props) {
   return (
     <svg
