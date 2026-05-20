@@ -164,6 +164,7 @@ export function useGame() {
     resetStats: stats.reset,
     pendingDailyReward: stats.pendingDailyReward,
     claimDailyReward: stats.claimDailyReward,
+    auth: stats.auth,
     addLetter,
     removeLetter,
     submit,

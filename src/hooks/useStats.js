@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MAX_ATTEMPTS, STORAGE_KEYS, computeDailyReward, rewardFor, todayKey } from '../constants/game.js';
 import { storage } from '../utils/storage.js';
+import { useAuth } from './useAuth.js';
+import { useRemoteSync } from './useRemoteSync.js';
 
 const DEFAULT_STATS = {
   played: 0,
@@ -30,10 +32,13 @@ function load() {
 
 export function useStats() {
   const [stats, setStats] = useState(load);
+  const auth = useAuth();
 
   useEffect(() => {
     storage.set(STORAGE_KEYS.STATS, stats);
   }, [stats]);
+
+  useRemoteSync({ stats, setStats, userId: auth.userId });
 
   const recordWin = useCallback((attemptsUsed) => {
     const earned = rewardFor(attemptsUsed);
@@ -100,6 +105,7 @@ export function useStats() {
     reset,
     spendCoins,
     pendingDailyReward,
-    claimDailyReward
+    claimDailyReward,
+    auth
   };
 }
