@@ -29,6 +29,7 @@ export function useAuth() {
         const { data, error: signInErr } = await supabase.auth.signInAnonymously();
         if (!active) return;
         if (signInErr) {
+          console.warn('[auth] signInAnonymously failed:', signInErr.message);
           setError(signInErr);
           setLoading(false);
           return;
