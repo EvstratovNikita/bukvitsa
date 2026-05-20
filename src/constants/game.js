@@ -27,9 +27,9 @@ export const KEYBOARD_ROWS = [
 ];
 
 export const ANIM = {
-  FLIP_MS: 360,
-  FLIP_STAGGER_MS: 220,
-  REVEAL_TOTAL_MS: 360 + 220 * (WORD_LENGTH - 1)
+  FLIP_MS: 500,
+  FLIP_STAGGER_MS: 280,
+  REVEAL_TOTAL_MS: 500 + 280 * (WORD_LENGTH - 1)
 };
 
 // Coin reward per attempts-used to win. Index 0 = 1st try.

@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { GAME_STATUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { CoinIcon, CrownIcon, SadIcon } from '../icons/Icon.jsx';
+import { CloseIcon, CoinIcon, CrownIcon, SadIcon } from '../icons/Icon.jsx';
 
 const CONFETTI_PALETTE = ['#f7c948', '#ffd864', '#6c8cff', '#b388ff', '#e9ecf3'];
 
@@ -42,7 +42,17 @@ function Confetti({ count = 22 }) {
 
 export function GameEnd() {
   const { status, solution, reset, lastEarned, stats } = useGameContext();
+  const [closed, setClosed] = useState(false);
+
+  // Re-open the celebration whenever a new game ends.
+  useEffect(() => {
+    if (status === GAME_STATUS.WON || status === GAME_STATUS.LOST) {
+      setClosed(false);
+    }
+  }, [status]);
+
   if (status === GAME_STATUS.PLAYING) return null;
+  if (closed) return null;
   const isWin = status === GAME_STATUS.WON;
   const letters = [...solution];
 
@@ -51,6 +61,16 @@ export function GameEnd() {
       {isWin && <Confetti />}
 
       <div className="gameend__card">
+        <button
+          type="button"
+          className="gameend__close"
+          onClick={() => setClosed(true)}
+          aria-label="Закрыть"
+          title="Закрыть"
+        >
+          <CloseIcon />
+        </button>
+
         <div className="gameend__badge">
           {isWin ? <CrownIcon /> : <SadIcon />}
         </div>
