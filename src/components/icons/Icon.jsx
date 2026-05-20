@@ -12,10 +12,26 @@ const base = {
 
 export function HelpIcon(props) {
   return (
-    <svg {...base} {...props} aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M9.2 9.2a2.8 2.8 0 0 1 5.6.4c0 1.6-2 2.2-2.4 3.2-.2.5-.2 1 -.2 1.4" />
-      <circle cx="12" cy="17.2" r="0.6" fill="currentColor" stroke="none" />
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+      aria-hidden="true"
+    >
+      <path d="M12 7.5v13" />
+      <path d="M3 5.5h5a4 4 0 0 1 4 4V20.5H4a1 1 0 0 1-1-1z" />
+      <path d="M21 5.5h-5a4 4 0 0 0-4 4V20.5h8a1 1 0 0 0 1-1z" />
+      <path
+        d="M18.5 2.2l.55 1.25 1.25.55-1.25.55-.55 1.25-.55-1.25-1.25-.55 1.25-.55z"
+        fill="currentColor"
+        stroke="none"
+      />
     </svg>
   );
 }
