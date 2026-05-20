@@ -17,7 +17,8 @@ function Key({ value, status, onClick, wide }) {
     <button
       type="button"
       className={classes}
-      onClick={() => onClick(value)}
+      onClick={(e) => { e.currentTarget.blur(); onClick(value); }}
+      onMouseDown={(e) => e.preventDefault()}
       aria-label={label}
       title={label}
     >

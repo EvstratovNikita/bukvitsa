@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { MAX_ATTEMPTS, STORAGE_KEYS, rewardFor } from '../constants/game.js';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MAX_ATTEMPTS, STORAGE_KEYS, computeDailyReward, rewardFor, todayKey } from '../constants/game.js';
 import { storage } from '../utils/storage.js';
 
 const DEFAULT_STATS = {
@@ -11,7 +11,9 @@ const DEFAULT_STATS = {
   totalGuesses: 0,        // sum of guesses across won games (for avg)
   bestAttempts: null,     // fewest guesses in a won game
   coins: 0,               // total accumulated coins
-  distribution: Array(MAX_ATTEMPTS).fill(0)
+  distribution: Array(MAX_ATTEMPTS).fill(0),
+  lastVisitDate: null,    // 'YYYY-MM-DD' of last daily-claim
+  dailyStreak: 0          // current consecutive-days counter (1..6)
 };
 
 function load() {
@@ -73,5 +75,31 @@ export function useStats() {
     return true;
   }, [stats.coins]);
 
-  return { stats, recordWin, recordLoss, reset, spendCoins };
+  const pendingDailyReward = useMemo(
+    () => computeDailyReward(stats.lastVisitDate, stats.dailyStreak || 0),
+    [stats.lastVisitDate, stats.dailyStreak]
+  );
+
+  const claimDailyReward = useCallback(() => {
+    setStats((s) => {
+      const reward = computeDailyReward(s.lastVisitDate, s.dailyStreak || 0);
+      if (!reward) return s;
+      return {
+        ...s,
+        coins: (s.coins || 0) + reward.amount,
+        lastVisitDate: todayKey(),
+        dailyStreak: reward.streak
+      };
+    });
+  }, []);
+
+  return {
+    stats,
+    recordWin,
+    recordLoss,
+    reset,
+    spendCoins,
+    pendingDailyReward,
+    claimDailyReward
+  };
 }

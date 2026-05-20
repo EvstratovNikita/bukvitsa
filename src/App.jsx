@@ -6,6 +6,7 @@ import { Stats } from './components/Stats/Stats.jsx';
 import { Coins } from './components/Coins/Coins.jsx';
 import { HintButton, HintsStrip } from './components/Hints/Hints.jsx';
 import { GameEnd } from './components/GameEnd/GameEnd.jsx';
+import { DailyReward } from './components/DailyReward/DailyReward.jsx';
 import { Modal } from './components/Modal/Modal.jsx';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
@@ -61,14 +62,8 @@ function GameShell() {
   useKeyboard(true);
   const { stats, resetStats, reset } = useGameContext();
   const [statsOpen, setStatsOpen] = useState(false);
-  const [helpOpen, setHelpOpen] = useState(() => {
-    return !localStorage.getItem('wordle-ru:seen-help');
-  });
-
-  const closeHelp = () => {
-    localStorage.setItem('wordle-ru:seen-help', '1');
-    setHelpOpen(false);
-  };
+  const [helpOpen, setHelpOpen] = useState(false);
+  const closeHelp = () => setHelpOpen(false);
 
   return (
     <div className="app">
@@ -88,6 +83,7 @@ function GameShell() {
       </main>
       <Keyboard />
       <Toast />
+      <DailyReward />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
         <Stats stats={stats} onReset={resetStats} />

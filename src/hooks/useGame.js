@@ -162,6 +162,8 @@ export function useGame() {
     keyboardStatuses,
     stats: stats.stats,
     resetStats: stats.reset,
+    pendingDailyReward: stats.pendingDailyReward,
+    claimDailyReward: stats.claimDailyReward,
     addLetter,
     removeLetter,
     submit,

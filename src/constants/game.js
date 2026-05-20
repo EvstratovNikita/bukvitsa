@@ -42,3 +42,36 @@ export const HINT_COST = {
   RANDOM: 10,
   PICK: 15
 };
+
+export const DAILY_CYCLE_DAYS = 6;
+
+// YYYY-MM-DD in local time. (toISOString is UTC; use local parts.)
+export const todayKey = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+export const yesterdayKey = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+export const computeDailyReward = (lastVisitDate, dailyStreak) => {
+  const today = todayKey();
+  if (lastVisitDate === today) return null;
+  const yest = yesterdayKey();
+  let streak;
+  if (lastVisitDate === yest) {
+    streak = dailyStreak >= DAILY_CYCLE_DAYS ? 1 : (dailyStreak || 0) + 1;
+  } else {
+    streak = 1;
+  }
+  return { streak, amount: streak };
+};
