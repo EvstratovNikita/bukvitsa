@@ -27,11 +27,15 @@ export function useAuthRedirectFallback() {
     // Always clean the URL so the error doesn't keep firing on reload.
     window.history.replaceState(null, '', window.location.pathname);
 
-    if (errorCode === 'identity_already_exists') {
+    // identity_already_exists  → this OAuth identity is linked to another user
+    // email_exists              → the email returned by the provider is owned
+    //                             by another user (different identity, same mail)
+    // Both mean: the user already has a permanent account — just sign them in
+    // to it instead of getting stuck on the error.
+    if (errorCode === 'identity_already_exists' || errorCode === 'email_exists') {
       const provider = sessionStorage.getItem(LINK_INTENT_KEY);
       sessionStorage.removeItem(LINK_INTENT_KEY);
       if (provider) {
-        // Sign the user in to their existing account.
         supabase.auth.signInWithOAuth({
           provider,
           options: { redirectTo: window.location.origin }
