@@ -30,12 +30,20 @@ export const WORDS = [
   'учеба', 'почет', 'слава'
 ];
 
+import { VALID_GUESSES_SET } from './validGuesses.js';
+
 export const normalizeWord = (w) =>
   (w || '').toLowerCase().replace(/ё/g, 'е').trim();
 
-const NORMALIZED = new Set(WORDS.map(normalizeWord));
+const ANSWERS_NORMALIZED = new Set(WORDS.map(normalizeWord));
 
-export const isValidWord = (w) => NORMALIZED.has(normalizeWord(w));
+// A guess is valid if it's either in the broad dictionary of real Russian
+// 5-letter words OR in our curated answer pool (safety net in case some
+// answer-list entries didn't make it into the big dictionary).
+export const isValidWord = (w) => {
+  const n = normalizeWord(w);
+  return VALID_GUESSES_SET.has(n) || ANSWERS_NORMALIZED.has(n);
+};
 
 export const pickRandomWord = (rng = Math.random) =>
   WORDS[Math.floor(rng() * WORDS.length)];
