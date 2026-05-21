@@ -352,6 +352,14 @@ button { font-family: inherit; }
 .auth-option__icon--white {
   background: #ffffff;
 }
+.auth-option__icon--transparent {
+  background: transparent;
+  border: 1px solid var(--line);
+}
+.auth-option__icon--transparent svg {
+  width: 28px;
+  height: 28px;
+}
 .auth-option__title { font-weight: 700; font-size: 15px; }
 .auth-option__sub {
   font-size: 12px;

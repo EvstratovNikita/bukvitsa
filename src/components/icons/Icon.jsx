@@ -175,6 +175,42 @@ export function GoogleIcon(props) {
   );
 }
 
+export function YandexIcon(props) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      {...props}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="11" fill="#FC3F1D" />
+      <path
+        d="M13.45 6.35h-1.3c-1.7 0-3.05 1.3-3.05 3.1 0 1.45.65 2.4 2.2 3.4l1.05.7-2.95 4.1h1.45l3.3-4.6L13.6 13l-.95-.65c-1.15-.8-1.6-1.4-1.6-2.5 0-.95.65-1.6 1.6-1.6h.6v10.05h1.25V7.7L14.95 6.35h-1.5z"
+        fill="#fff"
+      />
+    </svg>
+  );
+}
+
+export function VkIcon(props) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      {...props}
+      aria-hidden="true"
+    >
+      <rect width="24" height="24" rx="6" fill="#0077FF" />
+      <path
+        d="M12.85 17.5c-5.43 0-8.53-3.72-8.66-9.92h2.72c.09 4.55 2.09 6.47 3.68 6.87V7.58h2.56v3.92c1.57-.17 3.22-1.96 3.78-3.92h2.56c-.43 2.42-2.22 4.21-3.5 4.95 1.28.6 3.32 2.16 4.1 4.97h-2.82c-.61-1.9-2.13-3.37-4.12-3.57v3.57z"
+        fill="#fff"
+      />
+    </svg>
+  );
+}
+
 export function HintIcon(props) {
   return (
     <svg

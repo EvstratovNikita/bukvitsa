@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
 import { translateAuthError } from '../../lib/authErrors.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
-import { GoogleIcon, LogoutIcon, MailIcon, UserIcon } from '../icons/Icon.jsx';
+import { GoogleIcon, LogoutIcon, MailIcon, UserIcon, VkIcon, YandexIcon } from '../icons/Icon.jsx';
 
 export function AuthButton() {
   const { auth } = useGameContext();
@@ -50,15 +50,15 @@ function SignInPanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
-  const onGoogle = async () => {
+  const onOAuth = async (provider) => {
     setBusy(true);
     setError(null);
     try {
       // Save intent so the App-level error handler can fall back to a plain
       // sign-in if the identity is already linked to another (returning) user.
-      sessionStorage.setItem('auth:link-intent', 'google');
+      sessionStorage.setItem('auth:link-intent', provider);
       const { error } = await supabase.auth.linkIdentity({
-        provider: 'google',
+        provider,
         options: { redirectTo: window.location.origin }
       });
       if (error) throw error;
@@ -137,7 +137,7 @@ function SignInPanel() {
       <button
         type="button"
         className="auth-option"
-        onClick={onGoogle}
+        onClick={() => onOAuth('google')}
         onMouseDown={(e) => e.preventDefault()}
         disabled={busy}
       >
@@ -147,6 +147,38 @@ function SignInPanel() {
         <div className="auth-option__body">
           <div className="auth-option__title">Войти через Google</div>
           <div className="auth-option__sub">Один клик — без пароля</div>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        className="auth-option"
+        onClick={() => onOAuth('custom:yandex')}
+        onMouseDown={(e) => e.preventDefault()}
+        disabled={busy}
+      >
+        <div className="auth-option__icon auth-option__icon--transparent">
+          <YandexIcon />
+        </div>
+        <div className="auth-option__body">
+          <div className="auth-option__title">Войти через Яндекс</div>
+          <div className="auth-option__sub">Через ваш Яндекс ID</div>
+        </div>
+      </button>
+
+      <button
+        type="button"
+        className="auth-option"
+        onClick={() => onOAuth('custom:vk')}
+        onMouseDown={(e) => e.preventDefault()}
+        disabled={busy}
+      >
+        <div className="auth-option__icon auth-option__icon--transparent">
+          <VkIcon />
+        </div>
+        <div className="auth-option__body">
+          <div className="auth-option__title">Войти через VK</div>
+          <div className="auth-option__sub">Через ваш VK ID</div>
         </div>
       </button>
 
