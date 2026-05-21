@@ -53,6 +53,9 @@ function SignInPanel() {
     setBusy(true);
     setError(null);
     try {
+      // Save intent so the App-level error handler can fall back to a plain
+      // sign-in if the identity is already linked to another (returning) user.
+      sessionStorage.setItem('auth:link-intent', 'google');
       const { error } = await supabase.auth.linkIdentity({
         provider: 'google',
         options: { redirectTo: window.location.origin }
@@ -60,6 +63,7 @@ function SignInPanel() {
       if (error) throw error;
       // Browser navigates away on success.
     } catch (e) {
+      sessionStorage.removeItem('auth:link-intent');
       setError(e.message || 'Не удалось войти через Google');
       setBusy(false);
     }
@@ -67,13 +71,39 @@ function SignInPanel() {
 
   const onSendEmail = async (ev) => {
     ev.preventDefault();
-    if (!email.trim()) return;
+    const addr = email.trim();
+    if (!addr) return;
     setBusy(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.updateUser({ email: email.trim() });
-      if (error) throw error;
-      setPhase('sent');
+      // 1st try: link this email to the current anon user (preserves progress).
+      const { error: linkErr } = await supabase.auth.updateUser({ email: addr });
+      if (!linkErr) {
+        setPhase('sent');
+        return;
+      }
+      // If the email is already used by another (returning) user, fall back
+      // to a plain magic-link sign-in into that existing account.
+      const msg = (linkErr.message || '').toLowerCase();
+      const isTaken =
+        linkErr.code === 'email_exists' ||
+        linkErr.code === 'email_address_not_authorized' ||
+        msg.includes('already') ||
+        msg.includes('exists') ||
+        msg.includes('registered');
+      if (isTaken) {
+        const { error: signInErr } = await supabase.auth.signInWithOtp({
+          email: addr,
+          options: {
+            shouldCreateUser: false,
+            emailRedirectTo: window.location.origin
+          }
+        });
+        if (signInErr) throw signInErr;
+        setPhase('sent');
+        return;
+      }
+      throw linkErr;
     } catch (e) {
       setError(e.message || 'Не удалось отправить письмо');
     } finally {

@@ -10,6 +10,7 @@ import { DailyReward } from './components/DailyReward/DailyReward.jsx';
 import { Modal } from './components/Modal/Modal.jsx';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
+import { useAuthRedirectFallback } from './hooks/useAuthRedirectFallback.js';
 
 function HelpBody() {
   return (
@@ -60,6 +61,7 @@ function Toast() {
 
 function GameShell() {
   useKeyboard(true);
+  useAuthRedirectFallback();
   const { stats, resetStats } = useGameContext();
   const [statsOpen, setStatsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
