@@ -160,6 +160,29 @@ button { font-family: inherit; }
   flex-wrap: wrap;
 }
 
+/* ---------- New game button ---------- */
+.newgame-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(95, 209, 138, 0.22), rgba(108, 230, 174, 0.12));
+  border: 1px solid rgba(95, 209, 138, 0.5);
+  color: #6ee7a8;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  animation: newgame-in 360ms cubic-bezier(.2,.7,.3,1.2) both;
+}
+.newgame-btn svg { width: 16px; height: 16px; }
+@keyframes newgame-in {
+  0%   { opacity: 0; transform: scale(0.7) translateY(4px); }
+  60%  { opacity: 1; transform: scale(1.05) translateY(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* ---------- Hint button ---------- */
 .hint-btn {
   display: inline-flex;
