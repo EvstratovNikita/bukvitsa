@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, MAX_ATTEMPTS, WORD_LENGTH, rewardFor } from '../constants/game.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
-import { normalizeWord, pickRandomWord } from '../data/words.js';
+import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { useStats } from './useStats.js';
 
 const isCyrillicLetter = (ch) => /^[а-яё]$/i.test(ch);
@@ -47,6 +47,12 @@ export function useGame() {
       return;
     }
     const guess = normalizeWord(current);
+    if (!isValidWord(guess)) {
+      setShakeRow(true);
+      showToast('В словаре нет такого слова, попробуйте другое!');
+      setTimeout(() => setShakeRow(false), 450);
+      return;
+    }
     const evalRow = evaluateGuess(guess, solution);
     const nextGuesses = [...guesses, guess];
     const nextEvals = [...evaluations, evalRow];
