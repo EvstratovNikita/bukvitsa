@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
+import { translateAuthError } from '../../lib/authErrors.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { GoogleIcon, LogoutIcon, MailIcon, UserIcon } from '../icons/Icon.jsx';
@@ -64,7 +65,7 @@ function SignInPanel() {
       // Browser navigates away on success.
     } catch (e) {
       sessionStorage.removeItem('auth:link-intent');
-      setError(e.message || 'Не удалось войти через Google');
+      setError(translateAuthError(e));
       setBusy(false);
     }
   };
@@ -105,7 +106,7 @@ function SignInPanel() {
       }
       throw linkErr;
     } catch (e) {
-      setError(e.message || 'Не удалось отправить письмо');
+      setError(translateAuthError(e));
     } finally {
       setBusy(false);
     }
