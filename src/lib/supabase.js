@@ -13,6 +13,12 @@ const isConfigured = Boolean(url && anonKey);
 export const supabase = isConfigured
   ? createClient(url, anonKey, {
       auth: {
+        // PKCE flow — tokens are never carried in the URL fragment. The
+        // callback URL contains only a short-lived `?code=...` that the
+        // client exchanges for a session via POST; the code is useless
+        // without the locally-stored code_verifier. Mitigates token leaks
+        // via browser history, extensions, and accidentally shared URLs.
+        flowType: 'pkce',
         // Persist session in localStorage; refresh tokens automatically.
         persistSession: true,
         autoRefreshToken: true,
