@@ -166,21 +166,26 @@ function SignInPanel() {
         </div>
       </button>
 
-      <button
-        type="button"
-        className="auth-option"
-        onClick={() => onOAuth('custom:vk')}
-        onMouseDown={(e) => e.preventDefault()}
-        disabled={busy}
-      >
-        <div className="auth-option__icon auth-option__icon--transparent">
-          <VkIcon />
-        </div>
-        <div className="auth-option__body">
-          <div className="auth-option__title">Войти через VK</div>
-          <div className="auth-option__sub">Через ваш VK ID</div>
-        </div>
-      </button>
+      {/* VK temporarily hidden until VK ID for Business provides classic
+          OAuth credentials. Frontend is ready — flip the comment back on
+          and configure auth.custom_oauth_providers row to enable. */}
+      {false && (
+        <button
+          type="button"
+          className="auth-option"
+          onClick={() => onOAuth('custom:vk')}
+          onMouseDown={(e) => e.preventDefault()}
+          disabled={busy}
+        >
+          <div className="auth-option__icon auth-option__icon--transparent">
+            <VkIcon />
+          </div>
+          <div className="auth-option__body">
+            <div className="auth-option__title">Войти через VK</div>
+            <div className="auth-option__sub">Через ваш VK ID</div>
+          </div>
+        </button>
+      )}
 
       {phase === 'default' ? (
         <button
