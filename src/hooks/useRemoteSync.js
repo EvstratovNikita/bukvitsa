@@ -15,7 +15,11 @@ const toRow = (stats, userId) => ({
   distribution: stats.distribution || [0, 0, 0, 0, 0, 0],
   coins: stats.coins || 0,
   last_visit_date: stats.lastVisitDate || null,
-  daily_streak: stats.dailyStreak || 0
+  daily_streak: stats.dailyStreak || 0,
+  inventory: stats.inventory || [],
+  active_background: stats.activeBackground || null,
+  active_cell_style: stats.activeCellStyle || null,
+  boost_double_coins: Boolean(stats.boostDoubleCoins)
 });
 
 const fromRow = (row) => ({
@@ -29,7 +33,11 @@ const fromRow = (row) => ({
   distribution: Array.isArray(row.distribution) ? row.distribution : [0, 0, 0, 0, 0, 0],
   coins: row.coins || 0,
   lastVisitDate: row.last_visit_date || null,
-  dailyStreak: row.daily_streak || 0
+  dailyStreak: row.daily_streak || 0,
+  inventory: Array.isArray(row.inventory) ? row.inventory : [],
+  activeBackground: row.active_background || null,
+  activeCellStyle: row.active_cell_style || null,
+  boostDoubleCoins: Boolean(row.boost_double_coins)
 });
 
 // Heuristic: does the local snapshot contain progress worth pushing if the
@@ -38,13 +46,15 @@ const hasLocalProgress = (s) =>
   (s.played || 0) > 0 ||
   (s.coins || 0) > 0 ||
   (s.dailyStreak || 0) > 0 ||
-  Boolean(s.lastVisitDate);
+  Boolean(s.lastVisitDate) ||
+  (Array.isArray(s.inventory) && s.inventory.length > 0);
 
 const hasServerProgress = (row) =>
   (row.played || 0) > 0 ||
   (row.coins || 0) > 0 ||
   (row.daily_streak || 0) > 0 ||
-  Boolean(row.last_visit_date);
+  Boolean(row.last_visit_date) ||
+  (Array.isArray(row.inventory) && row.inventory.length > 0);
 
 /**
  * Bridges a useState stats object to a Supabase row.

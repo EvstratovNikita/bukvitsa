@@ -234,6 +234,25 @@ export function HintIcon(props) {
 
 let coinIdSeq = 0;
 
+export function MenuIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  );
+}
+
+export function ShopIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M5 9h14l-1 11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" />
+      <path d="M9 9V6a3 3 0 0 1 6 0v3" />
+    </svg>
+  );
+}
+
 export function CoinIcon(props) {
   const id = `coin-${++coinIdSeq}`;
   return (

@@ -9,9 +9,13 @@ import { NewGameButton } from './components/NewGame/NewGame.jsx';
 import { GameEnd } from './components/GameEnd/GameEnd.jsx';
 import { DailyReward } from './components/DailyReward/DailyReward.jsx';
 import { Modal } from './components/Modal/Modal.jsx';
+import { SideMenu } from './components/Menu/Menu.jsx';
+import { Shop } from './components/Shop/Shop.jsx';
+import { AuthModal } from './components/Auth/Auth.jsx';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
 import { useAuthRedirectFallback } from './hooks/useAuthRedirectFallback.js';
+import { useShopTheme } from './hooks/useShopTheme.js';
 
 function HelpBody() {
   return (
@@ -46,6 +50,13 @@ function HelpBody() {
         <li><span className="help__rewardN">15</span> выбранная позиция <em>— 15 монет</em></li>
       </ul>
 
+      <h3 className="help__heading">Магазин</h3>
+      <p>
+        В меню (правый верхний угол) есть Магазин — там за монеты можно купить
+        смены фона, стили клеток и одноразовые бонусы, например «Двойные монеты»
+        на следующую победу.
+      </p>
+
       <p className="help__hint">
         Используются только нарицательные русские существительные. Имена и
         географические названия не загадываются.
@@ -63,9 +74,13 @@ function Toast() {
 function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
+  useShopTheme();
   const { stats, resetStats } = useGameContext();
   const [statsOpen, setStatsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
   return (
@@ -73,6 +88,7 @@ function GameShell() {
       <Header
         onOpenStats={() => setStatsOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
+        onOpenMenu={() => setMenuOpen(true)}
       />
       <div className="topbar">
         <Coins />
@@ -87,6 +103,18 @@ function GameShell() {
       <Keyboard />
       <Toast />
       <DailyReward />
+
+      <SideMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onOpenShop={() => setShopOpen(true)}
+        onOpenStats={() => setStatsOpen(true)}
+        onOpenHelp={() => setHelpOpen(true)}
+        onOpenAuth={() => setAuthOpen(true)}
+      />
+
+      <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
         <Stats stats={stats} onReset={resetStats} />

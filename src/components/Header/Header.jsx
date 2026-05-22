@@ -1,7 +1,7 @@
-import { AuthButton } from '../Auth/Auth.jsx';
 import { HelpIcon, StatsIcon } from '../icons/Icon.jsx';
+import { MenuButton } from '../Menu/Menu.jsx';
 
-export function Header({ onOpenStats, onOpenHelp }) {
+export function Header({ onOpenStats, onOpenHelp, onOpenMenu }) {
   return (
     <header className="header">
       <button
@@ -31,7 +31,7 @@ export function Header({ onOpenStats, onOpenHelp }) {
         >
           <StatsIcon />
         </button>
-        <AuthButton />
+        <MenuButton onClick={onOpenMenu} />
       </div>
     </header>
   );

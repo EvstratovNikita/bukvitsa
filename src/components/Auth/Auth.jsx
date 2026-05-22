@@ -33,7 +33,7 @@ export function AuthButton() {
   );
 }
 
-function AuthModal({ open, onClose }) {
+export function AuthModal({ open, onClose }) {
   const { auth } = useGameContext();
   const isLinked = auth?.user && auth.isAnonymous === false;
 
