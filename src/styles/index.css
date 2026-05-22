@@ -395,7 +395,8 @@ button { font-family: inherit; }
   position: relative;
 }
 .shop-card__preview--bg {
-  background-size: cover;
+  /* Let each layer use its natural size — SVG patterns repeat at their
+     tile size and gradients fill the card. */
 }
 .shop-card__preview--cells-neon {
   background:
