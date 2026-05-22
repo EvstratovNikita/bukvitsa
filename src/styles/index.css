@@ -413,6 +413,30 @@ button { font-family: inherit; }
     radial-gradient(circle at 30% 30%, rgba(247, 201, 72, 0.25), transparent 60%),
     var(--bg-2);
 }
+.shop-card__preview--default {
+  background:
+    radial-gradient(1100px 600px at 20% -10%, rgba(108, 140, 255, 0.18), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, rgba(179, 136, 255, 0.14), transparent 60%),
+    linear-gradient(180deg, #0b0d12, #11151c);
+  position: relative;
+}
+.shop-card__preview-default-label {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+.shop-card__preview-letter--plain {
+  text-shadow: none;
+}
 .shop-card__preview-letter {
   font-weight: 800;
   font-size: 32px;
@@ -1055,6 +1079,31 @@ button { font-family: inherit; }
 }
 .row--shake { animation: shake 420ms cubic-bezier(.36,.07,.19,.97); }
 
+/* Hinted (paid-for) letter ghosted inside an otherwise empty slot. */
+.cell--hint .cell__face--front,
+.cell--hint .cell__face--back {
+  color: rgba(247, 201, 72, 0.85);
+  border-color: rgba(247, 201, 72, 0.55) !important;
+  background: rgba(247, 201, 72, 0.08) !important;
+  font-weight: 700;
+}
+
+/* Pick-mode: empty + not-already-known slots get a glowing call-to-tap. */
+.cell--pick {
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+.cell--pick .cell__face--front,
+.cell--pick .cell__face--back {
+  color: var(--accent-2);
+  border: 2px dashed var(--accent) !important;
+  background: rgba(108, 140, 255, 0.1) !important;
+  animation: pick-pulse 1.2s ease-in-out infinite;
+}
+.cell--pick:disabled { animation: none; }
+
 /* ---------- Cell ---------- */
 .cell {
   position: relative;
@@ -1106,25 +1155,15 @@ button { font-family: inherit; }
 .cell--absent  .cell__face--back { background: var(--absent);  color: var(--absent-ink);  border-color: var(--absent); }
 
 /* Resting (post-reveal) face shown via front when not flipping */
-/* ---------- Shop cell styles ---------- */
-/* Neon glow on filled letters */
-body.cell-style-cells-neon .cell--tbd .cell__face--front,
-body.cell-style-cells-neon .cell--correct:not(.cell--flipping) .cell__face--front,
-body.cell-style-cells-neon .cell--present:not(.cell--flipping) .cell__face--front,
-body.cell-style-cells-neon .cell--absent:not(.cell--flipping) .cell__face--front,
-body.cell-style-cells-neon .cell__face--back {
+/* Neon glow ONLY while typing (current input row, not yet submitted). After
+   reveal animation the cells return to plain colored faces. */
+body.cell-style-cells-neon .cell--tbd .cell__face--front {
   text-shadow:
     0 0 6px rgba(255, 255, 255, 0.65),
     0 0 18px rgba(108, 140, 255, 0.55),
     0 0 28px rgba(179, 136, 255, 0.45);
 }
 
-/* Golden shimmer on winning correct cells */
-body.cell-style-cells-shimmer .cell--correct:not(.cell--flipping) .cell__face--front {
-  background: linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
-  background-size: 240% 100%;
-  animation: shimmer-slide 2.8s linear infinite;
-}
 @keyframes shimmer-slide {
   0%   { background-position: 100% 0; }
   100% { background-position: -100% 0; }
@@ -1133,6 +1172,19 @@ body.cell-style-cells-shimmer .cell--correct:not(.cell--flipping) .cell__face--f
 .cell--correct:not(.cell--flipping) .cell__face--front { background: var(--correct); color: var(--correct-ink); border-color: var(--correct); }
 .cell--present:not(.cell--flipping) .cell__face--front { background: var(--present); color: var(--present-ink); border-color: var(--present); }
 .cell--absent:not(.cell--flipping)  .cell__face--front { background: var(--absent);  color: var(--absent-ink);  border-color: var(--absent); }
+
+/* Golden shimmer on winning correct cells — placed AFTER the base
+   .cell--correct rule so it actually wins specificity-wise. */
+body.cell-style-cells-shimmer .cell--correct:not(.cell--flipping) .cell__face--front,
+body.cell-style-cells-shimmer .cell--correct .cell__face--back {
+  background-image: linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
+  background-color: #f7c948;
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer-slide 2.8s linear infinite;
+  color: var(--correct-ink);
+  border-color: #f7c948;
+}
 
 /* Pop on input */
 .cell--pop .cell__face--front { animation: pop 140ms ease-out; }
@@ -1409,14 +1461,16 @@ body.cell-style-cells-shimmer .cell--correct:not(.cell--flipping) .cell__face--f
   left: 50%;
   background: var(--bg-3);
   color: var(--text);
-  padding: 10px 14px;
-  border-radius: 10px;
+  padding: 10px 16px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
   z-index: 50;
-  max-width: calc(100vw - 32px);
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
   text-align: center;
-  white-space: nowrap;
   /* Animate from -50% +Y to -50% 0 so the X centering stays fixed
      through the whole tween (otherwise translateY replaces translateX). */
   transform: translate(-50%, 0);

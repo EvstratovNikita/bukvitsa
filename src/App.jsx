@@ -4,7 +4,7 @@ import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
 import { Coins } from './components/Coins/Coins.jsx';
-import { HintButton, HintsStrip } from './components/Hints/Hints.jsx';
+import { HintButton } from './components/Hints/Hints.jsx';
 import { NewGameButton } from './components/NewGame/NewGame.jsx';
 import { GameEnd } from './components/GameEnd/GameEnd.jsx';
 import { DailyReward } from './components/DailyReward/DailyReward.jsx';
@@ -96,7 +96,6 @@ function GameShell() {
         <NewGameButton />
       </div>
       <main className="main">
-        <HintsStrip />
         <Board />
         <GameEnd />
       </main>

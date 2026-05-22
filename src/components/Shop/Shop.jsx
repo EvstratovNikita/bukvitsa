@@ -4,6 +4,28 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
 
+// Virtual "default" cards prepended to cosmetic categories. They aren't part
+// of the inventory — they just clear the active selection back to the
+// built-in look, free and always available.
+const DEFAULT_ITEM = {
+  background: {
+    id: '__default-bg',
+    category: 'background',
+    name: 'Стандартный',
+    desc: 'Базовый тёмный фон по умолчанию',
+    price: 0,
+    isDefault: true
+  },
+  cells: {
+    id: '__default-cells',
+    category: 'cells',
+    name: 'Стандартный',
+    desc: 'Базовый стиль букв в клетках',
+    price: 0,
+    isDefault: true
+  }
+};
+
 const ERROR_LABEL = {
   not_enough_coins: 'Не хватает монет',
   already_owned: 'Уже куплено',
@@ -15,7 +37,11 @@ export function Shop({ open, onClose }) {
   const [activeCat, setActiveCat] = useState(SHOP_CATEGORIES[0].id);
   const [feedback, setFeedback] = useState(null); // { id, type: 'ok'|'err', text }
 
-  const items = useMemo(() => itemsByCategory(activeCat), [activeCat]);
+  const items = useMemo(() => {
+    const cataloged = itemsByCategory(activeCat);
+    const defaultItem = DEFAULT_ITEM[activeCat];
+    return defaultItem ? [defaultItem, ...cataloged] : cataloged;
+  }, [activeCat]);
 
   const flash = (id, type, text) => {
     setFeedback({ id, type, text });
@@ -32,8 +58,9 @@ export function Shop({ open, onClose }) {
   };
 
   const onEquip = (item) => {
-    if (item.category === 'background') setActiveBackground(item.id);
-    else if (item.category === 'cells') setActiveCellStyle(item.id);
+    const id = item.isDefault ? null : item.id;
+    if (item.category === 'background') setActiveBackground(id);
+    else if (item.category === 'cells') setActiveCellStyle(id);
   };
 
   const onUnequip = (item) => {
@@ -91,10 +118,12 @@ export function Shop({ open, onClose }) {
 }
 
 function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
-  const owned = (stats.inventory || []).includes(item.id);
-  const active =
-    (item.category === 'background' && stats.activeBackground === item.id) ||
-    (item.category === 'cells' && stats.activeCellStyle === item.id);
+  const owned = item.isDefault || (stats.inventory || []).includes(item.id);
+  const active = item.isDefault
+    ? (item.category === 'background' && !stats.activeBackground) ||
+      (item.category === 'cells' && !stats.activeCellStyle)
+    : (item.category === 'background' && stats.activeBackground === item.id) ||
+      (item.category === 'cells' && stats.activeCellStyle === item.id);
   const armedBoost = item.id === 'boost-double' && Boolean(stats.boostDoubleCoins);
 
   const previewStyle =
@@ -106,15 +135,22 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
   if (item.category === 'background') previewClasses.push('shop-card__preview--bg');
   if (item.category === 'cells') previewClasses.push(`shop-card__preview--${item.id}`);
   if (item.category === 'boost') previewClasses.push('shop-card__preview--boost');
+  if (item.isDefault) previewClasses.push('shop-card__preview--default');
 
   return (
     <div className={`shop-card${active ? ' shop-card--active' : ''}`}>
       <div className={previewClasses.join(' ')} style={previewStyle}>
-        {item.category === 'cells' && (
+        {item.category === 'cells' && !item.isDefault && (
           <span className="shop-card__preview-letter">А</span>
+        )}
+        {item.category === 'cells' && item.isDefault && (
+          <span className="shop-card__preview-letter shop-card__preview-letter--plain">А</span>
         )}
         {item.category === 'boost' && (
           <span className="shop-card__preview-emoji">×2</span>
+        )}
+        {item.isDefault && item.category === 'background' && (
+          <span className="shop-card__preview-default-label">по умолчанию</span>
         )}
       </div>
 
@@ -149,8 +185,9 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
           <button
             type="button"
             className="btn btn--ghost shop-card__btn"
-            onClick={onUnequip}
+            onClick={item.isDefault ? undefined : onUnequip}
             onMouseDown={(e) => e.preventDefault()}
+            disabled={item.isDefault}
           >
             Активно ✓
           </button>

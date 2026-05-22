@@ -1,20 +1,39 @@
 import { ANIM, WORD_LENGTH } from '../../constants/game.js';
 import { Cell } from './Cell.jsx';
 
-export function Row({ guess = '', evaluation, revealing, shaking, isCurrent }) {
+export function Row({
+  guess = '',
+  evaluation,
+  revealing,
+  shaking,
+  isCurrent,
+  // Inline hints injected only for the current input row:
+  hints = [],          // array<string|null> length WORD_LENGTH
+  pickMode = false,    // true → empty/non-correct slots become clickable
+  correctPositions = new Set(),
+  onPick               // (idx) => void
+}) {
   const letters = guess.padEnd(WORD_LENGTH, ' ').split('').map((c) => (c === ' ' ? '' : c));
   return (
     <div className={`row${shaking ? ' row--shake' : ''}`}>
-      {letters.map((ch, i) => (
-        <Cell
-          key={i}
-          letter={ch ? ch.toUpperCase() : ''}
-          status={evaluation ? evaluation[i] : null}
-          revealing={revealing}
-          revealDelayMs={i * ANIM.FLIP_STAGGER_MS}
-          popOnInput={isCurrent && Boolean(ch)}
-        />
-      ))}
+      {letters.map((ch, i) => {
+        const hintLetter = isCurrent ? hints[i] : null;
+        const slotKnown = correctPositions.has(i) || Boolean(hintLetter) || Boolean(ch);
+        const pickable = isCurrent && pickMode && !slotKnown;
+        return (
+          <Cell
+            key={i}
+            letter={ch ? ch.toUpperCase() : ''}
+            status={evaluation ? evaluation[i] : null}
+            revealing={revealing}
+            revealDelayMs={i * ANIM.FLIP_STAGGER_MS}
+            popOnInput={isCurrent && Boolean(ch)}
+            hintLetter={hintLetter}
+            pickable={pickable}
+            onPick={() => onPick && onPick(i)}
+          />
+        );
+      })}
     </div>
   );
 }

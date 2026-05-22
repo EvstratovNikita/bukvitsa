@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { ANIM, GAME_STATUS, HINT_COST, MAX_ATTEMPTS, WORD_LENGTH, rewardFor } from '../constants/game.js';
+import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, WORD_LENGTH, rewardFor } from '../constants/game.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { useStats } from './useStats.js';
@@ -49,7 +49,7 @@ export function useGame() {
     const guess = normalizeWord(current);
     if (!isValidWord(guess)) {
       setShakeRow(true);
-      showToast('В словаре нет такого слова, попробуйте другое!');
+      showToast('Нет такого слова в словаре');
       setTimeout(() => setShakeRow(false), 450);
       return;
     }
@@ -109,28 +109,45 @@ export function useGame() {
     }, 340);
   }, [guesses.length, current.length, hints, performReset]);
 
+  // Positions that have been correctly guessed in past attempts — no point
+  // paying for a hint on a slot the player already knows.
+  const correctSlots = useCallback(() => {
+    const set = new Set();
+    for (const evalRow of evaluations) {
+      if (!evalRow) continue;
+      for (let i = 0; i < evalRow.length; i++) {
+        if (evalRow[i] === LETTER_STATUS.CORRECT) set.add(i);
+      }
+    }
+    return set;
+  }, [evaluations]);
+
   const revealRandomHint = useCallback(() => {
     if (status !== GAME_STATUS.PLAYING) return false;
     const sol = normalizeWord(solution);
+    const known = correctSlots();
     const candidates = [];
-    for (let i = 0; i < WORD_LENGTH; i++) if (!hints[i]) candidates.push(i);
+    for (let i = 0; i < WORD_LENGTH; i++) {
+      if (!hints[i] && !known.has(i)) candidates.push(i);
+    }
     if (candidates.length === 0) { showToast('Все буквы уже открыты'); return false; }
     if (!stats.spendCoins(HINT_COST.RANDOM)) { showToast('Недостаточно монет'); return false; }
     const idx = candidates[Math.floor(Math.random() * candidates.length)];
     setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
     return true;
-  }, [status, solution, hints, stats, showToast]);
+  }, [status, solution, hints, stats, showToast, correctSlots]);
 
   const revealPositionHint = useCallback((idx) => {
     if (status !== GAME_STATUS.PLAYING) return false;
     if (idx < 0 || idx >= WORD_LENGTH) return false;
     if (hints[idx]) { showToast('Эта буква уже открыта'); return false; }
+    if (correctSlots().has(idx)) { showToast('Эта буква уже угадана'); return false; }
     if (!stats.spendCoins(HINT_COST.PICK)) { showToast('Недостаточно монет'); return false; }
     const sol = normalizeWord(solution);
     setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
     setHintPickMode(false);
     return true;
-  }, [status, solution, hints, stats, showToast]);
+  }, [status, solution, hints, stats, showToast, correctSlots]);
 
   const startHintPick = useCallback(() => {
     if (status !== GAME_STATUS.PLAYING) return;
