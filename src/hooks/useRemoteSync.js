@@ -21,7 +21,12 @@ const toRow = (stats, userId) => ({
   active_cell_style: stats.activeCellStyle || null,
   boost_double_coins: Boolean(stats.boostDoubleCoins),
   energy: Number.isFinite(stats.energy) ? stats.energy : null,
-  energy_date: stats.energyDate || null
+  energy_date: stats.energyDate || null,
+  hints_used: stats.hintsUsed || 0,
+  items_bought: stats.itemsBought || 0,
+  coins_earned: stats.coinsEarned || 0,
+  fastest_win_ms: stats.fastestWinMs ?? null,
+  unlocked_achievements: Array.isArray(stats.unlockedAchievements) ? stats.unlockedAchievements : []
 });
 
 const fromRow = (row) => clean({
@@ -41,7 +46,12 @@ const fromRow = (row) => clean({
   activeCellStyle: row.active_cell_style || null,
   boostDoubleCoins: Boolean(row.boost_double_coins),
   energy: Number.isFinite(row.energy) ? row.energy : undefined,
-  energyDate: row.energy_date || undefined
+  energyDate: row.energy_date || undefined,
+  hintsUsed: Number.isFinite(row.hints_used) ? row.hints_used : undefined,
+  itemsBought: Number.isFinite(row.items_bought) ? row.items_bought : undefined,
+  coinsEarned: Number.isFinite(row.coins_earned) ? row.coins_earned : undefined,
+  fastestWinMs: Number.isFinite(row.fastest_win_ms) ? row.fastest_win_ms : undefined,
+  unlockedAchievements: Array.isArray(row.unlocked_achievements) ? row.unlocked_achievements : undefined
 });
 
 // Strip keys whose value is `undefined` so a spread merge into local state

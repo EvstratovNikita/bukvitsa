@@ -275,7 +275,7 @@ button { font-family: inherit; }
 }
 .menu-item {
   display: grid;
-  grid-template-columns: 36px 1fr;
+  grid-template-columns: 36px 1fr auto;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
@@ -287,6 +287,20 @@ button { font-family: inherit; }
   font-size: 15px;
   cursor: pointer;
   text-align: left;
+}
+.menu-item__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f7c948, #ffb84d);
+  color: #1a1300;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 .menu-item__icon {
   width: 36px;
@@ -1707,4 +1721,141 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   .key--wide { font-size: 11px; }
   .row { gap: 6px; }
   .board { gap: 6px; }
+}
+
+/* ---------- Achievements modal ---------- */
+.ach { display: flex; flex-direction: column; gap: 20px; }
+.ach__summary { display: flex; flex-direction: column; gap: 6px; }
+.ach__summary-bar {
+  position: relative;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ach__summary-fill {
+  position: absolute; inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #f7c948, #ffb84d);
+  border-radius: 999px;
+  transition: width 600ms ease-out;
+}
+.ach__summary-text { font-size: 13px; color: rgba(229, 235, 255, 0.72); }
+.ach__summary-text b { color: #e6ecff; }
+
+.ach-section { display: flex; flex-direction: column; gap: 10px; }
+.ach-section__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(229, 235, 255, 0.55);
+}
+.ach-list { display: grid; grid-template-columns: 1fr; gap: 10px; }
+
+.ach-card {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0.65;
+}
+.ach-card--unlocked {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.10), rgba(247, 201, 72, 0.02));
+  border-color: rgba(247, 201, 72, 0.35);
+}
+.ach-card__icon {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  font-size: 24px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.ach-card--unlocked .ach-card__icon {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.30), rgba(247, 201, 72, 0.08));
+}
+.ach-card__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ach-card__row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ach-card__title { font-weight: 700; font-size: 15px; color: #e6ecff; }
+.ach-card__reward {
+  display: inline-flex; align-items: center; gap: 3px;
+  color: #f7c948; font-weight: 700; font-size: 13px;
+}
+.ach-card__desc { font-size: 13px; line-height: 1.4; color: rgba(229, 235, 255, 0.7); }
+.ach-card__bar {
+  position: relative;
+  height: 8px;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ach-card__bar-fill {
+  position: absolute; inset: 0 auto 0 0;
+  background: linear-gradient(90deg, #6c8cff, #b388ff);
+  border-radius: 999px;
+}
+.ach-card__bar-text {
+  position: absolute;
+  right: 0;
+  top: -16px;
+  font-size: 11px;
+  color: rgba(229, 235, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+.ach-card__status {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f7c948;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------- Achievement unlock toast ---------- */
+.ach-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
+  background: linear-gradient(135deg, rgba(28, 22, 6, 0.96), rgba(20, 16, 8, 0.96));
+  border: 1px solid rgba(247, 201, 72, 0.5);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(247, 201, 72, 0.18);
+  z-index: 60;
+  animation: ach-toast-rise 380ms cubic-bezier(.2, .8, .2, 1);
+}
+.ach-toast__icon {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f7c948, #ffb84d);
+  font-size: 22px;
+}
+.ach-toast__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f7c948;
+}
+.ach-toast__title { font-size: 14px; font-weight: 700; color: #fde8a8; }
+.ach-toast__reward {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-weight: 800; color: #f7c948;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes ach-toast-rise {
+  from { transform: translate(-50%, 18px); opacity: 0; }
+  to   { transform: translate(-50%, 0);     opacity: 1; }
 }

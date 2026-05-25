@@ -10,6 +10,7 @@ import {
   rewardFor,
   todayKey
 } from '../constants/game.js';
+import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
 import { storage } from '../utils/storage.js';
 import { useAuth } from './useAuth.js';
@@ -32,7 +33,12 @@ const DEFAULT_STATS = {
   activeCellStyle: null,  // id of currently equipped cell style
   boostDoubleCoins: false, // one-shot x2 boost for the next won game
   energy: ENERGY_MAX,      // remaining puzzles for today
-  energyDate: null         // 'YYYY-MM-DD' tagging the day energy was last refilled
+  energyDate: null,        // 'YYYY-MM-DD' tagging the day energy was last refilled
+  hintsUsed: 0,            // cumulative paid-hint reveals
+  itemsBought: 0,          // cumulative shop purchases (both cosmetic + consumable)
+  coinsEarned: 0,          // cumulative coins ever credited (never decreases)
+  fastestWinMs: null,      // lowest elapsed time across won games
+  unlockedAchievements: [] // ids of unlocked achievements
 };
 
 function load() {
@@ -44,12 +50,14 @@ function load() {
     distribution: Array.isArray(raw.distribution) && raw.distribution.length === MAX_ATTEMPTS
       ? raw.distribution
       : DEFAULT_STATS.distribution,
-    inventory: Array.isArray(raw.inventory) ? raw.inventory : []
+    inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
+    unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : []
   };
 }
 
 export function useStats() {
   const [stats, setStats] = useState(load);
+  const [achievementToasts, setAchievementToasts] = useState([]);
   const auth = useAuth();
 
   useEffect(() => {
@@ -57,6 +65,34 @@ export function useStats() {
   }, [stats]);
 
   useRemoteSync({ stats, setStats, userId: auth.userId });
+
+  // After any stats mutation, detect achievements whose condition just got
+  // satisfied. Mark them unlocked, credit reward coins, queue a toast. The
+  // setStats updater is idempotent (re-entry from chained unlocks ends when
+  // findNewlyUnlocked returns []).
+  useEffect(() => {
+    const newly = findNewlyUnlocked(stats);
+    if (!newly.length) return;
+    setAchievementToasts((q) => [...q, ...newly.map((id) => ({ id, ts: Date.now() }))]);
+    setStats((s) => {
+      const ids = new Set(s.unlockedAchievements || []);
+      let coins = s.coins || 0;
+      let earned = s.coinsEarned || 0;
+      for (const id of newly) {
+        if (ids.has(id)) continue;
+        ids.add(id);
+        const r = getAchievement(id)?.reward || 0;
+        coins += r;
+        earned += r;
+      }
+      return { ...s, unlockedAchievements: [...ids], coins, coinsEarned: earned };
+    });
+  }, [stats]);
+
+  // UI calls this once it has shown a toast, to drop it from the queue.
+  const consumeAchievementToast = useCallback((id) => {
+    setAchievementToasts((q) => q.filter((t) => t.id !== id));
+  }, []);
 
   // Auto-refill energy on a new local day. Runs once on mount and any time
   // the stored energyDate changes (e.g. after remote sync pulls in new value).
@@ -71,7 +107,7 @@ export function useStats() {
   // Apply the double-coins boost (if armed) when computing the win reward.
   // The current snapshot of stats is captured in the closure so we read the
   // flag synchronously; the boost is consumed inside the setStats updater.
-  const recordWin = useCallback((attemptsUsed) => {
+  const recordWin = useCallback((attemptsUsed, elapsedMs) => {
     const base = rewardFor(attemptsUsed);
     const boosted = stats.boostDoubleCoins ? base * 2 : base;
     setStats((s) => {
@@ -79,6 +115,10 @@ export function useStats() {
       dist[attemptsUsed - 1] = (dist[attemptsUsed - 1] || 0) + 1;
       const currentStreak = s.currentStreak + 1;
       const earned = s.boostDoubleCoins ? base * 2 : base;
+      const prevFast = s.fastestWinMs;
+      const nextFast = (elapsedMs != null && elapsedMs > 0)
+        ? (prevFast == null ? elapsedMs : Math.min(prevFast, elapsedMs))
+        : prevFast;
       return {
         ...s,
         played: s.played + 1,
@@ -90,8 +130,10 @@ export function useStats() {
           ? attemptsUsed
           : Math.min(s.bestAttempts, attemptsUsed),
         coins: (s.coins || 0) + earned,
+        coinsEarned: (s.coinsEarned || 0) + earned,
         distribution: dist,
-        boostDoubleCoins: false
+        boostDoubleCoins: false,
+        fastestWinMs: nextFast
       };
     });
     return boosted;
@@ -126,10 +168,16 @@ export function useStats() {
       return {
         ...s,
         coins: (s.coins || 0) + reward.amount,
+        coinsEarned: (s.coinsEarned || 0) + reward.amount,
         lastVisitDate: todayKey(),
         dailyStreak: reward.streak
       };
     });
+  }, []);
+
+  // Counter bumped by useGame whenever a paid hint successfully reveals.
+  const recordHintUsed = useCallback(() => {
+    setStats((s) => ({ ...s, hintsUsed: (s.hintsUsed || 0) + 1 }));
   }, []);
 
   // ---------- Shop ----------
@@ -148,7 +196,8 @@ export function useStats() {
     setStats((s) => {
       const next = {
         ...s,
-        coins: Math.max(0, (s.coins || 0) - item.price)
+        coins: Math.max(0, (s.coins || 0) - item.price),
+        itemsBought: (s.itemsBought || 0) + 1
       };
       if (item.consumable) {
         // Consumables don't enter inventory — they flip a flag instead.
@@ -234,6 +283,9 @@ export function useStats() {
     consumeEnergy,
     buyEnergy,
     grantAdEnergy,
+    recordHintUsed,
+    achievementToasts,
+    consumeAchievementToast,
     auth
   };
 }

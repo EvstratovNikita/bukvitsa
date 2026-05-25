@@ -9,6 +9,7 @@ import {
   MenuIcon,
   ShopIcon,
   StatsIcon,
+  TrophyIcon,
   UserIcon
 } from '../icons/Icon.jsx';
 
@@ -27,8 +28,9 @@ export function MenuButton({ onClick }) {
   );
 }
 
-export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth }) {
+export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements }) {
   const { stats, auth } = useGameContext();
+  const unlockedCount = (stats.unlockedAchievements || []).length;
 
   // Close with ESC, lock body scroll while open.
   useEffect(() => {
@@ -102,6 +104,12 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
 
         <nav className="menu__list">
           <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} accent />
+          <MenuItem
+            icon={<TrophyIcon />}
+            label="Достижения"
+            badge={unlockedCount > 0 ? unlockedCount : undefined}
+            onClick={handle(onOpenAchievements)}
+          />
           <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
           {isSupabaseConfigured && (
@@ -129,7 +137,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
   );
 }
 
-function MenuItem({ icon, label, onClick, accent, danger }) {
+function MenuItem({ icon, label, onClick, accent, danger, badge }) {
   const classes = [
     'menu-item',
     accent && 'menu-item--accent',
@@ -144,6 +152,7 @@ function MenuItem({ icon, label, onClick, accent, danger }) {
     >
       <span className="menu-item__icon">{icon}</span>
       <span className="menu-item__label">{label}</span>
+      {badge !== undefined && <span className="menu-item__badge">{badge}</span>}
     </button>
   );
 }

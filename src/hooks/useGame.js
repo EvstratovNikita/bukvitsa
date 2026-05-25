@@ -25,6 +25,9 @@ export function useGame() {
   const [isClearing, setIsClearing] = useState(false);
   const [energyModalOpen, setEnergyModalOpen] = useState(false);
   const isLocked = useRef(false);
+  // Wall-clock at which the active puzzle started — used for the "win in N
+  // seconds" achievements. Resets every time a fresh solution is set.
+  const gameStartRef = useRef(Date.now());
   const stats = useStats();
 
   // On first mount, if there's no saved puzzle, spend 1 energy and start one.
@@ -32,6 +35,7 @@ export function useGame() {
   useEffect(() => {
     if (solution !== null) return;
     if (stats.consumeEnergy()) {
+      gameStartRef.current = Date.now();
       setSolution(pickRandomWord());
     } else {
       setEnergyModalOpen(true);
@@ -99,7 +103,8 @@ export function useGame() {
       if (won) {
         setStatus(GAME_STATUS.WON);
         const earned = rewardFor(nextGuesses.length);
-        stats.recordWin(nextGuesses.length);
+        const elapsedMs = Date.now() - gameStartRef.current;
+        stats.recordWin(nextGuesses.length, elapsedMs);
         setLastEarned(earned);
       } else if (lost) {
         setStatus(GAME_STATUS.LOST);
@@ -111,6 +116,7 @@ export function useGame() {
   }, [current, guesses, evaluations, solution, status, stats, showToast]);
 
   const performReset = useCallback(() => {
+    gameStartRef.current = Date.now();
     setSolution(pickRandomWord());
     setGuesses([]);
     setEvaluations([]);
@@ -133,6 +139,7 @@ export function useGame() {
     }
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
+      gameStartRef.current = Date.now();
       setSolution(pickRandomWord());
       return;
     }
@@ -188,6 +195,7 @@ export function useGame() {
     if (!stats.spendCoins(HINT_COST.RANDOM)) { showToast('Недостаточно монет'); return false; }
     const idx = candidates[Math.floor(Math.random() * candidates.length)];
     setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
+    stats.recordHintUsed();
     return true;
   }, [status, solution, hints, stats, showToast, correctSlots]);
 
@@ -200,6 +208,7 @@ export function useGame() {
     const sol = normalizeWord(solution);
     setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
     setHintPickMode(false);
+    stats.recordHintUsed();
     return true;
   }, [status, solution, hints, stats, showToast, correctSlots]);
 
@@ -253,6 +262,9 @@ export function useGame() {
     revealPositionHint,
     startHintPick,
     cancelHintPick,
+    // Achievements (read-only state + UI helpers)
+    achievementToasts: stats.achievementToasts,
+    consumeAchievementToast: stats.consumeAchievementToast,
     // Energy
     energy: stats.energy,
     energyModalOpen,

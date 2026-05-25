@@ -297,6 +297,18 @@ export function CoinIcon(props) {
   );
 }
 
+export function TrophyIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M8 4h8v3a4 4 0 0 1-8 0V4z" />
+      <path d="M8 6H5a2 2 0 0 0 0 4h3" />
+      <path d="M16 6h3a2 2 0 0 1 0 4h-3" />
+      <path d="M10 14h4l-.5 4h-3z" />
+      <path d="M8 21h8" />
+    </svg>
+  );
+}
+
 export function BoltIcon(props) {
   return (
     <svg

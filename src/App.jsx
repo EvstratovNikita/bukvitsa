@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AchievementsModal } from './components/Achievements/Achievements.jsx';
+import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
 import { Header } from './components/Header/Header.jsx';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
@@ -83,6 +85,7 @@ function GameShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [achOpen, setAchOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
   return (
@@ -104,6 +107,7 @@ function GameShell() {
       </main>
       <Keyboard />
       <Toast />
+      <AchievementToast />
       <DailyReward />
 
       <SideMenu
@@ -113,10 +117,12 @@ function GameShell() {
         onOpenStats={() => setStatsOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
+        onOpenAchievements={() => setAchOpen(true)}
       />
 
       <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
       <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
