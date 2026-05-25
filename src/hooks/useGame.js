@@ -276,6 +276,9 @@ export function useGame() {
     hatchPet: stats.hatchPet,
     renamePet: stats.renamePet,
     recordPetXp: stats.recordPetXp,
+    feedPet: stats.feedPet,
+    petHunger: stats.petHunger,
+    lastEnergyTickAt: stats.lastEnergyTickAt,
     // Energy
     energy: stats.energy,
     energyModalOpen,

@@ -3,8 +3,7 @@ import { AchievementsModal } from './components/Achievements/Achievements.jsx';
 import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
 import { Header } from './components/Header/Header.jsx';
 import { InviteModal } from './components/Share/InviteModal.jsx';
-import { PetFab } from './components/Pet/PetFab.jsx';
-import { PetModal } from './components/Pet/PetModal.jsx';
+import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
 import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
@@ -105,9 +104,9 @@ function GameShell() {
   return (
     <div className="app">
       <Header
-        onOpenStats={() => setStatsOpen(true)}
         onOpenHelp={() => setHelpOpen(true)}
         onOpenMenu={() => setMenuOpen(true)}
+        onOpenPet={() => setPetOpen(true)}
       />
       <div className="topbar">
         <Coins />
@@ -117,7 +116,6 @@ function GameShell() {
       <main className="main">
         <Board />
         <GameEnd />
-        <PetFab onOpen={() => setPetOpen(true)} />
       </main>
       {status === GAME_STATUS.PLAYING ? <Keyboard /> : <EndPanel />}
       <Toast />
@@ -139,7 +137,7 @@ function GameShell() {
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
       <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
-      <PetModal open={petOpen} onClose={() => setPetOpen(false)} />
+      <PetScreen open={petOpen} onClose={() => setPetOpen(false)} />
       <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">

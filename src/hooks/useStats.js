@@ -3,16 +3,18 @@ import {
   ENERGY_AD_REWARD,
   ENERGY_MAX,
   ENERGY_REFILL_COST,
+  HUNGER_MAX,
   MAX_ATTEMPTS,
   STORAGE_KEYS,
   computeDailyReward,
   petComputeLevel,
-  refillEnergyForToday,
+  reconcilePetTimers,
   rewardFor,
   todayKey
 } from '../constants/game.js';
 import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
+import { getTreat } from '../data/petTreats.js';
 import { storage } from '../utils/storage.js';
 import { useAuth } from './useAuth.js';
 import { useRemoteSync } from './useRemoteSync.js';
@@ -33,8 +35,8 @@ const DEFAULT_STATS = {
   activeBackground: null, // id of currently equipped background skin
   activeCellStyle: null,  // id of currently equipped cell style
   boostDoubleCoins: false, // one-shot x2 boost for the next won game
-  energy: ENERGY_MAX,      // remaining puzzles for today
-  energyDate: null,        // 'YYYY-MM-DD' tagging the day energy was last refilled
+  energy: ENERGY_MAX,           // current units; regens over time
+  lastEnergyTickAt: null,       // ISO of last reconciliation
   hintsUsed: 0,            // cumulative paid-hint reveals
   itemsBought: 0,          // cumulative shop purchases (both cosmetic + consumable)
   coinsEarned: 0,          // cumulative coins ever credited (never decreases)
@@ -47,9 +49,11 @@ const DEFAULT_STATS = {
     hatched: false,
     name: 'Букля',
     species: 'owl',
-    bornAt: null,    // ISO date when the egg cracked
-    xp: 0,           // cumulative; level derived via petComputeLevel
-    level: 1
+    bornAt: null,           // ISO date when the egg cracked
+    xp: 0,                  // cumulative; level derived via petComputeLevel
+    level: 1,
+    hunger: HUNGER_MAX / 2, // starts half-full after hatching
+    lastHungerTickAt: null  // ISO of last hunger decay reconciliation
   }
 };
 
@@ -79,6 +83,32 @@ export function useStats() {
 
   useRemoteSync({ stats, setStats, userId: auth.userId });
 
+  // Wall-clock tick used to drive countdowns. Bumped every ~30s so the
+  // EnergyBadge "+1 через M:SS" reads as continuous without flooding state.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Reconciled (post-decay/regen) view derived on every render. Cheap because
+  // reconcilePetTimers is pure math. Used everywhere the UI needs current
+  // values; the stored stats lag behind until a real mutation flushes them.
+  const reconciled = useMemo(() => reconcilePetTimers({
+    energy: stats.energy,
+    lastEnergyTickAt: stats.lastEnergyTickAt,
+    hunger: stats.pet?.hunger,
+    lastHungerTickAt: stats.pet?.lastHungerTickAt,
+    hatched: Boolean(stats.pet?.hatched),
+    nowMs
+  }), [stats.energy, stats.lastEnergyTickAt, stats.pet?.hunger, stats.pet?.lastHungerTickAt, stats.pet?.hatched, nowMs]);
+
+  // Note: we deliberately do NOT flush `reconciled` back into stats on every
+  // tick — hunger decays continuously and that would write to storage / push
+  // to Supabase every 30s. The reconciled snapshot drives display + is folded
+  // into every real mutation (consume/buy/feed), and on next mount the same
+  // reconcile recomputes from the persisted lastEnergyTickAt + elapsed time.
+
   // After any stats mutation, detect achievements whose condition just got
   // satisfied. Mark them unlocked, credit reward coins, queue a toast. The
   // setStats updater is idempotent (re-entry from chained unlocks ends when
@@ -107,15 +137,6 @@ export function useStats() {
     setAchievementToasts((q) => q.filter((t) => t.id !== id));
   }, []);
 
-  // Auto-refill energy on a new local day. Runs once on mount and any time
-  // the stored energyDate changes (e.g. after remote sync pulls in new value).
-  useEffect(() => {
-    setStats((s) => {
-      const r = refillEnergyForToday(s.energyDate, s.energy);
-      if (r.energy === s.energy && r.energyDate === s.energyDate) return s;
-      return { ...s, ...r };
-    });
-  }, [stats.energyDate]);
 
   // Apply the double-coins boost (if armed) when computing the win reward.
   // The current snapshot of stats is captured in the closure so we read the
@@ -217,6 +238,35 @@ export function useStats() {
     setStats((s) => ({ ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), name: clean } }));
   }, []);
 
+  // Buy a treat → spend coins, add to hunger (capped at 100). Returns:
+  //   'ok' | 'not_enough_coins' | 'not_hatched' | 'unknown_treat' | 'full'
+  const feedPet = useCallback((treatId) => {
+    const treat = getTreat(treatId);
+    if (!treat) return 'unknown_treat';
+    if (!stats.pet?.hatched) return 'not_hatched';
+    if ((reconciled.hunger ?? 0) >= HUNGER_MAX - 0.5) return 'full';
+    if ((stats.coins || 0) < treat.price) return 'not_enough_coins';
+    setStats((s) => {
+      // Apply pending hunger decay first so the gain is honest.
+      const r = reconcilePetTimers({
+        energy: s.energy,
+        lastEnergyTickAt: s.lastEnergyTickAt,
+        hunger: s.pet?.hunger,
+        lastHungerTickAt: s.pet?.lastHungerTickAt,
+        hatched: Boolean(s.pet?.hatched)
+      });
+      const nextHunger = Math.min(HUNGER_MAX, (r.hunger || 0) + treat.hungerGain);
+      return {
+        ...s,
+        coins: Math.max(0, (s.coins || 0) - treat.price),
+        energy: r.energy,
+        lastEnergyTickAt: r.lastEnergyTickAt,
+        pet: { ...(s.pet || DEFAULT_STATS.pet), hunger: nextHunger, lastHungerTickAt: r.lastHungerTickAt }
+      };
+    });
+    return 'ok';
+  }, [stats.coins, stats.pet?.hatched, reconciled.hunger]);
+
   // Adds XP to the pet, recomputes level. Returns { levelBefore, levelAfter,
   // gained } so the caller can fire a "Букля выросла!" toast on level-up.
   // No-op if the pet hasn't hatched yet — there's nothing to grow.
@@ -277,51 +327,52 @@ export function useStats() {
   }, []);
 
   // ---------- Energy ----------
-  // Effective current energy (after applying today's refill, even if stored
-  // state hasn't been updated yet by the useEffect above).
-  const effectiveEnergy = useMemo(
-    () => refillEnergyForToday(stats.energyDate, stats.energy).energy,
-    [stats.energy, stats.energyDate]
-  );
+  // Reconciled snapshot — what the UI shows + what consume/buy operate on.
+  const effectiveEnergy = reconciled.energy;
 
-  // Attempt to spend 1 energy. Returns true on success, false if depleted.
-  // Applies daily refill atomically inside the updater so the check uses the
-  // freshest value even across day boundaries.
-  const consumeEnergy = useCallback(() => {
-    const peek = refillEnergyForToday(stats.energyDate, stats.energy);
-    if (peek.energy < 1) return false;
+  // Apply the reconcile snapshot inside an updater so we never lose pending
+  // regen ticks when mutating energy. All energy ops route through this.
+  const mutateEnergy = useCallback((delta) => {
     setStats((s) => {
-      const r = refillEnergyForToday(s.energyDate, s.energy);
-      if (r.energy < 1) return { ...s, ...r };
-      return { ...s, ...r, energy: r.energy - 1 };
-    });
-    return true;
-  }, [stats.energy, stats.energyDate]);
-
-  // Buy a single energy unit for coins. Returns 'ok' | 'full' | 'not_enough_coins'.
-  const buyEnergy = useCallback(() => {
-    const r = refillEnergyForToday(stats.energyDate, stats.energy);
-    if (r.energy >= ENERGY_MAX) return 'full';
-    if ((stats.coins || 0) < ENERGY_REFILL_COST) return 'not_enough_coins';
-    setStats((s) => {
-      const rr = refillEnergyForToday(s.energyDate, s.energy);
+      const r = reconcilePetTimers({
+        energy: s.energy,
+        lastEnergyTickAt: s.lastEnergyTickAt,
+        hunger: s.pet?.hunger,
+        lastHungerTickAt: s.pet?.lastHungerTickAt,
+        hatched: Boolean(s.pet?.hatched)
+      });
+      const nextEnergy = Math.max(0, Math.min(ENERGY_MAX, r.energy + delta));
+      // If we were full and spent one, lastEnergyTickAt becomes "now" so the
+      // regen timer starts cleanly instead of crediting time from earlier.
+      const nextTick = (r.energy >= ENERGY_MAX && delta < 0)
+        ? new Date().toISOString()
+        : r.lastEnergyTickAt;
       return {
         ...s,
-        ...rr,
-        energy: Math.min(ENERGY_MAX, rr.energy + 1),
-        coins: Math.max(0, (s.coins || 0) - ENERGY_REFILL_COST)
+        energy: nextEnergy,
+        lastEnergyTickAt: nextTick,
+        pet: { ...(s.pet || DEFAULT_STATS.pet), hunger: r.hunger, lastHungerTickAt: r.lastHungerTickAt }
       };
     });
-    return 'ok';
-  }, [stats.coins, stats.energy, stats.energyDate]);
-
-  // Stub for ad reward. Caller is responsible for actually showing the ad.
-  const grantAdEnergy = useCallback(() => {
-    setStats((s) => {
-      const r = refillEnergyForToday(s.energyDate, s.energy);
-      return { ...s, ...r, energy: Math.min(ENERGY_MAX, r.energy + ENERGY_AD_REWARD) };
-    });
   }, []);
+
+  const consumeEnergy = useCallback(() => {
+    if (reconciled.energy < 1) return false;
+    mutateEnergy(-1);
+    return true;
+  }, [reconciled.energy, mutateEnergy]);
+
+  const buyEnergy = useCallback(() => {
+    if (reconciled.energy >= ENERGY_MAX) return 'full';
+    if ((stats.coins || 0) < ENERGY_REFILL_COST) return 'not_enough_coins';
+    setStats((s) => ({ ...s, coins: Math.max(0, (s.coins || 0) - ENERGY_REFILL_COST) }));
+    mutateEnergy(+1);
+    return 'ok';
+  }, [reconciled.energy, stats.coins, mutateEnergy]);
+
+  const grantAdEnergy = useCallback(() => {
+    mutateEnergy(+ENERGY_AD_REWARD);
+  }, [mutateEnergy]);
 
   return {
     stats,
@@ -335,6 +386,8 @@ export function useStats() {
     setActiveBackground,
     setActiveCellStyle,
     energy: effectiveEnergy,
+    petHunger: reconciled.hunger,
+    lastEnergyTickAt: reconciled.lastEnergyTickAt,
     consumeEnergy,
     buyEnergy,
     grantAdEnergy,
@@ -342,6 +395,7 @@ export function useStats() {
     hatchPet,
     renamePet,
     recordPetXp,
+    feedPet,
     achievementToasts,
     consumeAchievementToast,
     auth

@@ -1,5 +1,12 @@
-import { useState } from 'react';
-import { ENERGY_AD_REWARD, ENERGY_MAX, ENERGY_REFILL_COST } from '../../constants/game.js';
+import { useEffect, useState } from 'react';
+import {
+  ENERGY_AD_REWARD,
+  ENERGY_MAX,
+  ENERGY_REFILL_COST,
+  energySpeedFromHunger,
+  formatDuration,
+  msUntilNextEnergyUnit
+} from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { showRewardedAd } from '../../lib/ads.js';
 import { Modal } from '../Modal/Modal.jsx';
@@ -8,6 +15,8 @@ import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
 export function EnergyModal() {
   const {
     energy,
+    lastEnergyTickAt,
+    petHunger,
     energyModalOpen,
     closeEnergyModal,
     buyEnergy,
@@ -17,6 +26,12 @@ export function EnergyModal() {
     solution,
     status
   } = useGameContext();
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!energyModalOpen || energy >= ENERGY_MAX) return;
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [energyModalOpen, energy]);
   const [feedback, setFeedback] = useState(null);  // { type, text }
   const [adRunning, setAdRunning] = useState(false);
 
@@ -74,10 +89,14 @@ export function EnergyModal() {
           <div className="energy-modal__desc">
             {full
               ? 'Энергия полная — можно играть!'
-              : energy > 0
-                ? 'Каждая новая игра тратит 1 энергию. Восстанавливается каждый день.'
-                : 'Энергия закончилась. Подожди до завтра или пополни прямо сейчас.'}
+              : 'Каждая новая игра тратит 1 энергию. Восстановление — раз в 2 часа.'}
           </div>
+          {!full && (
+            <div className="energy-modal__timer">
+              Следующая через <b>{formatDuration(msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger: petHunger }))}</b>
+              {' '}<span className="energy-modal__speed">×{energySpeedFromHunger(petHunger).toFixed(1)} от Букли</span>
+            </div>
+          )}
         </div>
 
         <div className="energy-modal__options">
