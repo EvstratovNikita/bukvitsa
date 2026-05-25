@@ -38,7 +38,8 @@ const DEFAULT_STATS = {
   itemsBought: 0,          // cumulative shop purchases (both cosmetic + consumable)
   coinsEarned: 0,          // cumulative coins ever credited (never decreases)
   fastestWinMs: null,      // lowest elapsed time across won games
-  unlockedAchievements: [] // ids of unlocked achievements
+  unlockedAchievements: [], // ids of unlocked achievements
+  referralsCount: 0         // verified (non-anon) invitees credited to this user
 };
 
 function load() {

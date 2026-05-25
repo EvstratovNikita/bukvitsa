@@ -1859,3 +1859,99 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   from { transform: translate(-50%, 18px); opacity: 0; }
   to   { transform: translate(-50%, 0);     opacity: 1; }
 }
+
+/* ---------- Share button ---------- */
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+.share-btn--icon {
+  width: 32px; height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(108, 140, 255, 0.16);
+  border: 1px solid rgba(108, 140, 255, 0.35);
+  color: #b5c5ff;
+  border-radius: 10px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.share-btn--icon svg { width: 16px; height: 16px; }
+
+.ach-card__status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.gameend__cta-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Invite friend modal ---------- */
+.invite { display: flex; flex-direction: column; gap: 18px; }
+.invite__hero { display: flex; align-items: center; gap: 14px; }
+.invite__icon {
+  width: 48px; height: 48px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.30), rgba(247, 201, 72, 0.08));
+  color: #f7c948;
+}
+.invite__lead {
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(229, 235, 255, 0.85);
+}
+.invite__lead b { color: #f7c948; }
+
+.invite__stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.invite__stat {
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+.invite__stat-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #e6ecff;
+  font-variant-numeric: tabular-nums;
+}
+.invite__stat-value svg { color: #f7c948; }
+.invite__stat-label { font-size: 12px; color: rgba(229, 235, 255, 0.6); margin-top: 2px; }
+
+.invite__url-row { display: flex; gap: 8px; }
+.invite__url {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #e6ecff;
+  font-size: 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.invite__copy { white-space: nowrap; }
+
+.invite__hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(229, 235, 255, 0.55);
+}

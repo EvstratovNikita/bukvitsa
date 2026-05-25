@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { GAME_STATUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
+import { ShareButton } from '../Share/ShareButton.jsx';
 import { CloseIcon, CoinIcon, CrownIcon, SadIcon } from '../icons/Icon.jsx';
 
 const CONFETTI_PALETTE = ['#f7c948', '#ffd864', '#6c8cff', '#b388ff', '#e9ecf3'];
@@ -107,13 +108,16 @@ export function GameEnd() {
           </div>
         )}
 
-        <button
-          type="button"
-          className="btn btn--primary gameend__cta"
-          onClick={reset}
-        >
-          Новая игра
-        </button>
+        <div className="gameend__cta-row">
+          <button
+            type="button"
+            className="btn btn--primary gameend__cta"
+            onClick={reset}
+          >
+            Новая игра
+          </button>
+          {isWin && <ShareButton kind="invite" label="Похвастаться" />}
+        </div>
       </div>
     </div>
   );

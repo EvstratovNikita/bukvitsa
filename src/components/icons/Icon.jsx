@@ -297,6 +297,30 @@ export function CoinIcon(props) {
   );
 }
 
+export function ShareIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="5"  r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="M8.2 10.9 15.8 6.6" />
+      <path d="M8.2 13.1 15.8 17.4" />
+    </svg>
+  );
+}
+
+export function GiftIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M4 11h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" />
+      <path d="M3 8h18v3H3z" />
+      <path d="M12 8v13" />
+      <path d="M12 8s-3-5-5-5a2 2 0 0 0 0 5z" />
+      <path d="M12 8s3-5 5-5a2 2 0 0 1 0 5z" />
+    </svg>
+  );
+}
+
 export function TrophyIcon(props) {
   return (
     <svg {...base} {...props} aria-hidden="true">

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { getAchievement } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
+import { ShareButton } from '../Share/ShareButton.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 
 const TOAST_DURATION_MS = 3200;
@@ -35,6 +36,7 @@ export function AchievementToast() {
           <span>+{ach.reward}</span>
         </div>
       )}
+      <ShareButton kind="achievement" achievement={ach} variant="icon" label="Поделиться" />
     </div>
   );
 }

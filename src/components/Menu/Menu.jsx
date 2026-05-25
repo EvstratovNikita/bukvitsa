@@ -4,6 +4,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import {
   CloseIcon,
   CoinIcon,
+  GiftIcon,
   HelpIcon,
   LogoutIcon,
   MenuIcon,
@@ -28,7 +29,7 @@ export function MenuButton({ onClick }) {
   );
 }
 
-export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements }) {
+export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite }) {
   const { stats, auth } = useGameContext();
   const unlockedCount = (stats.unlockedAchievements || []).length;
 
@@ -111,6 +112,12 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             onClick={handle(onOpenAchievements)}
           />
           <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} />
+          <MenuItem
+            icon={<GiftIcon />}
+            label="Пригласить друга"
+            badge={(stats.referralsCount || 0) > 0 ? stats.referralsCount : undefined}
+            onClick={handle(onOpenInvite)}
+          />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
           {isSupabaseConfigured && (
             <MenuItem

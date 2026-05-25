@@ -256,6 +256,7 @@ export function useGame() {
     auth: stats.auth,
     addLetter,
     removeLetter,
+    showToast,
     submit,
     reset,
     revealRandomHint,

@@ -180,6 +180,19 @@ export const ACHIEVEMENTS = [
     check: (s) => Boolean(s.fastestWinMs) && s.fastestWinMs <= 15000
   },
   {
+    id: 'invite_1', tier: 'easy', icon: '🤝', reward: 30,
+    title: 'Сват',
+    desc: 'Пригласи друга — он должен войти через Google или email',
+    check: (s) => (s.referralsCount || 0) >= 1
+  },
+  {
+    id: 'invite_5', tier: 'hard', icon: '🎤', reward: 200,
+    title: 'Гуру',
+    desc: 'Приведи 5 друзей, привязавших аккаунт',
+    check: (s) => (s.referralsCount || 0) >= 5,
+    progress: (s) => ({ current: Math.min(5, s.referralsCount || 0), target: 5 })
+  },
+  {
     id: 'all_attempts', tier: 'hard', icon: '🎓', reward: 60,
     title: 'Универсал',
     desc: 'Победи, использовав каждое количество попыток (1–6) хотя бы раз',

@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AchievementsModal } from './components/Achievements/Achievements.jsx';
 import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
 import { Header } from './components/Header/Header.jsx';
+import { InviteModal } from './components/Share/InviteModal.jsx';
+import { captureReferralFromUrl } from './lib/referral.js';
+import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -79,13 +82,20 @@ function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, resetStats } = useGameContext();
+  const { stats, resetStats, auth, showToast } = useGameContext();
+  // Server-side gated: only fires when user is verified (non-anon).
+  useReferralClaim({
+    userId: auth?.userId,
+    isAnonymous: auth?.isAnonymous,
+    onClaim: (r) => showToast?.(`Бонус за приглашение: +${r.invitee_bonus} монет!`)
+  });
   const [statsOpen, setStatsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [achOpen, setAchOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
   return (
@@ -118,11 +128,13 @@ function GameShell() {
         onOpenHelp={() => setHelpOpen(true)}
         onOpenAuth={() => setAuthOpen(true)}
         onOpenAchievements={() => setAchOpen(true)}
+        onOpenInvite={() => setInviteOpen(true)}
       />
 
       <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
+      <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
@@ -136,6 +148,9 @@ function GameShell() {
 }
 
 export default function App() {
+  // Stash referrer from ?ref=... before Provider mounts so the auth flow can
+  // pick it up the moment the user becomes non-anonymous.
+  useEffect(() => { captureReferralFromUrl(); }, []);
   return (
     <GameProvider>
       <GameShell />
