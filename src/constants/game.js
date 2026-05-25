@@ -48,6 +48,43 @@ export const ENERGY_MAX = 5;
 export const ENERGY_REFILL_COST = 20;   // coins per +1 energy
 export const ENERGY_AD_REWARD = 1;       // energy granted per ad watched
 
+// Pet leveling — Букля earns XP every time the player wins. Quicker wins
+// award more XP so the pet "grows" alongside the player's skill.
+//
+// XP per win = PET_XP_PER_WIN + (MAX_ATTEMPTS - attemptsUsed) * PET_XP_PER_SAVED_ATTEMPT
+//   1-attempt win → 5 + 5*2 = 15 XP
+//   6-attempt win → 5 + 0   = 5 XP
+//
+// Level curve is linear: level N → N+1 needs (50 * N) XP. Levels feel
+// progressively further out without ever feeling impossible.
+export const PET_XP_PER_WIN = 5;
+export const PET_XP_PER_SAVED_ATTEMPT = 2;
+export const PET_LEVEL_BASE = 50;
+
+export function petXpForWin(attemptsUsed) {
+  const saved = Math.max(0, MAX_ATTEMPTS - attemptsUsed);
+  return PET_XP_PER_WIN + saved * PET_XP_PER_SAVED_ATTEMPT;
+}
+
+// Given cumulative xp, returns { level, xpInLevel, xpForNext, totalToNext }.
+// level starts at 1.
+export function petComputeLevel(xp) {
+  let lvl = 1;
+  let consumed = 0;
+  let needed = PET_LEVEL_BASE;          // xp to reach lvl 2 from lvl 1
+  while ((xp || 0) >= consumed + needed) {
+    consumed += needed;
+    lvl += 1;
+    needed = PET_LEVEL_BASE * lvl;       // lvl→lvl+1 cost grows linearly
+  }
+  return {
+    level: lvl,
+    xpInLevel: (xp || 0) - consumed,
+    xpForNext: needed,
+    totalToNext: consumed + needed
+  };
+}
+
 // Refills energy back to full on a new local day. Returns the snapshot to
 // merge into stats; identity-preserving when no refill is due.
 export const refillEnergyForToday = (energyDate, energy) => {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { petComputeLevel } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { PetScene } from './PetScene.jsx';
@@ -42,6 +43,8 @@ export function PetModal({ open, onClose }) {
   }, [open, pet.hatched, hatchPet]);
 
   const age = useMemo(() => ageInDays(pet.bornAt), [pet.bornAt]);
+  const lvlInfo = useMemo(() => petComputeLevel(pet.xp || 0), [pet.xp]);
+  const lvlPct = Math.min(100, Math.round((lvlInfo.xpInLevel / lvlInfo.xpForNext) * 100));
 
   const saveName = () => {
     renamePet(draftName);
@@ -92,6 +95,21 @@ export function PetModal({ open, onClose }) {
               {' · '}
               Совёнок
             </div>
+
+            <div className="pet__level-row">
+              <div className="pet__level-badge">Ур. {lvlInfo.level}</div>
+              <div className="pet__xp">
+                <div className="pet__xp-bar">
+                  <div className="pet__xp-fill" style={{ width: `${lvlPct}%` }} />
+                </div>
+                <div className="pet__xp-text">
+                  {lvlInfo.xpInLevel} / {lvlInfo.xpForNext} XP до следующего уровня
+                </div>
+              </div>
+            </div>
+            <p className="pet__level-hint">
+              Букля получает опыт за каждую угаданную игру — чем меньше попыток, тем больше XP.
+            </p>
 
             <div className="pet__roadmap">
               <h4 className="pet__roadmap-title">Что появится у Букли</h4>

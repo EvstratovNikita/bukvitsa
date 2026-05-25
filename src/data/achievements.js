@@ -180,6 +180,20 @@ export const ACHIEVEMENTS = [
     check: (s) => Boolean(s.fastestWinMs) && s.fastestWinMs <= 15000
   },
   {
+    id: 'pet_lvl_5', tier: 'easy', icon: '🦉', reward: 30,
+    title: 'Птенец подрос',
+    desc: 'Прокачай Буклю до 5 уровня',
+    check: (s) => (s.pet?.level || 1) >= 5,
+    progress: (s) => ({ current: Math.min(5, s.pet?.level || 1), target: 5 })
+  },
+  {
+    id: 'pet_lvl_10', tier: 'hard', icon: '🌟', reward: 120,
+    title: 'Учёная сова',
+    desc: 'Прокачай Буклю до 10 уровня',
+    check: (s) => (s.pet?.level || 1) >= 10,
+    progress: (s) => ({ current: Math.min(10, s.pet?.level || 1), target: 10 })
+  },
+  {
     id: 'invite_1', tier: 'easy', icon: '🤝', reward: 30,
     title: 'Сват',
     desc: 'Пригласи друга — он должен войти через Google или email',

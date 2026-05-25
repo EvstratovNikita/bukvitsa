@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, rewardFor } from '../constants/game.js';
+import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, petXpForWin, rewardFor } from '../constants/game.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { storage } from '../utils/storage.js';
@@ -106,6 +106,12 @@ export function useGame() {
         const elapsedMs = Date.now() - gameStartRef.current;
         stats.recordWin(nextGuesses.length, elapsedMs);
         setLastEarned(earned);
+        // Pet XP grant — gated by hatched state inside recordPetXp.
+        const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
+        if (petResult.levelAfter > petResult.levelBefore) {
+          const petName = stats.stats.pet?.name || 'Букля';
+          showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
+        }
       } else if (lost) {
         setStatus(GAME_STATUS.LOST);
         stats.recordLoss();
@@ -269,6 +275,7 @@ export function useGame() {
     // Pet
     hatchPet: stats.hatchPet,
     renamePet: stats.renamePet,
+    recordPetXp: stats.recordPetXp,
     // Energy
     energy: stats.energy,
     energyModalOpen,

@@ -6,6 +6,7 @@ import {
   MAX_ATTEMPTS,
   STORAGE_KEYS,
   computeDailyReward,
+  petComputeLevel,
   refillEnergyForToday,
   rewardFor,
   todayKey
@@ -46,7 +47,9 @@ const DEFAULT_STATS = {
     hatched: false,
     name: 'Букля',
     species: 'owl',
-    bornAt: null    // ISO date when the egg cracked
+    bornAt: null,    // ISO date when the egg cracked
+    xp: 0,           // cumulative; level derived via petComputeLevel
+    level: 1
   }
 };
 
@@ -214,6 +217,24 @@ export function useStats() {
     setStats((s) => ({ ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), name: clean } }));
   }, []);
 
+  // Adds XP to the pet, recomputes level. Returns { levelBefore, levelAfter,
+  // gained } so the caller can fire a "Букля выросла!" toast on level-up.
+  // No-op if the pet hasn't hatched yet — there's nothing to grow.
+  const recordPetXp = useCallback((amount) => {
+    const cur = stats.pet || DEFAULT_STATS.pet;
+    if (!cur.hatched || !amount) return { levelBefore: cur.level || 1, levelAfter: cur.level || 1, gained: 0 };
+    const xpBefore = cur.xp || 0;
+    const xpAfter = xpBefore + amount;
+    const levelBefore = petComputeLevel(xpBefore).level;
+    const levelAfter = petComputeLevel(xpAfter).level;
+    setStats((s) => {
+      const p = s.pet || DEFAULT_STATS.pet;
+      const newXp = (p.xp || 0) + amount;
+      return { ...s, pet: { ...p, xp: newXp, level: petComputeLevel(newXp).level } };
+    });
+    return { levelBefore, levelAfter, gained: amount };
+  }, [stats.pet]);
+
   // ---------- Shop ----------
   // buyItem returns one of:
   //   'ok'              — purchase succeeded
@@ -320,6 +341,7 @@ export function useStats() {
     recordHintUsed,
     hatchPet,
     renamePet,
+    recordPetXp,
     achievementToasts,
     consumeAchievementToast,
     auth
