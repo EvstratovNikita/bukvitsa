@@ -1,12 +1,9 @@
 import { useState } from 'react';
 import { ENERGY_AD_REWARD, ENERGY_MAX, ENERGY_REFILL_COST } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
+import { showRewardedAd } from '../../lib/ads.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
-
-// Stubbed ad-watch: pretend a rewarded ad runs for ~3s, then grant energy.
-// Real integration point — swap the setTimeout for the SDK's reward callback.
-const AD_DURATION_MS = 3000;
 
 export function EnergyModal() {
   const {
@@ -46,16 +43,21 @@ export function EnergyModal() {
     }
   };
 
-  const onAd = () => {
+  const onAd = async () => {
     if (adRunning) return;
     setAdRunning(true);
     flash('info', 'Реклама…');
-    setTimeout(() => {
+    const result = await showRewardedAd();
+    setAdRunning(false);
+    if (result === 'rewarded') {
       grantAdEnergy();
-      setAdRunning(false);
       flash('ok', `+${ENERGY_AD_REWARD} энергия`);
       if (needsStart) startAfterRefuel();
-    }, AD_DURATION_MS);
+    } else if (result === 'closed') {
+      flash('err', 'Реклама закрыта раньше');
+    } else {
+      flash('err', 'Реклама недоступна');
+    }
   };
 
   const cannotAfford = (stats.coins || 0) < ENERGY_REFILL_COST;
