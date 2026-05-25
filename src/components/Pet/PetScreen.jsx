@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { HUNGER_MAX, energySpeedFromHunger, petComputeLevel } from '../../constants/game.js';
-import { PET_DECORATIONS, decorationBonusFor } from '../../data/petDecorations.js';
+import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '../../data/petDecorations.js';
 import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
@@ -31,7 +31,7 @@ export function PetScreen({ open, onClose }) {
     stats,
     hatchPet, renamePet,
     feedPet, petHunger,
-    buyDecoration, equipDecoration,
+    buyDecoration, equipDecoration, unequipDecorationSlot,
     showToast
   } = useGameContext();
   const pet = stats.pet || {};
@@ -63,8 +63,9 @@ export function PetScreen({ open, onClose }) {
   const hunger = Math.round(petHunger ?? pet.hunger ?? 0);
   const hungerPct = Math.round((hunger / HUNGER_MAX) * 100);
   const speedMul = energySpeedFromHunger(hunger);
-  const decoBonus = decorationBonusFor(pet.activeDecoration);
+  const decoBonus = equippedDecorationsBonus(pet);
   const owned = pet.ownedDecorations || [];
+  const equipped = pet.equipped || {};
 
   const onFeed = (treat) => {
     const r = feedPet(treat.id);
@@ -195,13 +196,12 @@ export function PetScreen({ open, onClose }) {
               {tab === 'feed'  && <FeedPanel  hunger={hunger} treats={PET_TREATS} coins={stats.coins || 0} onFeed={onFeed} />}
               {tab === 'cheer' && (
                 <CheerPanel
-                  decorations={PET_DECORATIONS}
                   owned={owned}
-                  active={pet.activeDecoration}
+                  equipped={equipped}
                   coins={stats.coins || 0}
                   onBuy={onBuyDeco}
                   onEquip={(id) => equipDecoration(id)}
-                  onUnequip={() => equipDecoration(null)}
+                  onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
                 />
               )}
               {tab === 'train' && <TrainPanel />}
@@ -249,53 +249,72 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
   );
 }
 
-function CheerPanel({ decorations, owned, active, coins, onBuy, onEquip, onUnequip }) {
+function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
+  // Group by slot so the player sees what they can wear at the same time.
+  const bySlot = SLOTS.map((s) => ({
+    slot: s,
+    items: PET_DECORATIONS.filter((d) => d.slot === s.id)
+  }));
+
   return (
     <div className="pet-decos">
       <p className="pet-tab__hint">
-        Украшения для Букли — каждое даёт постоянный бонус к награде за победы.
-        Носит одно за раз.
+        В каждом слоте можно носить одно украшение, но слоты складываются.
+        Бонусы суммируются и добавляются к награде за каждую победу.
       </p>
-      {decorations.map((d) => {
-        const isOwned = owned.includes(d.id);
-        const isActive = active === d.id;
-        const cantAfford = coins < d.price;
+      {bySlot.map(({ slot, items }) => {
+        const equippedId = equipped[slot.id] || null;
         return (
-          <div key={d.id} className={`pet-deco${isActive ? ' pet-deco--active' : ''}`}>
-            <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
-            <span className="pet-deco__meta">
-              <span className="pet-deco__name">{d.name}</span>
-              <span className="pet-deco__desc">{d.desc}</span>
-              <span className="pet-deco__bonus">+{d.bonusPct}% к награде</span>
-            </span>
-            <div className="pet-deco__cta">
-              {isActive ? (
+          <div key={slot.id} className="pet-deco-group">
+            <div className="pet-deco-group__head">
+              <span className="pet-deco-group__label">{slot.label}</span>
+              {equippedId && (
                 <button
                   type="button"
-                  className="btn btn--ghost pet-deco__btn"
-                  onClick={onUnequip}
+                  className="pet-deco-group__clear"
+                  onClick={() => onUnequipSlot(slot.id)}
                   onMouseDown={(e) => e.preventDefault()}
                 >Снять</button>
-              ) : isOwned ? (
-                <button
-                  type="button"
-                  className="btn btn--primary pet-deco__btn"
-                  onClick={() => onEquip(d.id)}
-                  onMouseDown={(e) => e.preventDefault()}
-                >Надеть</button>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn--primary pet-deco__btn pet-deco__btn--price"
-                  onClick={() => onBuy(d)}
-                  onMouseDown={(e) => e.preventDefault()}
-                  disabled={cantAfford}
-                >
-                  <CoinIcon />
-                  <span>{d.price}</span>
-                </button>
               )}
             </div>
+            {items.map((d) => {
+              const isOwned = owned.includes(d.id);
+              const isActive = equippedId === d.id;
+              const cantAfford = coins < d.price;
+              return (
+                <div key={d.id} className={`pet-deco${isActive ? ' pet-deco--active' : ''}`}>
+                  <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
+                  <span className="pet-deco__meta">
+                    <span className="pet-deco__name">{d.name}</span>
+                    <span className="pet-deco__desc">{d.desc}</span>
+                    <span className="pet-deco__bonus">+{d.bonusPct}% к награде</span>
+                  </span>
+                  <div className="pet-deco__cta">
+                    {isActive ? (
+                      <span className="pet-deco__chip">Надето</span>
+                    ) : isOwned ? (
+                      <button
+                        type="button"
+                        className="btn btn--primary pet-deco__btn"
+                        onClick={() => onEquip(d.id)}
+                        onMouseDown={(e) => e.preventDefault()}
+                      >Надеть</button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn--primary pet-deco__btn pet-deco__btn--price"
+                        onClick={() => onBuy(d)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        disabled={cantAfford}
+                      >
+                        <CoinIcon />
+                        <span>{d.price}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         );
       })}

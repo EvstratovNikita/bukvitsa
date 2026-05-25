@@ -56,7 +56,9 @@ export const ENERGY_REGEN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours per unit
 //   hunger 100 → 2.0x (1h per unit)
 // Hunger drains linearly over time so feeding is a meaningful loop.
 export const HUNGER_MAX = 100;
-export const HUNGER_DECAY_PER_HOUR = HUNGER_MAX / 24;  // empty over 24 real hours
+// 1 unit drains every 2 minutes → 100 → 0 over ~3h20m. Keeps the feeding
+// loop active without being punishing.
+export const HUNGER_DECAY_PER_HOUR = 30;
 
 export const energySpeedFromHunger = (hunger) =>
   1 + Math.floor(Math.max(0, Math.min(HUNGER_MAX, hunger || 0)) / 10) * 0.1;

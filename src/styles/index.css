@@ -528,11 +528,27 @@ button { font-family: inherit; }
 
 /* ---------- Topbar ---------- */
 .topbar {
+  /* Hard constraint: stays on ONE row no matter the viewport. Children
+     shrink with min-width: 0 / smaller paddings instead of wrapping —
+     wrapping pushed the board down and ate keyboard space on mobile. */
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
+  width: 100%;
+  padding: 0 4px;
+}
+.topbar > * { min-width: 0; flex-shrink: 1; }
+@media (max-width: 400px) {
+  .topbar { gap: 6px; }
+  .coins, .energy, .hint-btn { padding: 5px 9px; font-size: 12.5px; }
+  .energy__timer { padding-left: 6px; margin-left: 3px; font-size: 10.5px; }
+}
+@media (max-width: 340px) {
+  /* On very narrow phones drop the hint text — icon alone is unambiguous. */
+  .hint-btn span { display: none; }
+  .energy__timer { display: none; }
 }
 
 /* ---------- New game button ---------- */
@@ -2654,7 +2670,44 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 
 /* ---------- Decorations (Порадовать) ---------- */
-.pet-decos { display: flex; flex-direction: column; gap: 8px; }
+.pet-decos { display: flex; flex-direction: column; gap: 16px; }
+.pet-deco-group { display: flex; flex-direction: column; gap: 6px; }
+.pet-deco-group__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+.pet-deco-group__label {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(229, 235, 255, 0.6);
+}
+.pet-deco-group__clear {
+  background: transparent;
+  border: 0;
+  color: rgba(179, 136, 255, 0.85);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 6px;
+}
+.pet-deco__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(247, 201, 72, 0.18);
+  border: 1px solid rgba(247, 201, 72, 0.4);
+  color: #fde8a8;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 .pet-deco {
   display: grid;
   grid-template-columns: 44px 1fr auto;

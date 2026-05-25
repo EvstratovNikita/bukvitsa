@@ -14,7 +14,7 @@ import {
 } from '../constants/game.js';
 import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
-import { getDecoration, decorationBonusFor } from '../data/petDecorations.js';
+import { getDecoration, equippedDecorationsBonus } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
 import { storage } from '../utils/storage.js';
 import { useAuth } from './useAuth.js';
@@ -56,7 +56,7 @@ const DEFAULT_STATS = {
     hunger: 0,              // starts empty — player must feed to earn the bonus
     lastHungerTickAt: null, // ISO of last hunger decay reconciliation
     ownedDecorations: [],   // ids of bought decorations (Порадовать tab)
-    activeDecoration: null  // currently equipped decoration id (null = none)
+    equipped: {}            // { [slot]: decorationId } — one item per slot
   }
 };
 
@@ -71,8 +71,22 @@ function load() {
       : DEFAULT_STATS.distribution,
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : [],
-    pet: { ...DEFAULT_STATS.pet, ...(raw.pet || {}) }
+    pet: migratePet(raw.pet)
   };
+}
+
+function migratePet(rawPet) {
+  const merged = { ...DEFAULT_STATS.pet, ...(rawPet || {}) };
+  // Legacy single-slot field → slotted equipped map. Look up the slot from
+  // the catalog (silent skip if id no longer exists).
+  if (merged.activeDecoration && (!merged.equipped || Object.keys(merged.equipped).length === 0)) {
+    const d = getDecoration(merged.activeDecoration);
+    if (d) merged.equipped = { [d.slot]: merged.activeDecoration };
+  }
+  delete merged.activeDecoration;
+  if (!merged.equipped || typeof merged.equipped !== 'object') merged.equipped = {};
+  if (!Array.isArray(merged.ownedDecorations)) merged.ownedDecorations = [];
+  return merged;
 }
 
 export function useStats() {
@@ -149,7 +163,7 @@ export function useStats() {
     // Decoration bonus stacks before the consumable double — small treat
     // first, then the boost multiplies the whole thing.
     const base = rewardFor(attemptsUsed);
-    const decoPct = decorationBonusFor(stats.pet?.activeDecoration);
+    const decoPct = equippedDecorationsBonus(stats.pet);
     const decoMul = 1 + decoPct / 100;
     const boostMul = stats.boostDoubleCoins ? 2 : 1;
     const boosted = Math.round(base * decoMul * boostMul);
@@ -157,7 +171,7 @@ export function useStats() {
       const dist = s.distribution.slice();
       dist[attemptsUsed - 1] = (dist[attemptsUsed - 1] || 0) + 1;
       const currentStreak = s.currentStreak + 1;
-      const dPct = decorationBonusFor(s.pet?.activeDecoration);
+      const dPct = equippedDecorationsBonus(s.pet);
       const dMul = 1 + dPct / 100;
       const bMul = s.boostDoubleCoins ? 2 : 1;
       const earned = Math.round(base * dMul * bMul);
@@ -183,7 +197,7 @@ export function useStats() {
       };
     });
     return boosted;
-  }, [stats.boostDoubleCoins, stats.pet?.activeDecoration]);
+  }, [stats.boostDoubleCoins, stats.pet?.equipped]);
 
   const recordLoss = useCallback(() => {
     setStats((s) => ({
@@ -279,9 +293,9 @@ export function useStats() {
     return 'ok';
   }, [stats.coins, stats.pet?.hatched, reconciled.hunger]);
 
-  // Buy a decoration → pay coins, add to owned, auto-equip (player will
-  // usually want their new toy on). Returns 'ok' | 'not_enough_coins' |
-  // 'already_owned' | 'unknown'.
+  // Buy a decoration → pay coins, add to owned, auto-equip in its slot
+  // (replaces whatever was in that slot). Returns 'ok' | 'not_enough_coins'
+  // | 'already_owned' | 'unknown'.
   const buyDecoration = useCallback((decoId) => {
     const d = getDecoration(decoId);
     if (!d) return 'unknown';
@@ -294,18 +308,37 @@ export function useStats() {
       pet: {
         ...(s.pet || DEFAULT_STATS.pet),
         ownedDecorations: [...(s.pet?.ownedDecorations || []), decoId],
-        activeDecoration: decoId
+        equipped: { ...(s.pet?.equipped || {}), [d.slot]: decoId }
       }
     }));
     return 'ok';
   }, [stats.coins, stats.pet?.ownedDecorations]);
 
-  // Equip an already-owned decoration, or pass null to clear.
+  // Equip an already-owned decoration in its slot (replaces any current
+  // occupant of that slot — one item per slot).
   const equipDecoration = useCallback((decoId) => {
+    const d = getDecoration(decoId);
+    if (!d) return;
     setStats((s) => {
       const owned = s.pet?.ownedDecorations || [];
-      if (decoId != null && !owned.includes(decoId)) return s; // ignore non-owned
-      return { ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), activeDecoration: decoId || null } };
+      if (!owned.includes(decoId)) return s;
+      return {
+        ...s,
+        pet: {
+          ...(s.pet || DEFAULT_STATS.pet),
+          equipped: { ...(s.pet?.equipped || {}), [d.slot]: decoId }
+        }
+      };
+    });
+  }, []);
+
+  // Clear a specific slot (no-op if it's already empty).
+  const unequipDecorationSlot = useCallback((slot) => {
+    setStats((s) => {
+      const eq = { ...(s.pet?.equipped || {}) };
+      if (!eq[slot]) return s;
+      delete eq[slot];
+      return { ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), equipped: eq } };
     });
   }, []);
 
@@ -440,6 +473,7 @@ export function useStats() {
     feedPet,
     buyDecoration,
     equipDecoration,
+    unequipDecorationSlot,
     achievementToasts,
     consumeAchievementToast,
     auth
