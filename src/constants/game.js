@@ -43,6 +43,21 @@ export const HINT_COST = {
   PICK: 15
 };
 
+// Daily energy budget. One unit is consumed per started puzzle.
+export const ENERGY_MAX = 5;
+export const ENERGY_REFILL_COST = 20;   // coins per +1 energy
+export const ENERGY_AD_REWARD = 1;       // energy granted per ad watched
+
+// Refills energy back to full on a new local day. Returns the snapshot to
+// merge into stats; identity-preserving when no refill is due.
+export const refillEnergyForToday = (energyDate, energy) => {
+  const today = todayKey();
+  if (energyDate !== today) {
+    return { energy: ENERGY_MAX, energyDate: today };
+  }
+  return { energy: Number.isFinite(energy) ? energy : ENERGY_MAX, energyDate };
+};
+
 export const DAILY_CYCLE_DAYS = 6;
 
 // YYYY-MM-DD in local time. (toISOString is UTC; use local parts.)

@@ -297,6 +297,32 @@ export function CoinIcon(props) {
   );
 }
 
+export function BoltIcon(props) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinejoin="round"
+      {...props}
+      aria-hidden="true"
+    >
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" />
+    </svg>
+  );
+}
+
+export function PlayIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M7 5v14l12-7z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function CrownIcon(props) {
   return (
     <svg

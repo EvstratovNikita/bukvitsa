@@ -11,8 +11,8 @@ export function Cell({
   pickable,      // true when in pick-mode AND this slot can be revealed
   onPick         // click handler for pick-mode selection
 }) {
-  const dataStatus = status || (letter ? LETTER_STATUS.TBD : LETTER_STATUS.EMPTY);
   const showHint = !letter && Boolean(hintLetter);
+  const dataStatus = status || (letter || showHint ? LETTER_STATUS.TBD : LETTER_STATUS.EMPTY);
   const displayLetter = letter || (showHint ? hintLetter : '');
   const style = revealing
     ? { animationDelay: `${revealDelayMs}ms`, animationDuration: `${ANIM.FLIP_MS}ms` }
@@ -22,7 +22,6 @@ export function Cell({
     `cell--${dataStatus}`,
     revealing && 'cell--flipping',
     popOnInput && 'cell--pop',
-    showHint && 'cell--hint',
     pickable && 'cell--pick'
   ].filter(Boolean).join(' ');
 

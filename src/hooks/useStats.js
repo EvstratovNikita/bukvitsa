@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MAX_ATTEMPTS, STORAGE_KEYS, computeDailyReward, rewardFor, todayKey } from '../constants/game.js';
+import {
+  ENERGY_AD_REWARD,
+  ENERGY_MAX,
+  ENERGY_REFILL_COST,
+  MAX_ATTEMPTS,
+  STORAGE_KEYS,
+  computeDailyReward,
+  refillEnergyForToday,
+  rewardFor,
+  todayKey
+} from '../constants/game.js';
 import { getItem } from '../data/shopItems.js';
 import { storage } from '../utils/storage.js';
 import { useAuth } from './useAuth.js';
@@ -20,7 +30,9 @@ const DEFAULT_STATS = {
   inventory: [],          // array of owned non-consumable item ids
   activeBackground: null, // id of currently equipped background skin
   activeCellStyle: null,  // id of currently equipped cell style
-  boostDoubleCoins: false // one-shot x2 boost for the next won game
+  boostDoubleCoins: false, // one-shot x2 boost for the next won game
+  energy: ENERGY_MAX,      // remaining puzzles for today
+  energyDate: null         // 'YYYY-MM-DD' tagging the day energy was last refilled
 };
 
 function load() {
@@ -45,6 +57,16 @@ export function useStats() {
   }, [stats]);
 
   useRemoteSync({ stats, setStats, userId: auth.userId });
+
+  // Auto-refill energy on a new local day. Runs once on mount and any time
+  // the stored energyDate changes (e.g. after remote sync pulls in new value).
+  useEffect(() => {
+    setStats((s) => {
+      const r = refillEnergyForToday(s.energyDate, s.energy);
+      if (r.energy === s.energy && r.energyDate === s.energyDate) return s;
+      return { ...s, ...r };
+    });
+  }, [stats.energyDate]);
 
   // Apply the double-coins boost (if armed) when computing the win reward.
   // The current snapshot of stats is captured in the closure so we read the
@@ -150,6 +172,53 @@ export function useStats() {
     setStats((s) => ({ ...s, activeCellStyle: itemId || null }));
   }, []);
 
+  // ---------- Energy ----------
+  // Effective current energy (after applying today's refill, even if stored
+  // state hasn't been updated yet by the useEffect above).
+  const effectiveEnergy = useMemo(
+    () => refillEnergyForToday(stats.energyDate, stats.energy).energy,
+    [stats.energy, stats.energyDate]
+  );
+
+  // Attempt to spend 1 energy. Returns true on success, false if depleted.
+  // Applies daily refill atomically inside the updater so the check uses the
+  // freshest value even across day boundaries.
+  const consumeEnergy = useCallback(() => {
+    const peek = refillEnergyForToday(stats.energyDate, stats.energy);
+    if (peek.energy < 1) return false;
+    setStats((s) => {
+      const r = refillEnergyForToday(s.energyDate, s.energy);
+      if (r.energy < 1) return { ...s, ...r };
+      return { ...s, ...r, energy: r.energy - 1 };
+    });
+    return true;
+  }, [stats.energy, stats.energyDate]);
+
+  // Buy a single energy unit for coins. Returns 'ok' | 'full' | 'not_enough_coins'.
+  const buyEnergy = useCallback(() => {
+    const r = refillEnergyForToday(stats.energyDate, stats.energy);
+    if (r.energy >= ENERGY_MAX) return 'full';
+    if ((stats.coins || 0) < ENERGY_REFILL_COST) return 'not_enough_coins';
+    setStats((s) => {
+      const rr = refillEnergyForToday(s.energyDate, s.energy);
+      return {
+        ...s,
+        ...rr,
+        energy: Math.min(ENERGY_MAX, rr.energy + 1),
+        coins: Math.max(0, (s.coins || 0) - ENERGY_REFILL_COST)
+      };
+    });
+    return 'ok';
+  }, [stats.coins, stats.energy, stats.energyDate]);
+
+  // Stub for ad reward. Caller is responsible for actually showing the ad.
+  const grantAdEnergy = useCallback(() => {
+    setStats((s) => {
+      const r = refillEnergyForToday(s.energyDate, s.energy);
+      return { ...s, ...r, energy: Math.min(ENERGY_MAX, r.energy + ENERGY_AD_REWARD) };
+    });
+  }, []);
+
   return {
     stats,
     recordWin,
@@ -161,6 +230,10 @@ export function useStats() {
     buyItem,
     setActiveBackground,
     setActiveCellStyle,
+    energy: effectiveEnergy,
+    consumeEnergy,
+    buyEnergy,
+    grantAdEnergy,
     auth
   };
 }

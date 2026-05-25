@@ -1014,6 +1014,98 @@ button { font-family: inherit; }
   font-variant-numeric: tabular-nums;
   color: #fde8a8;
 }
+/* ---------- Energy badge ---------- */
+.energy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(108, 140, 255, 0.22), rgba(108, 140, 255, 0.06));
+  border: 1px solid rgba(108, 140, 255, 0.38);
+  color: #b5c5ff;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.energy svg { color: #8fa6ff; }
+.energy__value { font-variant-numeric: tabular-nums; color: #e6ecff; }
+.energy__max { color: rgba(229, 235, 255, 0.55); font-weight: 600; font-size: 12px; }
+.energy--empty {
+  background: linear-gradient(135deg, rgba(255, 120, 120, 0.22), rgba(255, 120, 120, 0.06));
+  border-color: rgba(255, 120, 120, 0.45);
+  color: #ffc1c1;
+}
+.energy--empty svg { color: #ff8a8a; }
+.energy--empty .energy__value { color: #ffe1e1; }
+
+/* ---------- Energy modal ---------- */
+.energy-modal { display: flex; flex-direction: column; gap: 18px; }
+.energy-modal__hero { text-align: center; padding: 4px 0 0; }
+.energy-modal__bolt {
+  width: 56px; height: 56px; margin: 0 auto 10px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(108, 140, 255, 0.35), rgba(108, 140, 255, 0.08));
+  color: #8fa6ff;
+}
+.energy-modal__bolt svg { width: 30px; height: 30px; }
+.energy-modal__count { font-size: 24px; font-weight: 800; color: #e6ecff; }
+.energy-modal__desc {
+  margin-top: 6px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(229, 235, 255, 0.72);
+  max-width: 320px;
+  margin-left: auto; margin-right: auto;
+}
+.energy-modal__options { display: flex; flex-direction: column; gap: 10px; }
+
+.energy-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.energy-option:disabled { opacity: 0.55; cursor: not-allowed; }
+.energy-option__icon {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f7c948;
+}
+.energy-option__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.energy-option__title { font-weight: 700; font-size: 15px; color: #e6ecff; }
+.energy-option__sub { font-size: 12.5px; color: rgba(229, 235, 255, 0.6); }
+.energy-option__price {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-weight: 700; color: #f7c948;
+  white-space: nowrap;
+}
+.energy-option__price--ad { color: #b5c5ff; }
+
+.energy-modal__feedback {
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.energy-modal__feedback--ok { background: rgba(80, 200, 120, 0.16); color: #9be7b1; }
+.energy-modal__feedback--err { background: rgba(255, 120, 120, 0.16); color: #ffc1c1; }
+.energy-modal__feedback--info { background: rgba(108, 140, 255, 0.16); color: #b5c5ff; }
+
 .coins__pop {
   position: absolute;
   top: -8px; right: -10px;
@@ -1078,15 +1170,6 @@ button { font-family: inherit; }
   gap: 8px;
 }
 .row--shake { animation: shake 420ms cubic-bezier(.36,.07,.19,.97); }
-
-/* Hinted (paid-for) letter ghosted inside an otherwise empty slot. */
-.cell--hint .cell__face--front,
-.cell--hint .cell__face--back {
-  color: rgba(247, 201, 72, 0.85);
-  border-color: rgba(247, 201, 72, 0.55) !important;
-  background: rgba(247, 201, 72, 0.08) !important;
-  font-weight: 700;
-}
 
 /* Pick-mode: empty + not-already-known slots get a glowing call-to-tap. */
 .cell--pick {

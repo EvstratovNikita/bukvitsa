@@ -4,6 +4,8 @@ import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
 import { Coins } from './components/Coins/Coins.jsx';
+import { EnergyBadge } from './components/Energy/Energy.jsx';
+import { EnergyModal } from './components/Energy/EnergyModal.jsx';
 import { HintButton } from './components/Hints/Hints.jsx';
 import { NewGameButton } from './components/NewGame/NewGame.jsx';
 import { GameEnd } from './components/GameEnd/GameEnd.jsx';
@@ -92,6 +94,7 @@ function GameShell() {
       />
       <div className="topbar">
         <Coins />
+        <EnergyBadge />
         <HintButton />
         <NewGameButton />
       </div>
@@ -114,6 +117,7 @@ function GameShell() {
 
       <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
+      <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
         <Stats stats={stats} onReset={resetStats} />

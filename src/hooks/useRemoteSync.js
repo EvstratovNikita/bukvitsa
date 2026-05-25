@@ -19,10 +19,12 @@ const toRow = (stats, userId) => ({
   inventory: stats.inventory || [],
   active_background: stats.activeBackground || null,
   active_cell_style: stats.activeCellStyle || null,
-  boost_double_coins: Boolean(stats.boostDoubleCoins)
+  boost_double_coins: Boolean(stats.boostDoubleCoins),
+  energy: Number.isFinite(stats.energy) ? stats.energy : null,
+  energy_date: stats.energyDate || null
 });
 
-const fromRow = (row) => ({
+const fromRow = (row) => clean({
   played: row.played || 0,
   won: row.won || 0,
   lost: row.lost || 0,
@@ -37,8 +39,20 @@ const fromRow = (row) => ({
   inventory: Array.isArray(row.inventory) ? row.inventory : [],
   activeBackground: row.active_background || null,
   activeCellStyle: row.active_cell_style || null,
-  boostDoubleCoins: Boolean(row.boost_double_coins)
+  boostDoubleCoins: Boolean(row.boost_double_coins),
+  energy: Number.isFinite(row.energy) ? row.energy : undefined,
+  energyDate: row.energy_date || undefined
 });
+
+// Strip keys whose value is `undefined` so a spread merge into local state
+// doesn't accidentally clobber an existing local field with `undefined`.
+function clean(obj) {
+  const out = {};
+  for (const k of Object.keys(obj)) {
+    if (obj[k] !== undefined) out[k] = obj[k];
+  }
+  return out;
+}
 
 // Heuristic: does the local snapshot contain progress worth pushing if the
 // server row is brand-new?

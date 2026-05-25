@@ -1,26 +1,53 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, WORD_LENGTH, rewardFor } from '../constants/game.js';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, rewardFor } from '../constants/game.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
+import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
 
 const isCyrillicLetter = (ch) => /^[а-яё]$/i.test(ch);
 
 export function useGame() {
-  const [solution, setSolution] = useState(() => pickRandomWord());
-  const [guesses, setGuesses] = useState([]);          // array of submitted words
-  const [evaluations, setEvaluations] = useState([]);  // array of status arrays
+  // Lazy-init from any persisted game so a page refresh resumes the same
+  // puzzle without spending energy a second time.
+  const savedGame = useMemo(() => storage.get(STORAGE_KEYS.GAME_STATE, null), []);
+  const [solution, setSolution] = useState(() => savedGame?.solution ?? null);
+  const [guesses, setGuesses] = useState(() => savedGame?.guesses ?? []);
+  const [evaluations, setEvaluations] = useState(() => savedGame?.evaluations ?? []);
   const [current, setCurrent] = useState('');
-  const [status, setStatus] = useState(GAME_STATUS.PLAYING);
+  const [status, setStatus] = useState(() => savedGame?.status ?? GAME_STATUS.PLAYING);
   const [shakeRow, setShakeRow] = useState(false);
   const [revealRow, setRevealRow] = useState(-1);
   const [toast, setToast] = useState(null);
   const [lastEarned, setLastEarned] = useState(0);
-  const [hints, setHints] = useState(() => Array(WORD_LENGTH).fill(null));
+  const [hints, setHints] = useState(() => savedGame?.hints ?? Array(WORD_LENGTH).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
+  const [energyModalOpen, setEnergyModalOpen] = useState(false);
   const isLocked = useRef(false);
   const stats = useStats();
+
+  // On first mount, if there's no saved puzzle, spend 1 energy and start one.
+  // If energy is depleted, leave solution=null and pop the energy modal.
+  useEffect(() => {
+    if (solution !== null) return;
+    if (stats.consumeEnergy()) {
+      setSolution(pickRandomWord());
+    } else {
+      setEnergyModalOpen(true);
+    }
+    // We intentionally only run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist the in-flight puzzle so reload resumes it (no double energy charge).
+  useEffect(() => {
+    if (!solution) {
+      storage.remove(STORAGE_KEYS.GAME_STATE);
+      return;
+    }
+    storage.set(STORAGE_KEYS.GAME_STATE, { solution, guesses, evaluations, status, hints });
+  }, [solution, guesses, evaluations, status, hints]);
 
   const showToast = useCallback((text) => {
     setToast({ text, id: Date.now() });
@@ -28,18 +55,18 @@ export function useGame() {
   }, []);
 
   const addLetter = useCallback((letter) => {
-    if (status !== GAME_STATUS.PLAYING || isLocked.current) return;
+    if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (!isCyrillicLetter(letter)) return;
     setCurrent((c) => (c.length >= WORD_LENGTH ? c : c + letter.toLowerCase()));
-  }, [status]);
+  }, [status, solution]);
 
   const removeLetter = useCallback(() => {
-    if (status !== GAME_STATUS.PLAYING || isLocked.current) return;
+    if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     setCurrent((c) => c.slice(0, -1));
-  }, [status]);
+  }, [status, solution]);
 
   const submit = useCallback(() => {
-    if (status !== GAME_STATUS.PLAYING || isLocked.current) return;
+    if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (current.length !== WORD_LENGTH) {
       setShakeRow(true);
       showToast('Слишком короткое слово');
@@ -63,6 +90,8 @@ export function useGame() {
     setGuesses(nextGuesses);
     setEvaluations(nextEvals);
     setCurrent('');
+    // Hints are tied to the row on which they were bought — clear once it submits.
+    setHints(Array(WORD_LENGTH).fill(null));
 
     setTimeout(() => {
       const won = guess === normalizeWord(solution);
@@ -97,6 +126,11 @@ export function useGame() {
   }, []);
 
   const reset = useCallback(() => {
+    // Energy gate — every fresh puzzle costs 1.
+    if (!stats.consumeEnergy()) {
+      setEnergyModalOpen(true);
+      return;
+    }
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
       setSolution(pickRandomWord());
@@ -107,7 +141,27 @@ export function useGame() {
       performReset();
       setIsClearing(false);
     }, 340);
-  }, [guesses.length, current.length, hints, performReset]);
+  }, [guesses.length, current.length, hints, performReset, stats]);
+
+  // Called after the user successfully tops up energy from the modal. Spends
+  // the freshly-acquired unit and starts a puzzle without a clearing animation
+  // (there's nothing on the board yet).
+  const startAfterRefuel = useCallback(() => {
+    if (!stats.consumeEnergy()) return false;
+    setEnergyModalOpen(false);
+    if (solution) {
+      setIsClearing(true);
+      setTimeout(() => {
+        performReset();
+        setIsClearing(false);
+      }, 340);
+    } else {
+      performReset();
+    }
+    return true;
+  }, [stats, solution, performReset]);
+
+  const closeEnergyModal = useCallback(() => setEnergyModalOpen(false), []);
 
   // Positions that have been correctly guessed in past attempts — no point
   // paying for a hint on a slot the player already knows.
@@ -198,6 +252,14 @@ export function useGame() {
     revealRandomHint,
     revealPositionHint,
     startHintPick,
-    cancelHintPick
+    cancelHintPick,
+    // Energy
+    energy: stats.energy,
+    energyModalOpen,
+    openEnergyModal: () => setEnergyModalOpen(true),
+    closeEnergyModal,
+    buyEnergy: stats.buyEnergy,
+    grantAdEnergy: stats.grantAdEnergy,
+    startAfterRefuel
   };
 }
