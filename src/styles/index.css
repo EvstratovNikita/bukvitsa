@@ -2234,11 +2234,15 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 .pet-scene {
   position: relative;
   width: 100%;
-  max-width: 360px;
+  max-width: 320px;
   margin: 0 auto;
-  aspect-ratio: 240 / 220;
+  /* Match the SVG viewBox so the owl isn't letterboxed/cropped. */
+  aspect-ratio: 400 / 360;
   border-radius: 16px;
   overflow: hidden;
+  /* Inside a flex column with scroll, prevent shrink so the image keeps
+     its declared size when the panels below claim space. */
+  flex-shrink: 0;
 }
 .pet-scene__svg { width: 100%; height: 100%; display: block; }
 
@@ -2376,13 +2380,21 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 .pet-screen__body {
   flex: 1;
   overflow-y: auto;
-  padding: 14px 14px 28px;
+  padding: 12px 14px 24px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   max-width: 560px;
   margin: 0 auto;
   width: 100%;
+  min-height: 0;
+}
+.pet-screen__scene {
+  /* Lock the scene to a fraction of the body height so the layout below
+     always has room. The PetScene itself maintains its aspect ratio inside. */
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
 }
 .pet-screen__caption {
   text-align: center;
@@ -2508,4 +2520,195 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   font-weight: 800; color: #f7c948;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+/* ---------- New compact pet summary card ---------- */
+.pet-summary {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pet-summary__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pet-summary__name { font-size: 18px; font-weight: 800; color: #e6ecff; flex: 1; min-width: 0; }
+.pet-summary__name-input {
+  flex: 1; min-width: 0;
+  font-size: 16px; font-weight: 700;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #e6ecff;
+}
+.pet-summary__edit {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  background: rgba(108, 140, 255, 0.16);
+  border: 1px solid rgba(108, 140, 255, 0.35);
+  color: #b5c5ff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.pet-summary__badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f7c948, #ffb84d);
+  color: #1a1300;
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pet-summary__bars { display: flex; flex-direction: column; gap: 8px; }
+.pet-summary__meta { font-size: 12.5px; color: rgba(229, 235, 255, 0.55); }
+.pet-deco-active {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(247, 201, 72, 0.10);
+  border: 1px solid rgba(247, 201, 72, 0.30);
+  color: #fde8a8;
+  font-size: 12.5px;
+}
+.pet-deco-active b { color: #f7c948; font-variant-numeric: tabular-nums; }
+
+.pet-bar { display: flex; flex-direction: column; gap: 3px; }
+.pet-bar__row { display: flex; justify-content: space-between; align-items: baseline; }
+.pet-bar__label { font-size: 12.5px; font-weight: 700; color: #e6ecff; text-transform: uppercase; letter-spacing: 0.04em; }
+.pet-bar__value { font-size: 12px; color: rgba(229, 235, 255, 0.7); font-variant-numeric: tabular-nums; }
+.pet-bar__chip {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(108, 140, 255, 0.16);
+  border: 1px solid rgba(108, 140, 255, 0.35);
+  color: #b5c5ff;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+.pet-bar__track {
+  position: relative;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.pet-bar__fill {
+  position: absolute; inset: 0 auto 0 0;
+  border-radius: 999px;
+  transition: width 500ms ease-out;
+}
+.pet-bar__fill--xp     { background: linear-gradient(90deg, #f7c948, #ffb84d); }
+.pet-bar__fill--hunger { background: linear-gradient(90deg, #6cc474, #b8e08e); }
+
+/* ---------- Pet action tabs ---------- */
+.pet-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.pet-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(229, 235, 255, 0.65);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12.5px;
+  -webkit-tap-highlight-color: transparent;
+}
+.pet-tab__icon { font-size: 18px; }
+.pet-tab--active {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.22), rgba(247, 201, 72, 0.06));
+  color: #fde8a8;
+  box-shadow: inset 0 0 0 1px rgba(247, 201, 72, 0.35);
+}
+.pet-tab__hint {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(229, 235, 255, 0.6);
+}
+
+.pet-tabpanel {
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+}
+
+/* ---------- Decorations (Порадовать) ---------- */
+.pet-decos { display: flex; flex-direction: column; gap: 8px; }
+.pet-deco {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.pet-deco--active {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.10), rgba(247, 201, 72, 0.02));
+  border-color: rgba(247, 201, 72, 0.35);
+}
+.pet-deco__icon {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  font-size: 26px;
+  border-radius: 10px;
+  background: rgba(247, 201, 72, 0.10);
+}
+.pet-deco__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pet-deco__name { font-size: 14px; font-weight: 700; color: #e6ecff; }
+.pet-deco__desc { font-size: 12px; color: rgba(229, 235, 255, 0.6); }
+.pet-deco__bonus { font-size: 11.5px; font-weight: 700; color: #f7c948; }
+.pet-deco__cta { display: flex; align-items: center; }
+.pet-deco__btn {
+  padding: 8px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.pet-deco__btn--price {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Train (placeholder) ---------- */
+.pet-train {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 12px;
+  text-align: center;
+}
+.pet-train__icon {
+  font-size: 44px;
+  filter: grayscale(0.4) opacity(0.8);
+}
+.pet-train__title { margin: 0; font-size: 16px; font-weight: 800; color: #e6ecff; }
+.pet-train__desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(229, 235, 255, 0.65);
+  max-width: 320px;
 }

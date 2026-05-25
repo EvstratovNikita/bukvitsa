@@ -153,7 +153,13 @@ export function reconcilePetTimers({ energy, lastEnergyTickAt, hunger, lastHunge
   };
 }
 
-// Milliseconds until the next energy unit ticks in. Returns 0 when full.
+// Displayed time until the next energy unit. Always counts down from the
+// base 2h regardless of speed multiplier — the player sees the countdown
+// "tick faster" when Букля is fed instead of starting from a smaller number.
+//
+// Implementation: real_remaining * speedMul. With hunger 0 (×1) this is just
+// the real time. With hunger 100 (×2) the display starts at 2h and reaches
+// 0 in 1h of wall-clock — each real second drops the visible counter by 2s.
 export function msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger, nowMs }) {
   const e = Number.isFinite(energy) ? energy : ENERGY_MAX;
   if (e >= ENERGY_MAX) return 0;
@@ -162,7 +168,8 @@ export function msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger, nowMs 
   const speedMul = energySpeedFromHunger(hunger);
   const interval = ENERGY_REGEN_INTERVAL_MS / speedMul;
   const elapsed = Math.max(0, now - last);
-  return Math.max(0, interval - elapsed);
+  const realRemaining = Math.max(0, interval - elapsed);
+  return realRemaining * speedMul;
 }
 
 // Pretty-format a duration in milliseconds → "1ч 23м", "12м 05с", "47с".

@@ -14,6 +14,7 @@ import {
 } from '../constants/game.js';
 import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
+import { getDecoration, decorationBonusFor } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
 import { storage } from '../utils/storage.js';
 import { useAuth } from './useAuth.js';
@@ -52,8 +53,10 @@ const DEFAULT_STATS = {
     bornAt: null,           // ISO date when the egg cracked
     xp: 0,                  // cumulative; level derived via petComputeLevel
     level: 1,
-    hunger: HUNGER_MAX / 2, // starts half-full after hatching
-    lastHungerTickAt: null  // ISO of last hunger decay reconciliation
+    hunger: 0,              // starts empty — player must feed to earn the bonus
+    lastHungerTickAt: null, // ISO of last hunger decay reconciliation
+    ownedDecorations: [],   // ids of bought decorations (Порадовать tab)
+    activeDecoration: null  // currently equipped decoration id (null = none)
   }
 };
 
@@ -142,13 +145,22 @@ export function useStats() {
   // The current snapshot of stats is captured in the closure so we read the
   // flag synchronously; the boost is consumed inside the setStats updater.
   const recordWin = useCallback((attemptsUsed, elapsedMs) => {
+    // Compose the win reward: base × (1 + deco%) × (boost ? 2 : 1).
+    // Decoration bonus stacks before the consumable double — small treat
+    // first, then the boost multiplies the whole thing.
     const base = rewardFor(attemptsUsed);
-    const boosted = stats.boostDoubleCoins ? base * 2 : base;
+    const decoPct = decorationBonusFor(stats.pet?.activeDecoration);
+    const decoMul = 1 + decoPct / 100;
+    const boostMul = stats.boostDoubleCoins ? 2 : 1;
+    const boosted = Math.round(base * decoMul * boostMul);
     setStats((s) => {
       const dist = s.distribution.slice();
       dist[attemptsUsed - 1] = (dist[attemptsUsed - 1] || 0) + 1;
       const currentStreak = s.currentStreak + 1;
-      const earned = s.boostDoubleCoins ? base * 2 : base;
+      const dPct = decorationBonusFor(s.pet?.activeDecoration);
+      const dMul = 1 + dPct / 100;
+      const bMul = s.boostDoubleCoins ? 2 : 1;
+      const earned = Math.round(base * dMul * bMul);
       const prevFast = s.fastestWinMs;
       const nextFast = (elapsedMs != null && elapsedMs > 0)
         ? (prevFast == null ? elapsedMs : Math.min(prevFast, elapsedMs))
@@ -171,7 +183,7 @@ export function useStats() {
       };
     });
     return boosted;
-  }, [stats.boostDoubleCoins]);
+  }, [stats.boostDoubleCoins, stats.pet?.activeDecoration]);
 
   const recordLoss = useCallback(() => {
     setStats((s) => ({
@@ -266,6 +278,36 @@ export function useStats() {
     });
     return 'ok';
   }, [stats.coins, stats.pet?.hatched, reconciled.hunger]);
+
+  // Buy a decoration → pay coins, add to owned, auto-equip (player will
+  // usually want their new toy on). Returns 'ok' | 'not_enough_coins' |
+  // 'already_owned' | 'unknown'.
+  const buyDecoration = useCallback((decoId) => {
+    const d = getDecoration(decoId);
+    if (!d) return 'unknown';
+    const owned = stats.pet?.ownedDecorations || [];
+    if (owned.includes(decoId)) return 'already_owned';
+    if ((stats.coins || 0) < d.price) return 'not_enough_coins';
+    setStats((s) => ({
+      ...s,
+      coins: Math.max(0, (s.coins || 0) - d.price),
+      pet: {
+        ...(s.pet || DEFAULT_STATS.pet),
+        ownedDecorations: [...(s.pet?.ownedDecorations || []), decoId],
+        activeDecoration: decoId
+      }
+    }));
+    return 'ok';
+  }, [stats.coins, stats.pet?.ownedDecorations]);
+
+  // Equip an already-owned decoration, or pass null to clear.
+  const equipDecoration = useCallback((decoId) => {
+    setStats((s) => {
+      const owned = s.pet?.ownedDecorations || [];
+      if (decoId != null && !owned.includes(decoId)) return s; // ignore non-owned
+      return { ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), activeDecoration: decoId || null } };
+    });
+  }, []);
 
   // Adds XP to the pet, recomputes level. Returns { levelBefore, levelAfter,
   // gained } so the caller can fire a "Букля выросла!" toast on level-up.
@@ -396,6 +438,8 @@ export function useStats() {
     renamePet,
     recordPetXp,
     feedPet,
+    buyDecoration,
+    equipDecoration,
     achievementToasts,
     consumeAchievementToast,
     auth
