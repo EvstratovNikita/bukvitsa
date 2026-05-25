@@ -42,7 +42,7 @@ function Confetti({ count = 22 }) {
 }
 
 export function GameEnd() {
-  const { status, solution, reset, lastEarned, stats } = useGameContext();
+  const { status, solution, lastEarned, stats } = useGameContext();
   const [closed, setClosed] = useState(false);
 
   // Re-open the celebration whenever a new game ends.
@@ -108,16 +108,11 @@ export function GameEnd() {
           </div>
         )}
 
-        <div className="gameend__cta-row">
-          <button
-            type="button"
-            className="btn btn--primary gameend__cta"
-            onClick={reset}
-          >
-            Новая игра
-          </button>
-          {isWin && <ShareButton kind="invite" label="Похвастаться" />}
-        </div>
+        {isWin && (
+          <div className="gameend__cta-row">
+            <ShareButton kind="invite" variant="primary" label="Похвастаться" />
+          </div>
+        )}
       </div>
     </div>
   );

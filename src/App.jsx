@@ -14,13 +14,14 @@ import { Coins } from './components/Coins/Coins.jsx';
 import { EnergyBadge } from './components/Energy/Energy.jsx';
 import { EnergyModal } from './components/Energy/EnergyModal.jsx';
 import { HintButton } from './components/Hints/Hints.jsx';
-import { NewGameButton } from './components/NewGame/NewGame.jsx';
+import { EndPanel } from './components/NewGame/EndPanel.jsx';
 import { GameEnd } from './components/GameEnd/GameEnd.jsx';
 import { DailyReward } from './components/DailyReward/DailyReward.jsx';
 import { Modal } from './components/Modal/Modal.jsx';
 import { SideMenu } from './components/Menu/Menu.jsx';
 import { Shop } from './components/Shop/Shop.jsx';
 import { AuthModal } from './components/Auth/Auth.jsx';
+import { GAME_STATUS } from './constants/game.js';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
 import { useAuthRedirectFallback } from './hooks/useAuthRedirectFallback.js';
@@ -84,7 +85,7 @@ function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, resetStats, auth, showToast } = useGameContext();
+  const { stats, resetStats, auth, showToast, status } = useGameContext();
   // Server-side gated: only fires when user is verified (non-anon).
   useReferralClaim({
     userId: auth?.userId,
@@ -112,14 +113,13 @@ function GameShell() {
         <Coins />
         <EnergyBadge />
         <HintButton />
-        <NewGameButton />
       </div>
       <main className="main">
         <Board />
         <GameEnd />
         <PetFab onOpen={() => setPetOpen(true)} />
       </main>
-      <Keyboard />
+      {status === GAME_STATUS.PLAYING ? <Keyboard /> : <EndPanel />}
       <Toast />
       <AchievementToast />
       <DailyReward />
