@@ -39,7 +39,15 @@ const DEFAULT_STATS = {
   coinsEarned: 0,          // cumulative coins ever credited (never decreases)
   fastestWinMs: null,      // lowest elapsed time across won games
   unlockedAchievements: [], // ids of unlocked achievements
-  referralsCount: 0         // verified (non-anon) invitees credited to this user
+  referralsCount: 0,        // verified (non-anon) invitees credited to this user
+  // Companion pet (Букля the owlet). Lightweight JSON blob; new fields
+  // (xp, hunger, mood, equipped) get appended as the pet feature grows.
+  pet: {
+    hatched: false,
+    name: 'Букля',
+    species: 'owl',
+    bornAt: null    // ISO date when the egg cracked
+  }
 };
 
 function load() {
@@ -52,7 +60,8 @@ function load() {
       ? raw.distribution
       : DEFAULT_STATS.distribution,
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
-    unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : []
+    unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : [],
+    pet: { ...DEFAULT_STATS.pet, ...(raw.pet || {}) }
   };
 }
 
@@ -181,6 +190,30 @@ export function useStats() {
     setStats((s) => ({ ...s, hintsUsed: (s.hintsUsed || 0) + 1 }));
   }, []);
 
+  // ---------- Pet (Букля) ----------
+  // Idempotent: hatching twice is a no-op. The first-ever call stamps bornAt
+  // so we can later display "вылупилась N дней назад".
+  const hatchPet = useCallback(() => {
+    setStats((s) => {
+      if (s.pet?.hatched) return s;
+      return {
+        ...s,
+        pet: {
+          ...DEFAULT_STATS.pet,
+          ...(s.pet || {}),
+          hatched: true,
+          bornAt: new Date().toISOString()
+        }
+      };
+    });
+  }, []);
+
+  const renamePet = useCallback((name) => {
+    const clean = (name || '').trim().slice(0, 20);
+    if (!clean) return;
+    setStats((s) => ({ ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), name: clean } }));
+  }, []);
+
   // ---------- Shop ----------
   // buyItem returns one of:
   //   'ok'              — purchase succeeded
@@ -285,6 +318,8 @@ export function useStats() {
     buyEnergy,
     grantAdEnergy,
     recordHintUsed,
+    hatchPet,
+    renamePet,
     achievementToasts,
     consumeAchievementToast,
     auth

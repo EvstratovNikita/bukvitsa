@@ -266,6 +266,9 @@ export function useGame() {
     // Achievements (read-only state + UI helpers)
     achievementToasts: stats.achievementToasts,
     consumeAchievementToast: stats.consumeAchievementToast,
+    // Pet
+    hatchPet: stats.hatchPet,
+    renamePet: stats.renamePet,
     // Energy
     energy: stats.energy,
     energyModalOpen,
