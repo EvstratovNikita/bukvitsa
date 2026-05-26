@@ -2753,7 +2753,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 .pet-treat__gain { font-size: 11.5px; font-weight: 700; color: #b8e08e; }
 .pet-treat__price {
   display: inline-flex; align-items: center; gap: 4px;
-  font-weight: 800; color: #f7c948;
+  padding: 4px 10px 4px 6px;
+  background: rgba(247, 201, 72, 0.12);
+  border: 1px solid rgba(247, 201, 72, 0.35);
+  border-radius: 999px;
+  font-weight: 800; color: #ffd864;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -3271,6 +3275,25 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   color: #1a2c70;
   font-weight: 800;
 }
+/* The "on" variant keeps the dark-theme gold gradient — re-assert it in
+   light theme so it isn't beaten by the generic .pet-deco__wing-btn rule
+   above. Without this both left+right amulet buttons looked identical. */
+[data-theme="light"] .pet-deco__wing-btn--on {
+  background: linear-gradient(135deg, #f7c948, #ffb84d);
+  border-color: rgba(180, 130, 30, 0.65);
+  color: #1a1300;
+  box-shadow: 0 0 0 1px rgba(180, 130, 30, 0.45);
+}
+
+/* Pet "Покормить": hunger-gain text and the price chip both wash out
+   on cream. Brighten the gain (deep green) and gold the price pill. */
+[data-theme="light"] .pet-treat__gain { color: #1f6b2a; }
+[data-theme="light"] .pet-treat__price {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.42), rgba(247, 201, 72, 0.22));
+  border-color: rgba(180, 130, 30, 0.65);
+  color: #6a3a04;
+}
+[data-theme="light"] .pet-treat__price svg { color: #8a5a10; }
 [data-theme="light"] .pet-deco__bonus { color: #6a3a04; }
 [data-theme="light"] .pet-deco--active {
   background: linear-gradient(135deg, rgba(247, 201, 72, 0.28), rgba(247, 201, 72, 0.12));
