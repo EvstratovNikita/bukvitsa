@@ -23,6 +23,9 @@ import { getDecoration } from '../../data/petDecorations.js';
 const JUMP_MS = 700;
 
 // Per-slot anchor for the emoji glyph rendered on the owl.
+// Wing positions are centred on each wing's visual midpoint so amulets
+// stay aligned with the wing during the flap / jump animation (they
+// render INSIDE the wing group and inherit its transform).
 const SLOT_POSITIONS = {
   head:   { x: 200, y: 50,  size: 110 }, // crown of the head
   eyes:   { x: 200, y: 178, size: 78  }, // straddles both eyes
@@ -34,6 +37,33 @@ const SLOT_POSITIONS = {
 export function OwlSvg({ className = '', equipped = {} }) {
   const [jumping, setJumping] = useState(false);
   const cooldown = useRef(false);
+
+  // Build a wing-deco node by id; used inside each wing group so the
+  // amulet rotates/lifts with the wing during the flap animation.
+  const renderWingDeco = (slot, id) => {
+    if (!id) return null;
+    const d = getDecoration(id);
+    const pos = SLOT_POSITIONS[slot];
+    if (!d || !pos) return null;
+    const Comp = WING_COMPS[id];
+    if (Comp) {
+      return (
+        <g className={`owl-deco owl-deco--${slot} owl-deco--${id}`}>
+          <Comp x={pos.x} y={pos.y} />
+        </g>
+      );
+    }
+    // Emoji fallback (unknown id) — keep the halo so it still pops.
+    return (
+      <g className={`owl-deco owl-deco--${slot}`}>
+        <circle cx={pos.x} cy={pos.y} r={pos.size * 0.55} fill="rgba(255, 240, 200, 0.25)" />
+        <circle cx={pos.x} cy={pos.y} r={pos.size * 0.45} fill="rgba(255, 220, 130, 0.45)" />
+        <text x={pos.x} y={pos.y} fontSize={pos.size} textAnchor="middle" dominantBaseline="central">
+          {d.icon}
+        </text>
+      </g>
+    );
+  };
 
   const onClick = () => {
     if (cooldown.current) return;
@@ -95,7 +125,9 @@ export function OwlSvg({ className = '', equipped = {} }) {
       </defs>
 
       <g filter="url(#owl-shadow)">
-        {/* ---- LEFT WING (behind body) — striations only, no floating tips ---- */}
+        {/* ---- LEFT WING (behind body) — striations only, no floating tips.
+             Amulet rendered INSIDE this group so it moves with the wing
+             during the flap / jump animation. */}
         <g className="owl-wing owl-wing--l">
           <path
             d="M 140 195
@@ -111,6 +143,7 @@ export function OwlSvg({ className = '', equipped = {} }) {
             <path d="M 100 210 Q 115 235 120 270" />
             <path d="M 45 250 Q 60 270 60 290" />
           </g>
+          {renderWingDeco('wingL', equipped.wingL)}
         </g>
 
         {/* ---- RIGHT WING ---- */}
@@ -129,6 +162,7 @@ export function OwlSvg({ className = '', equipped = {} }) {
             <path d="M 300 210 Q 285 235 280 270" />
             <path d="M 355 250 Q 340 270 340 290" />
           </g>
+          {renderWingDeco('wingR', equipped.wingR)}
         </g>
 
         {/* ---- MAIN BODY ---- */}
@@ -283,27 +317,12 @@ export function OwlSvg({ className = '', equipped = {} }) {
             if (id === 'crown')    return <Crown    key={slot} />;
           }
 
-          const isWing = slot === 'wingL' || slot === 'wingR';
-          if (isWing) {
-            const Comp = WING_COMPS[id];
-            if (Comp) {
-              return (
-                <g key={slot} className={`owl-deco owl-deco--${slot} owl-deco--${id}`}>
-                  <Comp x={pos.x} y={pos.y} />
-                </g>
-              );
-            }
-          }
+          // Wing slots are rendered INSIDE the wing groups above so
+          // they inherit the flap transform. Skip them here.
+          if (slot === 'wingL' || slot === 'wingR') return null;
+
           return (
             <g key={slot} className={`owl-deco owl-deco--${slot}`}>
-              {isWing && (
-                <>
-                  <circle cx={pos.x} cy={pos.y} r={pos.size * 0.55}
-                          fill="rgba(255, 240, 200, 0.25)" />
-                  <circle cx={pos.x} cy={pos.y} r={pos.size * 0.45}
-                          fill="rgba(255, 220, 130, 0.45)" />
-                </>
-              )}
               <text
                 x={pos.x}
                 y={pos.y}
