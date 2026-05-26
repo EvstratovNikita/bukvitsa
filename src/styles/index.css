@@ -1343,6 +1343,16 @@ body.cell-style-cells-neon .cell--tbd .cell__face--front {
     0 0 18px rgba(108, 140, 255, 0.55),
     0 0 28px rgba(179, 136, 255, 0.45);
 }
+/* Light theme: swap the blue/purple neon for a warm gold glow that
+   actually reads against cream cells. */
+[data-theme="light"] body.cell-style-cells-neon .cell--tbd .cell__face--front,
+body.cell-style-cells-neon [data-theme="light"] .cell--tbd .cell__face--front {
+  color: #6a3a04;
+  text-shadow:
+    0 0 4px rgba(247, 201, 72, 0.75),
+    0 0 10px rgba(247, 201, 72, 0.55),
+    0 1px 2px rgba(180, 130, 30, 0.55);
+}
 
 @keyframes shimmer-slide {
   0%   { background-position: 100% 0; }
@@ -3232,6 +3242,39 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   background: rgba(60, 90, 220, 0.18);
   border-color: rgba(40, 70, 200, 0.55);
   color: #1a2c70;
+}
+
+/* Tutorial "в другом месте" swatch: dark-theme present is white, but
+   light theme repaints present cells to #c8c2b0 beige. Mirror that here
+   so the legend matches what the player sees on the board. */
+[data-theme="light"] .swatch--present {
+  background: #c8c2b0;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+
+/* "Порадовать" tab — category headings, "Надето" chip, card border,
+   wing-slot toggles and the reward-bonus value all dim out on cream.
+   Boost contrast across the board. */
+[data-theme="light"] .pet-deco-group__label {
+  color: #1a1d28;
+  font-weight: 800;
+}
+[data-theme="light"] .pet-deco-group__clear { color: #4a2cae; }
+[data-theme="light"] .pet-deco__chip {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.45), rgba(247, 201, 72, 0.22));
+  border-color: rgba(180, 130, 30, 0.65);
+  color: #4a2700;
+}
+[data-theme="light"] .pet-deco__wing-btn {
+  background: rgba(60, 90, 220, 0.16);
+  border-color: rgba(40, 70, 200, 0.55);
+  color: #1a2c70;
+  font-weight: 800;
+}
+[data-theme="light"] .pet-deco__bonus { color: #6a3a04; }
+[data-theme="light"] .pet-deco--active {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.28), rgba(247, 201, 72, 0.12));
+  border-color: rgba(180, 130, 30, 0.65);
 }
 [data-theme="light"] .energy-option {
   background: rgba(0, 0, 0, 0.03);
