@@ -2268,17 +2268,32 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   50%      { opacity: 1; }
 }
 
-/* default visibility: hide owl + crack + sparks; show egg */
-.pet-scene__owl,
+/* Owl PNG layered on top of the SVG scene. Positioned via percentages so
+   it scales with the container (aspect-ratio 400/360). */
+.pet-scene__owl-img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 78%;
+  transform: translate(-50%, -42%);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
+  opacity: 0;
+}
+
+/* default visibility: hide owl-img + crack + sparks; show egg */
 .pet-scene__sparks,
 .pet-egg-crack { opacity: 0; }
 .pet-scene__egg { opacity: 1; }
 
 /* --- mode: owl (settled) --- */
-.pet-scene--owl .pet-scene__egg  { opacity: 0; }
-.pet-scene--owl .pet-scene__owl  { opacity: 1; animation: pet-owl-bob 3.6s ease-in-out infinite; transform-origin: 200px 320px; }
-.pet-scene--owl .pet-owl-pupil   { animation: pet-owl-look 6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
-.pet-scene--owl .pet-owl-eyelid ellipse { animation: pet-owl-blink 5s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.pet-scene--owl .pet-scene__egg     { opacity: 0; }
+.pet-scene--owl .pet-scene__owl-img {
+  opacity: 1;
+  animation: pet-owl-bob 3.6s ease-in-out infinite;
+}
 
 /* --- mode: hatching --- */
 .pet-scene--hatching .pet-scene__egg     { animation: pet-egg-shake 0.4s ease-in-out 3; transform-origin: 200px 290px; }
@@ -2286,7 +2301,7 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 .pet-scene--hatching .pet-egg-left       { animation: pet-egg-split-left  0.6s ease-in 1.5s forwards; }
 .pet-scene--hatching .pet-egg-right      { animation: pet-egg-split-right 0.6s ease-in 1.5s forwards; }
 .pet-scene--hatching .pet-egg-speckles   { animation: pet-egg-fade 0.6s ease-out 1.7s forwards; }
-.pet-scene--hatching .pet-scene__owl     { animation: pet-owl-pop 0.7s cubic-bezier(.2,1.4,.4,1) 1.9s forwards; transform-origin: 200px 320px; }
+.pet-scene--hatching .pet-scene__owl-img { animation: pet-owl-pop 0.7s cubic-bezier(.2,1.4,.4,1) 1.9s forwards; }
 .pet-scene--hatching .pet-scene__sparks  { animation: pet-sparks 0.9s ease-out 1.8s forwards; transform-origin: 200px 180px; }
 
 @keyframes pet-egg-shake {
@@ -2308,9 +2323,9 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 @keyframes pet-egg-fade { to { opacity: 0; } }
 
 @keyframes pet-owl-pop {
-  0%   { opacity: 0; transform: translateY(28px) scale(0.45); }
-  60%  { opacity: 1; transform: translateY(-6px) scale(1.06); }
-  100% { opacity: 1; transform: translateY(0)    scale(1); }
+  0%   { opacity: 0; transform: translate(-50%, -10%) scale(0.45); }
+  60%  { opacity: 1; transform: translate(-50%, -48%) scale(1.06); }
+  100% { opacity: 1; transform: translate(-50%, -42%) scale(1); }
 }
 @keyframes pet-sparks {
   0%   { opacity: 0; transform: scale(0.6); }
@@ -2319,19 +2334,9 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 
 @keyframes pet-owl-bob {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
+  0%, 100% { transform: translate(-50%, -42%); }
+  50%      { transform: translate(-50%, -44%); }
 }
-@keyframes pet-owl-look {
-  0%, 40%, 100% { transform: translateX(0); }
-  55%           { transform: translateX(-2.5px); }
-  75%           { transform: translateX(2.5px); }
-}
-@keyframes pet-owl-blink {
-  0%, 92%, 100% { transform: scaleY(0); }
-  94%, 98%      { transform: scaleY(1); }
-}
-.pet-owl-eyelid ellipse { transform: scaleY(0); transform-origin: center; transform-box: fill-box; }
 
 /* ---------- Pet header button ---------- */
 .pet-headerbtn { position: relative; }

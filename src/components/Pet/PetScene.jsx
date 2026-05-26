@@ -1,14 +1,14 @@
+import owlSrc from '../../assets/owl.png';
+
 // Pet scene — tree hollow at dusk with the egg / owl inside.
 //
 // Modes:
 //   'egg'      — static egg sitting in the nest
 //   'hatching' — wobble → crack → split → owl reveal (~3.2s)
-//   'owl'      — settled owl with idle animations (bob, blink, look)
+//   'owl'      — settled owl (PNG illustration, CSS idle animations)
 //
-// Everything is inline SVG so animations are driven by CSS classes. The owl
-// itself is layered (silhouette → body → belly → wings → facial discs → eyes
-// → beak → tufts → talons) with multi-stop gradients and soft shadow filter
-// to read as a polished illustration rather than primitive shapes.
+// Tree/sky/hollow/egg are still inline SVG; the owl itself is the rendered
+// PNG asset overlaid on top of the SVG, animated via CSS transforms.
 
 export function PetScene({ mode = 'owl' }) {
   return (
@@ -177,138 +177,7 @@ export function PetScene({ mode = 'owl' }) {
           />
         </g>
 
-        {/* --- Owl group (owl mode + post-hatch in hatching mode) --- */}
-        <g className="pet-scene__owl" filter="url(#ps-shadow)">
-          {/* Ear tufts (behind head) */}
-          <path d="M118 110 Q108 60 138 80 Q132 100 142 120 Z" fill="#3d2410" />
-          <path d="M282 110 Q292 60 262 80 Q268 100 258 120 Z" fill="#3d2410" />
-
-          {/* Body silhouette */}
-          <ellipse cx="200" cy="220" rx="100" ry="115" fill="url(#ps-owl-body)" />
-
-          {/* Wings — overlapping curved feather plates */}
-          <g>
-            <path d="M104 195
-                     Q 75 240 90 300
-                     Q 105 322 130 318
-                     Q 138 268 130 210 Z"
-                  fill="url(#ps-owl-wing)" />
-            <path d="M296 195
-                     Q 325 240 310 300
-                     Q 295 322 270 318
-                     Q 262 268 270 210 Z"
-                  fill="url(#ps-owl-wing)" />
-            {/* Wing feather slits */}
-            <g stroke="#1a0d04" strokeWidth="1.4" strokeLinecap="round" opacity="0.6" fill="none">
-              <path d="M100 235 L130 240" />
-              <path d="M97  260 L128 265" />
-              <path d="M99  285 L130 290" />
-              <path d="M300 235 L270 240" />
-              <path d="M303 260 L272 265" />
-              <path d="M301 285 L270 290" />
-            </g>
-          </g>
-
-          {/* Belly patch */}
-          <ellipse cx="200" cy="248" rx="58" ry="78" fill="url(#ps-owl-belly)" />
-          {/* Belly chevrons */}
-          <g stroke="#a47148" strokeWidth="2" fill="none" opacity="0.65" strokeLinecap="round">
-            <path d="M168 230 Q200 244 232 230" />
-            <path d="M168 255 Q200 269 232 255" />
-            <path d="M170 280 Q200 294 230 280" />
-            <path d="M178 304 Q200 314 222 304" />
-          </g>
-
-          {/* Side body feather curl details */}
-          <g stroke="#3d2410" strokeWidth="1.4" opacity="0.55" fill="none" strokeLinecap="round">
-            <path d="M118 230 Q132 238 122 250" />
-            <path d="M118 260 Q132 268 122 280" />
-            <path d="M282 230 Q268 238 278 250" />
-            <path d="M282 260 Q268 268 278 280" />
-          </g>
-
-          {/* Facial discs (eye saucers) */}
-          <g>
-            <ellipse cx="158" cy="178" rx="52" ry="60" fill="url(#ps-owl-face)" />
-            <ellipse cx="242" cy="178" rx="52" ry="60" fill="url(#ps-owl-face)" />
-            {/* Disc rims */}
-            <path d="M110 178 Q98 130 138 110" stroke="#5a3318" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.7" />
-            <path d="M290 178 Q302 130 262 110" stroke="#5a3318" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.7" />
-            <path d="M110 178 Q102 232 145 240" stroke="#5a3318" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.7" />
-            <path d="M290 178 Q298 232 255 240" stroke="#5a3318" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.7" />
-            {/* Subtle radial feather lines on discs */}
-            <g stroke="#8c5c2a" strokeWidth="1" opacity="0.4" fill="none" strokeLinecap="round">
-              <path d="M158 118 L156 130" />
-              <path d="M138 124 L142 134" />
-              <path d="M178 124 L174 134" />
-              <path d="M242 118 L244 130" />
-              <path d="M222 124 L226 134" />
-              <path d="M262 124 L258 134" />
-            </g>
-          </g>
-
-          {/* Eyes */}
-          <g>
-            <circle cx="158" cy="180" r="30" fill="#fff" />
-            <circle cx="242" cy="180" r="30" fill="#fff" />
-            {/* Iris — golden gradient */}
-            <circle className="pet-owl-pupil" cx="158" cy="182" r="22" fill="url(#ps-owl-iris)" />
-            <circle className="pet-owl-pupil" cx="242" cy="182" r="22" fill="url(#ps-owl-iris)" />
-            {/* Pupil */}
-            <circle className="pet-owl-pupil" cx="158" cy="182" r="10" fill="#1a0d04" />
-            <circle className="pet-owl-pupil" cx="242" cy="182" r="10" fill="#1a0d04" />
-            {/* Sparkles */}
-            <circle cx="164" cy="174" r="3.4" fill="#fff" />
-            <circle cx="248" cy="174" r="3.4" fill="#fff" />
-            <circle cx="152" cy="188" r="1.6" fill="#fff" opacity="0.75" />
-            <circle cx="236" cy="188" r="1.6" fill="#fff" opacity="0.75" />
-            {/* Eye outlines (gentle) */}
-            <circle cx="158" cy="180" r="30" fill="none" stroke="#3d2410" strokeWidth="1.2" opacity="0.5" />
-            <circle cx="242" cy="180" r="30" fill="none" stroke="#3d2410" strokeWidth="1.2" opacity="0.5" />
-          </g>
-
-          {/* Beak */}
-          <g>
-            <path
-              d="M200 200
-                 Q 188 210 192 226
-                 Q 196 236 200 240
-                 Q 204 236 208 226
-                 Q 212 210 200 200 Z"
-              fill="url(#ps-beak)"
-              stroke="#7a4400"
-              strokeWidth="1.2"
-            />
-            <path d="M192 228 Q200 232 208 228" stroke="#7a4400" strokeWidth="1.1" fill="none" />
-          </g>
-
-          {/* Ear tuft tips (foreground accent) */}
-          <path d="M128 90  Q120 60 142 70 Q136 82 145 102 Z" fill="#5a3318" />
-          <path d="M272 90  Q280 60 258 70 Q264 82 255 102 Z" fill="#5a3318" />
-
-          {/* Talons (resting on the nest edge) */}
-          <g stroke="#e8911a" strokeWidth="3.5" strokeLinecap="round" fill="none">
-            <path d="M170 320 L170 336" />
-            <path d="M162 332 L170 332" />
-            <path d="M178 332 L170 332" />
-            <path d="M158 328 L164 332" />
-            <path d="M182 328 L176 332" />
-
-            <path d="M230 320 L230 336" />
-            <path d="M222 332 L230 332" />
-            <path d="M238 332 L230 332" />
-            <path d="M218 328 L224 332" />
-            <path d="M242 328 L236 332" />
-          </g>
-
-          {/* Eyelids for blink (default scaled to 0 height via CSS) */}
-          <g className="pet-owl-eyelid">
-            <ellipse className="pet-owl-eyelid-l" cx="158" cy="180" rx="30" ry="30" fill="#6f4321" />
-            <ellipse className="pet-owl-eyelid-r" cx="242" cy="180" rx="30" ry="30" fill="#6f4321" />
-          </g>
-        </g>
-
-        {/* Sparkle burst on hatch */}
+        {/* Sparkle burst on hatch — kept in SVG so it sits inside the scene */}
         <g className="pet-scene__sparks" fill="#f7c948">
           <circle cx="120" cy="150" r="2.8" />
           <circle cx="280" cy="150" r="2.8" />
@@ -319,6 +188,16 @@ export function PetScene({ mode = 'owl' }) {
           <circle cx="200" cy="95"  r="2.4" />
         </g>
       </svg>
+
+      {/* Owl PNG layered on top of the SVG — positioned within the hollow.
+          Visibility controlled by mode-driven CSS (hidden in egg, popped in
+          on hatching, idle bob/blink in owl). */}
+      <img
+        className="pet-scene__owl-img"
+        src={owlSrc}
+        alt=""
+        draggable={false}
+      />
     </div>
   );
 }
