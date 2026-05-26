@@ -618,6 +618,9 @@ button { font-family: inherit; }
   color: var(--accent);
   font-weight: 700;
   font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  box-sizing: border-box;
   cursor: pointer;
   transition: background var(--t-fast), transform var(--t-fast), color var(--t-fast);
 }
@@ -1060,14 +1063,16 @@ button { font-family: inherit; }
   justify-self: center;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(247, 201, 72, 0.18), rgba(247, 201, 72, 0.06));
   border: 1px solid rgba(247, 201, 72, 0.35);
   color: #f7c948;
   font-weight: 800;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1;
+  box-sizing: border-box;
   letter-spacing: 0.02em;
   box-shadow: 0 4px 16px rgba(247, 201, 72, 0.12);
   animation: coin-pulse 600ms ease-out;
@@ -1087,8 +1092,10 @@ button { font-family: inherit; }
   border: 1px solid rgba(108, 140, 255, 0.38);
   color: #b5c5ff;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1;
+  white-space: nowrap;
+  box-sizing: border-box;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1103,6 +1110,8 @@ button { font-family: inherit; }
   font-weight: 600;
   color: rgba(229, 235, 255, 0.65);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .energy--empty {
   background: linear-gradient(135deg, rgba(255, 120, 120, 0.22), rgba(255, 120, 120, 0.06));
@@ -3207,6 +3216,23 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 [data-theme="light"] .energy-modal__count { color: #1a1d28; }
 [data-theme="light"] .energy-modal__desc  { color: rgba(26, 29, 40, 0.78); }
 [data-theme="light"] .energy-modal__timer { color: rgba(26, 29, 40, 0.85); }
+[data-theme="light"] .energy-modal__timer b {
+  color: #8a5a10;
+  background: rgba(247, 201, 72, 0.28);
+  border: 1px solid rgba(180, 130, 30, 0.45);
+  padding: 0 6px;
+  border-radius: 6px;
+}
+[data-theme="light"] .energy-modal__speed {
+  background: rgba(247, 201, 72, 0.32);
+  border-color: rgba(180, 130, 30, 0.55);
+  color: #6a3a04;
+}
+[data-theme="light"] .pet-bar__chip {
+  background: rgba(60, 90, 220, 0.18);
+  border-color: rgba(40, 70, 200, 0.55);
+  color: #1a2c70;
+}
 [data-theme="light"] .energy-option {
   background: rgba(0, 0, 0, 0.03);
   border-color: rgba(0, 0, 0, 0.12);
