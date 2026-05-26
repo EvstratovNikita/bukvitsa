@@ -40,9 +40,11 @@ export function useGame() {
   const [shakeRow, setShakeRow] = useState(false);
   const [revealRow, setRevealRow] = useState(-1);
   const [toast, setToast] = useState(null);
-  const [lastEarned, setLastEarned] = useState(0);
-  const [lastEarnedBase, setLastEarnedBase] = useState(0);
-  const [doubledLastWin, setDoubledLastWin] = useState(false);
+  // Reward state is persisted alongside the board so a page refresh after
+  // a win still shows "+N монет", the breakdown, and the ad-double button.
+  const [lastEarned, setLastEarned] = useState(() => savedGame?.lastEarned ?? 0);
+  const [lastEarnedBase, setLastEarnedBase] = useState(() => savedGame?.lastEarnedBase ?? 0);
+  const [doubledLastWin, setDoubledLastWin] = useState(() => savedGame?.doubledLastWin ?? false);
   const [doublingAd, setDoublingAd] = useState(false);
   const [hints, setHints] = useState(() => savedGame?.hints ?? Array(WORD_LENGTH).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
@@ -86,8 +88,11 @@ export function useGame() {
       storage.remove(STORAGE_KEYS.GAME_STATE);
       return;
     }
-    storage.set(STORAGE_KEYS.GAME_STATE, { solution, guesses, evaluations, status, hints, gameMode });
-  }, [solution, guesses, evaluations, status, hints, gameMode]);
+    storage.set(STORAGE_KEYS.GAME_STATE, {
+      solution, guesses, evaluations, status, hints, gameMode,
+      lastEarned, lastEarnedBase, doubledLastWin
+    });
+  }, [solution, guesses, evaluations, status, hints, gameMode, lastEarned, lastEarnedBase, doubledLastWin]);
 
   const showToast = useCallback((text) => {
     setToast({ text, id: Date.now() });

@@ -83,10 +83,13 @@ export function EndPanel() {
               onMouseDown={(e) => e.preventDefault()}
               disabled={doublingAd}
             >
-              <span className="btn-ad__label">
-                <span>{doublingAd ? 'Реклама…' : 'Удвоить награду'}</span>
-                {!doublingAd && <span className="btn-ad__hint">+{lastEarned}</span>}
-              </span>
+              <span className="btn-ad__text">{doublingAd ? 'Реклама…' : 'Удвоить награду'}</span>
+              {!doublingAd && (
+                <span className="btn-ad__amount">
+                  <CoinIcon />
+                  <span>+{lastEarned}</span>
+                </span>
+              )}
               <span className="btn-ad__icon" aria-hidden="true">
                 <PlayIcon />
               </span>
