@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { HUNGER_MAX, energySpeedFromHunger, petComputeLevel } from '../../constants/game.js';
+import { HUNGER_MAX, PET_UNLOCK_GAMES, energySpeedFromHunger, petComputeLevel } from '../../constants/game.js';
 import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '../../data/petDecorations.js';
 import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
@@ -35,6 +35,12 @@ export function PetScreen({ open, onClose }) {
     showToast
   } = useGameContext();
   const pet = stats.pet || {};
+  // Feature gate — new players need to play a handful of rounds before the
+  // tamagotchi layer unlocks. Pre-unlock, the screen shows a teaser stub
+  // with the games-remaining countdown and no hatching animation.
+  const played = stats.played || 0;
+  const unlocked = played >= PET_UNLOCK_GAMES;
+  const gamesLeft = Math.max(0, PET_UNLOCK_GAMES - played);
 
   const [mode, setMode] = useState(pet.hatched ? 'owl' : 'egg');
   const [editingName, setEditingName] = useState(false);
@@ -51,11 +57,14 @@ export function PetScreen({ open, onClose }) {
   useEffect(() => {
     if (!open) return;
     if (pet.hatched) { setMode('owl'); return; }
+    // Pre-unlock: just sit on the egg, no hatching countdown — that fires
+    // only once the player has earned the right to start the loop.
+    if (!unlocked) { setMode('egg'); return; }
     setMode('egg');
     const start  = setTimeout(() => setMode('hatching'), 120);
     const finish = setTimeout(() => { hatchPet(); setMode('owl'); }, HATCH_DURATION_MS);
     return () => { clearTimeout(start); clearTimeout(finish); };
-  }, [open, pet.hatched, hatchPet]);
+  }, [open, pet.hatched, unlocked, hatchPet]);
 
   const age = useMemo(() => ageInDays(pet.bornAt), [pet.bornAt]);
   const lvl = useMemo(() => petComputeLevel(pet.xp || 0), [pet.xp]);
@@ -97,7 +106,9 @@ export function PetScreen({ open, onClose }) {
         >
           <CloseIcon />
         </button>
-        <h2 className="pet-screen__title">{pet.name || 'Букля'}</h2>
+        <h2 className="pet-screen__title">
+          {!unlocked && !pet.hatched ? 'Дупло' : (pet.name || 'Букля')}
+        </h2>
         <div className="pet-screen__balance" title="Монеты">
           <CoinIcon />
           <span>{stats.coins || 0}</span>
@@ -109,7 +120,9 @@ export function PetScreen({ open, onClose }) {
           <PetScene mode={mode} />
         </div>
 
-        {mode !== 'owl' ? (
+        {!unlocked && !pet.hatched ? (
+          <LockedStub gamesLeft={gamesLeft} played={played} />
+        ) : mode !== 'owl' ? (
           <div className="pet-screen__caption">
             {mode === 'hatching' ? 'Скорлупа трескается!' : 'В дупле что-то шевелится…'}
           </div>
@@ -320,6 +333,32 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
       })}
     </div>
   );
+}
+
+function LockedStub({ gamesLeft, played }) {
+  const pct = Math.min(100, Math.round((played / PET_UNLOCK_GAMES) * 100));
+  return (
+    <section className="pet-locked">
+      <div className="pet-locked__lock" aria-hidden="true">🔒</div>
+      <h3 className="pet-locked__title">
+        Букля ещё не готова вылупиться
+      </h3>
+      <p className="pet-locked__desc">
+        Сыграй {gamesLeft} {pluralGames(gamesLeft)}, и в дупле начнётся что-то интересное.
+      </p>
+      <div className="pet-locked__bar">
+        <div className="pet-locked__bar-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="pet-locked__count">{played} / {PET_UNLOCK_GAMES}</div>
+    </section>
+  );
+}
+
+function pluralGames(n) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return 'игру';
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'игры';
+  return 'игр';
 }
 
 function TrainPanel() {

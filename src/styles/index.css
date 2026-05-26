@@ -2744,6 +2744,52 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Locked pet stub (pre-10-games) ---------- */
+.pet-locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(247, 201, 72, 0.30);
+  border-radius: 14px;
+  text-align: center;
+}
+.pet-locked__lock {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 6px rgba(247, 201, 72, 0.35));
+}
+.pet-locked__title { margin: 0; font-size: 16px; font-weight: 800; color: #fde8a8; }
+.pet-locked__desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(229, 235, 255, 0.7);
+  max-width: 320px;
+}
+.pet-locked__bar {
+  width: 100%;
+  max-width: 280px;
+  height: 10px;
+  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.pet-locked__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f7c948, #ffb84d);
+  border-radius: 999px;
+  transition: width 500ms ease-out;
+}
+.pet-locked__count {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(229, 235, 255, 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---------- Train (placeholder) ---------- */
 .pet-train {
   display: flex;

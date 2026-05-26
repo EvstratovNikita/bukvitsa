@@ -55,6 +55,10 @@ export const ENERGY_REGEN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours per unit
 //   hunger 50  → 1.5x (≈1h 20m per unit)
 //   hunger 100 → 2.0x (1h per unit)
 // Hunger drains linearly over time so feeding is a meaningful loop.
+// Pet feature is gated behind this many played games — gives the new player
+// a chance to learn the core loop before the tamagotchi layer appears.
+export const PET_UNLOCK_GAMES = 10;
+
 export const HUNGER_MAX = 100;
 // 1 unit drains every 2 minutes → 100 → 0 over ~3h20m. Keeps the feeding
 // loop active without being punishing.
