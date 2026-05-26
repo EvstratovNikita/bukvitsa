@@ -27,6 +27,7 @@ export function Stats({ stats, onReset }) {
         <Metric label="Лучшая попытка" value={best} />
         <Metric label="Среднее попыток" value={avg} />
         <Metric label="Монеты" value={stats.coins || 0} />
+        <Metric label="Всего заработано" value={stats.coinsEarned || 0} />
       </div>
 
       <h3 className="stats__heading">Распределение попыток</h3>
@@ -42,7 +43,7 @@ export function Stats({ stats, onReset }) {
                   className="distribution__bar"
                   style={{ width: `${Math.max(pct, v ? 8 : 4)}%` }}
                 >
-                  <span className="distribution__count">{v}</span>
+                  {v > 0 && <span className="distribution__count">{v}</span>}
                 </div>
               </div>
             </div>

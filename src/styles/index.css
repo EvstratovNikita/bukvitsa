@@ -134,10 +134,10 @@ button { font-family: inherit; }
   letter-spacing: 0.01em;
   font-size: 28px;
   line-height: 1;
-  background: linear-gradient(120deg, #ffffff 0%, #cdd6ff 55%, var(--accent-2) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
 }
 
 .header__actions { display: flex; gap: 8px; justify-content: flex-end; }
@@ -3097,12 +3097,8 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
    light-mode equivalents. Grouped by area for easy maintenance.
    ============================================================ */
 
-/* ---------- Brand title ---------- */
-[data-theme="light"] .brand__title {
-  background: linear-gradient(120deg, #2a2d40 0%, #4a5cc8 55%, #6c8cff 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
+/* Brand title — solid color in light theme too (var(--text) already
+   handles it; no gradient override needed). */
 
 /* ---------- Topbar badges (Coins / Energy / Hint) ---------- */
 [data-theme="light"] .coins {
@@ -3319,10 +3315,14 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   background: #ffffff;
   color: #1a1d28;
 }
+/* Present cells: white bg vanishes on light theme — switch to a clearly
+   distinct beige with darker border and inked text. */
 [data-theme="light"] .cell--present .cell__face--front,
 [data-theme="light"] .cell--present .cell__face--back,
 [data-theme="light"] .cell--present:not(.cell--flipping) .cell__face--front {
-  border-color: rgba(0, 0, 0, 0.32);
+  background: #c8c2b0;
+  color: #14171f;
+  border-color: rgba(0, 0, 0, 0.35);
 }
 [data-theme="light"] .cell--absent .cell__face--front,
 [data-theme="light"] .cell--absent .cell__face--back,
@@ -3414,12 +3414,37 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   border-color: rgba(180, 130, 30, 0.55);
 }
 [data-theme="light"] .key--present {
-  background: var(--present);
-  color: var(--present-ink);
-  border-color: rgba(0, 0, 0, 0.32);
+  background: #c8c2b0;
+  color: #14171f;
+  border-color: rgba(0, 0, 0, 0.35);
 }
 [data-theme="light"] .key--absent {
   background: var(--absent);
   color: var(--absent-ink);
   border-color: rgba(0, 0, 0, 0.22);
 }
+
+/* Coin balance pills used everywhere — match the light-theme .coins style
+   so the digits are visible against the gold backdrop. */
+[data-theme="light"] .menu__balance,
+[data-theme="light"] .pet-screen__balance {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.32), rgba(247, 201, 72, 0.14));
+  border-color: rgba(180, 130, 30, 0.55);
+  color: #8a5a10;
+}
+[data-theme="light"] .menu__balance svg,
+[data-theme="light"] .pet-screen__balance svg { color: #8a5a10; }
+[data-theme="light"] .menu__balance span,
+[data-theme="light"] .pet-screen__balance span { color: #6a3a04; }
+[data-theme="light"] .hint-menu__balance { color: rgba(26, 29, 40, 0.7); }
+[data-theme="light"] .hint-menu__balance b { color: #6a3a04; }
+
+/* Help (Обучение) reward rows: the numeric chip used a blue accent
+   gradient that looks weak in light theme — switch to gold-on-cream. */
+[data-theme="light"] .help__rewardN {
+  background: linear-gradient(135deg, #f7c948, #ffb84d);
+  color: #1a1300;
+  box-shadow: 0 2px 8px rgba(247, 201, 72, 0.35);
+}
+[data-theme="light"] .help__rewards em { color: #8a5a10; font-weight: 700; }
+[data-theme="light"] .help__rewards li { color: var(--text); }
