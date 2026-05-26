@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, petXpForWin, rewardFor } from '../constants/game.js';
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
+import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd } from '../lib/ads.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
@@ -29,6 +30,8 @@ export function useGame() {
   const [hintPickMode, setHintPickMode] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [energyModalOpen, setEnergyModalOpen] = useState(false);
+  // 'normal' = freeform play (energy-gated); 'daily' = one-shot daily word.
+  const [gameMode, setGameMode] = useState('normal');
   const isLocked = useRef(false);
   // Wall-clock at which the active puzzle started — used for the "win in N
   // seconds" achievements. Resets every time a fresh solution is set.
@@ -107,27 +110,51 @@ export function useGame() {
       const lost = !won && nextGuesses.length >= MAX_ATTEMPTS;
       if (won) {
         setStatus(GAME_STATUS.WON);
-        const base = rewardFor(nextGuesses.length);
-        const elapsedMs = Date.now() - gameStartRef.current;
-        // Mirror the math useStats.recordWin uses so the displayed total
-        // matches what's actually credited to the coin balance.
-        const decoPct = equippedDecorationsBonus(stats.stats.pet);
-        const decoMul = 1 + decoPct / 100;
-        const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
-        const total = Math.round(base * decoMul * boostMul);
-        stats.recordWin(nextGuesses.length, elapsedMs);
-        setLastEarnedBase(base);
-        setLastEarned(total);
-        setDoubledLastWin(false);
-        // Pet XP grant — gated by hatched state inside recordPetXp.
-        const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
-        if (petResult.levelAfter > petResult.levelBefore) {
-          const petName = stats.stats.pet?.name || 'Букля';
-          showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
+        if (gameMode === 'daily') {
+          // Daily mode: log result + no coin reward / pet XP. Player still
+          // gets the social win (share + streak).
+          stats.recordDailyResult({
+            key: getDailyKey(),
+            dayN: getDailyNumber(),
+            won: true,
+            attempts: nextGuesses.length,
+            evaluations: nextEvals,
+            word: solution
+          });
+          setLastEarned(0);
+          setLastEarnedBase(0);
+          setDoubledLastWin(false);
+        } else {
+          const base = rewardFor(nextGuesses.length);
+          const elapsedMs = Date.now() - gameStartRef.current;
+          const decoPct = equippedDecorationsBonus(stats.stats.pet);
+          const decoMul = 1 + decoPct / 100;
+          const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
+          const total = Math.round(base * decoMul * boostMul);
+          stats.recordWin(nextGuesses.length, elapsedMs);
+          setLastEarnedBase(base);
+          setLastEarned(total);
+          setDoubledLastWin(false);
+          const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
+          if (petResult.levelAfter > petResult.levelBefore) {
+            const petName = stats.stats.pet?.name || 'Букля';
+            showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
+          }
         }
       } else if (lost) {
         setStatus(GAME_STATUS.LOST);
-        stats.recordLoss();
+        if (gameMode === 'daily') {
+          stats.recordDailyResult({
+            key: getDailyKey(),
+            dayN: getDailyNumber(),
+            won: false,
+            attempts: nextGuesses.length,
+            evaluations: nextEvals,
+            word: solution
+          });
+        } else {
+          stats.recordLoss();
+        }
         setLastEarned(0);
         setLastEarnedBase(0);
       }
@@ -189,6 +216,60 @@ export function useGame() {
   }, [stats, solution, performReset]);
 
   const closeEnergyModal = useCallback(() => setEnergyModalOpen(false), []);
+
+  // ---- Daily Word ----
+  // Returns true if the daily round was launched, false if already played
+  // today. Daily mode does NOT consume energy and doesn't carry XP/coins.
+  const startDailyGame = useCallback(() => {
+    const todayKey = getDailyKey();
+    if (stats.stats.daily?.lastPlayedKey === todayKey) {
+      return false;
+    }
+    // Stash in-flight normal game so it can be resumed after exiting daily.
+    if (gameMode === 'normal' && solution && status === GAME_STATUS.PLAYING) {
+      storage.set(STORAGE_KEYS.GAME_STATE + ':normal-backup', {
+        solution, guesses, evaluations, status, hints
+      });
+    }
+    gameStartRef.current = Date.now();
+    setGuesses([]);
+    setEvaluations([]);
+    setCurrent('');
+    setStatus(GAME_STATUS.PLAYING);
+    setShakeRow(false);
+    setRevealRow(-1);
+    setHints(Array(WORD_LENGTH).fill(null));
+    setHintPickMode(false);
+    setLastEarned(0);
+    setLastEarnedBase(0);
+    setDoubledLastWin(false);
+    isLocked.current = false;
+    setSolution(getDailyWord());
+    setGameMode('daily');
+    return true;
+  }, [gameMode, solution, status, guesses, evaluations, hints, stats.stats.daily?.lastPlayedKey]);
+
+  const exitDailyMode = useCallback(() => {
+    if (gameMode !== 'daily') return;
+    setGameMode('normal');
+    const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
+    if (backup?.solution) {
+      setSolution(backup.solution);
+      setGuesses(backup.guesses || []);
+      setEvaluations(backup.evaluations || []);
+      setStatus(backup.status || GAME_STATUS.PLAYING);
+      setHints(backup.hints || Array(WORD_LENGTH).fill(null));
+      storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
+      gameStartRef.current = Date.now();
+    } else {
+      // No backup → drop the daily solution; next "Новая игра" tap consumes
+      // energy as usual.
+      setSolution(null);
+      setGuesses([]);
+      setEvaluations([]);
+      setStatus(GAME_STATUS.PLAYING);
+    }
+  }, [gameMode]);
 
   // Watch an ad → credit the just-won reward a second time. One-shot per
   // round; further presses are ignored until the next puzzle starts.
@@ -285,6 +366,9 @@ export function useGame() {
     doubledLastWin,
     doublingAd,
     doubleLastReward,
+    gameMode,
+    startDailyGame,
+    exitDailyMode,
     hints,
     hintPickMode,
     isClearing,
