@@ -275,6 +275,14 @@ export function OwlSvg({ className = '', equipped = {} }) {
             if (id === 'shades')  return <Shades  key={slot} />;
           }
 
+          if (slot === 'head') {
+            if (id === 'bow')      return <Bow      key={slot} />;
+            if (id === 'academic') return <Academic key={slot} />;
+            if (id === 'cap')      return <Cap      key={slot} />;
+            if (id === 'tophat')   return <TopHat   key={slot} />;
+            if (id === 'crown')    return <Crown    key={slot} />;
+          }
+
           const isWing = slot === 'wingL' || slot === 'wingR';
           return (
             <g key={slot} className={`owl-deco owl-deco--${slot}`}>
@@ -344,6 +352,240 @@ function Shades() {
       {/* Temple stubs */}
       <path d="M 134 174 L 120 180" stroke="#1a1a26" strokeWidth="2.8" strokeLinecap="round" />
       <path d="M 266 174 L 280 180" stroke="#1a1a26" strokeWidth="2.8" strokeLinecap="round" />
+    </g>
+  );
+}
+
+// ---------- HEAD pieces ----------
+// All anchored around the owl's crown (x≈200, head-top at y≈75). Each shape
+// is hand-drawn so it sits flush instead of an emoji floating above the head.
+
+// Pink ribbon bow — central knot, two side loops, two short tails.
+function Bow() {
+  return (
+    <g className="owl-deco owl-deco--bow">
+      <defs>
+        <linearGradient id="bow-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#ff95c8" />
+          <stop offset="50%" stopColor="#ff5fa3" />
+          <stop offset="100%" stopColor="#c43075" />
+        </linearGradient>
+      </defs>
+      {/* Left loop */}
+      <path
+        d="M 200 78
+           Q 162 50 145 75
+           Q 138 92 162 100
+           Q 185 100 200 92 Z"
+        fill="url(#bow-grad)"
+        stroke="#7e1a4a"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      {/* Right loop */}
+      <path
+        d="M 200 78
+           Q 238 50 255 75
+           Q 262 92 238 100
+           Q 215 100 200 92 Z"
+        fill="url(#bow-grad)"
+        stroke="#7e1a4a"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      {/* Left tail */}
+      <path
+        d="M 188 95
+           L 176 122
+           L 192 110 Z"
+        fill="url(#bow-grad)"
+        stroke="#7e1a4a"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      {/* Right tail */}
+      <path
+        d="M 212 95
+           L 224 122
+           L 208 110 Z"
+        fill="url(#bow-grad)"
+        stroke="#7e1a4a"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      {/* Center knot */}
+      <rect x="190" y="76" width="20" height="24" rx="4"
+            fill="#c43075" stroke="#7e1a4a" strokeWidth="1.2" />
+      {/* Knot highlight */}
+      <path d="M 192 80 Q 200 78 208 80" stroke="#ffc0dd" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+    </g>
+  );
+}
+
+// Academic mortarboard — flat black square tilted slightly, with a soft
+// band underneath hugging the crown and a gold tassel hanging right.
+function Academic() {
+  return (
+    <g className="owl-deco owl-deco--academic">
+      {/* Soft cap band under the board */}
+      <path
+        d="M 158 90
+           Q 200 70 242 90
+           L 240 100
+           Q 200 88 160 100 Z"
+        fill="#1a1a26"
+        stroke="#000000"
+        strokeWidth="1.1"
+      />
+      {/* Mortarboard — diamond-ish parallelogram (slight tilt) */}
+      <path
+        d="M 200 50
+           L 268 80
+           L 200 96
+           L 132 80 Z"
+        fill="#0e0e16"
+        stroke="#000000"
+        strokeWidth="1.2"
+        strokeLinejoin="round"
+      />
+      {/* Top sheen */}
+      <path d="M 152 78 L 200 56 L 248 78" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" fill="none" />
+      {/* Button at center */}
+      <circle cx="200" cy="73" r="3.6" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.6" />
+      {/* Tassel — strap + bunch */}
+      <path d="M 200 73 Q 232 80 244 102" stroke="#d4a948" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <g fill="#d4a948" stroke="#7a5a10" strokeWidth="0.4">
+        <ellipse cx="246" cy="110" rx="5" ry="6" />
+        <path d="M 242 113 L 240 122" stroke="#d4a948" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        <path d="M 246 114 L 246 124" stroke="#d4a948" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        <path d="M 250 113 L 252 122" stroke="#d4a948" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      </g>
+    </g>
+  );
+}
+
+// Baseball cap — domed crown + forward-pointing visor.
+function Cap() {
+  return (
+    <g className="owl-deco owl-deco--cap">
+      <defs>
+        <linearGradient id="cap-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#4a8cff" />
+          <stop offset="100%" stopColor="#1c4abf" />
+        </linearGradient>
+      </defs>
+      {/* Crown dome */}
+      <path
+        d="M 142 96
+           Q 142 50 200 50
+           Q 258 50 258 96
+           Z"
+        fill="url(#cap-grad)"
+        stroke="#0d2a70"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      {/* Panel seam */}
+      <path d="M 200 50 L 200 96" stroke="rgba(0,0,0,0.25)" strokeWidth="1" />
+      {/* Highlight */}
+      <path d="M 152 88 Q 150 60 188 54" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      {/* Visor — flat brim forward (drawn extending right past the head) */}
+      <path
+        d="M 200 96
+           Q 230 96 280 108
+           Q 245 116 200 110 Z"
+        fill="#1c4abf"
+        stroke="#0d2a70"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      {/* Button on top */}
+      <circle cx="200" cy="50" r="3.4" fill="#0d2a70" />
+    </g>
+  );
+}
+
+// Top hat — tall cylinder with a band, sitting on a wide flat brim.
+function TopHat() {
+  return (
+    <g className="owl-deco owl-deco--tophat">
+      <defs>
+        <linearGradient id="tophat-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#2a2a36" />
+          <stop offset="60%" stopColor="#0e0e16" />
+          <stop offset="100%" stopColor="#000000" />
+        </linearGradient>
+      </defs>
+      {/* Brim — wide ellipse hugging the head */}
+      <ellipse cx="200" cy="100" rx="78" ry="10" fill="url(#tophat-grad)" stroke="#000" strokeWidth="1" />
+      {/* Crown — tall trapezoid */}
+      <path
+        d="M 162 100
+           L 168 36
+           Q 200 30 232 36
+           L 238 100 Z"
+        fill="url(#tophat-grad)"
+        stroke="#000"
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+      {/* Crown highlight */}
+      <path d="M 174 40 L 178 96" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
+      {/* Red ribbon band */}
+      <path
+        d="M 162 96
+           Q 200 102 238 96
+           L 238 86
+           Q 200 92 162 86 Z"
+        fill="#c43030"
+        stroke="#7a1a1a"
+        strokeWidth="0.8"
+      />
+      {/* Buckle */}
+      <rect x="194" y="86" width="12" height="10" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.8" />
+    </g>
+  );
+}
+
+// Royal crown — gold zigzag with three jewels, on a banded base.
+function Crown() {
+  return (
+    <g className="owl-deco owl-deco--crown">
+      <defs>
+        <linearGradient id="crown-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#ffe07a" />
+          <stop offset="55%" stopColor="#f0b830" />
+          <stop offset="100%" stopColor="#8a5a10" />
+        </linearGradient>
+      </defs>
+      {/* Zigzag silhouette */}
+      <path
+        d="M 150 102
+           L 158 70
+           L 178 96
+           L 200 40
+           L 222 96
+           L 242 70
+           L 250 102 Z"
+        fill="url(#crown-grad)"
+        stroke="#5a3a08"
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      {/* Base band */}
+      <rect x="148" y="100" width="104" height="14" rx="3" fill="url(#crown-grad)" stroke="#5a3a08" strokeWidth="1.2" />
+      {/* Base inner shadow */}
+      <rect x="152" y="104" width="96" height="6" fill="rgba(122, 80, 12, 0.45)" />
+      {/* Jewels at each peak */}
+      <circle cx="158" cy="74" r="3.2" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.6" />
+      <circle cx="200" cy="46" r="4.5" fill="#5fd0ff" stroke="#0a4a7a" strokeWidth="0.7" />
+      <circle cx="242" cy="74" r="3.2" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.6" />
+      {/* Band centre jewel */}
+      <ellipse cx="200" cy="107" rx="6" ry="4.2" fill="#7ad97a" stroke="#1a5a1a" strokeWidth="0.6" />
+      {/* Highlight glints */}
+      <path d="M 156 82 L 159 90" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M 198 56 L 201 72" stroke="rgba(255,255,255,0.6)" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M 240 82 L 243 90" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" strokeLinecap="round" />
     </g>
   );
 }
