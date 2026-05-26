@@ -1766,6 +1766,91 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   color: var(--text);
 }
 
+/* ---------- "Удвоить награду" rewarded-ad button ----------
+   Lives in EndPanel + win modal. Two-tone gold gradient + ad-pill on
+   the right, slow pulsing glow so it pulls the eye without being
+   obnoxious. The ad icon sits inside a darker chip so it reads as
+   "watch a video" instead of just a generic play arrow. */
+.btn--ad-double {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 16px;
+  border: 1px solid rgba(180, 130, 30, 0.7);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd864 0%, #f7a522 55%, #c47010 100%);
+  color: #1a1300;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  box-shadow:
+    0 6px 16px rgba(247, 138, 24, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  animation: ad-double-pulse 2.4s ease-in-out infinite;
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+.btn--ad-double::before {
+  /* Sheen sweep across the surface every few seconds */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 70%);
+  transform: translateX(-100%);
+  animation: ad-double-sweep 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.btn--ad-double:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  animation: none;
+}
+.btn--ad-double:disabled::before { animation: none; }
+.btn-ad__label {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.1;
+}
+.btn-ad__hint {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(26, 19, 0, 0.7);
+  font-variant-numeric: tabular-nums;
+}
+.btn-ad__icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(26, 19, 0, 0.85);
+  color: #ffd864;
+  flex-shrink: 0;
+}
+.btn-ad__icon svg { width: 16px; height: 16px; }
+
+@keyframes ad-double-pulse {
+  0%, 100% { box-shadow: 0 6px 16px rgba(247, 138, 24, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
+  50%      { box-shadow: 0 8px 26px rgba(247, 138, 24, 0.70), 0 0 0 4px rgba(247, 201, 72, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
+}
+@keyframes ad-double-sweep {
+  0%   { transform: translateX(-100%); }
+  60%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+[data-theme="light"] .btn--ad-double {
+  background: linear-gradient(135deg, #ffdf82 0%, #f0a128 55%, #b86808 100%);
+  border-color: rgba(140, 90, 10, 0.75);
+}
+
 @keyframes rise {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }

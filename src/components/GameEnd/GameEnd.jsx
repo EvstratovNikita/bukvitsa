@@ -181,13 +181,18 @@ export function GameEnd() {
           {!isDaily && isWin && lastEarned > 0 && !doubledLastWin && (
             <button
               type="button"
-              className="btn btn--ghost gameend__btn"
+              className="btn btn--ad-double gameend__btn"
               onClick={doubleLastReward}
               onMouseDown={(e) => e.preventDefault()}
               disabled={doublingAd}
             >
-              <PlayIcon />
-              <span>{doublingAd ? 'Реклама…' : `×2 (+${lastEarned})`}</span>
+              <span className="btn-ad__label">
+                <span>{doublingAd ? 'Реклама…' : 'Удвоить награду'}</span>
+                {!doublingAd && <span className="btn-ad__hint">+{lastEarned}</span>}
+              </span>
+              <span className="btn-ad__icon" aria-hidden="true">
+                <PlayIcon />
+              </span>
             </button>
           )}
           <button

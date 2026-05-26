@@ -78,13 +78,18 @@ export function EndPanel() {
           {canDouble && (
             <button
               type="button"
-              className="btn btn--ghost end-panel__double"
+              className="btn btn--ad-double end-panel__double"
               onClick={doubleLastReward}
               onMouseDown={(e) => e.preventDefault()}
               disabled={doublingAd}
             >
-              <PlayIcon />
-              <span>{doublingAd ? 'Реклама…' : `×2 (+${lastEarned})`}</span>
+              <span className="btn-ad__label">
+                <span>{doublingAd ? 'Реклама…' : 'Удвоить награду'}</span>
+                {!doublingAd && <span className="btn-ad__hint">+{lastEarned}</span>}
+              </span>
+              <span className="btn-ad__icon" aria-hidden="true">
+                <PlayIcon />
+              </span>
             </button>
           )}
           {isDaily && (
