@@ -85,9 +85,6 @@ function load() {
 
 function migratePet(rawPet) {
   const merged = { ...DEFAULT_STATS.pet, ...(rawPet || {}) };
-  // Rename feature is disabled — always reset to the canonical name so
-  // legacy customised names get cleared on next load.
-  merged.name = 'Букля';
   // Legacy single-slot field → slotted equipped map.
   if (merged.activeDecoration && (!merged.equipped || Object.keys(merged.equipped).length === 0)) {
     const d = getDecoration(merged.activeDecoration);

@@ -3396,3 +3396,30 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 [data-theme="light"] .ach-card--unlocked .ach-card__desc  { color: rgba(74, 42, 4, 0.7); }
 [data-theme="light"] .ach-card--unlocked .ach-card__status { color: #8a5a10; }
 [data-theme="light"] .ach-card--unlocked .ach-card__bar { background: rgba(140, 100, 20, 0.18); }
+
+/* Pet "Бонус надетой одежды" line — yellow tint on light needs brown text. */
+[data-theme="light"] .pet-deco-active {
+  background: rgba(247, 201, 72, 0.22);
+  border-color: rgba(180, 130, 30, 0.50);
+  color: #6a3a04;
+}
+[data-theme="light"] .pet-deco-active b { color: #8a5a10; }
+
+/* Keyboard status colours: in light theme the generic .key override above
+   was beating .key--{correct,present,absent} on specificity, so used
+   letters lost their backgrounds. Re-assert them with matching specificity. */
+[data-theme="light"] .key--correct {
+  background: var(--correct);
+  color: var(--correct-ink);
+  border-color: rgba(180, 130, 30, 0.55);
+}
+[data-theme="light"] .key--present {
+  background: var(--present);
+  color: var(--present-ink);
+  border-color: rgba(0, 0, 0, 0.32);
+}
+[data-theme="light"] .key--absent {
+  background: var(--absent);
+  color: var(--absent-ink);
+  border-color: rgba(0, 0, 0, 0.22);
+}
