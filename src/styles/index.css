@@ -3767,3 +3767,130 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 [data-theme="light"] .help__rewards em { color: #8a5a10; font-weight: 700; }
 [data-theme="light"] .help__rewards li { color: var(--text); }
+
+/* ---------- Memory mini-game (Обучить tab) ---------- */
+.memory { display: flex; flex-direction: column; gap: 12px; }
+.memory__hud {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.memory__stat b { color: var(--text); font-variant-numeric: tabular-nums; }
+.memory__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+.memory-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  perspective: 600px;
+  -webkit-tap-highlight-color: transparent;
+}
+.memory-card:disabled { cursor: default; }
+.memory-card__inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(.4,.2,.2,1);
+}
+.memory-card--flipped .memory-card__inner,
+.memory-card--matched .memory-card__inner {
+  transform: rotateY(180deg);
+}
+.memory-card__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.memory-card__face--back {
+  background: linear-gradient(135deg, #2a3458, #14182a);
+  color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(108, 140, 255, 0.45);
+  font-weight: 800;
+}
+.memory-card__face--front {
+  background: linear-gradient(135deg, #ffe07a, #f7a522);
+  border: 1px solid rgba(180, 130, 30, 0.65);
+  transform: rotateY(180deg);
+}
+.memory-card--matched .memory-card__face--front {
+  background: linear-gradient(135deg, #9be7b1, #4ab06e);
+  border-color: rgba(40, 110, 60, 0.75);
+  box-shadow: 0 0 0 1px rgba(40, 110, 60, 0.45);
+}
+.memory__result {
+  text-align: center;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.20), rgba(247, 201, 72, 0.06));
+  border: 1px solid rgba(247, 201, 72, 0.50);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+.memory__result-title { font-size: 18px; font-weight: 800; color: var(--text); }
+.memory__result-stats { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.memory__result-rewards {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+}
+.memory__reward {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(108, 140, 255, 0.18);
+  border: 1px solid rgba(108, 140, 255, 0.45);
+  color: #b5c5ff;
+  font-weight: 800;
+  font-size: 13px;
+}
+.memory__reward--coin {
+  background: rgba(247, 201, 72, 0.22);
+  border-color: rgba(247, 201, 72, 0.55);
+  color: #ffd864;
+}
+.memory__again, .memory__restart { align-self: center; }
+
+/* Light theme */
+[data-theme="light"] .memory-card__face--back {
+  background: linear-gradient(135deg, #d8e0f5, #a8b8e0);
+  color: rgba(20, 24, 42, 0.65);
+  border-color: rgba(40, 70, 200, 0.55);
+}
+[data-theme="light"] .memory-card__face--front {
+  background: linear-gradient(135deg, #ffe07a, #f0a128);
+  border-color: rgba(180, 130, 30, 0.7);
+}
+[data-theme="light"] .memory-card--matched .memory-card__face--front {
+  background: linear-gradient(135deg, #b8efc8, #4ab06e);
+  border-color: rgba(20, 90, 40, 0.7);
+}
+[data-theme="light"] .memory__reward {
+  background: rgba(60, 90, 220, 0.18);
+  border-color: rgba(40, 70, 200, 0.55);
+  color: #1a2c70;
+}
+[data-theme="light"] .memory__reward--coin {
+  background: rgba(247, 201, 72, 0.42);
+  border-color: rgba(180, 130, 30, 0.7);
+  color: #6a3a04;
+}

@@ -5,6 +5,7 @@ import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
+import { MemoryGame } from './MemoryGame.jsx';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -214,7 +215,7 @@ export function PetScreen({ open, onClose }) {
                   onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
                 />
               )}
-              {tab === 'train' && <TrainPanel />}
+              {tab === 'train' && <MemoryGame />}
             </section>
           </>
         )}
@@ -404,15 +405,3 @@ function pluralGames(n) {
   return 'игр';
 }
 
-function TrainPanel() {
-  return (
-    <div className="pet-train">
-      <div className="pet-train__icon" aria-hidden="true">📖</div>
-      <h3 className="pet-train__title">Обучение скоро откроется</h3>
-      <p className="pet-train__desc">
-        Здесь Букля будет учиться помогать тебе с подсказками, открывать
-        пассивные навыки и приобретать новые умения. Загляни позже!
-      </p>
-    </div>
-  );
-}

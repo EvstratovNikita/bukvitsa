@@ -418,6 +418,7 @@ export function useGame() {
     hatchPet: stats.hatchPet,
     renamePet: stats.renamePet,
     recordPetXp: stats.recordPetXp,
+    addCoins: stats.addCoins,
     setPref: stats.setPref,
     feedPet: stats.feedPet,
     buyDecoration: stats.buyDecoration,
