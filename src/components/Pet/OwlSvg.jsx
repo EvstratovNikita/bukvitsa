@@ -158,47 +158,53 @@ export function OwlSvg({ className = '' }) {
         </g>
 
         {/* ---- BEAK + SMILE ---- */}
-        {/* Upper beak: triangle pointing down, narrower bottom */}
         <g>
+          {/* Mouth interior — dark crescent that fills the gap between
+             upper and lower beak. Sits BEHIND the beak parts so the
+             curved beak edges naturally frame it. */}
           <path
-            d="M 192 200
-               Q 200 197 208 200
-               L 204 211
-               Q 200 213 196 211 Z"
+            d="M 188 211
+               Q 200 230 212 211
+               Q 208 224 200 226
+               Q 192 224 188 211 Z"
+            fill="#2a0808"
+          />
+          {/* Inner tongue glint */}
+          <path
+            d="M 194 216 Q 200 222 206 216 Q 203 220 200 220 Q 197 220 194 216 Z"
+            fill="#c44048"
+            opacity="0.85"
+          />
+
+          {/* Upper beak: triangle pointing down, narrower bottom */}
+          <path
+            d="M 190 199
+               Q 200 195 210 199
+               Q 207 211 200 214
+               Q 193 211 190 199 Z"
             fill="url(#owl-beak-grad)"
             stroke="#7a4400"
             strokeWidth="1"
             strokeLinejoin="round"
           />
           {/* Highlight on top ridge */}
-          <path d="M 196 202 Q 200 200 204 202" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
+          <path d="M 196 201 Q 200 199 204 201" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
 
-          {/* Smile (between upper + lower beak) — gentle U-curve */}
+          {/* Lower beak: smaller triangle below the mouth, pointing down */}
           <path
-            d="M 192 215 Q 200 224 208 215"
-            stroke="#3a1a05"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
-          {/* Tongue/mouth interior — small dark area visible behind smile */}
-          <path
-            d="M 195 215 Q 200 222 205 215 Q 203 218 200 218 Q 197 218 195 215 Z"
-            fill="#7a2a18"
-            opacity="0.7"
-          />
-
-          {/* Lower beak: smaller triangle below the smile, pointing down */}
-          <path
-            d="M 194 218
-               Q 200 220 206 218
-               L 203 226
-               Q 200 228 197 226 Z"
+            d="M 192 222
+               Q 200 226 208 222
+               Q 205 230 200 232
+               Q 195 230 192 222 Z"
             fill="url(#owl-beak-grad)"
             stroke="#7a4400"
             strokeWidth="1"
             strokeLinejoin="round"
           />
+
+          {/* Smile corner curves — soft mouth corners */}
+          <path d="M 188 213 Q 192 218 196 219" stroke="#3a1a05" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          <path d="M 212 213 Q 208 218 204 219" stroke="#3a1a05" strokeWidth="1.2" fill="none" strokeLinecap="round" />
         </g>
 
         {/* ---- FEET (chicken-style: 3 forward toes + 1 back, with claw tips) ---- */}

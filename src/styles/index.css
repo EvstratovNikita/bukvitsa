@@ -2249,8 +2249,8 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 /* ---------- Pet scene + hatching animation ---------- */
 .pet-scene {
   position: relative;
-  width: 100%;
-  /* No max cap — fills the body's content area for an immersive backdrop. */
+  width: 80%;
+  max-width: 256px;       /* tree+owl stay compact (-20% vs original 320) */
   margin: 0 auto;
   /* Match the SVG viewBox so the owl isn't letterboxed/cropped. */
   aspect-ratio: 400 / 360;
@@ -2342,9 +2342,28 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 
 /* Joyful jump on tap — overrides the idle bob via higher specificity.
-   Squash on prep, leap up with slight tilt, slight squash on landing. */
+   Squash on prep, leap up with slight tilt, slight squash on landing.
+   Wings raise sharply during the jump and settle back. */
 .pet-scene--owl .pet-scene__owl-img.owl-svg--jump {
   animation: pet-owl-jump 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
+}
+.pet-scene--owl .owl-svg--jump .owl-wing--l {
+  animation: owl-wing-jump-l 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
+}
+.pet-scene--owl .owl-svg--jump .owl-wing--r {
+  animation: owl-wing-jump-r 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
+}
+@keyframes owl-wing-jump-l {
+  0%   { transform: rotate(0deg); }
+  35%  { transform: rotate(-32deg); }   /* wings high */
+  65%  { transform: rotate(-20deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes owl-wing-jump-r {
+  0%   { transform: rotate(0deg); }
+  35%  { transform: rotate(32deg); }
+  65%  { transform: rotate(20deg); }
+  100% { transform: rotate(0deg); }
 }
 @keyframes pet-owl-jump {
   0%   { transform: translate(-50%, -42%) scale(1, 1); }
@@ -2462,11 +2481,17 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   min-height: 0;
 }
 .pet-screen__scene {
-  /* Lock the scene to a fraction of the body height so the layout below
-     always has room. The PetScene itself maintains its aspect ratio inside. */
+  /* Full-width backdrop wrap — the sky gradient stretches across the body
+     while the actual tree/owl scene stays centred and compact. */
   display: flex;
   justify-content: center;
+  align-items: center;
   flex-shrink: 0;
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(180deg, #1a2138 0%, #0c1020 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 .pet-screen__caption {
   text-align: center;
