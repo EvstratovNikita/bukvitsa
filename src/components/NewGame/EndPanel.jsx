@@ -21,7 +21,8 @@ export function EndPanel() {
   const isWin = status === GAME_STATUS.WON;
   const isDaily = gameMode === 'daily';
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
-  const canDouble = !isDaily && isWin && lastEarned > 0 && !doubledLastWin;
+  // Daily wins are doubled too — the ×2 ad button works the same way.
+  const canDouble = isWin && lastEarned > 0 && !doubledLastWin;
   const dayN = getDailyNumber();
 
   const onShare = async () => {
@@ -48,18 +49,22 @@ export function EndPanel() {
           <div className="end-panel__word">
             Слово: <b>{(solution || '').toUpperCase()}</b>
           </div>
-          {!isDaily && isWin && lastEarned > 0 && (
+          {isWin && lastEarned > 0 && (
             <>
               <div className="end-panel__reward">
                 <CoinIcon />
                 <span>+{lastEarned}</span>
                 {doubledLastWin && <span className="end-panel__doubled">×2 ✓</span>}
               </div>
-              {bonus > 0 && (
+              {isDaily ? (
+                <div className="end-panel__breakdown">
+                  Основная {lastEarnedBase} + за Слово дня {bonus}
+                </div>
+              ) : bonus > 0 ? (
                 <div className="end-panel__breakdown">
                   Базовая {lastEarnedBase} + от Букли {bonus}
                 </div>
-              )}
+              ) : null}
             </>
           )}
           {isDaily && (

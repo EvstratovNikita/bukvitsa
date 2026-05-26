@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { CloseIcon, CoinIcon, CrownIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
+import { CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
 import { buildInviteUrl, buildWordleShareText, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
 
@@ -49,7 +49,8 @@ function Confetti({ count = 22 }) {
 export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, stats,
-    guesses, evaluations, auth, gameMode, exitDailyMode, reset
+    guesses, evaluations, auth, gameMode, exitDailyMode,
+    doubledLastWin, doublingAd, doubleLastReward
   } = useGameContext();
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   const [closed, setClosed] = useState(false);
@@ -127,15 +128,20 @@ export function GameEnd() {
           ))}
         </div>
 
-        {!isDaily && isWin && lastEarned > 0 && (
+        {isWin && lastEarned > 0 && (
           <div className="gameend__reward">
             <CoinIcon />
             <span>+{lastEarned}</span>
-            {bonus > 0 && (
+            {doubledLastWin && <span className="gameend__doubled">×2 ✓</span>}
+            {isDaily ? (
+              <div className="gameend__bonus">
+                {lastEarnedBase} основная + {bonus} за Слово дня
+              </div>
+            ) : bonus > 0 ? (
               <div className="gameend__bonus">
                 {lastEarnedBase} базовых + {bonus} от Букли
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
@@ -170,6 +176,18 @@ export function GameEnd() {
                      shareStatus === 'shared' ? 'Готово' :
                      shareStatus === 'failed' ? 'Не вышло' :
                      'Поделиться сеткой'}</span>
+            </button>
+          )}
+          {!isDaily && isWin && lastEarned > 0 && !doubledLastWin && (
+            <button
+              type="button"
+              className="btn btn--ghost gameend__btn"
+              onClick={doubleLastReward}
+              onMouseDown={(e) => e.preventDefault()}
+              disabled={doublingAd}
+            >
+              <PlayIcon />
+              <span>{doublingAd ? 'Реклама…' : `×2 (+${lastEarned})`}</span>
             </button>
           )}
           <button

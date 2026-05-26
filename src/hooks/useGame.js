@@ -139,8 +139,12 @@ export function useGame() {
       if (won) {
         setStatus(GAME_STATUS.WON);
         if (gameMode === 'daily') {
-          // Daily mode: log result + streak. No coin reward, no pet XP —
-          // the social win (share + streak) is the whole reward.
+          // Daily mode: doubled reward to honour the social hook — base
+          // (rewardFor(attempts)) + a matching "за Слово дня" bonus. No
+          // pet XP, no deco bonus, no boost — equal playing field.
+          const base = rewardFor(nextGuesses.length);
+          const total = base * 2;
+          stats.addCoins(total);
           stats.recordDailyResult({
             key: getDailyKey(),
             dayN: getDailyNumber(),
@@ -149,8 +153,8 @@ export function useGame() {
             evaluations: nextEvals,
             word: solution
           });
-          setLastEarned(0);
-          setLastEarnedBase(0);
+          setLastEarnedBase(base);
+          setLastEarned(total);
           setDoubledLastWin(false);
         } else {
           const base = rewardFor(nextGuesses.length);

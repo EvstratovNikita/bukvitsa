@@ -1446,9 +1446,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   font-weight: 600;
   color: rgba(229, 235, 255, 0.65);
 }
-.end-panel__doubled {
+.end-panel__doubled,
+.gameend__doubled {
   display: inline-flex;
   align-items: center;
+  margin-left: 6px;
   padding: 2px 8px;
   border-radius: 999px;
   background: rgba(80, 200, 120, 0.18);
