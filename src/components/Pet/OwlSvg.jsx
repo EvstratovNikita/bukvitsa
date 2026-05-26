@@ -284,6 +284,16 @@ export function OwlSvg({ className = '', equipped = {} }) {
           }
 
           const isWing = slot === 'wingL' || slot === 'wingR';
+          if (isWing) {
+            const Comp = WING_COMPS[id];
+            if (Comp) {
+              return (
+                <g key={slot} className={`owl-deco owl-deco--${slot} owl-deco--${id}`}>
+                  <Comp x={pos.x} y={pos.y} />
+                </g>
+              );
+            }
+          }
           return (
             <g key={slot} className={`owl-deco owl-deco--${slot}`}>
               {isWing && (
@@ -515,33 +525,32 @@ function Cap() {
       <path d="M 144 96 Q 200 110 256 96" stroke="rgba(0,0,0,0.28)" strokeWidth="1" fill="none" />
       {/* Highlight on the dome */}
       <path d="M 152 86 Q 150 58 190 52" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      {/* Visor — sweeping forward-RIGHT curve, like 🧢. Starts from the
-          right side of the crown, curves down and out, sweeps back to
-          the front-left edge. */}
+      {/* Visor — half-oval projecting forward (down on the SVG y-axis).
+          Top edge tucks under the crown's front, both sides curve out
+          and meet at the bottom centre — the classic 🧢 silhouette. */}
       <path
-        d="M 200 100
-           Q 252 96 300 116
-           Q 305 124 296 128
-           Q 248 122 200 114
-           Q 188 110 200 100 Z"
+        d="M 142 100
+           Q 200 92 258 100
+           Q 264 130 200 134
+           Q 136 130 142 100 Z"
         fill="url(#cap-visor-grad)"
         stroke="#0d2a70"
         strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      {/* Visor underside shadow — darker arc along the bottom edge */}
+      {/* Visor underside shadow */}
       <path
-        d="M 210 116 Q 252 124 295 124"
-        stroke="rgba(0,0,0,0.45)"
+        d="M 152 116 Q 200 132 248 116"
+        stroke="rgba(0,0,0,0.40)"
         strokeWidth="1.6"
         fill="none"
         strokeLinecap="round"
       />
-      {/* Visor sheen */}
+      {/* Visor sheen on top */}
       <path
-        d="M 215 106 Q 250 102 285 116"
-        stroke="rgba(255,255,255,0.30)"
-        strokeWidth="1.2"
+        d="M 158 102 Q 200 96 242 102"
+        stroke="rgba(255,255,255,0.35)"
+        strokeWidth="1.3"
         fill="none"
         strokeLinecap="round"
       />
@@ -642,6 +651,186 @@ function Crown() {
     </g>
   );
 }
+
+// ---------- WING AMULETS ----------
+// All accept { x, y } so they can be placed on either wing slot. Each
+// includes a soft halo so the gem reads against the dark wing.
+
+function AmuletHalo({ x, y, color = 'rgba(255, 220, 130, 0.45)', r = 22 }) {
+  return (
+    <>
+      <circle cx={x} cy={y} r={r + 6} fill="rgba(255, 240, 200, 0.20)" />
+      <circle cx={x} cy={y} r={r} fill={color} />
+    </>
+  );
+}
+
+// Feather — curved rachis with barbs splayed out, gold-cream gradient.
+function Feather({ x, y }) {
+  const id = `feather-${x}`;
+  return (
+    <g transform={`translate(${x - 26} ${y - 26})`}>
+      <defs>
+        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#fff3c0" />
+          <stop offset="55%" stopColor="#f0c050" />
+          <stop offset="100%" stopColor="#a86810" />
+        </linearGradient>
+      </defs>
+      <AmuletHalo x={26} y={26} color="rgba(247, 201, 72, 0.45)" />
+      {/* Vane — leaf-like outline */}
+      <path
+        d="M 26 4
+           Q 50 18 44 38
+           Q 38 52 26 52
+           Q 14 52 8 38
+           Q 2 18 26 4 Z"
+        fill={`url(#${id})`}
+        stroke="#7a4a08"
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+      {/* Central shaft (rachis) */}
+      <path d="M 26 6 L 26 52" stroke="#7a4a08" strokeWidth="1.6" strokeLinecap="round" />
+      {/* Barbs — diagonal hairs out from the shaft */}
+      <g stroke="#a86810" strokeWidth="0.8" fill="none" strokeLinecap="round">
+        <path d="M 26 14 L 18 12" /> <path d="M 26 14 L 34 12" />
+        <path d="M 26 22 L 14 20" /> <path d="M 26 22 L 38 20" />
+        <path d="M 26 30 L 12 30" /> <path d="M 26 30 L 40 30" />
+        <path d="M 26 38 L 14 40" /> <path d="M 26 38 L 38 40" />
+        <path d="M 26 46 L 18 48" /> <path d="M 26 46 L 34 48" />
+      </g>
+      {/* Quill tip */}
+      <path d="M 26 52 L 26 60" stroke="#fff3c0" strokeWidth="1.6" strokeLinecap="round" />
+    </g>
+  );
+}
+
+// Sparkle orb — purple/pink crystal ball with starbursts.
+function Sparkle({ x, y }) {
+  const id = `sparkle-${x}`;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <radialGradient id={id} cx="35%" cy="30%" r="70%">
+          <stop offset="0%"  stopColor="#ffe0ff" />
+          <stop offset="40%" stopColor="#d070ff" />
+          <stop offset="100%" stopColor="#4a0e7a" />
+        </radialGradient>
+      </defs>
+      {/* Outer aura */}
+      <circle r="30" fill="rgba(208, 112, 255, 0.25)" />
+      <circle r="22" fill={`url(#${id})`} stroke="#2a0848" strokeWidth="1.2" />
+      {/* Specular highlight */}
+      <ellipse cx="-7" cy="-9" rx="6" ry="4" fill="#ffffff" opacity="0.85" />
+      <ellipse cx="6" cy="6" rx="3" ry="2" fill="#ffe0ff" opacity="0.55" />
+      {/* Sparkle starbursts */}
+      <g stroke="#fff3ff" strokeWidth="1.2" strokeLinecap="round">
+        <path d="M 0 -30 L 0 -36" />
+        <path d="M 0 30 L 0 36" />
+        <path d="M -30 0 L -36 0" />
+        <path d="M 30 0 L 36 0" />
+      </g>
+      <g fill="#fff3ff">
+        <circle cx="-26" cy="-22" r="1.4" />
+        <circle cx="24" cy="-24" r="1.6" />
+        <circle cx="-22" cy="26" r="1.2" />
+        <circle cx="26" cy="22" r="1.4" />
+      </g>
+    </g>
+  );
+}
+
+// Crystal — faceted cut diamond, white/cyan.
+function Crystal({ x, y }) {
+  const idTop = `crys-top-${x}`;
+  const idSide = `crys-side-${x}`;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <linearGradient id={idTop} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#a8e8ff" />
+        </linearGradient>
+        <linearGradient id={idSide} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#7ec8e8" />
+          <stop offset="100%" stopColor="#1e5a8a" />
+        </linearGradient>
+      </defs>
+      {/* Halo */}
+      <circle r="30" fill="rgba(168, 232, 255, 0.30)" />
+      {/* Top crown facets */}
+      <path d="M -22 -4 L -10 -14 L 10 -14 L 22 -4 L 0 -4 Z" fill={`url(#${idTop})`} stroke="#0e3a5a" strokeWidth="1" strokeLinejoin="round" />
+      {/* Pavilion (bottom point) */}
+      <path d="M -22 -4 L 22 -4 L 0 24 Z" fill={`url(#${idSide})`} stroke="#0e3a5a" strokeWidth="1" strokeLinejoin="round" />
+      {/* Inner facet seams */}
+      <path d="M -10 -4 L 0 24 M 10 -4 L 0 24 M -22 -4 L -10 -14 L 0 -4 L 10 -14 L 22 -4" stroke="#0e3a5a" strokeWidth="0.7" fill="none" />
+      {/* Top sheen */}
+      <path d="M -16 -6 L -6 -12 L -2 -6" stroke="#ffffff" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      {/* Sparkle */}
+      <circle cx="6" cy="-10" r="1.2" fill="#ffffff" />
+    </g>
+  );
+}
+
+// Star — 5-point gold star with a comet trail.
+function Star({ x, y }) {
+  const id = `star-${x}`;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <radialGradient id={id} cx="40%" cy="35%" r="70%">
+          <stop offset="0%"  stopColor="#fff3a0" />
+          <stop offset="60%" stopColor="#f7c948" />
+          <stop offset="100%" stopColor="#a86010" />
+        </radialGradient>
+      </defs>
+      {/* Glow halo */}
+      <circle r="28" fill="rgba(247, 201, 72, 0.30)" />
+      {/* Comet trail */}
+      <path
+        d="M -18 14 Q -8 6 6 -4"
+        stroke="rgba(255, 240, 160, 0.65)"
+        strokeWidth="3"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <path
+        d="M -22 18 Q -12 10 0 0"
+        stroke="rgba(255, 240, 160, 0.35)"
+        strokeWidth="5"
+        fill="none"
+        strokeLinecap="round"
+      />
+      {/* 5-point star (centered) */}
+      <path
+        d="M 0 -22
+           L 6 -7
+           L 22 -7
+           L 9 3
+           L 14 18
+           L 0 9
+           L -14 18
+           L -9 3
+           L -22 -7
+           L -6 -7 Z"
+        fill={`url(#${id})`}
+        stroke="#7a4a08"
+        strokeWidth="1.1"
+        strokeLinejoin="round"
+      />
+      {/* Sheen */}
+      <path d="M -3 -16 L 0 -4 L 3 -16" stroke="#fff8c8" strokeWidth="0.9" fill="none" />
+    </g>
+  );
+}
+
+const WING_COMPS = {
+  feather: Feather,
+  sparkle: Sparkle,
+  crystal: Crystal,
+  star:    Star
+};
 
 // Inline-SVG monocle worn over the right eye. Lens + thin gold rim,
 // a small bead-cord clipping at the bottom hinting at the chain.
