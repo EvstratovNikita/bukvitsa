@@ -13,14 +13,36 @@
 //
 // Animations are driven entirely by classes on inner groups — CSS keyframes
 // live in styles/index.css.
+//
+// Click anywhere on the owl → joyful jump animation (~700ms). Debounced:
+// while jumping, further clicks are ignored.
+
+import { useRef, useState } from 'react';
+
+const JUMP_MS = 700;
 
 export function OwlSvg({ className = '' }) {
+  const [jumping, setJumping] = useState(false);
+  const cooldown = useRef(false);
+
+  const onClick = () => {
+    if (cooldown.current) return;
+    cooldown.current = true;
+    setJumping(true);
+    setTimeout(() => {
+      setJumping(false);
+      cooldown.current = false;
+    }, JUMP_MS);
+  };
+
   return (
     <svg
-      className={`owl-svg ${className}`.trim()}
+      className={`owl-svg ${jumping ? 'owl-svg--jump ' : ''}${className}`.trim()}
       viewBox="0 0 400 360"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      onClick={onClick}
+      role="button"
+      aria-label="Букля"
     >
       <defs>
         <radialGradient id="owl-body-grad" cx="50%" cy="35%" r="70%">
@@ -135,22 +157,48 @@ export function OwlSvg({ className = '' }) {
           <circle cx="226" cy="180" r="2.4" fill="#ffffff" opacity="0.7" />
         </g>
 
-        {/* ---- BEAK (hooked owl-style: narrow rounded top, curved tip pointing down) ---- */}
+        {/* ---- BEAK + SMILE ---- */}
+        {/* Upper beak: triangle pointing down, narrower bottom */}
         <g>
           <path
-            d="M 194 202
-               Q 200 199 206 202
-               Q 209 210 206 216
-               Q 203 222 200 224
-               Q 197 222 194 216
-               Q 191 210 194 202 Z"
+            d="M 192 200
+               Q 200 197 208 200
+               L 204 211
+               Q 200 213 196 211 Z"
             fill="url(#owl-beak-grad)"
             stroke="#7a4400"
             strokeWidth="1"
             strokeLinejoin="round"
           />
           {/* Highlight on top ridge */}
-          <path d="M 197 204 Q 200 202 203 204" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
+          <path d="M 196 202 Q 200 200 204 202" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
+
+          {/* Smile (between upper + lower beak) — gentle U-curve */}
+          <path
+            d="M 192 215 Q 200 224 208 215"
+            stroke="#3a1a05"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* Tongue/mouth interior — small dark area visible behind smile */}
+          <path
+            d="M 195 215 Q 200 222 205 215 Q 203 218 200 218 Q 197 218 195 215 Z"
+            fill="#7a2a18"
+            opacity="0.7"
+          />
+
+          {/* Lower beak: smaller triangle below the smile, pointing down */}
+          <path
+            d="M 194 218
+               Q 200 220 206 218
+               L 203 226
+               Q 200 228 197 226 Z"
+            fill="url(#owl-beak-grad)"
+            stroke="#7a4400"
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
         </g>
 
         {/* ---- FEET (chicken-style: 3 forward toes + 1 back, with claw tips) ---- */}

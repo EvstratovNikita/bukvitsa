@@ -2249,8 +2249,8 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 /* ---------- Pet scene + hatching animation ---------- */
 .pet-scene {
   position: relative;
-  width: 80%;            /* reduced from 100% → frees vertical space */
-  max-width: 256px;       /* reduced from 320px (-20%) */
+  width: 100%;
+  /* No max cap — fills the body's content area for an immersive backdrop. */
   margin: 0 auto;
   /* Match the SVG viewBox so the owl isn't letterboxed/cropped. */
   aspect-ratio: 400 / 360;
@@ -2277,8 +2277,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   width: 78%;
   transform: translate(-50%, -42%);
   transform-origin: 50% 100%;
-  pointer-events: none;
+  /* Clickable for the jump animation; outer scene click won't fire */
+  pointer-events: auto;
+  cursor: pointer;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
   opacity: 0;
 }
@@ -2336,6 +2339,20 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 @keyframes pet-owl-bob {
   0%, 100% { transform: translate(-50%, -42%); }
   50%      { transform: translate(-50%, -44%); }
+}
+
+/* Joyful jump on tap — overrides the idle bob via higher specificity.
+   Squash on prep, leap up with slight tilt, slight squash on landing. */
+.pet-scene--owl .pet-scene__owl-img.owl-svg--jump {
+  animation: pet-owl-jump 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
+}
+@keyframes pet-owl-jump {
+  0%   { transform: translate(-50%, -42%) scale(1, 1); }
+  15%  { transform: translate(-50%, -38%) scale(1.08, 0.88); }
+  45%  { transform: translate(-50%, -62%) scale(0.95, 1.10) rotate(-4deg); }
+  70%  { transform: translate(-50%, -44%) scale(1.05, 0.95) rotate(3deg); }
+  85%  { transform: translate(-50%, -41%) scale(0.98, 1.02); }
+  100% { transform: translate(-50%, -42%) scale(1, 1); }
 }
 
 /* Per-part animations inside the owl SVG. Eyelids start collapsed
