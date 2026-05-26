@@ -148,17 +148,17 @@ export function GameEnd() {
           </div>
         )}
 
-        {isWin && percentile != null && (
+        {isDaily && isWin && percentile != null && (
           <div className="gameend__percentile">
             Вы справились лучше, чем <b>{percentile}%</b> игроков!
           </div>
         )}
 
         <div className="gameend__cta-row">
-          {isWin && (
+          {isDaily && isWin && (
             <button
               type="button"
-              className="btn btn--ghost"
+              className="btn btn--ghost gameend__btn"
               onClick={onShare}
               onMouseDown={(e) => e.preventDefault()}
             >
@@ -171,7 +171,7 @@ export function GameEnd() {
           )}
           <button
             type="button"
-            className="btn btn--primary"
+            className="btn btn--primary gameend__btn"
             onClick={onContinue}
             onMouseDown={(e) => e.preventDefault()}
           >
