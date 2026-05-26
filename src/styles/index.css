@@ -2249,8 +2249,8 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 /* ---------- Pet scene + hatching animation ---------- */
 .pet-scene {
   position: relative;
-  width: 100%;
-  max-width: 320px;
+  width: 80%;            /* reduced from 100% → frees vertical space */
+  max-width: 256px;       /* reduced from 320px (-20%) */
   margin: 0 auto;
   /* Match the SVG viewBox so the owl isn't letterboxed/cropped. */
   aspect-ratio: 400 / 360;

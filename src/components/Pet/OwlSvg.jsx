@@ -63,7 +63,7 @@ export function OwlSvg({ className = '' }) {
       </defs>
 
       <g filter="url(#owl-shadow)">
-        {/* ---- LEFT WING (behind body) ---- */}
+        {/* ---- LEFT WING (behind body) — striations only, no floating tips ---- */}
         <g className="owl-wing owl-wing--l">
           <path
             d="M 140 195
@@ -73,22 +73,15 @@ export function OwlSvg({ className = '' }) {
                Q 145 240 140 195 Z"
             fill="url(#owl-wing-grad)"
           />
-          {/* feather striations */}
           <g stroke="#5a4a32" strokeWidth="1.2" opacity="0.55" fill="none" strokeLinecap="round">
             <path d="M 60 225 Q 75 245 70 270" />
             <path d="M 80 215 Q 95 235 95 265" />
             <path d="M 100 210 Q 115 235 120 270" />
             <path d="M 45 250 Q 60 270 60 290" />
           </g>
-          {/* feather tip highlights */}
-          <g fill="#f0e4ca" opacity="0.4">
-            <ellipse cx="55" cy="280" rx="6" ry="3" transform="rotate(-30 55 280)" />
-            <ellipse cx="80" cy="295" rx="6" ry="3" transform="rotate(-15 80 295)" />
-            <ellipse cx="110" cy="295" rx="6" ry="3" transform="rotate(0 110 295)" />
-          </g>
         </g>
 
-        {/* ---- RIGHT WING (behind body) ---- */}
+        {/* ---- RIGHT WING ---- */}
         <g className="owl-wing owl-wing--r">
           <path
             d="M 260 195
@@ -103,11 +96,6 @@ export function OwlSvg({ className = '' }) {
             <path d="M 320 215 Q 305 235 305 265" />
             <path d="M 300 210 Q 285 235 280 270" />
             <path d="M 355 250 Q 340 270 340 290" />
-          </g>
-          <g fill="#f0e4ca" opacity="0.4">
-            <ellipse cx="345" cy="280" rx="6" ry="3" transform="rotate(30 345 280)" />
-            <ellipse cx="320" cy="295" rx="6" ry="3" transform="rotate(15 320 295)" />
-            <ellipse cx="290" cy="295" rx="6" ry="3" transform="rotate(0 290 295)" />
           </g>
         </g>
 
@@ -132,60 +120,78 @@ export function OwlSvg({ className = '' }) {
           <ellipse cx="215" cy="118" rx="2.5" ry="1.5" />
         </g>
 
-        {/* ---- EYES (large dark with shiny highlights) ---- */}
+        {/* ---- EYES (smaller, more proportionate) ---- */}
         <g>
           {/* Left */}
-          <circle cx="160" cy="170" r="34" fill="url(#owl-eye-grad)" />
-          <circle cx="160" cy="170" r="34" fill="none" stroke="#000" strokeWidth="1.4" opacity="0.5" />
-          <ellipse cx="172" cy="156" rx="9" ry="7" fill="#ffffff" />
-          <circle cx="150" cy="180" r="3" fill="#ffffff" opacity="0.7" />
-          <circle cx="164" cy="186" r="1.6" fill="#ffffff" opacity="0.5" />
+          <circle cx="166" cy="172" r="26" fill="url(#owl-eye-grad)" />
+          <circle cx="166" cy="172" r="26" fill="none" stroke="#000" strokeWidth="1.2" opacity="0.5" />
+          <ellipse cx="175" cy="162" rx="7" ry="5.5" fill="#ffffff" />
+          <circle cx="158" cy="180" r="2.4" fill="#ffffff" opacity="0.7" />
 
           {/* Right */}
-          <circle cx="240" cy="170" r="34" fill="url(#owl-eye-grad)" />
-          <circle cx="240" cy="170" r="34" fill="none" stroke="#000" strokeWidth="1.4" opacity="0.5" />
-          <ellipse cx="252" cy="156" rx="9" ry="7" fill="#ffffff" />
-          <circle cx="230" cy="180" r="3" fill="#ffffff" opacity="0.7" />
-          <circle cx="244" cy="186" r="1.6" fill="#ffffff" opacity="0.5" />
+          <circle cx="234" cy="172" r="26" fill="url(#owl-eye-grad)" />
+          <circle cx="234" cy="172" r="26" fill="none" stroke="#000" strokeWidth="1.2" opacity="0.5" />
+          <ellipse cx="243" cy="162" rx="7" ry="5.5" fill="#ffffff" />
+          <circle cx="226" cy="180" r="2.4" fill="#ffffff" opacity="0.7" />
         </g>
 
-        {/* ---- BEAK (small triangle pointing down) ---- */}
+        {/* ---- BEAK (hooked owl-style: narrow rounded top, curved tip pointing down) ---- */}
         <g>
           <path
-            d="M 188 200
-               Q 200 196 212 200
-               Q 208 218 200 222
-               Q 192 218 188 200 Z"
+            d="M 194 202
+               Q 200 199 206 202
+               Q 209 210 206 216
+               Q 203 222 200 224
+               Q 197 222 194 216
+               Q 191 210 194 202 Z"
             fill="url(#owl-beak-grad)"
             stroke="#7a4400"
-            strokeWidth="1.1"
+            strokeWidth="1"
             strokeLinejoin="round"
           />
-          <path d="M 195 207 Q 200 209 205 207" stroke="#7a4400" strokeWidth="0.9" fill="none" />
+          {/* Highlight on top ridge */}
+          <path d="M 197 204 Q 200 202 203 204" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
         </g>
 
-        {/* ---- FEET ---- */}
+        {/* ---- FEET (chicken-style: 3 forward toes + 1 back, with claw tips) ---- */}
+        {/* Left leg */}
         <g>
-          {/* Left foot */}
-          <ellipse cx="172" cy="305" rx="15" ry="7" fill="url(#owl-foot-grad)" stroke="#7a4408" strokeWidth="0.8" />
-          <g stroke="#8a4a08" strokeWidth="2.4" strokeLinecap="round" fill="none">
-            <path d="M 162 309 L 158 320" />
-            <path d="M 172 312 L 172 322" />
-            <path d="M 182 309 L 186 320" />
+          {/* Leg stub */}
+          <path d="M 172 290 L 172 305" stroke="#c87018" strokeWidth="6" strokeLinecap="round" />
+          {/* Foot toes — 3 forward splayed + 1 back */}
+          <g stroke="#c87018" strokeWidth="5" strokeLinecap="round" fill="none">
+            <path d="M 172 305 L 160 320" />   {/* outer-left toe */}
+            <path d="M 172 305 L 172 322" />   {/* middle toe */}
+            <path d="M 172 305 L 184 320" />   {/* outer-right toe */}
+            <path d="M 172 305 L 167 315" />   {/* back toe (short) */}
           </g>
-          {/* Right foot */}
-          <ellipse cx="228" cy="305" rx="15" ry="7" fill="url(#owl-foot-grad)" stroke="#7a4408" strokeWidth="0.8" />
-          <g stroke="#8a4a08" strokeWidth="2.4" strokeLinecap="round" fill="none">
-            <path d="M 218 309 L 214 320" />
-            <path d="M 228 312 L 228 322" />
-            <path d="M 238 309 L 242 320" />
+          {/* Tiny claw tips */}
+          <g stroke="#6a3408" strokeWidth="1.6" strokeLinecap="round" fill="none">
+            <path d="M 159 320 L 156 322" />
+            <path d="M 172 322 L 172 325" />
+            <path d="M 185 320 L 188 322" />
+          </g>
+        </g>
+        {/* Right leg (mirror) */}
+        <g>
+          <path d="M 228 290 L 228 305" stroke="#c87018" strokeWidth="6" strokeLinecap="round" />
+          <g stroke="#c87018" strokeWidth="5" strokeLinecap="round" fill="none">
+            <path d="M 228 305 L 216 320" />
+            <path d="M 228 305 L 228 322" />
+            <path d="M 228 305 L 240 320" />
+            <path d="M 228 305 L 233 315" />
+          </g>
+          <g stroke="#6a3408" strokeWidth="1.6" strokeLinecap="round" fill="none">
+            <path d="M 215 320 L 212 322" />
+            <path d="M 228 322 L 228 325" />
+            <path d="M 241 320 L 244 322" />
           </g>
         </g>
 
-        {/* ---- EYELIDS for blink (hidden by default, scaleY via CSS) ---- */}
+        {/* ---- EYELIDS for blink (hidden by default) ---- */}
         <g className="owl-eyelid">
-          <ellipse cx="160" cy="170" rx="34" ry="34" fill="#d4c4a0" />
-          <ellipse cx="240" cy="170" rx="34" ry="34" fill="#d4c4a0" />
+          <ellipse cx="166" cy="172" rx="26" ry="26" fill="#d4c4a0" />
+          <ellipse cx="234" cy="172" rx="26" ry="26" fill="#d4c4a0" />
         </g>
       </g>
     </svg>
