@@ -1,4 +1,4 @@
-import owlSrc from '../../assets/owl.png';
+import owlSrc from '../../assets/owl.svg';
 
 // Pet scene — tree hollow at dusk with the egg / owl inside.
 //
