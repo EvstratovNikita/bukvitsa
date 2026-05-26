@@ -424,6 +424,7 @@ export function useGame() {
     buyDecoration: stats.buyDecoration,
     equipDecoration: stats.equipDecoration,
     unequipDecorationSlot: stats.unequipDecorationSlot,
+    recordMiniGamePlay: stats.recordMiniGamePlay,
     petHunger: stats.petHunger,
     lastEnergyTickAt: stats.lastEnergyTickAt,
     // Energy

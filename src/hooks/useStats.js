@@ -68,7 +68,8 @@ const DEFAULT_STATS = {
     hunger: 0,              // starts empty — player must feed to earn the bonus
     lastHungerTickAt: null, // ISO of last hunger decay reconciliation
     ownedDecorations: [],   // ids of bought decorations (Порадовать tab)
-    equipped: {}            // { [slot]: decorationId } — one item per slot
+    equipped: {},           // { [slot]: decorationId } — one item per slot
+    lastTrainAt: {}         // { [miniGameId]: ISO } — local-day cooldown per game
   }
 };
 
@@ -114,6 +115,7 @@ function migratePet(rawPet) {
   }
   if (!Array.isArray(merged.ownedDecorations)) merged.ownedDecorations = [];
   merged.ownedDecorations = merged.ownedDecorations.filter((id) => getDecoration(id));
+  if (!merged.lastTrainAt || typeof merged.lastTrainAt !== 'object') merged.lastTrainAt = {};
   return merged;
 }
 
@@ -446,6 +448,18 @@ export function useStats() {
     });
   }, []);
 
+  // Stamp the local-day timestamp when a mini-game finishes. UI reads
+  // this to gate "once per day" play.
+  const recordMiniGamePlay = useCallback((gameId) => {
+    setStats((s) => ({
+      ...s,
+      pet: {
+        ...(s.pet || DEFAULT_STATS.pet),
+        lastTrainAt: { ...((s.pet?.lastTrainAt) || {}), [gameId]: new Date().toISOString() }
+      }
+    }));
+  }, []);
+
   // Clear a specific slot (no-op if it's already empty).
   const unequipDecorationSlot = useCallback((slot) => {
     setStats((s) => {
@@ -591,6 +605,7 @@ export function useStats() {
     buyDecoration,
     equipDecoration,
     unequipDecorationSlot,
+    recordMiniGamePlay,
     achievementToasts,
     consumeAchievementToast,
     auth

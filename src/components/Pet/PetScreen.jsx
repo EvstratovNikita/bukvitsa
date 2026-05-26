@@ -5,7 +5,7 @@ import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
-import { MemoryGame } from './MemoryGame.jsx';
+import { TrainPanel } from './TrainPanel.jsx';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -215,7 +215,7 @@ export function PetScreen({ open, onClose }) {
                   onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
                 />
               )}
-              {tab === 'train' && <MemoryGame />}
+              {tab === 'train' && <TrainPanel />}
             </section>
           </>
         )}

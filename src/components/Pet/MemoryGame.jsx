@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
+import { CoinIcon } from '../icons/Icon.jsx';
 
 // 8 pairs → 16 cards. Pet-themed icons stay visually distinct and don't
 // lean on the Cyrillic alphabet (which would feel like a Wordle session).
@@ -32,6 +33,15 @@ function formatMs(ms) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+function isSameLocalDay(iso) {
+  if (!iso) return false;
+  const last = new Date(iso);
+  const today = new Date();
+  return last.getFullYear() === today.getFullYear()
+      && last.getMonth() === today.getMonth()
+      && last.getDate() === today.getDate();
+}
+
 function pluralMoves(n) {
   const m10 = n % 10, m100 = n % 100;
   if (m10 === 1 && m100 !== 11) return 'ход';
@@ -43,7 +53,8 @@ function pluralMoves(n) {
 // (XP for the pet + a small coin drop). Win the round and the player can
 // instantly replay for more XP.
 export function MemoryGame() {
-  const { recordPetXp, addCoins, showToast } = useGameContext();
+  const { recordPetXp, addCoins, showToast, recordMiniGamePlay, stats } = useGameContext();
+  const playedToday = isSameLocalDay(stats.pet?.lastTrainAt?.memory);
   const [cards, setCards] = useState(newDeck);
   const [first, setFirst] = useState(null);
   const [second, setSecond] = useState(null);
@@ -119,16 +130,17 @@ export function MemoryGame() {
     return 1;
   }, [won, elapsedMs]);
 
-  // Claim XP + coins once per finished round.
+  // Claim XP + coins once per finished round, and stamp the cooldown.
   useEffect(() => {
     if (!won || rewardClaimed) return;
     setRewardClaimed(true);
     const r = recordPetXp(xpReward);
     addCoins(coinReward);
+    recordMiniGamePlay?.('memory');
     if (r?.levelAfter > r?.levelBefore) {
       showToast?.(`Букля выросла! Уровень ${r.levelAfter}`);
     }
-  }, [won, rewardClaimed, xpReward, coinReward, recordPetXp, addCoins, showToast]);
+  }, [won, rewardClaimed, xpReward, coinReward, recordPetXp, addCoins, recordMiniGamePlay, showToast]);
 
   const busy = first != null && second != null;
   const onFlip = (i) => {
@@ -197,16 +209,14 @@ export function MemoryGame() {
           </div>
           <div className="memory__result-rewards">
             <span className="memory__reward">+{xpReward} XP</span>
-            <span className="memory__reward memory__reward--coin">+{coinReward}</span>
+            <span className="memory__reward memory__reward--coin">
+              <CoinIcon />
+              +{coinReward}
+            </span>
           </div>
-          <button
-            type="button"
-            className="btn btn--primary memory__again"
-            onClick={onReset}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            Сыграть ещё
-          </button>
+          <p className="memory__cooldown-note">
+            Возвращайся завтра — следующая игра будет доступна после полуночи.
+          </p>
         </div>
       ) : startedAt ? (
         <button
