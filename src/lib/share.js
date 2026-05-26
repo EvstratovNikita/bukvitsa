@@ -33,19 +33,37 @@ export function buildInviteUrl(userId) {
 export const DEFAULT_INVITE_TEXT =
   'Играю в Буквицу — угадай русское слово из 5 букв за 6 попыток. Попробуй!';
 
-// Wordle-style emoji grid for a finished daily round. evaluations is an
-// array of row arrays of status strings ('correct' | 'present' | 'absent').
-// attempts = rows used (0 if lost); max = total allowed; dayN = puzzle #.
-export function buildWordleShareText(evaluations, attempts, max, dayN) {
+// Cheeky variety pack — randomised per share so the same message doesn't
+// flood feeds when many players share back to back.
+const SLY_FACES = ['😉', '😏', '🤓', '😎', '🦉', '🤭', '🫣'];
+function ordinal(n) {
+  const last2 = n % 100;
+  if (last2 >= 11 && last2 <= 14) return `${n}-й`;
+  switch (n % 10) {
+    case 1: return `${n}-й`;
+    case 2:
+    case 3:
+    case 4: return `${n}-й`;
+    default: return `${n}-й`;
+  }
+}
+
+// Build the daily-share message. evaluations = row arrays of 'correct' |
+// 'present' | 'absent'. attempts = rows used (0 if lost). max = total
+// allowed. dayN = puzzle #. inviteUrl is embedded inline so the recipient
+// sees: hook line → link → grid.
+export function buildWordleShareText(evaluations, attempts, max, dayN, inviteUrl) {
   const EMOJI = { correct: '🟩', present: '🟨', absent: '⬜' };
   const grid = (evaluations || [])
     .map((row) => row.map((s) => EMOJI[s] || '⬜').join(''))
     .join('\n');
-  const header = dayN != null
-    ? `Буквица — Слово дня #${dayN}`
-    : 'Буквица';
-  const score = attempts > 0 && attempts <= max ? `${attempts}/${max}` : `X/${max}`;
-  return `${header} · ${score}\n\n${grid}`;
+  const face = SLY_FACES[Math.floor(Math.random() * SLY_FACES.length)];
+  const dayLabel = dayN != null ? ` #${dayN}` : '';
+  const intro = attempts > 0 && attempts <= max
+    ? `Смотри, слово дня${dayLabel} в Буквице отгадано с ${ordinal(attempts)} попытки! Попробуй так же ${face}`
+    : `Слово дня${dayLabel} в Буквице меня обыграло… а ты сможешь? ${face}`;
+  const linkLine = inviteUrl ? `\n${inviteUrl}` : '';
+  return `${intro}${linkLine}\n\n${grid}`;
 }
 
 export function buildAchievementText(ach) {
@@ -96,7 +114,9 @@ async function shareNative(title, text, url) {
 
 async function copyToClipboard(text, url) {
   try {
-    await navigator.clipboard.writeText(`${text}\n${url}`);
+    // Skip appending url when caller embedded it inline already (daily share).
+    const payload = url && !text.includes(url) ? `${text}\n${url}` : text;
+    await navigator.clipboard.writeText(payload);
     return 'copied';
   } catch {
     return 'failed';

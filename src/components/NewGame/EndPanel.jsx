@@ -25,13 +25,14 @@ export function EndPanel() {
   const dayN = getDailyNumber();
 
   const onShare = async () => {
+    const url = buildInviteUrl(auth?.userId);
     const text = buildWordleShareText(
       evaluations || [],
       isWin ? (guesses?.length || 0) : 0,
       MAX_ATTEMPTS,
-      dayN
+      dayN,
+      url
     );
-    const url = buildInviteUrl(auth?.userId);
     const r = await share({ title: 'Буквица — Слово дня', text, url });
     setShareStatus(r);
     setTimeout(() => setShareStatus(null), 1600);

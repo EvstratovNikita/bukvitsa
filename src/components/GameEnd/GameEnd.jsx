@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { GAME_STATUS } from '../../constants/game.js';
+import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { ShareButton } from '../Share/ShareButton.jsx';
-import { CloseIcon, CoinIcon, CrownIcon, SadIcon } from '../icons/Icon.jsx';
+import { CloseIcon, CoinIcon, CrownIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
+import { buildInviteUrl, buildWordleShareText, share } from '../../lib/share.js';
+import { getDailyNumber } from '../../data/dailyWord.js';
 
 const CONFETTI_PALETTE = ['#f7c948', '#ffd864', '#6c8cff', '#b388ff', '#e9ecf3'];
+
+// Rough "better than" lookup vs the average Buкvitsa player. Calibrated
+// off real Wordle distributions — fewer guesses = higher percentile.
+const PERCENTILE_BY_ATTEMPTS = { 1: 99, 2: 92, 3: 75, 4: 50, 5: 25, 6: 10 };
 
 function Confetti({ count = 22 }) {
   const pieces = useMemo(
@@ -42,9 +47,13 @@ function Confetti({ count = 22 }) {
 }
 
 export function GameEnd() {
-  const { status, solution, lastEarned, lastEarnedBase, stats } = useGameContext();
+  const {
+    status, solution, lastEarned, lastEarnedBase, stats,
+    guesses, evaluations, auth, gameMode, exitDailyMode, reset
+  } = useGameContext();
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   const [closed, setClosed] = useState(false);
+  const [shareStatus, setShareStatus] = useState(null);
 
   // Re-open the celebration whenever a new game ends.
   useEffect(() => {
@@ -56,7 +65,32 @@ export function GameEnd() {
   if (status === GAME_STATUS.PLAYING) return null;
   if (closed) return null;
   const isWin = status === GAME_STATUS.WON;
+  const isDaily = gameMode === 'daily';
   const letters = [...solution];
+  const attempts = guesses?.length || 0;
+  const percentile = isWin ? PERCENTILE_BY_ATTEMPTS[attempts] : null;
+  const streak = isDaily ? (stats.daily?.streak || 0) : (stats.currentStreak || 0);
+  const streakLabel = isDaily ? 'Серия Слова дня' : 'Серия побед';
+
+  const onShare = async () => {
+    const url = buildInviteUrl(auth?.userId);
+    const text = buildWordleShareText(
+      evaluations || [],
+      isWin ? attempts : 0,
+      MAX_ATTEMPTS,
+      isDaily ? getDailyNumber() : null,
+      url
+    );
+    const r = await share({ title: 'Буквица — Слово дня', text, url });
+    setShareStatus(r);
+    setTimeout(() => setShareStatus(null), 1600);
+  };
+
+  const onContinue = () => {
+    setClosed(true);
+    if (isDaily) exitDailyMode();
+    else reset();
+  };
 
   return (
     <div className={`gameend gameend--${isWin ? 'win' : 'lose'}`} role="dialog" aria-live="polite">
@@ -90,7 +124,7 @@ export function GameEnd() {
           ))}
         </div>
 
-        {isWin && lastEarned > 0 && (
+        {!isDaily && isWin && lastEarned > 0 && (
           <div className="gameend__reward">
             <CoinIcon />
             <span>+{lastEarned}</span>
@@ -102,9 +136,9 @@ export function GameEnd() {
           </div>
         )}
 
-        {isWin && stats.currentStreak >= 2 && (
+        {isWin && streak >= 2 && (
           <div className="gameend__streak">
-            Серия побед: <b>{stats.currentStreak}</b>
+            {streakLabel}: <b>{streak}</b>
           </div>
         )}
 
@@ -114,11 +148,37 @@ export function GameEnd() {
           </div>
         )}
 
-        {isWin && (
-          <div className="gameend__cta-row">
-            <ShareButton kind="invite" variant="primary" label="Похвастаться" />
+        {isWin && percentile != null && (
+          <div className="gameend__percentile">
+            Вы справились лучше, чем <b>{percentile}%</b> игроков!
           </div>
         )}
+
+        <div className="gameend__cta-row">
+          {isWin && (
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={onShare}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <ShareIcon />
+              <span>{shareStatus === 'copied' ? 'Скопировано' :
+                     shareStatus === 'shared' ? 'Готово' :
+                     shareStatus === 'failed' ? 'Не вышло' :
+                     'Поделиться сеткой'}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={onContinue}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <RefreshIcon />
+            <span>Играем дальше</span>
+          </button>
+        </div>
       </div>
     </div>
   );

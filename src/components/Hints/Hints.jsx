@@ -5,12 +5,13 @@ import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, HintIcon } from '../icons/Icon.jsx';
 
 export function HintButton() {
-  const { hintPickMode, startHintPick, cancelHintPick, revealRandomHint, stats, hints, status } =
+  const { hintPickMode, startHintPick, cancelHintPick, revealRandomHint, stats, hints, status, gameMode } =
     useGameContext();
   const [open, setOpen] = useState(false);
 
   const allOpened = hints.every(Boolean);
-  const disabled = status !== 'playing' || allOpened;
+  const isDaily = gameMode === 'daily';
+  const disabled = status !== 'playing' || allOpened || isDaily;
 
   const onRandom = () => {
     setOpen(false);
@@ -28,8 +29,8 @@ export function HintButton() {
         className={`hint-btn${hintPickMode ? ' hint-btn--active' : ''}`}
         onClick={() => (hintPickMode ? cancelHintPick() : setOpen(true))}
         disabled={disabled}
-        aria-label="Подсказка"
-        title="Подсказка"
+        aria-label={isDaily ? 'Подсказки недоступны в Слове дня' : 'Подсказка'}
+        title={isDaily ? 'В Слове дня подсказки отключены — у всех равные условия' : 'Подсказка'}
       >
         <HintIcon />
         <span>{hintPickMode ? 'Отмена' : 'Подсказка'}</span>

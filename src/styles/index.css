@@ -1663,6 +1663,20 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   animation: rise var(--t-slow) 460ms both;
 }
 .gameend__streak b { color: var(--text); }
+.gameend__percentile {
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 14px;
+  text-align: center;
+  animation: rise var(--t-slow) 500ms both;
+}
+.gameend__percentile b {
+  color: #f7c948;
+  font-variant-numeric: tabular-nums;
+}
+[data-theme="light"] .gameend__percentile { color: var(--text); }
+[data-theme="light"] .gameend__percentile b { color: #8a5a10; }
+.gameend__cta-row .btn { flex: 1 1 140px; min-width: 0; animation: rise var(--t-slow) 560ms both; }
 .gameend__cta {
   width: 100%;
   margin-top: 4px;
