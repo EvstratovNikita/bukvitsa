@@ -2825,6 +2825,33 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   font-variant-numeric: tabular-nums;
 }
 
+/* ---------- Flying treat (feed animation) ---------- */
+.feed-flier {
+  position: fixed;
+  left: 0;
+  top: 0;
+  font-size: 36px;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 100;
+  will-change: transform, opacity;
+  /* Starting position via translate to (from-x, from-y); animation tweens
+     to (to-x, to-y) with a mid-arc bump upwards. */
+  transform: translate(var(--from-x), var(--from-y));
+  animation: feed-fly 700ms cubic-bezier(.4, .9, .6, 1) forwards;
+}
+@keyframes feed-fly {
+  0%   { transform: translate(var(--from-x), var(--from-y)) scale(1) rotate(0deg);
+         opacity: 1; }
+  60%  { transform: translate(
+           calc((var(--from-x) + var(--to-x)) / 2),
+           var(--mid-y)
+         ) scale(1.35) rotate(220deg);
+         opacity: 1; }
+  100% { transform: translate(var(--to-x), var(--to-y)) scale(0.3) rotate(360deg);
+         opacity: 0; }
+}
+
 /* ---------- Locked pet stub (pre-10-games) ---------- */
 .pet-locked {
   display: flex;

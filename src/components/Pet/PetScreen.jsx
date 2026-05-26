@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { HUNGER_MAX, PET_UNLOCK_GAMES, energySpeedFromHunger, petComputeLevel } from '../../constants/game.js';
 import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '../../data/petDecorations.js';
 import { PET_TREATS } from '../../data/petTreats.js';
@@ -46,6 +46,10 @@ export function PetScreen({ open, onClose }) {
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState(pet.name || 'Букля');
   const [tab, setTab] = useState('feed');
+  // Each successful feed pushes a flying emoji that animates from the
+  // tapped treat button to Букля's mouth. Multiple can be in-flight.
+  const [flyingTreats, setFlyingTreats] = useState([]);
+  const sceneRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
@@ -76,9 +80,24 @@ export function PetScreen({ open, onClose }) {
   const owned = pet.ownedDecorations || [];
   const equipped = pet.equipped || {};
 
-  const onFeed = (treat) => {
+  const onFeed = (treat, ev) => {
     const r = feedPet(treat.id);
-    if (r === 'ok') showToast?.(`+${treat.hungerGain} сытости`);
+    if (r === 'ok') {
+      showToast?.(`+${treat.hungerGain} сытости`);
+      // Compute fly-from (treat button center) and fly-to (owl mouth).
+      // Mouth in scene coords: roughly 50% across, 56% down.
+      const btn = ev?.currentTarget?.getBoundingClientRect?.();
+      const scene = sceneRef.current?.getBoundingClientRect?.();
+      if (btn && scene) {
+        const from = { x: btn.left + btn.width / 2, y: btn.top + btn.height / 2 };
+        const to   = { x: scene.left + scene.width / 2, y: scene.top + scene.height * 0.56 };
+        const id = Date.now() + Math.random();
+        setFlyingTreats((q) => [...q, { id, icon: treat.icon, from, to }]);
+        setTimeout(() => {
+          setFlyingTreats((q) => q.filter((f) => f.id !== id));
+        }, 700);
+      }
+    }
     else if (r === 'not_enough_coins') showToast?.('Недостаточно монет');
     else if (r === 'full') showToast?.('Букля уже сыта');
   };
@@ -116,7 +135,7 @@ export function PetScreen({ open, onClose }) {
       </header>
 
       <div className="pet-screen__body">
-        <div className="pet-screen__scene">
+        <div className="pet-screen__scene" ref={sceneRef}>
           <PetScene mode={mode} />
         </div>
 
@@ -184,7 +203,7 @@ export function PetScreen({ open, onClose }) {
                   </div>
                 )}
                 <div className="pet-summary__meta">
-                  {age === 0 ? 'Вылупилась сегодня' : `Вылупилась ${age} ${pluralDays(age)} назад`}
+                  Возраст: {age} {pluralDays(age)}
                 </div>
               </div>
             </section>
@@ -222,6 +241,24 @@ export function PetScreen({ open, onClose }) {
           </>
         )}
       </div>
+
+      {/* Flying-treat layer — fixed-positioned emojis traveling from the
+          tapped button to Букля's mouth. Lives at the screen root so it
+          isn't clipped by the scrollable body. */}
+      {flyingTreats.map((f) => (
+        <div
+          key={f.id}
+          className="feed-flier"
+          style={{
+            '--from-x': `${f.from.x}px`,
+            '--from-y': `${f.from.y}px`,
+            '--to-x':   `${f.to.x}px`,
+            '--to-y':   `${f.to.y}px`,
+            '--mid-y':  `${Math.min(f.from.y, f.to.y) - 80}px`
+          }}
+          aria-hidden="true"
+        >{f.icon}</div>
+      ))}
     </div>
   );
 }
@@ -241,7 +278,7 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
             key={t.id}
             type="button"
             className="pet-treat"
-            onClick={() => onFeed(t)}
+            onClick={(e) => onFeed(t, e)}
             onMouseDown={(e) => e.preventDefault()}
             disabled={cantAfford || full}
           >
