@@ -3252,8 +3252,12 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 [data-theme="light"] .ach-tab           { color: rgba(26, 29, 40, 0.70); }
 [data-theme="light"] .ach-tab__count    { color: rgba(26, 29, 40, 0.55); }
-[data-theme="light"] .ach-tab--active   { color: #6a3a04; }
-[data-theme="light"] .ach-tab--active .ach-tab__count { color: #8a5a10; }
+[data-theme="light"] .ach-tab--active {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.55), rgba(247, 201, 72, 0.30));
+  color: #4a2700;
+  box-shadow: inset 0 0 0 1px rgba(180, 130, 30, 0.65);
+}
+[data-theme="light"] .ach-tab--active .ach-tab__count { color: #6a3a04; }
 
 [data-theme="light"] .ach-card {
   background: #ffffff;
@@ -3357,6 +3361,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   border-color: rgba(0, 0, 0, 0.10);
 }
 [data-theme="light"] .pet-tab { color: rgba(26, 29, 40, 0.65); }
+[data-theme="light"] .pet-tab--active {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.55), rgba(247, 201, 72, 0.30));
+  color: #4a2700;
+  box-shadow: inset 0 0 0 1px rgba(180, 130, 30, 0.65);
+}
 
 /* ---------- Light theme round 2: cells, keys, defaults, yellows, ach ---------- */
 
@@ -3527,6 +3536,43 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 [data-theme="light"] .pet-screen__balance span { color: #6a3a04; }
 [data-theme="light"] .hint-menu__balance { color: rgba(26, 29, 40, 0.7); }
 [data-theme="light"] .hint-menu__balance b { color: #6a3a04; }
+/* Hint-option price chip: yellow-on-yellow vanished on cream — match the
+   coin-balance treatment used elsewhere (gold gradient + dark-brown text). */
+[data-theme="light"] .hint-option {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+[data-theme="light"] .hint-option__price {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.42), rgba(247, 201, 72, 0.22));
+  border-color: rgba(180, 130, 30, 0.65);
+  color: #6a3a04;
+}
+[data-theme="light"] .hint-option__price svg { color: #8a5a10; }
+
+/* Shop cell-style preview letter: drop the neon glow on cream — the
+   white-on-white plus blue/purple halo reads as smudge. Use a bold
+   gold-gradient letter with a subtle drop instead so the preview still
+   feels celebratory but actually contrasts. */
+[data-theme="light"] .shop-card__preview-letter {
+  color: transparent;
+  background: linear-gradient(135deg, #d99404, #7a4b00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  text-shadow: none;
+  filter: drop-shadow(0 2px 4px rgba(180, 130, 30, 0.45));
+}
+[data-theme="light"] .shop-card__preview-letter--plain {
+  color: #1a1d28;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  filter: none;
+}
+[data-theme="light"] .shop-card__preview--cells-neon {
+  background:
+    radial-gradient(circle at center, rgba(247, 201, 72, 0.35), transparent 70%),
+    rgba(255, 255, 255, 0.65);
+}
 
 /* Help (Обучение) reward rows: the numeric chip used a blue accent
    gradient that looks weak in light theme — switch to gold-on-cream. */
