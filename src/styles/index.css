@@ -3228,8 +3228,17 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 /* ---------- GameEnd celebration card ---------- */
 [data-theme="light"] .gameend__card {
   background: linear-gradient(160deg, #ffffff 0%, #f7f2e6 100%);
-  border-color: rgba(0, 0, 0, 0.12);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
+  border: 3px solid rgba(0, 0, 0, 0.55);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+[data-theme="light"] .gameend--win .gameend__card {
+  border-color: #b48230;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.22),
+    0 0 80px rgba(247, 201, 72, 0.45),
+    0 0 0 2px rgba(180, 130, 30, 0.55);
 }
 [data-theme="light"] .gameend--win .gameend__title {
   background: linear-gradient(120deg, #8a5a10, #d4881a 60%, #f0a830);

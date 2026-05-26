@@ -86,10 +86,13 @@ export function GameEnd() {
     setTimeout(() => setShareStatus(null), 1600);
   };
 
+  // Daily: jump straight to a normal round (exitDailyMode spends 1 energy).
+  // Normal: just dismiss the celebration so EndPanel below stays visible —
+  // that's where the reward breakdown and the "×2 за рекламу" button live.
+  // Reset only fires when the player taps "Новая игра" in the EndPanel.
   const onContinue = () => {
     setClosed(true);
     if (isDaily) exitDailyMode();
-    else reset();
   };
 
   return (
