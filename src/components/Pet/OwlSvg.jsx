@@ -26,7 +26,7 @@ const JUMP_MS = 700;
 const SLOT_POSITIONS = {
   head:   { x: 200, y: 50,  size: 110 }, // crown of the head
   eyes:   { x: 200, y: 178, size: 78  }, // straddles both eyes
-  brooch: { x: 244, y: 278, size: 28  }, // small pin, just above lower wing edge
+  brooch: { x: 244, y: 256, size: 28  }, // small pin, mid-chest above lower wing edge
   wingL:  { x: 80,  y: 250, size: 50  },
   wingR:  { x: 320, y: 250, size: 50  }
 };
@@ -429,36 +429,36 @@ function Academic() {
     <g className="owl-deco owl-deco--academic">
       {/* Soft cap band under the board */}
       <path
-        d="M 158 90
-           Q 200 70 242 90
-           L 240 100
-           Q 200 88 160 100 Z"
+        d="M 138 96
+           Q 200 70 262 96
+           L 260 110
+           Q 200 92 140 110 Z"
         fill="#1a1a26"
         stroke="#000000"
-        strokeWidth="1.1"
+        strokeWidth="1.2"
       />
-      {/* Mortarboard — diamond-ish parallelogram (slight tilt) */}
+      {/* Mortarboard — wider parallelogram (slight tilt) */}
       <path
-        d="M 200 50
-           L 268 80
-           L 200 96
-           L 132 80 Z"
+        d="M 200 28
+           L 290 78
+           L 200 102
+           L 110 78 Z"
         fill="#0e0e16"
         stroke="#000000"
-        strokeWidth="1.2"
+        strokeWidth="1.4"
         strokeLinejoin="round"
       />
       {/* Top sheen */}
-      <path d="M 152 78 L 200 56 L 248 78" stroke="rgba(255,255,255,0.18)" strokeWidth="1.2" fill="none" />
+      <path d="M 132 76 L 200 38 L 268 76" stroke="rgba(255,255,255,0.20)" strokeWidth="1.4" fill="none" />
       {/* Button at center */}
-      <circle cx="200" cy="73" r="3.6" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.6" />
+      <circle cx="200" cy="64" r="4.6" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.8" />
       {/* Tassel — strap + bunch */}
-      <path d="M 200 73 Q 232 80 244 102" stroke="#d4a948" strokeWidth="2" fill="none" strokeLinecap="round" />
-      <g fill="#d4a948" stroke="#7a5a10" strokeWidth="0.4">
-        <ellipse cx="246" cy="110" rx="5" ry="6" />
-        <path d="M 242 113 L 240 122" stroke="#d4a948" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-        <path d="M 246 114 L 246 124" stroke="#d4a948" strokeWidth="1.4" fill="none" strokeLinecap="round" />
-        <path d="M 250 113 L 252 122" stroke="#d4a948" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M 200 64 Q 244 76 260 110" stroke="#d4a948" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <g fill="#d4a948" stroke="#7a5a10" strokeWidth="0.5">
+        <ellipse cx="262" cy="120" rx="6.5" ry="8" />
+        <path d="M 256 124 L 254 138" stroke="#d4a948" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 262 125 L 262 140" stroke="#d4a948" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 268 124 L 270 138" stroke="#d4a948" strokeWidth="1.8" fill="none" strokeLinecap="round" />
       </g>
     </g>
   );
@@ -489,15 +489,23 @@ function Cap() {
       <path d="M 200 50 L 200 96" stroke="rgba(0,0,0,0.25)" strokeWidth="1" />
       {/* Highlight */}
       <path d="M 152 88 Q 150 60 188 54" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      {/* Visor — flat brim forward (drawn extending right past the head) */}
+      {/* Visor — symmetric forward brim, gentle curve, ends rounded */}
       <path
-        d="M 200 96
-           Q 230 96 280 108
-           Q 245 116 200 110 Z"
+        d="M 152 96
+           Q 200 116 248 96
+           Q 248 106 200 114
+           Q 152 106 152 96 Z"
         fill="#1c4abf"
         stroke="#0d2a70"
         strokeWidth="1.3"
         strokeLinejoin="round"
+      />
+      {/* Visor underside shadow */}
+      <path
+        d="M 158 98 Q 200 112 242 98"
+        stroke="rgba(0,0,0,0.35)"
+        strokeWidth="1.2"
+        fill="none"
       />
       {/* Button on top */}
       <circle cx="200" cy="50" r="3.4" fill="#0d2a70" />
@@ -517,32 +525,33 @@ function TopHat() {
         </linearGradient>
       </defs>
       {/* Brim — wide ellipse hugging the head */}
-      <ellipse cx="200" cy="100" rx="78" ry="10" fill="url(#tophat-grad)" stroke="#000" strokeWidth="1" />
+      <ellipse cx="200" cy="106" rx="94" ry="12" fill="url(#tophat-grad)" stroke="#000" strokeWidth="1.1" />
       {/* Crown — tall trapezoid */}
       <path
-        d="M 162 100
-           L 168 36
-           Q 200 30 232 36
-           L 238 100 Z"
+        d="M 152 106
+           L 158 14
+           Q 200 6 242 14
+           L 248 106 Z"
         fill="url(#tophat-grad)"
         stroke="#000"
-        strokeWidth="1.1"
+        strokeWidth="1.2"
         strokeLinejoin="round"
       />
       {/* Crown highlight */}
-      <path d="M 174 40 L 178 96" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
+      <path d="M 168 22 L 174 102" stroke="rgba(255,255,255,0.20)" strokeWidth="1.7" />
       {/* Red ribbon band */}
       <path
-        d="M 162 96
-           Q 200 102 238 96
-           L 238 86
-           Q 200 92 162 86 Z"
+        d="M 152 100
+           Q 200 108 248 100
+           L 248 86
+           Q 200 94 152 86 Z"
         fill="#c43030"
         stroke="#7a1a1a"
-        strokeWidth="0.8"
+        strokeWidth="1"
       />
       {/* Buckle */}
-      <rect x="194" y="86" width="12" height="10" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.8" />
+      <rect x="191" y="87" width="18" height="12" fill="#d4a948" stroke="#7a5a10" strokeWidth="1" />
+      <rect x="195" y="91" width="10" height="4" fill="#7a5a10" />
     </g>
   );
 }
@@ -558,34 +567,40 @@ function Crown() {
           <stop offset="100%" stopColor="#8a5a10" />
         </linearGradient>
       </defs>
-      {/* Zigzag silhouette */}
+      {/* Zigzag silhouette — wider + taller, 5 peaks for grandeur */}
       <path
-        d="M 150 102
-           L 158 70
-           L 178 96
-           L 200 40
-           L 222 96
-           L 242 70
-           L 250 102 Z"
+        d="M 130 108
+           L 142 64
+           L 165 96
+           L 182 50
+           L 200 16
+           L 218 50
+           L 235 96
+           L 258 64
+           L 270 108 Z"
         fill="url(#crown-grad)"
         stroke="#5a3a08"
-        strokeWidth="1.3"
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
       {/* Base band */}
-      <rect x="148" y="100" width="104" height="14" rx="3" fill="url(#crown-grad)" stroke="#5a3a08" strokeWidth="1.2" />
+      <rect x="126" y="106" width="148" height="20" rx="4" fill="url(#crown-grad)" stroke="#5a3a08" strokeWidth="1.4" />
       {/* Base inner shadow */}
-      <rect x="152" y="104" width="96" height="6" fill="rgba(122, 80, 12, 0.45)" />
+      <rect x="132" y="112" width="136" height="8" fill="rgba(122, 80, 12, 0.45)" />
       {/* Jewels at each peak */}
-      <circle cx="158" cy="74" r="3.2" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.6" />
-      <circle cx="200" cy="46" r="4.5" fill="#5fd0ff" stroke="#0a4a7a" strokeWidth="0.7" />
-      <circle cx="242" cy="74" r="3.2" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.6" />
-      {/* Band centre jewel */}
-      <ellipse cx="200" cy="107" rx="6" ry="4.2" fill="#7ad97a" stroke="#1a5a1a" strokeWidth="0.6" />
+      <circle cx="142" cy="68" r="3.6" fill="#7ad97a" stroke="#1a5a1a" strokeWidth="0.6" />
+      <circle cx="182" cy="54" r="4.4" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.7" />
+      <circle cx="200" cy="24" r="6"   fill="#5fd0ff" stroke="#0a4a7a" strokeWidth="0.9" />
+      <circle cx="218" cy="54" r="4.4" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.7" />
+      <circle cx="258" cy="68" r="3.6" fill="#7ad97a" stroke="#1a5a1a" strokeWidth="0.6" />
+      {/* Band jewels — three across */}
+      <ellipse cx="170" cy="116" rx="6" ry="4.4" fill="#ff5a6a" stroke="#7e1a1a" strokeWidth="0.6" />
+      <ellipse cx="200" cy="116" rx="7.5" ry="5.4" fill="#7ad97a" stroke="#1a5a1a" strokeWidth="0.7" />
+      <ellipse cx="230" cy="116" rx="6" ry="4.4" fill="#5fd0ff" stroke="#0a4a7a" strokeWidth="0.6" />
       {/* Highlight glints */}
-      <path d="M 156 82 L 159 90" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M 198 56 L 201 72" stroke="rgba(255,255,255,0.6)" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M 240 82 L 243 90" stroke="rgba(255,255,255,0.55)" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M 140 76 L 144 92"  stroke="rgba(255,255,255,0.55)" strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M 197 32 L 201 60"  stroke="rgba(255,255,255,0.65)" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M 256 76 L 260 92"  stroke="rgba(255,255,255,0.55)" strokeWidth="1.3" strokeLinecap="round" />
     </g>
   );
 }
