@@ -2,15 +2,9 @@ import { GAME_STATUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon, PlayIcon, RefreshIcon } from '../icons/Icon.jsx';
 
-// Bottom panel that swaps in for the keyboard once a round ends. Compact
-// rich layout so the space matches the keyboard footprint without dead air.
-//
-// Layout (single row on tablet+, stacks on narrow phones):
-//   ┌─────────────────────────────┬────────────────────────────┐
-//   │ Победа! / Не угадал          │ [Новая игра]               │
-//   │ Слово: МЯТА                  │ [×2 за рекламу] (only win) │
-//   │ +N монет (base + bonus)      │                            │
-//   └─────────────────────────────┴────────────────────────────┘
+// Bottom panel that swaps in for the keyboard once a round ends. Vertical
+// stack on the left (title + word + reward lines, each visibly distinct);
+// action buttons stacked on the right.
 export function EndPanel() {
   const {
     status, reset, solution,
@@ -33,18 +27,18 @@ export function EndPanel() {
             Слово: <b>{(solution || '').toUpperCase()}</b>
           </div>
           {isWin && lastEarned > 0 && (
-            <div className="end-panel__reward">
-              <CoinIcon />
-              <span>+{lastEarned}</span>
+            <>
+              <div className="end-panel__reward">
+                <CoinIcon />
+                <span>+{lastEarned}</span>
+                {doubledLastWin && <span className="end-panel__doubled">×2 ✓</span>}
+              </div>
               {bonus > 0 && (
-                <span className="end-panel__bonus">
-                  ({lastEarnedBase} + {bonus} от Букли)
-                </span>
+                <div className="end-panel__breakdown">
+                  Базовая {lastEarnedBase} + от Букли {bonus}
+                </div>
               )}
-              {doubledLastWin && (
-                <span className="end-panel__doubled">×2 ✓</span>
-              )}
-            </div>
+            </>
           )}
         </div>
 

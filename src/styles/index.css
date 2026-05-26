@@ -3082,6 +3082,14 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   max-width: 320px;
 }
 
+/* ---------- EndPanel breakdown row ---------- */
+.end-panel__breakdown {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(229, 235, 255, 0.7);
+  letter-spacing: 0.01em;
+}
+
 /* ============================================================
    LIGHT THEME OVERRIDES
    Most chrome uses CSS vars (--text, --bg-*) and flips automatically.
@@ -3298,3 +3306,93 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   border-color: rgba(0, 0, 0, 0.10);
 }
 [data-theme="light"] .pet-tab { color: rgba(26, 29, 40, 0.65); }
+
+/* ---------- Light theme round 2: cells, keys, defaults, yellows, ach ---------- */
+
+/* Board cells: empty + tbd + present (white) all blend on light bg —
+   give them a darker visible border. */
+[data-theme="light"] .cell--empty .cell__face--front {
+  border-color: rgba(0, 0, 0, 0.22);
+}
+[data-theme="light"] .cell--tbd   .cell__face--front {
+  border-color: rgba(0, 0, 0, 0.32);
+  background: #ffffff;
+  color: #1a1d28;
+}
+[data-theme="light"] .cell--present .cell__face--front,
+[data-theme="light"] .cell--present .cell__face--back,
+[data-theme="light"] .cell--present:not(.cell--flipping) .cell__face--front {
+  border-color: rgba(0, 0, 0, 0.32);
+}
+[data-theme="light"] .cell--absent .cell__face--front,
+[data-theme="light"] .cell--absent .cell__face--back,
+[data-theme="light"] .cell--absent:not(.cell--flipping) .cell__face--front {
+  border-color: rgba(0, 0, 0, 0.22);
+}
+[data-theme="light"] .cell--flipping .cell__face--front {
+  border-color: rgba(0, 0, 0, 0.32);
+  background: #ffffff;
+  color: #1a1d28;
+}
+
+/* Keyboard keys: default state and present-coloured keys need darker
+   borders to stand out. */
+[data-theme="light"] .key {
+  border-color: rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text);
+}
+[data-theme="light"] .key--present { border-color: rgba(0, 0, 0, 0.32); }
+[data-theme="light"] .key--absent  { border-color: rgba(0, 0, 0, 0.22); }
+[data-theme="light"] .key--correct { border-color: rgba(180, 130, 30, 0.6); }
+
+/* Default-background preview card — flip to a light gradient in light theme. */
+[data-theme="light"] .shop-card__preview--default {
+  background:
+    radial-gradient(1100px 600px at 20% -10%, rgba(108, 140, 255, 0.12), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, rgba(247, 201, 72, 0.16), transparent 60%),
+    linear-gradient(180deg, #f4f1ea, #ffffff);
+}
+[data-theme="light"] .shop-card__preview-default-label {
+  color: rgba(26, 29, 40, 0.65);
+}
+
+/* Yellow-on-yellow contrast fixes — reward badges + chips. */
+[data-theme="light"] .end-panel__reward,
+[data-theme="light"] .gameend__reward,
+[data-theme="light"] .ach-card__reward {
+  color: #6a3a04;
+}
+[data-theme="light"] .gameend__reward {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.40), rgba(247, 201, 72, 0.18));
+  border-color: rgba(180, 130, 30, 0.50);
+}
+[data-theme="light"] .ach-toast {
+  background: linear-gradient(135deg, #fff5d4, #fde29a);
+  border-color: rgba(180, 130, 30, 0.55);
+}
+[data-theme="light"] .ach-toast__title { color: #6a3a04; }
+[data-theme="light"] .ach-toast__label { color: #8a5a10; }
+[data-theme="light"] .ach-toast__reward { color: #6a3a04; }
+[data-theme="light"] .menu-item__badge { color: #1a1300; }
+[data-theme="light"] .pet-card__level-badge,
+[data-theme="light"] .pet-summary__badge { color: #1a1300; }
+
+/* Pet summary: name in light theme. */
+[data-theme="light"] .end-panel__breakdown { color: rgba(26, 29, 40, 0.7); }
+
+/* Unlocked achievement card — bold golden look in light theme so it
+   stands out next to plain (white) locked cards. */
+[data-theme="light"] .ach-card--unlocked {
+  background: linear-gradient(135deg, #fff5d4, #ffe9a4);
+  border-color: #c89018;
+  box-shadow: 0 6px 18px rgba(247, 201, 72, 0.35), 0 0 0 1px rgba(200, 144, 24, 0.45);
+}
+[data-theme="light"] .ach-card--unlocked .ach-card__icon {
+  background: linear-gradient(135deg, #f7c948, #ffb84d);
+  box-shadow: 0 4px 10px rgba(247, 201, 72, 0.45);
+}
+[data-theme="light"] .ach-card--unlocked .ach-card__title { color: #4a2a04; }
+[data-theme="light"] .ach-card--unlocked .ach-card__desc  { color: rgba(74, 42, 4, 0.7); }
+[data-theme="light"] .ach-card--unlocked .ach-card__status { color: #8a5a10; }
+[data-theme="light"] .ach-card--unlocked .ach-card__bar { background: rgba(140, 100, 20, 0.18); }
