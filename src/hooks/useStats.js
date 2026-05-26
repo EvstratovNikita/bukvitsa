@@ -48,6 +48,14 @@ const DEFAULT_STATS = {
     theme: 'dark',          // 'dark' | 'light'
     enterOnLeft: false      // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
   },
+  daily: {
+    lastPlayedKey: null,    // 'YYYY-MM-DD' of the most recent daily attempt
+    lastResult: null,       // { won, attempts, evaluations, word, dayN }
+    streak: 0,              // consecutive winning days
+    maxStreak: 0,
+    gamesPlayed: 0,
+    gamesWon: 0
+  },
   // Companion pet (Букля the owlet). Lightweight JSON blob; new fields
   // (xp, hunger, mood, equipped) get appended as the pet feature grows.
   pet: {
@@ -264,6 +272,38 @@ export function useStats() {
         coinsEarned: (s.coinsEarned || 0) + reward.amount,
         lastVisitDate: todayKey(),
         dailyStreak: reward.streak
+      };
+    });
+  }, []);
+
+  // Record the outcome of a daily-mode round. Only the first attempt per
+  // local calendar day counts. Streak increments on win, resets on loss.
+  const recordDailyResult = useCallback(({ key, dayN, won, attempts, evaluations, word }) => {
+    setStats((s) => {
+      const prev = s.daily || DEFAULT_STATS.daily;
+      if (prev.lastPlayedKey === key) return s; // idempotent
+      const prevKey = prev.lastPlayedKey;
+      // Streak continues only if yesterday's daily was also a win.
+      const yest = (() => {
+        const d = new Date(key + 'T00:00:00');
+        d.setDate(d.getDate() - 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      })();
+      const continuing = won && prevKey === yest && (prev.lastResult?.won === true);
+      const nextStreak = won ? (continuing ? prev.streak + 1 : 1) : 0;
+      return {
+        ...s,
+        daily: {
+          lastPlayedKey: key,
+          lastResult: { won, attempts, evaluations, word, dayN },
+          streak: nextStreak,
+          maxStreak: Math.max(prev.maxStreak || 0, nextStreak),
+          gamesPlayed: (prev.gamesPlayed || 0) + 1,
+          gamesWon: (prev.gamesWon || 0) + (won ? 1 : 0)
+        }
       };
     });
   }, []);
@@ -542,6 +582,7 @@ export function useStats() {
     grantAdEnergy,
     addCoins,
     setPref,
+    recordDailyResult,
     recordHintUsed,
     hatchPet,
     renamePet,

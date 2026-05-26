@@ -33,6 +33,21 @@ export function buildInviteUrl(userId) {
 export const DEFAULT_INVITE_TEXT =
   'Играю в Буквицу — угадай русское слово из 5 букв за 6 попыток. Попробуй!';
 
+// Wordle-style emoji grid for a finished daily round. evaluations is an
+// array of row arrays of status strings ('correct' | 'present' | 'absent').
+// attempts = rows used (0 if lost); max = total allowed; dayN = puzzle #.
+export function buildWordleShareText(evaluations, attempts, max, dayN) {
+  const EMOJI = { correct: '🟩', present: '🟨', absent: '⬜' };
+  const grid = (evaluations || [])
+    .map((row) => row.map((s) => EMOJI[s] || '⬜').join(''))
+    .join('\n');
+  const header = dayN != null
+    ? `Буквица — Слово дня #${dayN}`
+    : 'Буквица';
+  const score = attempts > 0 && attempts <= max ? `${attempts}/${max}` : `X/${max}`;
+  return `${header} · ${score}\n\n${grid}`;
+}
+
 export function buildAchievementText(ach) {
   if (!ach) return DEFAULT_INVITE_TEXT;
   return `${ach.icon} Открыл достижение «${ach.title}» в Буквице! Сыграй и догони:`;

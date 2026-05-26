@@ -5,6 +5,7 @@ import { Header } from './components/Header/Header.jsx';
 import { InviteModal } from './components/Share/InviteModal.jsx';
 import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { SettingsModal } from './components/Settings/Settings.jsx';
+import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
 import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
@@ -85,7 +86,7 @@ function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, resetStats, auth, showToast, status } = useGameContext();
+  const { stats, resetStats, auth, showToast, status, gameMode } = useGameContext();
   // Server-side gated: only fires when user is verified (non-anon).
   useReferralClaim({
     userId: auth?.userId,
@@ -112,7 +113,7 @@ function GameShell() {
       />
       <div className="topbar">
         <Coins />
-        <EnergyBadge />
+        {gameMode === 'daily' ? <DailyBadge /> : <EnergyBadge />}
         <HintButton />
       </div>
       <main className="main">
