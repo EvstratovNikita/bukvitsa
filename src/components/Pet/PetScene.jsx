@@ -10,7 +10,7 @@ import { OwlSvg } from './OwlSvg.jsx';
 // Tree/sky/hollow/egg are still inline SVG; the owl itself is the rendered
 // PNG asset overlaid on top of the SVG, animated via CSS transforms.
 
-export function PetScene({ mode = 'owl' }) {
+export function PetScene({ mode = 'owl', equipped = {} }) {
   return (
     <div className={`pet-scene pet-scene--${mode}`}>
       <svg
@@ -191,7 +191,7 @@ export function PetScene({ mode = 'owl' }) {
 
       {/* Hand-drawn color owl SVG layered on top of the scene SVG.
           Visibility + animations driven by mode classes in PetScene CSS. */}
-      <OwlSvg className="pet-scene__owl-img" />
+      <OwlSvg className="pet-scene__owl-img" equipped={equipped} />
     </div>
   );
 }

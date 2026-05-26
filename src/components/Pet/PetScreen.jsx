@@ -15,8 +15,9 @@ const TABS = [
 ];
 
 function ageInDays(iso) {
-  if (!iso) return 0;
-  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000));
+  // Day of hatch counts as day 1 — pet is never "0 days old".
+  if (!iso) return 1;
+  return Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 86400000) + 1);
 }
 
 function pluralDays(n) {
@@ -136,7 +137,7 @@ export function PetScreen({ open, onClose }) {
 
       <div className="pet-screen__body">
         <div className="pet-screen__scene" ref={sceneRef}>
-          <PetScene mode={mode} />
+          <PetScene mode={mode} equipped={equipped} />
         </div>
 
         {!unlocked && !pet.hatched ? (

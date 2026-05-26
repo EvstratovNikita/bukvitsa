@@ -18,10 +18,21 @@
 // while jumping, further clicks are ignored.
 
 import { useRef, useState } from 'react';
+import { getDecoration } from '../../data/petDecorations.js';
 
 const JUMP_MS = 700;
 
-export function OwlSvg({ className = '' }) {
+// Where each slot's emoji is anchored on the owl (in SVG viewBox coords).
+// One position per slot — all items in the same slot render at the same
+// spot since only one can be equipped at a time.
+const SLOT_POSITIONS = {
+  head:      { x: 200, y: 110, size: 64 },  // sits on top of the head
+  eyes:      { x: 200, y: 180, size: 64 },  // straddles both eyes
+  neck:      { x: 200, y: 260, size: 48 },  // under the beak, on the chest
+  accessory: { x: 200, y: 300, size: 42 }   // hangs lower on the body
+};
+
+export function OwlSvg({ className = '', equipped = {} }) {
   const [jumping, setJumping] = useState(false);
   const cooldown = useRef(false);
 
@@ -158,55 +169,52 @@ export function OwlSvg({ className = '' }) {
         </g>
 
         {/* ---- BEAK + SMILE ----
-             Layout (y axis):
-               199-214 upper beak (small triangle pointing down)
-               214-226 mouth (visible smile from beak corner to beak corner)
-               226-234 lower beak (small triangle below the smile) */}
+             Layout (y axis, shifted down +6 vs prev for a friendlier face):
+               205-219 upper beak
+               219-236 mouth (wide visible smile)
+               232-239 lower beak */}
         <g>
-          {/* Mouth interior — wide dark crescent stretching beak-to-beak.
-             Sits behind both beak halves; visible from x≈184 to x≈216. */}
+          {/* Mouth interior */}
           <path
-            d="M 184 213
-               Q 200 232 216 213
-               Q 208 228 200 230
-               Q 192 228 184 213 Z"
+            d="M 184 219
+               Q 200 238 216 219
+               Q 208 234 200 236
+               Q 192 234 184 219 Z"
             fill="#2a0808"
           />
-          {/* Inner tongue glint */}
-          <ellipse cx="200" cy="222" rx="8" ry="3" fill="#c44048" opacity="0.85" />
+          {/* Tongue glint */}
+          <ellipse cx="200" cy="228" rx="8" ry="3" fill="#c44048" opacity="0.85" />
 
-          {/* Upper beak — small triangle pointing down */}
+          {/* Upper beak — lowered */}
           <path
-            d="M 190 199
-               Q 200 195 210 199
-               Q 207 211 200 213
-               Q 193 211 190 199 Z"
+            d="M 190 205
+               Q 200 201 210 205
+               Q 207 217 200 219
+               Q 193 217 190 205 Z"
             fill="url(#owl-beak-grad)"
             stroke="#7a4400"
             strokeWidth="1"
             strokeLinejoin="round"
           />
-          {/* Highlight on top ridge */}
-          <path d="M 196 201 Q 200 199 204 201" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
+          <path d="M 196 207 Q 200 205 204 207" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
 
-          {/* Lower beak — smaller triangle below the smile */}
+          {/* Lower beak */}
           <path
-            d="M 194 226
-               Q 200 229 206 226
-               Q 204 232 200 233
-               Q 196 232 194 226 Z"
+            d="M 194 232
+               Q 200 235 206 232
+               Q 204 238 200 239
+               Q 196 238 194 232 Z"
             fill="url(#owl-beak-grad)"
             stroke="#7a4400"
             strokeWidth="1"
             strokeLinejoin="round"
           />
 
-          {/* Smile line — bold U-curve from upper-beak left corner to
-             upper-beak right corner, framing the open mouth */}
+          {/* Smile line — thicker stroke from corner to corner */}
           <path
-            d="M 184 213 Q 200 230 216 213"
+            d="M 184 219 Q 200 236 216 219"
             stroke="#2a0808"
-            strokeWidth="2.2"
+            strokeWidth="3.6"
             fill="none"
             strokeLinecap="round"
           />
@@ -252,6 +260,26 @@ export function OwlSvg({ className = '' }) {
           <ellipse cx="166" cy="172" rx="26" ry="26" fill="#d4c4a0" />
           <ellipse cx="234" cy="172" rx="26" ry="26" fill="#d4c4a0" />
         </g>
+
+        {/* ---- EQUIPPED DECORATIONS (rendered on top via emoji glyphs) ---- */}
+        {Object.entries(equipped).map(([slot, id]) => {
+          const d = getDecoration(id);
+          const pos = SLOT_POSITIONS[slot];
+          if (!d || !pos) return null;
+          return (
+            <text
+              key={slot}
+              className={`owl-deco owl-deco--${slot}`}
+              x={pos.x}
+              y={pos.y}
+              fontSize={pos.size}
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              {d.icon}
+            </text>
+          );
+        })}
       </g>
     </svg>
   );
