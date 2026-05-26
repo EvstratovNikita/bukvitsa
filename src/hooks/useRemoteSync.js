@@ -28,7 +28,8 @@ const toRow = (stats, userId) => ({
   fastest_win_ms: stats.fastestWinMs ?? null,
   unlocked_achievements: Array.isArray(stats.unlockedAchievements) ? stats.unlockedAchievements : [],
   referrals_count: stats.referralsCount || 0,
-  pet: stats.pet || null
+  pet: stats.pet || null,
+  prefs: stats.prefs || null
 });
 
 const fromRow = (row) => clean({
@@ -55,7 +56,8 @@ const fromRow = (row) => clean({
   fastestWinMs: Number.isFinite(row.fastest_win_ms) ? row.fastest_win_ms : undefined,
   unlockedAchievements: Array.isArray(row.unlocked_achievements) ? row.unlocked_achievements : undefined,
   referralsCount: Number.isFinite(row.referrals_count) ? row.referrals_count : undefined,
-  pet: row.pet && typeof row.pet === 'object' ? row.pet : undefined
+  pet: row.pet && typeof row.pet === 'object' ? row.pet : undefined,
+  prefs: row.prefs && typeof row.prefs === 'object' ? row.prefs : undefined
 });
 
 // Strip keys whose value is `undefined` so a spread merge into local state

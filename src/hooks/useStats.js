@@ -44,6 +44,10 @@ const DEFAULT_STATS = {
   fastestWinMs: null,      // lowest elapsed time across won games
   unlockedAchievements: [], // ids of unlocked achievements
   referralsCount: 0,        // verified (non-anon) invitees credited to this user
+  prefs: {
+    theme: 'dark',          // 'dark' | 'light'
+    enterOnLeft: false      // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
+  },
   // Companion pet (Букля the owlet). Lightweight JSON blob; new fields
   // (xp, hunger, mood, equipped) get appended as the pet feature grows.
   pet: {
@@ -72,6 +76,7 @@ function load() {
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : [],
     pet: migratePet(raw.pet),
+    prefs: { ...DEFAULT_STATS.prefs, ...(raw.prefs || {}) },
     // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
     // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
     lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
@@ -262,6 +267,22 @@ export function useStats() {
       };
     });
   }, []);
+
+  // Patch the user preferences object — { theme, enterOnLeft }.
+  const setPref = useCallback((key, value) => {
+    setStats((s) => ({
+      ...s,
+      prefs: { ...(s.prefs || DEFAULT_STATS.prefs), [key]: value }
+    }));
+  }, []);
+
+  // Apply the current theme to the document root so CSS can branch on
+  // [data-theme="light"]. Idempotent.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const t = stats.prefs?.theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+  }, [stats.prefs?.theme]);
 
   // Generic coin credit — used by the "double via ad" win bonus etc.
   // Mirrors the bookkeeping recordWin does (coinsEarned tracks cumulative).
@@ -520,6 +541,7 @@ export function useStats() {
     buyEnergy,
     grantAdEnergy,
     addCoins,
+    setPref,
     recordHintUsed,
     hatchPet,
     renamePet,

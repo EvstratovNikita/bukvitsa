@@ -28,7 +28,8 @@ function Key({ value, status, onClick, wide }) {
 }
 
 export function Keyboard() {
-  const { addLetter, removeLetter, submit, keyboardStatuses } = useGameContext();
+  const { addLetter, removeLetter, submit, keyboardStatuses, stats } = useGameContext();
+  const enterOnLeft = Boolean(stats?.prefs?.enterOnLeft);
 
   const handle = (val) => {
     if (val === 'ENTER') return submit();
@@ -36,9 +37,21 @@ export function Keyboard() {
     addLetter(val);
   };
 
+  // Optionally swap Backspace ↔ Enter positions in the last row.
+  const rows = KEYBOARD_ROWS.map((row, idx) => {
+    if (idx !== KEYBOARD_ROWS.length - 1 || !enterOnLeft) return row;
+    const swapped = [...row];
+    const i0 = swapped.indexOf('BACK');
+    const i1 = swapped.indexOf('ENTER');
+    if (i0 >= 0 && i1 >= 0) {
+      [swapped[i0], swapped[i1]] = [swapped[i1], swapped[i0]];
+    }
+    return swapped;
+  });
+
   return (
     <div className="keyboard">
-      {KEYBOARD_ROWS.map((row, i) => (
+      {rows.map((row, i) => (
         <div className="keyboard__row" key={i}>
           {row.map((k) => {
             const isAction = k === 'ENTER' || k === 'BACK';

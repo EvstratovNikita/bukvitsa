@@ -30,11 +30,12 @@ function pluralDays(n) {
 export function PetScreen({ open, onClose }) {
   const {
     stats,
-    hatchPet, renamePet,
+    hatchPet,
     feedPet, petHunger,
     buyDecoration, equipDecoration, unequipDecorationSlot,
     showToast
   } = useGameContext();
+  // Rename intentionally disabled — pet is always "Букля" for now.
   const pet = stats.pet || {};
   // Feature gate — new players need to play a handful of rounds before the
   // tamagotchi layer unlocks. Pre-unlock, the screen shows a teaser stub
@@ -44,8 +45,6 @@ export function PetScreen({ open, onClose }) {
   const gamesLeft = Math.max(0, PET_UNLOCK_GAMES - played);
 
   const [mode, setMode] = useState(pet.hatched ? 'owl' : 'egg');
-  const [editingName, setEditingName] = useState(false);
-  const [draftName, setDraftName] = useState(pet.name || 'Букля');
   const [tab, setTab] = useState('feed');
   // Each successful feed pushes a flying emoji that animates from the
   // tapped treat button to Букля's mouth. Multiple can be in-flight.
@@ -109,8 +108,6 @@ export function PetScreen({ open, onClose }) {
     else if (r === 'not_enough_coins') showToast?.('Недостаточно монет');
   };
 
-  const saveName = () => { renamePet(draftName); setEditingName(false); };
-
   if (!open) return null;
 
   return (
@@ -150,27 +147,7 @@ export function PetScreen({ open, onClose }) {
           <>
             <section className="pet-summary">
               <div className="pet-summary__row">
-                {!editingName ? (
-                  <>
-                    <div className="pet-summary__name">{pet.name}</div>
-                    <button
-                      type="button"
-                      className="pet-summary__edit"
-                      onClick={() => { setDraftName(pet.name); setEditingName(true); }}
-                    >✎</button>
-                  </>
-                ) : (
-                  <>
-                    <input
-                      className="pet-summary__name-input"
-                      value={draftName}
-                      onChange={(e) => setDraftName(e.target.value)}
-                      maxLength={20}
-                      autoFocus
-                    />
-                    <button type="button" className="pet-summary__edit" onClick={saveName}>OK</button>
-                  </>
-                )}
+                <div className="pet-summary__name">{pet.name || 'Букля'}</div>
                 <div className="pet-summary__badge">Ур. {lvl.level}</div>
               </div>
 

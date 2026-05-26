@@ -8,6 +8,7 @@ import {
   HelpIcon,
   LogoutIcon,
   MenuIcon,
+  SettingsIcon,
   ShopIcon,
   StatsIcon,
   TrophyIcon,
@@ -29,7 +30,7 @@ export function MenuButton({ onClick }) {
   );
 }
 
-export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite }) {
+export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite, onOpenSettings }) {
   const { stats, auth } = useGameContext();
   const unlockedCount = (stats.unlockedAchievements || []).length;
 
@@ -118,6 +119,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             badge={(stats.referralsCount || 0) > 0 ? stats.referralsCount : undefined}
             onClick={handle(onOpenInvite)}
           />
+          <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
           {isSupabaseConfigured && (
             <MenuItem
