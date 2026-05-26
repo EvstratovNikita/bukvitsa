@@ -14,7 +14,7 @@ import {
 } from '../constants/game.js';
 import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
-import { getDecoration, equippedDecorationsBonus } from '../data/petDecorations.js';
+import { getDecoration, equippedDecorationsBonus, WING_KEYS } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
 import { storage } from '../utils/storage.js';
 import { useAuth } from './useAuth.js';
@@ -77,15 +77,24 @@ function load() {
 
 function migratePet(rawPet) {
   const merged = { ...DEFAULT_STATS.pet, ...(rawPet || {}) };
-  // Legacy single-slot field → slotted equipped map. Look up the slot from
-  // the catalog (silent skip if id no longer exists).
+  // Legacy single-slot field → slotted equipped map.
   if (merged.activeDecoration && (!merged.equipped || Object.keys(merged.equipped).length === 0)) {
     const d = getDecoration(merged.activeDecoration);
-    if (d) merged.equipped = { [d.slot]: merged.activeDecoration };
+    if (d) merged.equipped = { [d.slot === 'wing' ? 'wingL' : d.slot]: merged.activeDecoration };
   }
   delete merged.activeDecoration;
   if (!merged.equipped || typeof merged.equipped !== 'object') merged.equipped = {};
+  // Migrate retired 'accessory' slot → wingL.
+  if (merged.equipped.accessory) {
+    if (!merged.equipped.wingL) merged.equipped.wingL = merged.equipped.accessory;
+    delete merged.equipped.accessory;
+  }
+  // Drop stale ids that no longer exist in the catalog (e.g. removed goggles).
+  for (const k of Object.keys(merged.equipped)) {
+    if (!getDecoration(merged.equipped[k])) delete merged.equipped[k];
+  }
   if (!Array.isArray(merged.ownedDecorations)) merged.ownedDecorations = [];
+  merged.ownedDecorations = merged.ownedDecorations.filter((id) => getDecoration(id));
   return merged;
 }
 
@@ -293,41 +302,55 @@ export function useStats() {
     return 'ok';
   }, [stats.coins, stats.pet?.hatched, reconciled.hunger]);
 
-  // Buy a decoration → pay coins, add to owned, auto-equip in its slot
-  // (replaces whatever was in that slot). Returns 'ok' | 'not_enough_coins'
-  // | 'already_owned' | 'unknown'.
+  // Buy a decoration → pay coins, add to owned, auto-equip. For single-slot
+  // items the slot is replaced; for wing items the first empty wing is used
+  // (wingL preferred), falling back to overwriting wingL.
   const buyDecoration = useCallback((decoId) => {
     const d = getDecoration(decoId);
     if (!d) return 'unknown';
     const owned = stats.pet?.ownedDecorations || [];
     if (owned.includes(decoId)) return 'already_owned';
     if ((stats.coins || 0) < d.price) return 'not_enough_coins';
-    setStats((s) => ({
-      ...s,
-      coins: Math.max(0, (s.coins || 0) - d.price),
-      pet: {
-        ...(s.pet || DEFAULT_STATS.pet),
-        ownedDecorations: [...(s.pet?.ownedDecorations || []), decoId],
-        equipped: { ...(s.pet?.equipped || {}), [d.slot]: decoId }
+    setStats((s) => {
+      const eq = { ...(s.pet?.equipped || {}) };
+      if (d.slot === 'wing') {
+        const target = !eq.wingL ? 'wingL' : !eq.wingR ? 'wingR' : 'wingL';
+        eq[target] = decoId;
+      } else {
+        eq[d.slot] = decoId;
       }
-    }));
+      return {
+        ...s,
+        coins: Math.max(0, (s.coins || 0) - d.price),
+        pet: {
+          ...(s.pet || DEFAULT_STATS.pet),
+          ownedDecorations: [...(s.pet?.ownedDecorations || []), decoId],
+          equipped: eq
+        }
+      };
+    });
     return 'ok';
   }, [stats.coins, stats.pet?.ownedDecorations]);
 
-  // Equip an already-owned decoration in its slot (replaces any current
-  // occupant of that slot — one item per slot).
-  const equipDecoration = useCallback((decoId) => {
+  // Equip an already-owned decoration. For wing items the caller passes the
+  // explicit slot ('wingL' | 'wingR'); other items go to their declared slot.
+  // If the item is already worn elsewhere it's moved (not duplicated).
+  const equipDecoration = useCallback((decoId, slotOverride) => {
     const d = getDecoration(decoId);
     if (!d) return;
     setStats((s) => {
       const owned = s.pet?.ownedDecorations || [];
       if (!owned.includes(decoId)) return s;
+      const target = slotOverride || (d.slot === 'wing' ? 'wingL' : d.slot);
+      const eq = { ...(s.pet?.equipped || {}) };
+      // Remove from any other slot (avoid the same id sitting in both wings)
+      for (const k of Object.keys(eq)) {
+        if (eq[k] === decoId) delete eq[k];
+      }
+      eq[target] = decoId;
       return {
         ...s,
-        pet: {
-          ...(s.pet || DEFAULT_STATS.pet),
-          equipped: { ...(s.pet?.equipped || {}), [d.slot]: decoId }
-        }
+        pet: { ...(s.pet || DEFAULT_STATS.pet), equipped: eq }
       };
     });
   }, []);

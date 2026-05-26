@@ -233,7 +233,7 @@ export function PetScreen({ open, onClose }) {
                   equipped={equipped}
                   coins={stats.coins || 0}
                   onBuy={onBuyDeco}
-                  onEquip={(id) => equipDecoration(id)}
+                  onEquip={(id, slotOverride) => equipDecoration(id, slotOverride)}
                   onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
                 />
               )}
@@ -301,7 +301,6 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
 }
 
 function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
-  // Group by slot so the player sees what they can wear at the same time.
   const bySlot = SLOTS.map((s) => ({
     slot: s,
     items: PET_DECORATIONS.filter((d) => d.slot === s.id)
@@ -310,16 +309,27 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
   return (
     <div className="pet-decos">
       <p className="pet-tab__hint">
-        В каждом слоте можно носить одно украшение, но слоты складываются.
-        Бонусы суммируются и добавляются к награде за каждую победу.
+        В каждом слоте — одно украшение, но слоты складываются. На крыльях
+        можно носить два амулета (по одному на каждое крыло). Бонусы
+        суммируются.
       </p>
       {bySlot.map(({ slot, items }) => {
-        const equippedId = equipped[slot.id] || null;
+        const isWing = slot.id === 'wing';
+        const wingL = equipped.wingL;
+        const wingR = equipped.wingR;
+        const equippedId = isWing ? null : (equipped[slot.id] || null);
         return (
           <div key={slot.id} className="pet-deco-group">
             <div className="pet-deco-group__head">
               <span className="pet-deco-group__label">{slot.label}</span>
-              {equippedId && (
+              {isWing ? (
+                <div className="pet-deco-group__wings">
+                  {wingL && <button type="button" className="pet-deco-group__clear"
+                    onClick={() => onUnequipSlot('wingL')}>Снять лев.</button>}
+                  {wingR && <button type="button" className="pet-deco-group__clear"
+                    onClick={() => onUnequipSlot('wingR')}>Снять прав.</button>}
+                </div>
+              ) : equippedId && (
                 <button
                   type="button"
                   className="pet-deco-group__clear"
@@ -330,10 +340,13 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
             </div>
             {items.map((d) => {
               const isOwned = owned.includes(d.id);
-              const isActive = equippedId === d.id;
               const cantAfford = coins < d.price;
+              const onL = wingL === d.id;
+              const onR = wingR === d.id;
+              const isActiveSingle = !isWing && equippedId === d.id;
+
               return (
-                <div key={d.id} className={`pet-deco${isActive ? ' pet-deco--active' : ''}`}>
+                <div key={d.id} className={`pet-deco${isActiveSingle || onL || onR ? ' pet-deco--active' : ''}`}>
                   <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
                   <span className="pet-deco__meta">
                     <span className="pet-deco__name">{d.name}</span>
@@ -341,16 +354,7 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
                     <span className="pet-deco__bonus">+{d.bonusPct}% к награде</span>
                   </span>
                   <div className="pet-deco__cta">
-                    {isActive ? (
-                      <span className="pet-deco__chip">Надето</span>
-                    ) : isOwned ? (
-                      <button
-                        type="button"
-                        className="btn btn--primary pet-deco__btn"
-                        onClick={() => onEquip(d.id)}
-                        onMouseDown={(e) => e.preventDefault()}
-                      >Надеть</button>
-                    ) : (
+                    {!isOwned ? (
                       <button
                         type="button"
                         className="btn btn--primary pet-deco__btn pet-deco__btn--price"
@@ -361,6 +365,30 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
                         <CoinIcon />
                         <span>{d.price}</span>
                       </button>
+                    ) : isWing ? (
+                      <div className="pet-deco__wing-btns">
+                        <button
+                          type="button"
+                          className={`pet-deco__wing-btn${onL ? ' pet-deco__wing-btn--on' : ''}`}
+                          onClick={() => onEquip(d.id, 'wingL')}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >Лев</button>
+                        <button
+                          type="button"
+                          className={`pet-deco__wing-btn${onR ? ' pet-deco__wing-btn--on' : ''}`}
+                          onClick={() => onEquip(d.id, 'wingR')}
+                          onMouseDown={(e) => e.preventDefault()}
+                        >Прав</button>
+                      </div>
+                    ) : isActiveSingle ? (
+                      <span className="pet-deco__chip">Надето</span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn--primary pet-deco__btn"
+                        onClick={() => onEquip(d.id)}
+                        onMouseDown={(e) => e.preventDefault()}
+                      >Надеть</button>
                     )}
                   </div>
                 </div>

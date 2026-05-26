@@ -22,14 +22,12 @@ import { getDecoration } from '../../data/petDecorations.js';
 
 const JUMP_MS = 700;
 
-// Where each slot's emoji is anchored on the owl (in SVG viewBox coords).
-// One position per slot — all items in the same slot render at the same
-// spot since only one can be equipped at a time.
+// Per-slot anchor for the emoji glyph rendered on the owl.
 const SLOT_POSITIONS = {
-  head:      { x: 200, y: 110, size: 64 },  // sits on top of the head
-  eyes:      { x: 200, y: 180, size: 64 },  // straddles both eyes
-  neck:      { x: 200, y: 260, size: 48 },  // under the beak, on the chest
-  accessory: { x: 200, y: 300, size: 42 }   // hangs lower on the body
+  head:  { x: 200, y: 50,  size: 110 }, // sits clearly above the head
+  eyes:  { x: 200, y: 178, size: 78  }, // straddles both eyes, leaves pupils visible
+  wingL: { x: 80,  y: 250, size: 48  }, // on the left wing
+  wingR: { x: 320, y: 250, size: 48  }  // on the right wing
 };
 
 export function OwlSvg({ className = '', equipped = {} }) {
@@ -261,8 +259,40 @@ export function OwlSvg({ className = '', equipped = {} }) {
           <ellipse cx="234" cy="172" rx="26" ry="26" fill="#d4c4a0" />
         </g>
 
-        {/* ---- EQUIPPED DECORATIONS (rendered on top via emoji glyphs) ---- */}
+        {/* ---- EQUIPPED DECORATIONS ----
+             Most slots render the emoji at a fixed anchor. The neck slot
+             draws a coloured collar band wrapping the body, with a tiny
+             accent emoji centred in front. */}
+        {equipped.neck && (() => {
+          const d = getDecoration(equipped.neck);
+          if (!d) return null;
+          return (
+            <g className="owl-deco owl-deco--neck">
+              {/* Back of collar (behind body — visually subtle, dimmed) */}
+              <ellipse cx="200" cy="258" rx="92" ry="14"
+                       fill={d.bandColor || '#7a4a1f'} opacity="0.55" />
+              {/* Front band (slight curve, the part visible over body) */}
+              <path
+                d="M 110 258
+                   Q 200 280 290 258
+                   L 285 268
+                   Q 200 290 115 268 Z"
+                fill={d.bandColor || '#7a4a1f'}
+                stroke="rgba(0,0,0,0.25)"
+                strokeWidth="1.2"
+              />
+              {/* Highlight along top of front band */}
+              <path d="M 120 260 Q 200 280 280 260" stroke="rgba(255,255,255,0.35)" strokeWidth="1" fill="none" />
+              {/* Accent emoji centred */}
+              <text x="200" y="272" fontSize="34" textAnchor="middle" dominantBaseline="central">
+                {d.icon}
+              </text>
+            </g>
+          );
+        })()}
+
         {Object.entries(equipped).map(([slot, id]) => {
+          if (slot === 'neck') return null; // handled above
           const d = getDecoration(id);
           const pos = SLOT_POSITIONS[slot];
           if (!d || !pos) return null;
