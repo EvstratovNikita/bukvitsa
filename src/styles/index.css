@@ -1357,9 +1357,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 
 /* ---------- End-of-round bottom panel (replaces keyboard) ---------- */
 .end-panel {
-  /* Match keyboard area: fills the same vertical band so the rest of the
-     layout stays put. Animation slides it in from below. */
+  /* Match keyboard area: same vertical footprint so the board doesn't shift
+     up. Keyboard ≈ 3 rows × 48px + gaps = ~160px including padding. */
   padding-top: 4px;
+  min-height: 168px;
+  display: flex;
   animation: end-panel-rise 360ms cubic-bezier(.2, .9, .2, 1);
 }
 .end-panel__inner {
@@ -1367,7 +1369,8 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   grid-template-columns: 1fr auto;
   gap: 16px;
   align-items: center;
-  padding: 18px 18px;
+  width: 100%;
+  padding: 14px 16px;
   background: linear-gradient(135deg, rgba(28, 26, 42, 0.92), rgba(20, 18, 30, 0.92));
   border: 1px solid rgba(108, 140, 255, 0.30);
   border-radius: 16px;

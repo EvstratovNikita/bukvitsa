@@ -26,7 +26,7 @@ const JUMP_MS = 700;
 const SLOT_POSITIONS = {
   head:   { x: 200, y: 50,  size: 110 }, // crown of the head
   eyes:   { x: 200, y: 178, size: 78  }, // straddles both eyes
-  brooch: { x: 248, y: 230, size: 28  }, // small pin, right side of chest
+  brooch: { x: 244, y: 278, size: 28  }, // small pin, just above lower wing edge
   wingL:  { x: 80,  y: 250, size: 50  },
   wingR:  { x: 320, y: 250, size: 50  }
 };
@@ -269,8 +269,10 @@ export function OwlSvg({ className = '', equipped = {} }) {
           const pos = SLOT_POSITIONS[slot];
           if (!d || !pos) return null;
 
-          if (slot === 'eyes' && id === 'monocle') {
-            return <Monocle key={slot} />;
+          if (slot === 'eyes') {
+            if (id === 'monocle') return <Monocle key={slot} />;
+            if (id === 'glasses') return <Glasses key={slot} />;
+            if (id === 'shades')  return <Shades  key={slot} />;
           }
 
           const isWing = slot === 'wingL' || slot === 'wingR';
@@ -298,6 +300,51 @@ export function OwlSvg({ className = '', equipped = {} }) {
         })}
       </g>
     </svg>
+  );
+}
+
+// Inline-SVG round wire-rim glasses sitting on both eyes — nose bridge
+// connects the two lenses, tiny temple arms wrap behind the head silhouette.
+function Glasses() {
+  return (
+    <g className="owl-deco owl-deco--glasses">
+      {/* Lenses (slight tint) */}
+      <circle cx="166" cy="172" r="30" fill="rgba(170, 210, 255, 0.12)" />
+      <circle cx="234" cy="172" r="30" fill="rgba(170, 210, 255, 0.12)" />
+      {/* Wire rims */}
+      <circle cx="166" cy="172" r="30" fill="none" stroke="#3a2a18" strokeWidth="3" />
+      <circle cx="234" cy="172" r="30" fill="none" stroke="#3a2a18" strokeWidth="3" />
+      {/* Bridge */}
+      <path d="M 196 172 Q 200 168 204 172" stroke="#3a2a18" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      {/* Highlights */}
+      <path d="M 148 160 A 30 30 0 0 1 162 145" stroke="rgba(255,255,255,0.7)" strokeWidth="1.4" fill="none" />
+      <path d="M 216 160 A 30 30 0 0 1 230 145" stroke="rgba(255,255,255,0.7)" strokeWidth="1.4" fill="none" />
+      {/* Temple arms — short stubs reaching toward the ears */}
+      <path d="M 136 174 L 122 178" stroke="#3a2a18" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M 264 174 L 278 178" stroke="#3a2a18" strokeWidth="2.6" strokeLinecap="round" />
+    </g>
+  );
+}
+
+// Inline-SVG sunglasses — dark filled lenses joined by a flat bridge.
+function Shades() {
+  return (
+    <g className="owl-deco owl-deco--shades">
+      {/* Dark lenses */}
+      <ellipse cx="166" cy="172" rx="32" ry="26" fill="#0a0a12" />
+      <ellipse cx="234" cy="172" rx="32" ry="26" fill="#0a0a12" />
+      {/* Frame outline */}
+      <ellipse cx="166" cy="172" rx="32" ry="26" fill="none" stroke="#1a1a26" strokeWidth="3" />
+      <ellipse cx="234" cy="172" rx="32" ry="26" fill="none" stroke="#1a1a26" strokeWidth="3" />
+      {/* Bridge */}
+      <path d="M 197 168 L 203 168 L 203 172 L 197 172 Z" fill="#1a1a26" />
+      {/* Highlights — diagonal sheen */}
+      <path d="M 148 158 L 178 168" stroke="rgba(255,255,255,0.55)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M 216 158 L 246 168" stroke="rgba(255,255,255,0.55)" strokeWidth="3" strokeLinecap="round" />
+      {/* Temple stubs */}
+      <path d="M 134 174 L 120 180" stroke="#1a1a26" strokeWidth="2.8" strokeLinecap="round" />
+      <path d="M 266 174 L 280 180" stroke="#1a1a26" strokeWidth="2.8" strokeLinecap="round" />
+    </g>
   );
 }
 

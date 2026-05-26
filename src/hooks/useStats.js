@@ -71,7 +71,10 @@ function load() {
       : DEFAULT_STATS.distribution,
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : [],
-    pet: migratePet(raw.pet)
+    pet: migratePet(raw.pet),
+    // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
+    // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
+    lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
   };
 }
 
@@ -132,11 +135,24 @@ export function useStats() {
     nowMs
   }), [stats.energy, stats.lastEnergyTickAt, stats.pet?.hunger, stats.pet?.lastHungerTickAt, stats.pet?.hatched, nowMs]);
 
-  // Note: we deliberately do NOT flush `reconciled` back into stats on every
-  // tick — hunger decays continuously and that would write to storage / push
-  // to Supabase every 30s. The reconciled snapshot drives display + is folded
-  // into every real mutation (consume/buy/feed), and on next mount the same
-  // reconcile recomputes from the persisted lastEnergyTickAt + elapsed time.
+  // Persist when integer energy crosses a unit boundary. This keeps the
+  // displayed value durable across reloads and avoids divergence between
+  // the reconciled snapshot (used for display) and the stored snapshot
+  // (used to seed the next reconcile cycle). We watch only the integer to
+  // skip writes for the continuous hunger float.
+  useEffect(() => {
+    if (reconciled.energy === stats.energy) return;
+    setStats((s) => ({
+      ...s,
+      energy: reconciled.energy,
+      lastEnergyTickAt: reconciled.lastEnergyTickAt,
+      pet: {
+        ...(s.pet || DEFAULT_STATS.pet),
+        hunger: reconciled.hunger,
+        lastHungerTickAt: reconciled.lastHungerTickAt
+      }
+    }));
+  }, [reconciled.energy, stats.energy]);
 
   // After any stats mutation, detect achievements whose condition just got
   // satisfied. Mark them unlocked, credit reward coins, queue a toast. The
