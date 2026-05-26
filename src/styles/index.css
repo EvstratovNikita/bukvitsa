@@ -1381,10 +1381,22 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   margin-top: 6px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: #f7c948;
   font-weight: 800;
   font-size: 14px;
+  flex-wrap: wrap;
+}
+.end-panel__bonus {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(229, 235, 255, 0.65);
+}
+.gameend__bonus {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(229, 235, 255, 0.65);
 }
 .end-panel__cta {
   display: inline-flex;

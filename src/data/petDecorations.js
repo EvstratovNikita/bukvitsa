@@ -10,10 +10,10 @@
 // double-coins consumable). Wing amulets stack — both contribute.
 
 export const SLOTS = [
-  { id: 'head', label: 'На голову' },
-  { id: 'eyes', label: 'На глаза'  },
-  { id: 'neck', label: 'На шею'    },
-  { id: 'wing', label: 'Амулеты на крылья' }
+  { id: 'head',   label: 'На голову' },
+  { id: 'eyes',   label: 'На глаза'  },
+  { id: 'brooch', label: 'Брошь'     },
+  { id: 'wing',   label: 'Амулеты на крылья' }
 ];
 
 export const SLOT_LABEL = SLOTS.reduce((m, s) => { m[s.id] = s.label; return m; }, {});
@@ -25,7 +25,7 @@ export const PET_DECORATIONS = [
   // ---------- HEAD ----------
   { id: 'bow',      slot: 'head', icon: '🎀', name: 'Розовый бантик',    desc: 'Прибавляет шарма',                  price: 60,  bonusPct: 3 },
   { id: 'academic', slot: 'head', icon: '🎓', name: 'Шапка академика',   desc: 'Знание — золото',                   price: 200, bonusPct: 7 },
-  { id: 'cowboy',   slot: 'head', icon: '🤠', name: 'Ковбойская шляпа',  desc: 'Дикий запад, дикие монеты',         price: 250, bonusPct: 8 },
+  { id: 'cap',      slot: 'head', icon: '🧢', name: 'Кепка',             desc: 'Простая и удобная',                price: 250, bonusPct: 8 },
   { id: 'tophat',   slot: 'head', icon: '🎩', name: 'Цилиндр',           desc: 'Аристократический вид',             price: 380, bonusPct: 12 },
   { id: 'crown',    slot: 'head', icon: '👑', name: 'Корона мудрости',   desc: 'На голове совы — повелитель монет', price: 600, bonusPct: 18 },
 
@@ -34,15 +34,15 @@ export const PET_DECORATIONS = [
   { id: 'shades',   slot: 'eyes', icon: '🕶️', name: 'Солнечные очки',    desc: 'Слепят соперников',                 price: 230, bonusPct: 8 },
   { id: 'monocle',  slot: 'eyes', icon: '🧐', name: 'Монокль',           desc: 'Только серьёзные дела',             price: 300, bonusPct: 10 },
 
-  // ---------- NECK (collar — wraps fully around the body) ----------
-  { id: 'scarf',  slot: 'neck', icon: '🧣', name: 'Тёплый шарф',      desc: 'Уют согревает кошелёк',           price: 110, bonusPct: 5, bandColor: '#c44848' },
-  { id: 'ribbon', slot: 'neck', icon: '🎗️', name: 'Орденская лента', desc: 'За заслуги перед словами',         price: 150, bonusPct: 6, bandColor: '#d49930' },
-  { id: 'beads',  slot: 'neck', icon: '📿', name: 'Деревянные бусы',  desc: 'Спокойствие и сосредоточенность', price: 180, bonusPct: 7, bandColor: '#7a4a1f' },
-  { id: 'bowtie', slot: 'neck', icon: '🦋', name: 'Бабочка',          desc: 'Стильный гость на любом празднике', price: 240, bonusPct: 9, bandColor: '#1a1a1a' },
+  // ---------- BROOCH (small pin on the right of the chest) ----------
+  { id: 'rose',     slot: 'brooch', icon: '🌹', name: 'Брошь-роза',    desc: 'Классическая нежность',     price: 110, bonusPct: 5 },
+  { id: 'medal',    slot: 'brooch', icon: '🥇', name: 'Медаль',         desc: 'За заслуги перед словарём', price: 150, bonusPct: 6 },
+  { id: 'lightning', slot: 'brooch', icon: '⚡', name: 'Молния',         desc: 'Заряд бодрости',           price: 200, bonusPct: 7 },
+  { id: 'heart',    slot: 'brooch', icon: '❤️', name: 'Сердечко',       desc: 'С любовью к буквам',       price: 240, bonusPct: 9 },
 
   // ---------- WING AMULETS (up to 2, one per wing) ----------
   { id: 'feather', slot: 'wing', icon: '🪶', name: 'Перьевой амулет',    desc: 'Лёгкость в перьях — тяжесть в монете', price: 250, bonusPct: 9 },
-  { id: 'sparkle', slot: 'wing', icon: '✨', name: 'Магический амулет',  desc: 'Искрит при каждой победе',           price: 350, bonusPct: 12 },
+  { id: 'sparkle', slot: 'wing', icon: '🔮', name: 'Магический амулет',  desc: 'Искрит при каждой победе',           price: 350, bonusPct: 12 },
   { id: 'crystal', slot: 'wing', icon: '💎', name: 'Хрустальная капля', desc: 'Притягивает удачу и золото',          price: 500, bonusPct: 16 },
   { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusPct: 22 }
 ];

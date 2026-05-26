@@ -89,6 +89,9 @@ function migratePet(rawPet) {
     if (!merged.equipped.wingL) merged.equipped.wingL = merged.equipped.accessory;
     delete merged.equipped.accessory;
   }
+  // Retired 'neck' slot → just drop; its items are renamed (brooch slot now)
+  // and were rendered as collar-wraps that the user didn't like.
+  if (merged.equipped.neck) delete merged.equipped.neck;
   // Drop stale ids that no longer exist in the catalog (e.g. removed goggles).
   for (const k of Object.keys(merged.equipped)) {
     if (!getDecoration(merged.equipped[k])) delete merged.equipped[k];

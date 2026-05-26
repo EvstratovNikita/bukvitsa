@@ -7,9 +7,10 @@ import { CoinIcon, RefreshIcon } from '../icons/Icon.jsx';
 // Shows the just-earned coins on a win, then a primary CTA to start a fresh
 // puzzle. Reset goes through the same energy gate as the topbar button.
 export function EndPanel() {
-  const { status, reset, lastEarned, solution } = useGameContext();
+  const { status, reset, lastEarned, lastEarnedBase, solution } = useGameContext();
   if (status === GAME_STATUS.PLAYING) return null;
   const isWin = status === GAME_STATUS.WON;
+  const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
 
   return (
     <div className="end-panel" role="region" aria-label="Конец раунда">
@@ -25,6 +26,11 @@ export function EndPanel() {
             <div className="end-panel__reward">
               <CoinIcon />
               <span>+{lastEarned}</span>
+              {bonus > 0 && (
+                <span className="end-panel__bonus">
+                  ({lastEarnedBase} + {bonus} от Букли)
+                </span>
+              )}
             </div>
           )}
         </div>

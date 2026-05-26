@@ -42,7 +42,8 @@ function Confetti({ count = 22 }) {
 }
 
 export function GameEnd() {
-  const { status, solution, lastEarned, stats } = useGameContext();
+  const { status, solution, lastEarned, lastEarnedBase, stats } = useGameContext();
+  const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   const [closed, setClosed] = useState(false);
 
   // Re-open the celebration whenever a new game ends.
@@ -93,6 +94,11 @@ export function GameEnd() {
           <div className="gameend__reward">
             <CoinIcon />
             <span>+{lastEarned}</span>
+            {bonus > 0 && (
+              <div className="gameend__bonus">
+                {lastEarnedBase} базовых + {bonus} от Букли
+              </div>
+            )}
           </div>
         )}
 

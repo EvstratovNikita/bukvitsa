@@ -24,10 +24,11 @@ const JUMP_MS = 700;
 
 // Per-slot anchor for the emoji glyph rendered on the owl.
 const SLOT_POSITIONS = {
-  head:  { x: 200, y: 50,  size: 110 }, // sits clearly above the head
-  eyes:  { x: 200, y: 178, size: 78  }, // straddles both eyes, leaves pupils visible
-  wingL: { x: 80,  y: 250, size: 48  }, // on the left wing
-  wingR: { x: 320, y: 250, size: 48  }  // on the right wing
+  head:   { x: 200, y: 50,  size: 110 }, // crown of the head
+  eyes:   { x: 200, y: 178, size: 78  }, // straddles both eyes
+  brooch: { x: 248, y: 230, size: 28  }, // small pin, right side of chest
+  wingL:  { x: 80,  y: 250, size: 50  },
+  wingR:  { x: 320, y: 250, size: 50  }
 };
 
 export function OwlSvg({ className = '', equipped = {} }) {
@@ -260,57 +261,67 @@ export function OwlSvg({ className = '', equipped = {} }) {
         </g>
 
         {/* ---- EQUIPPED DECORATIONS ----
-             Most slots render the emoji at a fixed anchor. The neck slot
-             draws a coloured collar band wrapping the body, with a tiny
-             accent emoji centred in front. */}
-        {equipped.neck && (() => {
-          const d = getDecoration(equipped.neck);
-          if (!d) return null;
+             Wing items get a bright halo so the emoji reads against the
+             dark wing. Monocle has a custom inline-SVG renderer (lens +
+             chain) so we don't fall back to the 🧐 face emoji. */}
+        {Object.entries(equipped).map(([slot, id]) => {
+          const d = getDecoration(id);
+          const pos = SLOT_POSITIONS[slot];
+          if (!d || !pos) return null;
+
+          if (slot === 'eyes' && id === 'monocle') {
+            return <Monocle key={slot} />;
+          }
+
+          const isWing = slot === 'wingL' || slot === 'wingR';
           return (
-            <g className="owl-deco owl-deco--neck">
-              {/* Back of collar (behind body — visually subtle, dimmed) */}
-              <ellipse cx="200" cy="258" rx="92" ry="14"
-                       fill={d.bandColor || '#7a4a1f'} opacity="0.55" />
-              {/* Front band (slight curve, the part visible over body) */}
-              <path
-                d="M 110 258
-                   Q 200 280 290 258
-                   L 285 268
-                   Q 200 290 115 268 Z"
-                fill={d.bandColor || '#7a4a1f'}
-                stroke="rgba(0,0,0,0.25)"
-                strokeWidth="1.2"
-              />
-              {/* Highlight along top of front band */}
-              <path d="M 120 260 Q 200 280 280 260" stroke="rgba(255,255,255,0.35)" strokeWidth="1" fill="none" />
-              {/* Accent emoji centred */}
-              <text x="200" y="272" fontSize="34" textAnchor="middle" dominantBaseline="central">
+            <g key={slot} className={`owl-deco owl-deco--${slot}`}>
+              {isWing && (
+                <>
+                  <circle cx={pos.x} cy={pos.y} r={pos.size * 0.55}
+                          fill="rgba(255, 240, 200, 0.25)" />
+                  <circle cx={pos.x} cy={pos.y} r={pos.size * 0.45}
+                          fill="rgba(255, 220, 130, 0.45)" />
+                </>
+              )}
+              <text
+                x={pos.x}
+                y={pos.y}
+                fontSize={pos.size}
+                textAnchor="middle"
+                dominantBaseline="central"
+              >
                 {d.icon}
               </text>
             </g>
           );
-        })()}
-
-        {Object.entries(equipped).map(([slot, id]) => {
-          if (slot === 'neck') return null; // handled above
-          const d = getDecoration(id);
-          const pos = SLOT_POSITIONS[slot];
-          if (!d || !pos) return null;
-          return (
-            <text
-              key={slot}
-              className={`owl-deco owl-deco--${slot}`}
-              x={pos.x}
-              y={pos.y}
-              fontSize={pos.size}
-              textAnchor="middle"
-              dominantBaseline="central"
-            >
-              {d.icon}
-            </text>
-          );
         })}
       </g>
     </svg>
+  );
+}
+
+// Inline-SVG monocle worn over the right eye. Lens + thin gold rim,
+// a small bead-cord clipping at the bottom hinting at the chain.
+function Monocle() {
+  return (
+    <g className="owl-deco owl-deco--monocle">
+      {/* Lens glass tint */}
+      <circle cx="234" cy="172" r="30" fill="rgba(170, 210, 255, 0.15)"
+              stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1" />
+      {/* Gold rim (thicker) */}
+      <circle cx="234" cy="172" r="30" fill="none" stroke="#d4a948" strokeWidth="3.5" />
+      {/* Highlight on rim */}
+      <path d="M 213 165 A 30 30 0 0 1 230 145" stroke="#fff3c0" strokeWidth="1.6" fill="none" />
+      {/* Tiny knob at top */}
+      <circle cx="234" cy="141" r="3" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.6" />
+      {/* Chain — small dotted curve dangling down */}
+      <g fill="#d4a948">
+        <circle cx="262" cy="200" r="1.2" />
+        <circle cx="266" cy="210" r="1.2" />
+        <circle cx="268" cy="220" r="1.2" />
+        <circle cx="265" cy="230" r="1.2" />
+      </g>
+    </g>
   );
 }

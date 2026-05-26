@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, petXpForWin, rewardFor } from '../constants/game.js';
+import { equippedDecorationsBonus } from '../data/petDecorations.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { storage } from '../utils/storage.js';
@@ -20,6 +21,7 @@ export function useGame() {
   const [revealRow, setRevealRow] = useState(-1);
   const [toast, setToast] = useState(null);
   const [lastEarned, setLastEarned] = useState(0);
+  const [lastEarnedBase, setLastEarnedBase] = useState(0);
   const [hints, setHints] = useState(() => savedGame?.hints ?? Array(WORD_LENGTH).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -102,10 +104,17 @@ export function useGame() {
       const lost = !won && nextGuesses.length >= MAX_ATTEMPTS;
       if (won) {
         setStatus(GAME_STATUS.WON);
-        const earned = rewardFor(nextGuesses.length);
+        const base = rewardFor(nextGuesses.length);
         const elapsedMs = Date.now() - gameStartRef.current;
+        // Mirror the math useStats.recordWin uses so the displayed total
+        // matches what's actually credited to the coin balance.
+        const decoPct = equippedDecorationsBonus(stats.stats.pet);
+        const decoMul = 1 + decoPct / 100;
+        const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
+        const total = Math.round(base * decoMul * boostMul);
         stats.recordWin(nextGuesses.length, elapsedMs);
-        setLastEarned(earned);
+        setLastEarnedBase(base);
+        setLastEarned(total);
         // Pet XP grant — gated by hatched state inside recordPetXp.
         const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
         if (petResult.levelAfter > petResult.levelBefore) {
@@ -116,6 +125,7 @@ export function useGame() {
         setStatus(GAME_STATUS.LOST);
         stats.recordLoss();
         setLastEarned(0);
+        setLastEarnedBase(0);
       }
       isLocked.current = false;
     }, ANIM.REVEAL_TOTAL_MS + 60);
@@ -248,6 +258,7 @@ export function useGame() {
     revealRow,
     toast,
     lastEarned,
+    lastEarnedBase,
     hints,
     hintPickMode,
     isClearing,
