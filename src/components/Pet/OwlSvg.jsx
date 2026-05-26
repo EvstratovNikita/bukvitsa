@@ -422,20 +422,32 @@ function Bow() {
   );
 }
 
-// Academic mortarboard — flat black square tilted slightly, with a soft
-// band underneath hugging the crown and a gold tassel hanging right.
+// Academic mortarboard — board + band in saturated royal blue (the
+// classic black washed out against the dark scene background). Gold
+// trim + gold tassel make it pop.
 function Academic() {
   return (
     <g className="owl-deco owl-deco--academic">
+      <defs>
+        <linearGradient id="academic-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#5a78d0" />
+          <stop offset="55%" stopColor="#2840a8" />
+          <stop offset="100%" stopColor="#0e1c5e" />
+        </linearGradient>
+        <linearGradient id="academic-band-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#3a52b8" />
+          <stop offset="100%" stopColor="#10206a" />
+        </linearGradient>
+      </defs>
       {/* Soft cap band under the board */}
       <path
         d="M 138 96
            Q 200 70 262 96
            L 260 110
            Q 200 92 140 110 Z"
-        fill="#1a1a26"
-        stroke="#000000"
-        strokeWidth="1.2"
+        fill="url(#academic-band-grad)"
+        stroke="#0a1450"
+        strokeWidth="1.3"
       />
       {/* Mortarboard — wider parallelogram (slight tilt) */}
       <path
@@ -443,28 +455,32 @@ function Academic() {
            L 290 78
            L 200 102
            L 110 78 Z"
-        fill="#0e0e16"
-        stroke="#000000"
-        strokeWidth="1.4"
+        fill="url(#academic-grad)"
+        stroke="#0a1450"
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
       {/* Top sheen */}
-      <path d="M 132 76 L 200 38 L 268 76" stroke="rgba(255,255,255,0.20)" strokeWidth="1.4" fill="none" />
-      {/* Button at center */}
-      <circle cx="200" cy="64" r="4.6" fill="#d4a948" stroke="#7a5a10" strokeWidth="0.8" />
+      <path d="M 132 76 L 200 38 L 268 76" stroke="rgba(255,255,255,0.30)" strokeWidth="1.5" fill="none" />
+      {/* Subtle inner edge highlight */}
+      <path d="M 200 30 L 286 78" stroke="rgba(255,255,255,0.18)" strokeWidth="1" fill="none" />
+      {/* Button at center — golden */}
+      <circle cx="200" cy="64" r="5" fill="#ffd864" stroke="#7a5a10" strokeWidth="0.9" />
       {/* Tassel — strap + bunch */}
-      <path d="M 200 64 Q 244 76 260 110" stroke="#d4a948" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      <g fill="#d4a948" stroke="#7a5a10" strokeWidth="0.5">
+      <path d="M 200 64 Q 244 76 260 110" stroke="#ffd864" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <g fill="#ffd864" stroke="#7a5a10" strokeWidth="0.5">
         <ellipse cx="262" cy="120" rx="6.5" ry="8" />
-        <path d="M 256 124 L 254 138" stroke="#d4a948" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-        <path d="M 262 125 L 262 140" stroke="#d4a948" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-        <path d="M 268 124 L 270 138" stroke="#d4a948" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 256 124 L 254 138" stroke="#ffd864" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 262 125 L 262 140" stroke="#ffd864" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+        <path d="M 268 124 L 270 138" stroke="#ffd864" strokeWidth="1.8" fill="none" strokeLinecap="round" />
       </g>
     </g>
   );
 }
 
-// Baseball cap — domed crown + forward-pointing visor.
+// Baseball cap — like 🧢 emoji: rounded crown facing slightly right with
+// a sweeping curved visor projecting forward-right (not symmetric). The
+// crown sits low on the head, visor casts an underside shadow.
 function Cap() {
   return (
     <g className="owl-deco owl-deco--cap">
@@ -473,42 +489,64 @@ function Cap() {
           <stop offset="0%"  stopColor="#4a8cff" />
           <stop offset="100%" stopColor="#1c4abf" />
         </linearGradient>
+        <linearGradient id="cap-visor-grad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#1c4abf" />
+          <stop offset="100%" stopColor="#0d2a70" />
+        </linearGradient>
       </defs>
-      {/* Crown dome */}
+      {/* Crown — rounded dome, slightly forward-leaning so the back is
+          taller than the front (emoji 🧢 silhouette). */}
       <path
-        d="M 142 96
-           Q 142 50 200 50
-           Q 258 50 258 96
+        d="M 142 100
+           Q 138 52 200 48
+           Q 254 50 258 100
            Z"
         fill="url(#cap-grad)"
         stroke="#0d2a70"
-        strokeWidth="1.3"
+        strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      {/* Panel seam */}
-      <path d="M 200 50 L 200 96" stroke="rgba(0,0,0,0.25)" strokeWidth="1" />
-      {/* Highlight */}
-      <path d="M 152 88 Q 150 60 188 54" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      {/* Visor — symmetric forward brim, gentle curve, ends rounded */}
+      {/* Panel seams — six-panel cap, faint curved arcs from button outward */}
+      <g stroke="rgba(0,0,0,0.22)" strokeWidth="0.9" fill="none">
+        <path d="M 200 50 Q 180 70 168 100" />
+        <path d="M 200 50 Q 220 70 232 100" />
+      </g>
+      {/* Front sweat-band stitch */}
+      <path d="M 144 96 Q 200 110 256 96" stroke="rgba(0,0,0,0.28)" strokeWidth="1" fill="none" />
+      {/* Highlight on the dome */}
+      <path d="M 152 86 Q 150 58 190 52" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      {/* Visor — sweeping forward-RIGHT curve, like 🧢. Starts from the
+          right side of the crown, curves down and out, sweeps back to
+          the front-left edge. */}
       <path
-        d="M 152 96
-           Q 200 116 248 96
-           Q 248 106 200 114
-           Q 152 106 152 96 Z"
-        fill="#1c4abf"
+        d="M 200 100
+           Q 252 96 300 116
+           Q 305 124 296 128
+           Q 248 122 200 114
+           Q 188 110 200 100 Z"
+        fill="url(#cap-visor-grad)"
         stroke="#0d2a70"
-        strokeWidth="1.3"
+        strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      {/* Visor underside shadow */}
+      {/* Visor underside shadow — darker arc along the bottom edge */}
       <path
-        d="M 158 98 Q 200 112 242 98"
-        stroke="rgba(0,0,0,0.35)"
+        d="M 210 116 Q 252 124 295 124"
+        stroke="rgba(0,0,0,0.45)"
+        strokeWidth="1.6"
+        fill="none"
+        strokeLinecap="round"
+      />
+      {/* Visor sheen */}
+      <path
+        d="M 215 106 Q 250 102 285 116"
+        stroke="rgba(255,255,255,0.30)"
         strokeWidth="1.2"
         fill="none"
+        strokeLinecap="round"
       />
-      {/* Button on top */}
-      <circle cx="200" cy="50" r="3.4" fill="#0d2a70" />
+      {/* Button on top of crown */}
+      <circle cx="200" cy="50" r="3.8" fill="#ffd864" stroke="#0d2a70" strokeWidth="0.8" />
     </g>
   );
 }

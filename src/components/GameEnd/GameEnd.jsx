@@ -49,7 +49,7 @@ function Confetti({ count = 22 }) {
 export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, stats,
-    guesses, evaluations, auth, gameMode, exitDailyMode,
+    guesses, evaluations, auth, gameMode, exitDailyMode, reset,
     doubledLastWin, doublingAd, doubleLastReward
   } = useGameContext();
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
@@ -87,13 +87,13 @@ export function GameEnd() {
     setTimeout(() => setShareStatus(null), 1600);
   };
 
-  // Daily: jump straight to a normal round (exitDailyMode spends 1 energy).
-  // Normal: just dismiss the celebration so EndPanel below stays visible —
-  // that's where the reward breakdown and the "×2 за рекламу" button live.
-  // Reset only fires when the player taps "Новая игра" in the EndPanel.
+  // "Играем дальше" actually starts the next round. EndPanel still
+  // reachable via the close (×) button if the player wants the reward
+  // breakdown / ×2 ad button — both are duplicated in this modal too.
   const onContinue = () => {
     setClosed(true);
     if (isDaily) exitDailyMode();
+    else reset();
   };
 
   return (
