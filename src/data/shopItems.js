@@ -81,6 +81,104 @@ const DIAMONDS = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='80' height=
   <path d='M40 22 L58 40 L40 58 L22 40 Z' fill='none' stroke='#b388ff' stroke-width='0.6' opacity='0.12'/>
 </svg>`);
 
+// ---- Summer patterns (light themes) ----
+
+// Picnic gingham — classic red+white checker.
+const PICNIC = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'>
+  <rect width='48' height='48' fill='#ffffff' opacity='0.55'/>
+  <rect width='24' height='24' fill='#d44848' opacity='0.55'/>
+  <rect x='24' y='24' width='24' height='24' fill='#d44848' opacity='0.55'/>
+  <rect x='24' width='24' height='24' fill='#ffbcbc' opacity='0.45'/>
+  <rect y='24' width='24' height='24' fill='#ffbcbc' opacity='0.45'/>
+</svg>`);
+
+// Fluffy summer clouds — soft white blobs on tile.
+const CLOUDS = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='160'>
+  <g fill='#ffffff' opacity='0.7'>
+    <ellipse cx='40' cy='40' rx='28' ry='12'/>
+    <ellipse cx='60' cy='34' rx='18' ry='10'/>
+    <ellipse cx='150' cy='80' rx='34' ry='14'/>
+    <ellipse cx='175' cy='72' rx='20' ry='11'/>
+    <ellipse cx='90' cy='120' rx='26' ry='11'/>
+    <ellipse cx='200' cy='128' rx='22' ry='10'/>
+  </g>
+</svg>`);
+
+// Berries — scattered red/blue dots with green leaves.
+const BERRIES = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
+  <g>
+    <circle cx='30'  cy='40' r='6' fill='#d62b3a'/>
+    <circle cx='38'  cy='38' r='4' fill='#ff5c6a' opacity='0.7'/>
+    <path d='M28 34 Q32 28 38 34' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
+
+    <circle cx='110' cy='60' r='6' fill='#3a4cd8'/>
+    <circle cx='118' cy='58' r='4' fill='#7a8cff' opacity='0.65'/>
+    <path d='M108 54 Q112 48 118 54' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
+
+    <circle cx='170' cy='110' r='6' fill='#d62b3a'/>
+    <circle cx='178' cy='108' r='4' fill='#ff5c6a' opacity='0.7'/>
+    <path d='M168 104 Q172 98 178 104' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
+
+    <circle cx='60'  cy='140' r='6' fill='#3a4cd8'/>
+    <circle cx='68'  cy='138' r='4' fill='#7a8cff' opacity='0.65'/>
+    <path d='M58 134 Q62 128 68 134' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
+
+    <circle cx='140' cy='170' r='6' fill='#d62b3a'/>
+    <circle cx='148' cy='168' r='4' fill='#ff5c6a' opacity='0.7'/>
+    <path d='M138 164 Q142 158 148 164' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
+  </g>
+</svg>`);
+
+// Daisies on a meadow — small white-yellow flowers.
+const MEADOW = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'>
+  <g>
+    <g transform='translate(40,50)'>
+      <circle r='3' fill='#f7c948'/>
+      <g fill='#ffffff' opacity='0.85'>
+        <ellipse rx='2' ry='5' transform='rotate(0)'    cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(60)'   cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(120)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(180)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(240)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(300)'  cy='-5'/>
+      </g>
+    </g>
+    <g transform='translate(140,90)'>
+      <circle r='3' fill='#f7c948'/>
+      <g fill='#ffffff' opacity='0.85'>
+        <ellipse rx='2' ry='5' cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(60)'   cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(120)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(180)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(240)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(300)'  cy='-5'/>
+      </g>
+    </g>
+    <g transform='translate(80,160)'>
+      <circle r='3' fill='#f7c948'/>
+      <g fill='#ffffff' opacity='0.85'>
+        <ellipse rx='2' ry='5' cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(60)'   cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(120)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(180)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(240)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(300)'  cy='-5'/>
+      </g>
+    </g>
+    <g transform='translate(180,180)'>
+      <circle r='3' fill='#f7c948'/>
+      <g fill='#ffffff' opacity='0.85'>
+        <ellipse rx='2' ry='5' cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(60)'   cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(120)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(180)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(240)'  cy='-5'/>
+        <ellipse rx='2' ry='5' transform='rotate(300)'  cy='-5'/>
+      </g>
+    </g>
+  </g>
+</svg>`);
+
 export const SHOP_ITEMS = [
   // ---------- Backgrounds ----------
   {
@@ -182,6 +280,64 @@ export const SHOP_ITEMS = [
         DIAMONDS,
         'radial-gradient(900px 500px at 50% -10%, rgba(179, 136, 255, 0.18), transparent 70%)',
         'linear-gradient(180deg, #0c0820 0%, #140e2c 60%, #100924 100%)'
+      ].join(', ')
+    }
+  },
+
+  // ---------- Summer (light) backgrounds ----------
+  {
+    id: 'bg-summer-sky',
+    category: 'background',
+    name: 'Летнее небо',
+    desc: 'Голубое небо с пушистыми облаками',
+    price: 80,
+    payload: {
+      gradient: [
+        CLOUDS,
+        'radial-gradient(900px 500px at 50% 100%, rgba(255, 230, 150, 0.35), transparent 70%)',
+        'linear-gradient(180deg, #c2e8ff 0%, #9fd6ff 60%, #d8efff 100%)'
+      ].join(', ')
+    }
+  },
+  {
+    id: 'bg-picnic',
+    category: 'background',
+    name: 'Пикник',
+    desc: 'Клетчатая скатерть на солнышке',
+    price: 80,
+    payload: {
+      gradient: [
+        PICNIC,
+        'radial-gradient(800px 500px at 50% -10%, rgba(255, 235, 180, 0.45), transparent 70%)',
+        'linear-gradient(180deg, #fff6e8 0%, #ffeacc 50%, #ffd9b0 100%)'
+      ].join(', ')
+    }
+  },
+  {
+    id: 'bg-berries',
+    category: 'background',
+    name: 'Ягоды',
+    desc: 'Сладкие ягоды на кремовом фоне',
+    price: 80,
+    payload: {
+      gradient: [
+        BERRIES,
+        'radial-gradient(800px 500px at 50% -10%, rgba(255, 220, 200, 0.45), transparent 70%)',
+        'linear-gradient(180deg, #fff4ec 0%, #ffe6d4 60%, #ffd2b8 100%)'
+      ].join(', ')
+    }
+  },
+  {
+    id: 'bg-meadow',
+    category: 'background',
+    name: 'Ромашковый луг',
+    desc: 'Полевые ромашки в траве на свежем ветру',
+    price: 80,
+    payload: {
+      gradient: [
+        MEADOW,
+        'radial-gradient(800px 500px at 50% -10%, rgba(255, 245, 200, 0.45), transparent 70%)',
+        'linear-gradient(180deg, #c8eaa2 0%, #9fd97d 55%, #84c860 100%)'
       ].join(', ')
     }
   },

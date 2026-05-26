@@ -263,6 +263,17 @@ export function useStats() {
     });
   }, []);
 
+  // Generic coin credit — used by the "double via ad" win bonus etc.
+  // Mirrors the bookkeeping recordWin does (coinsEarned tracks cumulative).
+  const addCoins = useCallback((amount) => {
+    if (!amount || amount <= 0) return;
+    setStats((s) => ({
+      ...s,
+      coins: (s.coins || 0) + amount,
+      coinsEarned: (s.coinsEarned || 0) + amount
+    }));
+  }, []);
+
   // Counter bumped by useGame whenever a paid hint successfully reveals.
   const recordHintUsed = useCallback(() => {
     setStats((s) => ({ ...s, hintsUsed: (s.hintsUsed || 0) + 1 }));
@@ -508,6 +519,7 @@ export function useStats() {
     consumeEnergy,
     buyEnergy,
     grantAdEnergy,
+    addCoins,
     recordHintUsed,
     hatchPet,
     renamePet,

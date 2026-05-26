@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, petXpForWin, rewardFor } from '../constants/game.js';
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
+import { showRewardedAd } from '../lib/ads.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { storage } from '../utils/storage.js';
@@ -22,6 +23,8 @@ export function useGame() {
   const [toast, setToast] = useState(null);
   const [lastEarned, setLastEarned] = useState(0);
   const [lastEarnedBase, setLastEarnedBase] = useState(0);
+  const [doubledLastWin, setDoubledLastWin] = useState(false);
+  const [doublingAd, setDoublingAd] = useState(false);
   const [hints, setHints] = useState(() => savedGame?.hints ?? Array(WORD_LENGTH).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -115,6 +118,7 @@ export function useGame() {
         stats.recordWin(nextGuesses.length, elapsedMs);
         setLastEarnedBase(base);
         setLastEarned(total);
+        setDoubledLastWin(false);
         // Pet XP grant — gated by hatched state inside recordPetXp.
         const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
         if (petResult.levelAfter > petResult.levelBefore) {
@@ -185,6 +189,25 @@ export function useGame() {
   }, [stats, solution, performReset]);
 
   const closeEnergyModal = useCallback(() => setEnergyModalOpen(false), []);
+
+  // Watch an ad → credit the just-won reward a second time. One-shot per
+  // round; further presses are ignored until the next puzzle starts.
+  const doubleLastReward = useCallback(async () => {
+    if (status !== GAME_STATUS.WON) return 'wrong_state';
+    if (doubledLastWin || doublingAd) return 'busy';
+    if (!lastEarned || lastEarned <= 0) return 'nothing';
+    setDoublingAd(true);
+    const r = await showRewardedAd();
+    setDoublingAd(false);
+    if (r !== 'rewarded') {
+      showToast(r === 'closed' ? 'Реклама закрыта раньше' : 'Реклама недоступна');
+      return r;
+    }
+    stats.addCoins(lastEarned);
+    setDoubledLastWin(true);
+    showToast(`+${lastEarned} монет за просмотр!`);
+    return 'ok';
+  }, [status, doubledLastWin, doublingAd, lastEarned, stats, showToast]);
 
   // Positions that have been correctly guessed in past attempts — no point
   // paying for a hint on a slot the player already knows.
@@ -259,6 +282,9 @@ export function useGame() {
     toast,
     lastEarned,
     lastEarnedBase,
+    doubledLastWin,
+    doublingAd,
+    doubleLastReward,
     hints,
     hintPickMode,
     isClearing,
