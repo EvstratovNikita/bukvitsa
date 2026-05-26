@@ -2338,6 +2338,40 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   50%      { transform: translate(-50%, -44%); }
 }
 
+/* Per-part animations inside the owl SVG. Eyelids start collapsed
+   (scaleY: 0) so the eyes are visible; blink keyframe briefly scales
+   them to 1 then back. Wings rotate around the shoulder anchor. */
+.pet-scene--owl .owl-svg .owl-eyelid ellipse {
+  transform: scaleY(0);
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: owl-blink 5.5s ease-in-out infinite;
+}
+.pet-scene--owl .owl-svg .owl-wing {
+  transform-box: fill-box;
+}
+.pet-scene--owl .owl-svg .owl-wing--l {
+  transform-origin: 100% 0;  /* anchored at inner (right) top corner */
+  animation: owl-wing-flap-l 4s ease-in-out infinite;
+}
+.pet-scene--owl .owl-svg .owl-wing--r {
+  transform-origin: 0 0;     /* anchored at inner (left) top corner */
+  animation: owl-wing-flap-r 4s ease-in-out infinite;
+}
+
+@keyframes owl-blink {
+  0%, 92%, 100% { transform: scaleY(0); }
+  94%, 98%      { transform: scaleY(1); }
+}
+@keyframes owl-wing-flap-l {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-4deg); }
+}
+@keyframes owl-wing-flap-r {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(4deg); }
+}
+
 /* ---------- Pet header button ---------- */
 .pet-headerbtn { position: relative; }
 .pet-headerbtn--egg { animation: pet-headerbtn-wobble 3.2s ease-in-out infinite; }

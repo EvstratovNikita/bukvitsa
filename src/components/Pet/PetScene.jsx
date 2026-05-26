@@ -1,4 +1,4 @@
-import owlSrc from '../../assets/owl.svg';
+import { OwlSvg } from './OwlSvg.jsx';
 
 // Pet scene — tree hollow at dusk with the egg / owl inside.
 //
@@ -189,15 +189,9 @@ export function PetScene({ mode = 'owl' }) {
         </g>
       </svg>
 
-      {/* Owl PNG layered on top of the SVG — positioned within the hollow.
-          Visibility controlled by mode-driven CSS (hidden in egg, popped in
-          on hatching, idle bob/blink in owl). */}
-      <img
-        className="pet-scene__owl-img"
-        src={owlSrc}
-        alt=""
-        draggable={false}
-      />
+      {/* Hand-drawn color owl SVG layered on top of the scene SVG.
+          Visibility + animations driven by mode classes in PetScene CSS. */}
+      <OwlSvg className="pet-scene__owl-img" />
     </div>
   );
 }
