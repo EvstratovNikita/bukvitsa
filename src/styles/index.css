@@ -239,6 +239,21 @@ button { font-family: inherit; }
   padding: 16px 18px;
   border-bottom: 1px solid var(--line);
 }
+.menu__user--btn {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu__user--btn:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -3px;
+}
 .menu__avatar {
   width: 44px;
   height: 44px;
@@ -347,11 +362,9 @@ button { font-family: inherit; }
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
   font-size: 18px;
-  background: linear-gradient(120deg, #fff, var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
 }
+[data-theme="light"] .menu__brand { color: var(--text); }
 
 /* ---------- Shop ---------- */
 .shop { padding-bottom: 4px; }

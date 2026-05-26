@@ -89,8 +89,15 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
           </button>
         </header>
 
-        {/* Account / Auth section */}
-        <div className="menu__user">
+        {/* Account / Auth section — whole row opens the auth modal so the
+            user has one obvious place to log in / see their account. */}
+        <button
+          type="button"
+          className="menu__user menu__user--btn"
+          onClick={isSupabaseConfigured ? handle(onOpenAuth) : undefined}
+          onMouseDown={(e) => e.preventDefault()}
+          aria-label={accountLabel}
+        >
           <div className={`menu__avatar${isLinked ? ' menu__avatar--linked' : ''}`}>
             {isLinked ? initial : <UserIcon />}
           </div>
@@ -102,7 +109,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             <CoinIcon />
             <span>{stats.coins || 0}</span>
           </div>
-        </div>
+        </button>
 
         <nav className="menu__list">
           <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} accent />
@@ -121,13 +128,6 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
           />
           <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
-          {isSupabaseConfigured && (
-            <MenuItem
-              icon={<UserIcon />}
-              label={isLinked ? 'Привязки' : 'Войти'}
-              onClick={handle(onOpenAuth)}
-            />
-          )}
           {isLinked && (
             <MenuItem
               icon={<LogoutIcon />}
