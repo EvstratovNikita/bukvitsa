@@ -288,14 +288,9 @@ export function useGame() {
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
     if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
-    // 4/6 modes are FREE to enter. Only the canonical 5-letter mode
-    // consumes energy on round start.
-    if (length === 5) {
-      if (!stats.consumeEnergy()) {
-        setEnergyModalOpen(true);
-        return;
-      }
-    }
+    // Switching modes is FREE — the first round in any mode starts without
+    // touching energy. "Новая игра" (reset) afterwards still costs 1 in
+    // 5-letter mode and is free in 4/6, as configured below.
     setWordLength(length);
     gameStartRef.current = Date.now();
     setSolution(pickRandomWord(Math.random, length));
