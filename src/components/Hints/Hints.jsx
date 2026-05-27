@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { HINT_COST, WORD_LENGTH } from '../../constants/game.js';
+import { HINT_COST } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, HintIcon } from '../icons/Icon.jsx';
@@ -90,13 +90,13 @@ export function HintButton() {
 }
 
 export function HintsStrip() {
-  const { hints, hintPickMode, revealPositionHint } = useGameContext();
+  const { hints, hintPickMode, revealPositionHint, wordLength } = useGameContext();
   const any = hints.some(Boolean) || hintPickMode;
   if (!any) return null;
 
   return (
     <div className={`hints-strip${hintPickMode ? ' hints-strip--picking' : ''}`}>
-      {Array.from({ length: WORD_LENGTH }).map((_, i) => {
+      {Array.from({ length: wordLength }).map((_, i) => {
         const ch = hints[i];
         const isFilled = Boolean(ch);
         const isPickable = hintPickMode && !isFilled;

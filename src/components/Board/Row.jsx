@@ -1,4 +1,4 @@
-import { ANIM, WORD_LENGTH } from '../../constants/game.js';
+import { ANIM } from '../../constants/game.js';
 import { Cell } from './Cell.jsx';
 
 export function Row({
@@ -7,13 +7,14 @@ export function Row({
   revealing,
   shaking,
   isCurrent,
+  wordLength = 5,
   // Inline hints injected only for the current input row:
-  hints = [],          // array<string|null> length WORD_LENGTH
+  hints = [],          // array<string|null> length wordLength
   pickMode = false,    // true → empty/non-correct slots become clickable
   correctPositions = new Set(),
   onPick               // (idx) => void
 }) {
-  const letters = guess.padEnd(WORD_LENGTH, ' ').split('').map((c) => (c === ' ' ? '' : c));
+  const letters = guess.padEnd(wordLength, ' ').split('').map((c) => (c === ' ' ? '' : c));
   return (
     <div className={`row${shaking ? ' row--shake' : ''}`}>
       {letters.map((ch, i) => {

@@ -11,7 +11,8 @@ export function Board() {
     shakeRow,
     hints,
     hintPickMode,
-    revealPositionHint
+    revealPositionHint,
+    wordLength
   } = useGameContext();
   const currentIdx = guesses.length;
 
@@ -43,6 +44,7 @@ export function Board() {
             revealing={isPast}
             shaking={isCurrent && shakeRow}
             isCurrent={isCurrent}
+            wordLength={wordLength}
             hints={isCurrent ? hints : []}
             pickMode={isCurrent && hintPickMode}
             correctPositions={correctPositions}

@@ -201,11 +201,11 @@ export function useStats() {
   // Apply the double-coins boost (if armed) when computing the win reward.
   // The current snapshot of stats is captured in the closure so we read the
   // flag synchronously; the boost is consumed inside the setStats updater.
-  const recordWin = useCallback((attemptsUsed, elapsedMs) => {
-    // Compose the win reward: base × (1 + deco%) × (boost ? 2 : 1).
-    // Decoration bonus stacks before the consumable double — small treat
-    // first, then the boost multiplies the whole thing.
-    const base = rewardFor(attemptsUsed);
+  const recordWin = useCallback((attemptsUsed, elapsedMs, lengthMul = 1) => {
+    // Compose the win reward: base × lengthMul × (1 + deco%) × (boost ? 2 : 1).
+    // lengthMul lets non-5-letter modes pay out a fraction of the canonical
+    // reward (currently 0.5 for the 4/6 modes).
+    const base = Math.round(rewardFor(attemptsUsed) * lengthMul);
     const decoPct = equippedDecorationsBonus(stats.pet);
     const decoMul = 1 + decoPct / 100;
     const boostMul = stats.boostDoubleCoins ? 2 : 1;

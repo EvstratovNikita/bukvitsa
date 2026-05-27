@@ -31,19 +31,38 @@ export const WORDS = [
 ];
 
 import { VALID_GUESSES_SET } from './validGuesses.js';
+import { WORDS_4 } from './words4.js';
+import { WORDS_6 } from './words6.js';
 
 export const normalizeWord = (w) =>
   (w || '').toLowerCase().replace(/ё/g, 'е').trim();
 
-const ANSWERS_NORMALIZED = new Set(WORDS.map(normalizeWord));
+const ANSWERS_5 = new Set(WORDS.map(normalizeWord));
+const ANSWERS_4 = new Set(WORDS_4.map(normalizeWord));
+const ANSWERS_6 = new Set(WORDS_6.map(normalizeWord));
 
-// A guess is valid if it's either in the broad dictionary of real Russian
-// 5-letter words OR in our curated answer pool (safety net in case some
-// answer-list entries didn't make it into the big dictionary).
-export const isValidWord = (w) => {
+const CYRILLIC_ONLY = /^[а-я]+$/;
+
+// Length-aware validation. For 5 we keep the full OpenCorpora dictionary
+// + answers as a safety net. For 4 and 6 we don't ship a big dictionary
+// (yet), so we accept any all-cyrillic string of the right length plus
+// the answer pool — a lenient mode so players can actually probe.
+export function isValidWord(w, length = 5) {
   const n = normalizeWord(w);
-  return VALID_GUESSES_SET.has(n) || ANSWERS_NORMALIZED.has(n);
-};
+  if (n.length !== length) return false;
+  if (length === 5) return VALID_GUESSES_SET.has(n) || ANSWERS_5.has(n);
+  if (length === 4) return CYRILLIC_ONLY.test(n) || ANSWERS_4.has(n);
+  if (length === 6) return CYRILLIC_ONLY.test(n) || ANSWERS_6.has(n);
+  return false;
+}
 
-export const pickRandomWord = (rng = Math.random) =>
-  WORDS[Math.floor(rng() * WORDS.length)];
+function poolForLength(length) {
+  if (length === 4) return WORDS_4;
+  if (length === 6) return WORDS_6;
+  return WORDS;
+}
+
+export const pickRandomWord = (rng = Math.random, length = 5) => {
+  const pool = poolForLength(length);
+  return pool[Math.floor(rng() * pool.length)];
+};

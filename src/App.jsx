@@ -6,6 +6,7 @@ import { InviteModal } from './components/Share/InviteModal.jsx';
 import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { SettingsModal } from './components/Settings/Settings.jsx';
 import { DailyBadge } from './components/Daily/DailyBadge.jsx';
+import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
 import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
@@ -102,6 +103,7 @@ function GameShell() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [petOpen, setPetOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [modesOpen, setModesOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
   return (
@@ -110,6 +112,7 @@ function GameShell() {
         onOpenHelp={() => setHelpOpen(true)}
         onOpenMenu={() => setMenuOpen(true)}
         onOpenPet={() => setPetOpen(true)}
+        onOpenModes={() => setModesOpen(true)}
       />
       <div className="topbar">
         <Coins />
@@ -143,6 +146,7 @@ function GameShell() {
       <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <PetScreen open={petOpen} onClose={() => setPetOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} />
       <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">

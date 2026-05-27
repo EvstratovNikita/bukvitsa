@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, WORD_LENGTH, petXpForWin, rewardFor } from '../constants/game.js';
+import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd } from '../lib/ads.js';
@@ -32,6 +32,11 @@ export function useGame() {
     }
     return raw;
   }, []);
+  // Word length for the current round (4 | 5 | 6). 5 is the canonical mode;
+  // 4 and 6 are unlocked from the GameModes modal and give half the reward.
+  const [wordLength, setWordLength] = useState(() =>
+    (savedGame?.wordLength === 4 || savedGame?.wordLength === 6) ? savedGame.wordLength : 5
+  );
   const [solution, setSolution] = useState(() => savedGame?.solution ?? null);
   const [guesses, setGuesses] = useState(() => savedGame?.guesses ?? []);
   const [evaluations, setEvaluations] = useState(() => savedGame?.evaluations ?? []);
@@ -46,7 +51,7 @@ export function useGame() {
   const [lastEarnedBase, setLastEarnedBase] = useState(() => savedGame?.lastEarnedBase ?? 0);
   const [doubledLastWin, setDoubledLastWin] = useState(() => savedGame?.doubledLastWin ?? false);
   const [doublingAd, setDoublingAd] = useState(false);
-  const [hints, setHints] = useState(() => savedGame?.hints ?? Array(WORD_LENGTH).fill(null));
+  const [hints, setHints] = useState(() => savedGame?.hints ?? Array((savedGame?.wordLength ?? 5)).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [energyModalOpen, setEnergyModalOpen] = useState(false);
@@ -68,13 +73,17 @@ export function useGame() {
     const dailyDone = stats.stats.daily?.lastPlayedKey === todayKey;
     if (!dailyDone) {
       gameStartRef.current = Date.now();
+      // Daily is always the canonical 5-letter format. Reset hints to 5
+      // slots in case the persisted wordLength was 4 or 6.
+      setWordLength(5);
+      setHints(Array(5).fill(null));
       setSolution(getDailyWord());
       setGameMode('daily');
       return;
     }
     if (stats.consumeEnergy()) {
       gameStartRef.current = Date.now();
-      setSolution(pickRandomWord());
+      setSolution(pickRandomWord(Math.random, wordLength));
     } else {
       setEnergyModalOpen(true);
     }
@@ -89,10 +98,10 @@ export function useGame() {
       return;
     }
     storage.set(STORAGE_KEYS.GAME_STATE, {
-      solution, guesses, evaluations, status, hints, gameMode,
+      solution, guesses, evaluations, status, hints, gameMode, wordLength,
       lastEarned, lastEarnedBase, doubledLastWin
     });
-  }, [solution, guesses, evaluations, status, hints, gameMode, lastEarned, lastEarnedBase, doubledLastWin]);
+  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, doubledLastWin]);
 
   const showToast = useCallback((text) => {
     setToast({ text, id: Date.now() });
@@ -102,7 +111,7 @@ export function useGame() {
   const addLetter = useCallback((letter) => {
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (!isCyrillicLetter(letter)) return;
-    setCurrent((c) => (c.length >= WORD_LENGTH ? c : c + letter.toLowerCase()));
+    setCurrent((c) => (c.length >= wordLength ? c : c + letter.toLowerCase()));
   }, [status, solution]);
 
   const removeLetter = useCallback(() => {
@@ -112,14 +121,14 @@ export function useGame() {
 
   const submit = useCallback(() => {
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
-    if (current.length !== WORD_LENGTH) {
+    if (current.length !== wordLength) {
       setShakeRow(true);
       showToast('Слишком короткое слово');
       setTimeout(() => setShakeRow(false), 450);
       return;
     }
     const guess = normalizeWord(current);
-    if (!isValidWord(guess)) {
+    if (!isValidWord(guess, wordLength)) {
       setShakeRow(true);
       showToast('Нет такого слова в словаре');
       setTimeout(() => setShakeRow(false), 450);
@@ -136,7 +145,7 @@ export function useGame() {
     setEvaluations(nextEvals);
     setCurrent('');
     // Hints are tied to the row on which they were bought — clear once it submits.
-    setHints(Array(WORD_LENGTH).fill(null));
+    setHints(Array(wordLength).fill(null));
 
     setTimeout(() => {
       const won = guess === normalizeWord(solution);
@@ -162,17 +171,20 @@ export function useGame() {
           setLastEarned(total);
           setDoubledLastWin(false);
         } else {
-          const base = rewardFor(nextGuesses.length);
+          // 4- and 6-letter modes give half the canonical (5-letter) reward.
+          const lengthMul = wordLength === 5 ? 1 : 0.5;
+          const base = Math.round(rewardFor(nextGuesses.length) * lengthMul);
           const elapsedMs = Date.now() - gameStartRef.current;
           const decoPct = equippedDecorationsBonus(stats.stats.pet);
           const decoMul = 1 + decoPct / 100;
           const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
           const total = Math.round(base * decoMul * boostMul);
-          stats.recordWin(nextGuesses.length, elapsedMs);
+          stats.recordWin(nextGuesses.length, elapsedMs, lengthMul);
           setLastEarnedBase(base);
           setLastEarned(total);
           setDoubledLastWin(false);
-          const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
+          const petXp = Math.round(petXpForWin(nextGuesses.length) * lengthMul);
+          const petResult = stats.recordPetXp(petXp);
           if (petResult.levelAfter > petResult.levelBefore) {
             const petName = stats.stats.pet?.name || 'Букля';
             showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
@@ -201,7 +213,7 @@ export function useGame() {
 
   const performReset = useCallback(() => {
     gameStartRef.current = Date.now();
-    setSolution(pickRandomWord());
+    setSolution(pickRandomWord(Math.random, wordLength));
     setGuesses([]);
     setEvaluations([]);
     setCurrent('');
@@ -210,7 +222,7 @@ export function useGame() {
     setRevealRow(-1);
     setToast(null);
     setLastEarned(0);
-    setHints(Array(WORD_LENGTH).fill(null));
+    setHints(Array(wordLength).fill(null));
     setHintPickMode(false);
     isLocked.current = false;
   }, []);
@@ -224,7 +236,7 @@ export function useGame() {
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
       gameStartRef.current = Date.now();
-      setSolution(pickRandomWord());
+      setSolution(pickRandomWord(Math.random, wordLength));
       return;
     }
     setIsClearing(true);
@@ -254,6 +266,34 @@ export function useGame() {
 
   const closeEnergyModal = useCallback(() => setEnergyModalOpen(false), []);
 
+  // Switch the active word-length mode (4 | 5 | 6) and start a fresh
+  // puzzle in that mode. Energy gated like a normal reset. If the
+  // requested length matches the current one and a game is already in
+  // progress, this is a no-op (call reset() instead for a re-roll).
+  const setGameLength = useCallback((length) => {
+    if (length !== 4 && length !== 5 && length !== 6) return;
+    if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
+    if (!stats.consumeEnergy()) {
+      setEnergyModalOpen(true);
+      return;
+    }
+    setWordLength(length);
+    gameStartRef.current = Date.now();
+    setSolution(pickRandomWord(Math.random, length));
+    setGuesses([]);
+    setEvaluations([]);
+    setCurrent('');
+    setStatus(GAME_STATUS.PLAYING);
+    setShakeRow(false);
+    setRevealRow(-1);
+    setHints(Array(length).fill(null));
+    setHintPickMode(false);
+    setLastEarned(0);
+    setLastEarnedBase(0);
+    setDoubledLastWin(false);
+    isLocked.current = false;
+  }, [wordLength, solution, status, guesses.length, stats]);
+
   // Leave daily mode → restore a stashed normal puzzle if present, else
   // spend 1 energy and start a fresh normal round. If energy is empty,
   // pop the modal and leave the board cleared so reset can take over.
@@ -262,11 +302,13 @@ export function useGame() {
     setGameMode('normal');
     const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
     if (backup?.solution) {
+      const restoreLen = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
+      setWordLength(restoreLen);
       setSolution(backup.solution);
       setGuesses(backup.guesses || []);
       setEvaluations(backup.evaluations || []);
       setStatus(backup.status || GAME_STATUS.PLAYING);
-      setHints(backup.hints || Array(WORD_LENGTH).fill(null));
+      setHints(backup.hints || Array(restoreLen).fill(null));
       setCurrent('');
       setRevealRow(-1);
       isLocked.current = false;
@@ -276,12 +318,12 @@ export function useGame() {
     }
     if (stats.consumeEnergy()) {
       gameStartRef.current = Date.now();
-      setSolution(pickRandomWord());
+      setSolution(pickRandomWord(Math.random, wordLength));
       setGuesses([]);
       setEvaluations([]);
       setCurrent('');
       setStatus(GAME_STATUS.PLAYING);
-      setHints(Array(WORD_LENGTH).fill(null));
+      setHints(Array(wordLength).fill(null));
       setRevealRow(-1);
       isLocked.current = false;
     } else {
@@ -330,7 +372,7 @@ export function useGame() {
     const sol = normalizeWord(solution);
     const known = correctSlots();
     const candidates = [];
-    for (let i = 0; i < WORD_LENGTH; i++) {
+    for (let i = 0; i < wordLength; i++) {
       if (!hints[i] && !known.has(i)) candidates.push(i);
     }
     if (candidates.length === 0) { showToast('Все буквы уже открыты'); return false; }
@@ -343,7 +385,7 @@ export function useGame() {
 
   const revealPositionHint = useCallback((idx) => {
     if (status !== GAME_STATUS.PLAYING) return false;
-    if (idx < 0 || idx >= WORD_LENGTH) return false;
+    if (idx < 0 || idx >= wordLength) return false;
     if (hints[idx]) { showToast('Эта буква уже открыта'); return false; }
     if (correctSlots().has(idx)) { showToast('Эта буква уже угадана'); return false; }
     if (!stats.spendCoins(HINT_COST.PICK)) { showToast('Недостаточно монет'); return false; }
@@ -390,6 +432,8 @@ export function useGame() {
     doubleLastReward,
     gameMode,
     exitDailyMode,
+    wordLength,
+    setGameLength,
     hints,
     hintPickMode,
     isClearing,

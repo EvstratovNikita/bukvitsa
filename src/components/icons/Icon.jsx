@@ -10,6 +10,15 @@ const base = {
   strokeLinejoin: 'round'
 };
 
+export function PlusIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M 12 5 L 12 19" />
+      <path d="M 5 12 L 19 12" />
+    </svg>
+  );
+}
+
 export function HelpIcon(props) {
   return (
     <svg
