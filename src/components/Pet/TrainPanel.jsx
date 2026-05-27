@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { MemoryGame } from './MemoryGame.jsx';
+import { AnagramGame } from './AnagramGame.jsx';
 
 // Catalog of available mini-games. Extend this list when new games ship —
 // each entry needs an id, label, short description, icon, and a Component
@@ -12,8 +13,15 @@ const MINI_GAMES = [
     name: 'Память',
     desc: 'Открой пары одинаковых карточек на поле 4×4.',
     Component: MemoryGame
+  },
+  {
+    id: 'anagram',
+    icon: '🔤',
+    name: 'Анаграмма',
+    desc: 'Собери слово из перемешанных букв. У тебя 60 секунд.',
+    Component: AnagramGame
   }
-  // Future: anagram, simon, fast-letter, …
+  // Future: simon, fast-letter, …
 ];
 
 // Same-local-day check — used to gate "once per day" play.
