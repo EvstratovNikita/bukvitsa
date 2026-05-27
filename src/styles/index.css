@@ -1205,14 +1205,51 @@ button { font-family: inherit; }
 
 .energy-modal__feedback {
   text-align: center;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 13.5px;
-  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  border: 1.5px solid transparent;
+  animation: rise var(--t-fast, 220ms) both;
 }
-.energy-modal__feedback--ok { background: rgba(80, 200, 120, 0.16); color: #9be7b1; }
-.energy-modal__feedback--err { background: rgba(255, 120, 120, 0.16); color: #ffc1c1; }
-.energy-modal__feedback--info { background: rgba(108, 140, 255, 0.16); color: #b5c5ff; }
+.energy-modal__feedback--ok {
+  background: linear-gradient(135deg, rgba(80, 220, 130, 0.42), rgba(40, 170, 90, 0.28));
+  border-color: rgba(80, 220, 130, 0.75);
+  color: #d8ffe3;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1px rgba(80, 220, 130, 0.25), 0 6px 18px rgba(40, 170, 90, 0.25);
+}
+.energy-modal__feedback--err {
+  background: linear-gradient(135deg, rgba(255, 120, 120, 0.40), rgba(200, 60, 60, 0.28));
+  border-color: rgba(255, 130, 130, 0.75);
+  color: #ffe3e3;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1px rgba(255, 130, 130, 0.25), 0 6px 18px rgba(200, 60, 60, 0.25);
+}
+.energy-modal__feedback--info {
+  background: linear-gradient(135deg, rgba(140, 170, 255, 0.40), rgba(80, 110, 220, 0.28));
+  border-color: rgba(140, 170, 255, 0.75);
+  color: #eaf0ff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 1px rgba(140, 170, 255, 0.25), 0 6px 18px rgba(80, 110, 220, 0.25);
+}
+[data-theme="light"] .energy-modal__feedback--ok {
+  background: linear-gradient(135deg, #4fd87a 0%, #22a85a 100%);
+  border-color: #0e7a3a;
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+[data-theme="light"] .energy-modal__feedback--err {
+  background: linear-gradient(135deg, #ff8a8a 0%, #d04848 100%);
+  border-color: #962020;
+  color: #fff;
+}
+[data-theme="light"] .energy-modal__feedback--info {
+  background: linear-gradient(135deg, #88a8ff 0%, #4868d8 100%);
+  border-color: #2840a0;
+  color: #fff;
+}
 
 .coins__pop {
   position: absolute;
@@ -1511,6 +1548,25 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   white-space: nowrap;
 }
 .end-panel__double:disabled { opacity: 0.55; cursor: not-allowed; }
+/* Ad-double button in EndPanel: keep the gold gradient + pill layout from
+   the win-modal copy, just shrink type/padding so it fits the narrow column. */
+.end-panel__double.btn--ad-double {
+  background: linear-gradient(135deg, #ffd864 0%, #f7a522 55%, #c47010 100%);
+  border: 1px solid rgba(180, 130, 30, 0.7);
+  color: #1a1300;
+  font-size: 12px;
+  padding: 8px 8px 8px 12px;
+  gap: 6px;
+  white-space: nowrap;
+}
+.end-panel__double.btn--ad-double .btn-ad__text { font-size: 12px; }
+.end-panel__double.btn--ad-double .btn-ad__amount {
+  padding: 2px 6px;
+  font-size: 11.5px;
+}
+.end-panel__double.btn--ad-double .btn-ad__amount svg { width: 12px; height: 12px; }
+.end-panel__double.btn--ad-double .btn-ad__icon { width: 22px; height: 22px; }
+.end-panel__double.btn--ad-double .btn-ad__icon svg { width: 13px; height: 13px; }
 .gameend__bonus {
   margin-top: 4px;
   font-size: 11.5px;
@@ -3364,6 +3420,13 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   background: rgba(108, 140, 255, 0.16);
   border-color: rgba(60, 90, 220, 0.55);
   color: #3a4cb0;
+}
+/* Light theme: keep the gold ad-double identical to win-modal — don't let
+   the generic .end-panel__double override above flatten it to blue. */
+[data-theme="light"] .end-panel__double.btn--ad-double {
+  background: linear-gradient(135deg, #ffdf82 0%, #f0a128 55%, #b86808 100%);
+  border-color: rgba(150, 95, 10, 0.85);
+  color: #1a1300;
 }
 
 /* ---------- GameEnd celebration card ---------- */
