@@ -1495,15 +1495,16 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   gap: 6px;
   align-items: stretch;
   flex-shrink: 0;
-  max-width: 150px;
+  min-width: 220px;
+  max-width: 260px;
 }
 .end-panel__double {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 10px;
-  font-size: 12.5px;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 13.5px;
   background: rgba(108, 140, 255, 0.16);
   border: 1px solid rgba(108, 140, 255, 0.42);
   color: #b5c5ff;
