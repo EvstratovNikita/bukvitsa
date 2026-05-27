@@ -50,16 +50,14 @@ export function GameModesModal({ open, onClose }) {
               onMouseDown={(e) => e.preventDefault()}
               disabled={active}
             >
+              <div className="mode-card__title">{m.title}</div>
+              <div className="mode-card__desc">{m.desc}</div>
               <div className="mode-card__preview" aria-hidden="true">
                 {[...m.sample].map((ch, i) => (
                   <span key={i} className="mode-card__cell">{ch}</span>
                 ))}
               </div>
-              <div className="mode-card__body">
-                <div className="mode-card__title">{m.title}</div>
-                <div className="mode-card__desc">{m.desc}</div>
-                {active && <div className="mode-card__active">Сейчас играешь</div>}
-              </div>
+              {active && <div className="mode-card__active">Сейчас играешь</div>}
               <span className="mode-card__half mode-card__free" aria-label="бесплатно">
                 <BoltIcon />
                 <span>бесплатно</span>
