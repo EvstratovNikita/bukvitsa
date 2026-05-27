@@ -68,6 +68,17 @@ export function GameModesModal({ open, onClose }) {
           );
         })}
 
+        {wordLength !== 5 && (
+          <button
+            type="button"
+            className="btn modes__back"
+            onClick={() => onPick(5)}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            ← Вернуться на 5 букв (основной)
+          </button>
+        )}
+
         <p className="modes__foot">
           Стандартный режим (5 букв) — основной. Сейчас: <b>{wordLength} букв</b>.
         </p>

@@ -3882,6 +3882,25 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   font-weight: 700;
   color: #f7c948;
 }
+.modes__back {
+  margin-top: 6px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 800;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ffd864 0%, #f7a522 55%, #c47010 100%);
+  border: 2px solid rgba(180, 130, 30, 0.85);
+  color: #1a1300;
+  cursor: pointer;
+  box-shadow:
+    0 6px 18px rgba(247, 138, 24, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  -webkit-tap-highlight-color: transparent;
+}
+[data-theme="light"] .modes__back {
+  background: linear-gradient(135deg, #ffdf82 0%, #f0a128 55%, #b86808 100%);
+  border-color: rgba(140, 90, 10, 0.85);
+}
 .modes__foot {
   margin: 6px 0 0;
   font-size: 12.5px;
