@@ -92,16 +92,37 @@ export function useGame() {
   }, []);
 
   // Persist the in-flight puzzle so reload resumes it (no double energy charge).
+  // Skip writing when solution/length disagree — that's a transient render
+  // between mode switches and the watchdog below is about to repick.
   useEffect(() => {
     if (!solution) {
       storage.remove(STORAGE_KEYS.GAME_STATE);
       return;
     }
+    if (normalizeWord(solution).length !== wordLength) return;
     storage.set(STORAGE_KEYS.GAME_STATE, {
       solution, guesses, evaluations, status, hints, gameMode, wordLength,
       lastEarned, lastEarnedBase, doubledLastWin
     });
   }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, doubledLastWin]);
+
+  // Watchdog: if the solution length ever drifts from the active wordLength
+  // (caused by a stale persisted blob, a race between setWordLength and
+  // setSolution, or a buggy older save), repick a matching word and clear
+  // the board so the player isn't stuck typing into a too-short row.
+  useEffect(() => {
+    if (!solution) return;
+    if (normalizeWord(solution).length === wordLength) return;
+    gameStartRef.current = Date.now();
+    setSolution(pickRandomWord(Math.random, wordLength));
+    setGuesses([]);
+    setEvaluations([]);
+    setCurrent('');
+    setStatus(GAME_STATUS.PLAYING);
+    setHints(Array(wordLength).fill(null));
+    setRevealRow(-1);
+    isLocked.current = false;
+  }, [wordLength, solution]);
 
   const showToast = useCallback((text) => {
     setToast({ text, id: Date.now() });
