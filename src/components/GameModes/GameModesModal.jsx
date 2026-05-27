@@ -1,6 +1,6 @@
 import { Modal } from '../Modal/Modal.jsx';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { CoinIcon } from '../icons/Icon.jsx';
+import { BoltIcon } from '../icons/Icon.jsx';
 
 const MODES = [
   {
@@ -20,8 +20,9 @@ const MODES = [
 ];
 
 // "Доп. режимы" picker. Tap on a mode → useGame.setGameLength(N) which
-// spends 1 energy and starts a fresh round at that length. Rewards in
-// 4 and 6 are halved relative to the canonical 5-letter mode.
+// starts a fresh round at that length — no energy cost, no coin reward.
+// Each 5 plays in 4/6 modes refunds +1 energy to the canonical 5-letter
+// mode (capped at 3 per day).
 export function GameModesModal({ open, onClose }) {
   const { setGameLength, wordLength } = useGameContext();
 
@@ -34,8 +35,9 @@ export function GameModesModal({ open, onClose }) {
     <Modal open={open} onClose={onClose} title="Доп. режимы">
       <div className="modes">
         <p className="modes__hint">
-          Попробуй другой формат слов. Награда в монетах и опыте — вдвое
-          меньше основного режима (5 букв).
+          Тренировочные режимы. Энергия не тратится, монеты не начисляются —
+          только опыт. Каждые 5 партий возвращают +1 энергию в основной режим
+          (до 3 в день).
         </p>
         {MODES.map((m) => {
           const active = wordLength === m.length;
@@ -56,9 +58,9 @@ export function GameModesModal({ open, onClose }) {
               <div className="mode-card__body">
                 <div className="mode-card__title">
                   {m.title}
-                  <span className="mode-card__half">
-                    <CoinIcon />
-                    <span>×½</span>
+                  <span className="mode-card__half mode-card__free">
+                    <BoltIcon />
+                    <span>бесплатно</span>
                   </span>
                 </div>
                 <div className="mode-card__desc">{m.desc}</div>
@@ -80,7 +82,7 @@ export function GameModesModal({ open, onClose }) {
         )}
 
         <p className="modes__foot">
-          Стандартный режим (5 букв) — основной. Сейчас: <b>{wordLength} букв</b>.
+          Сейчас: <b>{wordLength} букв</b>.
         </p>
       </div>
     </Modal>
