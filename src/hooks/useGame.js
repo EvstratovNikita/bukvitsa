@@ -128,7 +128,12 @@ export function useGame() {
       return;
     }
     const guess = normalizeWord(current);
-    if (!isValidWord(guess, wordLength)) {
+    const solNorm = normalizeWord(solution);
+    // Safety: the loaded answer is ALWAYS accepted, even if for some reason
+    // it slipped out of VALID_GUESSES_SET (older save format, dictionary
+    // drift, etc.) — otherwise a player could see hints that spell a word
+    // they can't actually submit.
+    if (guess !== solNorm && !isValidWord(guess, wordLength)) {
       setShakeRow(true);
       showToast('Нет такого слова в словаре');
       setTimeout(() => setShakeRow(false), 450);
@@ -235,10 +240,12 @@ export function useGame() {
     setRevealRow(-1);
     setToast(null);
     setLastEarned(0);
+    setLastEarnedBase(0);
+    setDoubledLastWin(false);
     setHints(Array(wordLength).fill(null));
     setHintPickMode(false);
     isLocked.current = false;
-  }, []);
+  }, [wordLength]);
 
   const reset = useCallback(() => {
     // Energy gate — only the canonical 5-letter mode costs energy.
@@ -385,17 +392,28 @@ export function useGame() {
     if (status !== GAME_STATUS.PLAYING) return false;
     const sol = normalizeWord(solution);
     const known = correctSlots();
-    const candidates = [];
+    // Pre-check on stale state just to validate intent + collect coin cost.
+    const stalePool = [];
     for (let i = 0; i < wordLength; i++) {
-      if (!hints[i] && !known.has(i)) candidates.push(i);
+      if (!hints[i] && !known.has(i)) stalePool.push(i);
     }
-    if (candidates.length === 0) { showToast('Все буквы уже открыты'); return false; }
+    if (stalePool.length === 0) { showToast('Все буквы уже открыты'); return false; }
     if (!stats.spendCoins(HINT_COST.RANDOM)) { showToast('Недостаточно монет'); return false; }
-    const idx = candidates[Math.floor(Math.random() * candidates.length)];
-    setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
+    // Recompute candidates inside the functional updater so back-to-back
+    // clicks don't race on a stale `hints` snapshot and pick the same slot
+    // twice (which would leave the row inconsistent with the solution).
+    setHints((h) => {
+      const fresh = [];
+      for (let i = 0; i < wordLength; i++) {
+        if (!h[i] && !known.has(i)) fresh.push(i);
+      }
+      if (fresh.length === 0) return h;
+      const idx = fresh[Math.floor(Math.random() * fresh.length)];
+      return h.map((c, i) => (i === idx ? sol[i] : c));
+    });
     stats.recordHintUsed();
     return true;
-  }, [status, solution, hints, stats, showToast, correctSlots]);
+  }, [status, solution, hints, stats, wordLength, showToast, correctSlots]);
 
   const revealPositionHint = useCallback((idx) => {
     if (status !== GAME_STATUS.PLAYING) return false;
