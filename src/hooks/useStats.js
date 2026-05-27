@@ -56,6 +56,13 @@ const DEFAULT_STATS = {
     gamesPlayed: 0,
     gamesWon: 0
   },
+  altMode: {
+    // 4 + 6-letter mode tally. Every 5 finished plays grants +1 energy
+    // (capped at 3 grants per local day). All counters reset at midnight.
+    dayKey: null,           // 'YYYY-MM-DD' of last counted play
+    plays: 0,               // plays since the last energy grant
+    energyGranted: 0        // grants made today (≤ 3)
+  },
   // Companion pet (Букля the owlet). Lightweight JSON blob; new fields
   // (xp, hunger, mood, equipped) get appended as the pet feature grows.
   pet: {
@@ -86,6 +93,7 @@ function load() {
     unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : [],
     pet: migratePet(raw.pet),
     prefs: { ...DEFAULT_STATS.prefs, ...(raw.prefs || {}) },
+    altMode: { ...DEFAULT_STATS.altMode, ...(raw.altMode || {}) },
     // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
     // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
     lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
@@ -201,10 +209,11 @@ export function useStats() {
   // Apply the double-coins boost (if armed) when computing the win reward.
   // The current snapshot of stats is captured in the closure so we read the
   // flag synchronously; the boost is consumed inside the setStats updater.
-  const recordWin = useCallback((attemptsUsed, elapsedMs, lengthMul = 1) => {
+  const recordWin = useCallback((attemptsUsed, elapsedMs, lengthMul = 1, creditCoins = true) => {
     // Compose the win reward: base × lengthMul × (1 + deco%) × (boost ? 2 : 1).
     // lengthMul lets non-5-letter modes pay out a fraction of the canonical
-    // reward (currently 0.5 for the 4/6 modes).
+    // reward (currently 0.5 for the 4/6 modes). creditCoins=false skips the
+    // coin credit entirely — 4/6 modes don't pay coins, only XP via callers.
     const base = Math.round(rewardFor(attemptsUsed) * lengthMul);
     const decoPct = equippedDecorationsBonus(stats.pet);
     const decoMul = 1 + decoPct / 100;
@@ -217,7 +226,7 @@ export function useStats() {
       const dPct = equippedDecorationsBonus(s.pet);
       const dMul = 1 + dPct / 100;
       const bMul = s.boostDoubleCoins ? 2 : 1;
-      const earned = Math.round(base * dMul * bMul);
+      const earned = creditCoins ? Math.round(base * dMul * bMul) : 0;
       const prevFast = s.fastestWinMs;
       const nextFast = (elapsedMs != null && elapsedMs > 0)
         ? (prevFast == null ? elapsedMs : Math.min(prevFast, elapsedMs))
@@ -235,11 +244,12 @@ export function useStats() {
         coins: (s.coins || 0) + earned,
         coinsEarned: (s.coinsEarned || 0) + earned,
         distribution: dist,
-        boostDoubleCoins: false,
+        // Only burn the ×2 boost when we actually credited coins.
+        boostDoubleCoins: creditCoins ? false : s.boostDoubleCoins,
         fastestWinMs: nextFast
       };
     });
-    return boosted;
+    return creditCoins ? boosted : 0;
   }, [stats.boostDoubleCoins, stats.pet?.equipped]);
 
   const recordLoss = useCallback(() => {
@@ -559,6 +569,30 @@ export function useStats() {
     });
   }, []);
 
+  // Tally an alt-mode (4/6 letter) play. After every 5 plays grant +1
+  // energy, capped at 3 grants per local day. Returns { grantedEnergy }.
+  const recordAltModePlay = useCallback(() => {
+    const today = todayKey();
+    const cur = stats.altMode || DEFAULT_STATS.altMode;
+    const sameDay = cur.dayKey === today;
+    const nextPlays = (sameDay ? cur.plays : 0) + 1;
+    const granted = sameDay ? cur.energyGranted : 0;
+    const shouldGrant = nextPlays >= 5 && granted < 3;
+    if (shouldGrant) {
+      mutateEnergy(+1);
+      setStats((s) => ({
+        ...s,
+        altMode: { dayKey: today, plays: 0, energyGranted: granted + 1 }
+      }));
+    } else {
+      setStats((s) => ({
+        ...s,
+        altMode: { dayKey: today, plays: nextPlays, energyGranted: granted }
+      }));
+    }
+    return { grantedEnergy: shouldGrant };
+  }, [stats.altMode, mutateEnergy]);
+
   const consumeEnergy = useCallback(() => {
     if (reconciled.energy < 1) return false;
     mutateEnergy(-1);
@@ -606,6 +640,7 @@ export function useStats() {
     equipDecoration,
     unequipDecorationSlot,
     recordMiniGamePlay,
+    recordAltModePlay,
     achievementToasts,
     consumeAchievementToast,
     auth

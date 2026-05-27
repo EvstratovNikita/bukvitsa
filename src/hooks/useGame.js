@@ -171,17 +171,26 @@ export function useGame() {
           setLastEarned(total);
           setDoubledLastWin(false);
         } else {
-          // 4- and 6-letter modes give half the canonical (5-letter) reward.
-          const lengthMul = wordLength === 5 ? 1 : 0.5;
-          const base = Math.round(rewardFor(nextGuesses.length) * lengthMul);
+          // 4 + 6-letter modes earn no coins (only XP, half) and feed into
+          // an alt-mode tally that grants +1 energy every 5 plays (≤ 3/day).
+          const isAlt = wordLength !== 5;
+          const lengthMul = isAlt ? 0.5 : 1;
           const elapsedMs = Date.now() - gameStartRef.current;
-          const decoPct = equippedDecorationsBonus(stats.stats.pet);
-          const decoMul = 1 + decoPct / 100;
-          const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
-          const total = Math.round(base * decoMul * boostMul);
-          stats.recordWin(nextGuesses.length, elapsedMs, lengthMul);
-          setLastEarnedBase(base);
-          setLastEarned(total);
+          stats.recordWin(nextGuesses.length, elapsedMs, lengthMul, /* creditCoins */ !isAlt);
+          if (isAlt) {
+            setLastEarned(0);
+            setLastEarnedBase(0);
+            const r = stats.recordAltModePlay?.();
+            if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
+          } else {
+            const base = rewardFor(nextGuesses.length);
+            const decoPct = equippedDecorationsBonus(stats.stats.pet);
+            const decoMul = 1 + decoPct / 100;
+            const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
+            const total = Math.round(base * decoMul * boostMul);
+            setLastEarnedBase(base);
+            setLastEarned(total);
+          }
           setDoubledLastWin(false);
           const petXp = Math.round(petXpForWin(nextGuesses.length) * lengthMul);
           const petResult = stats.recordPetXp(petXp);
@@ -203,6 +212,10 @@ export function useGame() {
           });
         } else {
           stats.recordLoss();
+          if (wordLength !== 5) {
+            const r = stats.recordAltModePlay?.();
+            if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
+          }
         }
         setLastEarned(0);
         setLastEarnedBase(0);
@@ -228,10 +241,12 @@ export function useGame() {
   }, []);
 
   const reset = useCallback(() => {
-    // Energy gate — every fresh puzzle costs 1.
-    if (!stats.consumeEnergy()) {
-      setEnergyModalOpen(true);
-      return;
+    // Energy gate — only the canonical 5-letter mode costs energy.
+    if (wordLength === 5) {
+      if (!stats.consumeEnergy()) {
+        setEnergyModalOpen(true);
+        return;
+      }
     }
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
@@ -244,7 +259,7 @@ export function useGame() {
       performReset();
       setIsClearing(false);
     }, 340);
-  }, [guesses.length, current.length, hints, performReset, stats]);
+  }, [guesses.length, current.length, hints, performReset, stats, wordLength]);
 
   // Called after the user successfully tops up energy from the modal. Spends
   // the freshly-acquired unit and starts a puzzle without a clearing animation
@@ -273,9 +288,13 @@ export function useGame() {
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
     if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
-    if (!stats.consumeEnergy()) {
-      setEnergyModalOpen(true);
-      return;
+    // 4/6 modes are FREE to enter. Only the canonical 5-letter mode
+    // consumes energy on round start.
+    if (length === 5) {
+      if (!stats.consumeEnergy()) {
+        setEnergyModalOpen(true);
+        return;
+      }
     }
     setWordLength(length);
     gameStartRef.current = Date.now();

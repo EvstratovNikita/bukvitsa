@@ -21,8 +21,9 @@ export function EndPanel() {
   const isWin = status === GAME_STATUS.WON;
   const isDaily = gameMode === 'daily';
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
-  // Daily wins are doubled too — the ×2 ad button works the same way.
-  const canDouble = isWin && lastEarned > 0 && !doubledLastWin;
+  // Daily wins do NOT show the ×2 ad button — the doubled reward is built
+  // into the daily payout already.
+  const canDouble = !isDaily && isWin && lastEarned > 0 && !doubledLastWin;
   const dayN = getDailyNumber();
 
   const onShare = async () => {

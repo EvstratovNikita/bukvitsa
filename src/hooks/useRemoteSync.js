@@ -30,7 +30,8 @@ const toRow = (stats, userId) => ({
   referrals_count: stats.referralsCount || 0,
   pet: stats.pet || null,
   prefs: stats.prefs || null,
-  daily: stats.daily || null
+  daily: stats.daily || null,
+  alt_mode: stats.altMode || null
 });
 
 const fromRow = (row) => clean({
@@ -59,7 +60,8 @@ const fromRow = (row) => clean({
   referralsCount: Number.isFinite(row.referrals_count) ? row.referrals_count : undefined,
   pet: row.pet && typeof row.pet === 'object' ? row.pet : undefined,
   prefs: row.prefs && typeof row.prefs === 'object' ? row.prefs : undefined,
-  daily: row.daily && typeof row.daily === 'object' ? row.daily : undefined
+  daily: row.daily && typeof row.daily === 'object' ? row.daily : undefined,
+  altMode: row.alt_mode && typeof row.alt_mode === 'object' ? row.alt_mode : undefined
 });
 
 // Strip keys whose value is `undefined` so a spread merge into local state
