@@ -35,9 +35,9 @@ export function GameModesModal({ open, onClose }) {
     <Modal open={open} onClose={onClose} title="Доп. режимы">
       <div className="modes">
         <p className="modes__hint">
-          Тренировочные режимы. Энергия не тратится, монеты не начисляются —
-          только опыт. Каждые 5 партий возвращают +1 энергию в основной режим
-          (до 3 в день).
+          В дополнительных режимах энергия не тратится, а начисляется только
+          опыт питомцу! Бонус: каждые 5 побед восстанавливают +1 энергию
+          в основном режиме (не более 3 единиц в день).
         </p>
         {MODES.map((m) => {
           const active = wordLength === m.length;
@@ -56,16 +56,14 @@ export function GameModesModal({ open, onClose }) {
                 ))}
               </div>
               <div className="mode-card__body">
-                <div className="mode-card__title">
-                  {m.title}
-                  <span className="mode-card__half mode-card__free">
-                    <BoltIcon />
-                    <span>бесплатно</span>
-                  </span>
-                </div>
+                <div className="mode-card__title">{m.title}</div>
                 <div className="mode-card__desc">{m.desc}</div>
                 {active && <div className="mode-card__active">Сейчас играешь</div>}
               </div>
+              <span className="mode-card__half mode-card__free" aria-label="бесплатно">
+                <BoltIcon />
+                <span>бесплатно</span>
+              </span>
             </button>
           );
         })}
