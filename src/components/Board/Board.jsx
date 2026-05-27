@@ -31,7 +31,7 @@ export function Board() {
   }, [evaluations]);
 
   return (
-    <div className="board">
+    <div className="board" style={{ '--wl': wordLength }}>
       {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => {
         const isPast = i < currentIdx;
         const isCurrent = i === currentIdx;

@@ -1253,8 +1253,12 @@ button { font-family: inherit; }
   display: grid;
   grid-template-rows: repeat(6, 1fr);
   gap: 8px;
-  width: min(100%, 360px);
-  aspect-ratio: 5 / 6;
+  /* Width scales with letter count so cells stay roughly square. The base
+     5-letter board caps at 360px; 4-letter narrows, 6-letter widens. */
+  --wl: 5;
+  width: min(100%, calc(72px * var(--wl)));
+  aspect-ratio: var(--wl) / 6;
+  margin: 0 auto;
   transition: opacity 240ms ease, transform 240ms ease, filter 240ms ease;
 }
 .board--clearing {
@@ -1274,8 +1278,13 @@ button { font-family: inherit; }
 }
 .row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(var(--wl, 5), 1fr);
   gap: 8px;
+}
+/* Narrower gaps on small viewports + 6-letter boards so cells fit. */
+@media (max-width: 420px) {
+  .board { gap: 6px; }
+  .row { gap: 6px; }
 }
 .row--shake { animation: shake 420ms cubic-bezier(.36,.07,.19,.97); }
 
