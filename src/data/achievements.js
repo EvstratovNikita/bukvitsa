@@ -26,11 +26,28 @@
 //   pet.level       — Букля's level (derived from xp)
 //   referralsCount  — verified invitees credited to this user
 
+import { PET_DECORATIONS } from './petDecorations.js';
+
 const allDistributionFilled = (s) =>
   (s.distribution || []).every((n) => (n || 0) > 0);
 
 const distributionFilledCount = (s) =>
   (s.distribution || []).filter((n) => (n || 0) > 0).length;
+
+// Equipped pet decoration helpers. "Full outfit" = head + eyes + brooch
+// + at least one wing amulet. "Total dressed" = both wings + 3 main slots.
+const ownedDecoCount = (s) => (s.pet?.ownedDecorations?.length || 0);
+const equippedSlotCount = (s) => {
+  const e = s.pet?.equipped || {};
+  let n = 0;
+  if (e.head)   n++;
+  if (e.eyes)   n++;
+  if (e.brooch) n++;
+  if (e.wingL)  n++;
+  if (e.wingR)  n++;
+  return n;
+};
+const TOTAL_DECO = PET_DECORATIONS.length;
 
 export const ACHIEVEMENT_CATEGORIES = [
   { id: 'words',   label: 'Слова'    },
@@ -215,6 +232,35 @@ export const ACHIEVEMENTS = [
     desc: 'Прокачай Буклю до 10 уровня',
     check: (s) => (s.pet?.level || 1) >= 10,
     progress: (s) => ({ current: Math.min(10, s.pet?.level || 1), target: 10 })
+  },
+  // ---- pet decorations (purchases + equipping) ----
+  {
+    id: 'deco_first', category: 'pet', tier: 'easy', icon: '🎀', reward: 10,
+    title: 'Первое украшение',
+    desc: 'Купи любое украшение для Букли',
+    check: (s) => ownedDecoCount(s) >= 1,
+    progress: (s) => ({ current: Math.min(1, ownedDecoCount(s)), target: 1 })
+  },
+  {
+    id: 'deco_5', category: 'pet', tier: 'easy', icon: '👗', reward: 30,
+    title: 'Гардероб',
+    desc: 'Купи 5 украшений для Букли',
+    check: (s) => ownedDecoCount(s) >= 5,
+    progress: (s) => ({ current: Math.min(5, ownedDecoCount(s)), target: 5 })
+  },
+  {
+    id: 'deco_full_outfit', category: 'pet', tier: 'hard', icon: '🎩', reward: 60,
+    title: 'Полный наряд',
+    desc: 'Надень украшения во все слоты (голова, глаза, брошь, оба крыла)',
+    check: (s) => equippedSlotCount(s) >= 5,
+    progress: (s) => ({ current: equippedSlotCount(s), target: 5 })
+  },
+  {
+    id: 'deco_collection', category: 'pet', tier: 'hard', icon: '🏆', reward: 200,
+    title: 'Коллекционер модных вещей',
+    desc: 'Купи все украшения для Букли',
+    check: (s) => ownedDecoCount(s) >= TOTAL_DECO,
+    progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedDecoCount(s)), target: TOTAL_DECO })
   },
 
   // ============ ДРУЗЬЯ ============
