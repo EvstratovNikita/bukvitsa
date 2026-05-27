@@ -129,10 +129,12 @@ export function GameEnd() {
         </div>
 
         {isWin && lastEarned > 0 && (
-          <div className="gameend__reward">
-            <CoinIcon />
-            <span>+{lastEarned}</span>
-            {doubledLastWin && <span className="gameend__doubled">×2 ✓</span>}
+          <div className="gameend__reward-wrap">
+            <div className="gameend__reward">
+              <CoinIcon />
+              <span>+{lastEarned}</span>
+              {doubledLastWin && <span className="gameend__doubled">×2 ✓</span>}
+            </div>
             {isDaily ? (
               <div className="gameend__bonus">
                 {lastEarnedBase} основная + {bonus} за Слово дня

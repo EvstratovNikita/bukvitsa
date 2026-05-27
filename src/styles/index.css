@@ -1495,8 +1495,8 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   gap: 6px;
   align-items: stretch;
   flex-shrink: 0;
-  min-width: 220px;
-  max-width: 260px;
+  min-width: 190px;
+  max-width: 220px;
 }
 .end-panel__double {
   display: inline-flex;
@@ -1696,6 +1696,14 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   100% { opacity: 1; transform: translateY(0) rotateX(0); }
 }
 
+.gameend__reward-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+  animation: rise var(--t-slow) 380ms both;
+}
 .gameend__reward {
   display: inline-flex;
   align-items: center;
@@ -1707,8 +1715,15 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   color: #ffd864;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  margin-bottom: 10px;
-  animation: rise var(--t-slow) 380ms both;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+}
+.gameend__bonus {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-align: center;
 }
 .gameend__streak {
   color: var(--text-dim);
