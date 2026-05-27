@@ -972,6 +972,48 @@ button { font-family: inherit; }
   white-space: nowrap;
 }
 .daily__day-coin svg { width: 18px !important; height: 18px !important; }
+.daily__day-energy {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 800;
+  color: #6c8cff;
+  font-size: 12.5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(108, 140, 255, 0.18);
+  border: 1px solid rgba(108, 140, 255, 0.45);
+  white-space: nowrap;
+}
+.daily__day-energy svg { width: 12px !important; height: 12px !important; color: #6c8cff; }
+[data-theme="light"] .daily__day-energy {
+  background: rgba(60, 90, 220, 0.18);
+  border-color: rgba(60, 90, 220, 0.6);
+  color: #2840a0;
+}
+[data-theme="light"] .daily__day-energy svg { color: #2840a0; }
+.daily__day-num { text-transform: none; font-size: 12px; }
+
+.daily__big-energy {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(108, 140, 255, 0.22);
+  border: 1.5px solid rgba(108, 140, 255, 0.6);
+  color: #b5c5ff;
+  font-size: 22px;
+  font-weight: 800;
+}
+.daily__big-energy svg { width: 22px; height: 22px; color: #b5c5ff; }
+[data-theme="light"] .daily__big-energy {
+  background: linear-gradient(135deg, rgba(140, 170, 255, 0.45), rgba(80, 110, 220, 0.28));
+  border-color: rgba(40, 65, 170, 0.85);
+  color: #1a2a70;
+}
+[data-theme="light"] .daily__big-energy svg { color: #1a2a70; }
 
 .daily__day--done {
   opacity: 0.55;
@@ -3180,6 +3222,25 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 .pet-deco--active {
   background: linear-gradient(135deg, rgba(247, 201, 72, 0.10), rgba(247, 201, 72, 0.02));
   border-color: rgba(247, 201, 72, 0.35);
+}
+.pet-deco--locked { opacity: 0.55; filter: grayscale(0.55); }
+.pet-deco--locked .pet-deco__icon { filter: grayscale(1) brightness(0.85); }
+.pet-deco__lock {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(180, 130, 30, 0.18);
+  border: 1px solid rgba(180, 130, 30, 0.5);
+  color: #c9a45a;
+  font-size: 12.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+[data-theme="light"] .pet-deco__lock {
+  background: rgba(180, 130, 30, 0.22);
+  border-color: rgba(120, 80, 10, 0.7);
+  color: #6a3a04;
 }
 .pet-deco__icon {
   width: 44px; height: 44px;

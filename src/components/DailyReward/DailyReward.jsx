@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { DAILY_CYCLE_DAYS } from '../../constants/game.js';
+import { DAILY_CYCLE_DAYS, DAILY_ENERGY_BONUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
-import { CoinIcon } from '../icons/Icon.jsx';
+import { BoltIcon, CoinIcon } from '../icons/Icon.jsx';
 
 export function DailyReward() {
   const { pendingDailyReward, claimDailyReward } = useGameContext();
@@ -22,7 +22,7 @@ export function DailyReward() {
 
   if (!open || !reward) return null;
 
-  const { streak, amount } = reward;
+  const { streak, amount, energy: energyBonus = 0 } = reward;
 
   const onClaim = () => {
     claimDailyReward();
@@ -49,6 +49,7 @@ export function DailyReward() {
             const d = i + 1;
             const isCurrent = d === streak;
             const isDone = d < streak;
+            const dayEnergy = DAILY_ENERGY_BONUS[d] || 0;
             return (
               <div
                 key={d}
@@ -59,11 +60,17 @@ export function DailyReward() {
                 ].filter(Boolean).join(' ')}
                 style={{ animationDelay: `${80 + i * 60}ms` }}
               >
-                <div className="daily__day-num">{d}</div>
+                <div className="daily__day-num">День {d}</div>
                 <div className="daily__day-coin">
                   <CoinIcon />
                   <span>+{d}</span>
                 </div>
+                {dayEnergy > 0 && (
+                  <div className="daily__day-energy">
+                    <BoltIcon />
+                    <span>+{dayEnergy}</span>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -73,6 +80,12 @@ export function DailyReward() {
           <div className="daily__big-glow" aria-hidden="true" />
           <CoinIcon className="daily__big-coin" />
           <span className="daily__big-amount">+{amount}</span>
+          {energyBonus > 0 && (
+            <span className="daily__big-energy">
+              <BoltIcon />
+              <span>+{energyBonus}</span>
+            </span>
+          )}
         </div>
 
         <button

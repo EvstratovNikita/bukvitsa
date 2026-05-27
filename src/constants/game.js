@@ -209,6 +209,10 @@ export const yesterdayKey = () => {
   return `${y}-${m}-${day}`;
 };
 
+// Bonus energy stacked on top of coin reward in the back half of the cycle.
+// Front-loads value into days 4-6 so the streak feels worth keeping.
+export const DAILY_ENERGY_BONUS = { 4: 1, 5: 2, 6: 3 };
+
 export const computeDailyReward = (lastVisitDate, dailyStreak) => {
   const today = todayKey();
   if (lastVisitDate === today) return null;
@@ -219,5 +223,5 @@ export const computeDailyReward = (lastVisitDate, dailyStreak) => {
   } else {
     streak = 1;
   }
-  return { streak, amount: streak };
+  return { streak, amount: streak, energy: DAILY_ENERGY_BONUS[streak] || 0 };
 };

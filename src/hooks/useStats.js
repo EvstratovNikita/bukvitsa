@@ -278,12 +278,29 @@ export function useStats() {
     setStats((s) => {
       const reward = computeDailyReward(s.lastVisitDate, s.dailyStreak || 0);
       if (!reward) return s;
+      // Energy bonus is reconciled inline (caps at ENERGY_MAX, refreshes
+      // lastEnergyTickAt so regen starts from now if we topped off).
+      const r = reconcilePetTimers({
+        energy: s.energy,
+        lastEnergyTickAt: s.lastEnergyTickAt,
+        hunger: s.pet?.hunger,
+        lastHungerTickAt: s.pet?.lastHungerTickAt,
+        hatched: Boolean(s.pet?.hatched)
+      });
+      const nextEnergy = reward.energy > 0
+        ? Math.min(ENERGY_MAX, r.energy + reward.energy)
+        : r.energy;
+      const nextTick = (reward.energy > 0 && r.energy < ENERGY_MAX && nextEnergy >= ENERGY_MAX)
+        ? new Date().toISOString()
+        : r.lastEnergyTickAt;
       return {
         ...s,
         coins: (s.coins || 0) + reward.amount,
         coinsEarned: (s.coinsEarned || 0) + reward.amount,
         lastVisitDate: todayKey(),
-        dailyStreak: reward.streak
+        dailyStreak: reward.streak,
+        energy: nextEnergy,
+        lastEnergyTickAt: nextTick
       };
     });
   }, []);
@@ -413,6 +430,8 @@ export function useStats() {
     if (!d) return 'unknown';
     const owned = stats.pet?.ownedDecorations || [];
     if (owned.includes(decoId)) return 'already_owned';
+    const petLevel = stats.pet?.level || 1;
+    if (d.minLevel && petLevel < d.minLevel) return 'locked';
     if ((stats.coins || 0) < d.price) return 'not_enough_coins';
     setStats((s) => {
       const eq = { ...(s.pet?.equipped || {}) };
@@ -433,7 +452,7 @@ export function useStats() {
       };
     });
     return 'ok';
-  }, [stats.coins, stats.pet?.ownedDecorations]);
+  }, [stats.coins, stats.pet?.ownedDecorations, stats.pet?.level]);
 
   // Equip an already-owned decoration. For wing items the caller passes the
   // explicit slot ('wingL' | 'wingR'); other items go to their declared slot.

@@ -107,6 +107,7 @@ export function PetScreen({ open, onClose }) {
     const r = buyDecoration(d.id);
     if (r === 'ok') showToast?.(`${d.name} — куплено и надето`);
     else if (r === 'not_enough_coins') showToast?.('Недостаточно монет');
+    else if (r === 'locked') showToast?.(`Доступно с ${d.minLevel} уровня Букли`);
   };
 
   if (!open) return null;
@@ -210,6 +211,7 @@ export function PetScreen({ open, onClose }) {
                   owned={owned}
                   equipped={equipped}
                   coins={stats.coins || 0}
+                  petLevel={lvl.level || 1}
                   onBuy={onBuyDeco}
                   onEquip={(id, slotOverride) => equipDecoration(id, slotOverride)}
                   onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
@@ -278,7 +280,7 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
   );
 }
 
-function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
+function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUnequipSlot }) {
   const bySlot = SLOTS.map((s) => ({
     slot: s,
     items: PET_DECORATIONS.filter((d) => d.slot === s.id)
@@ -322,9 +324,10 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
               const onL = wingL === d.id;
               const onR = wingR === d.id;
               const isActiveSingle = !isWing && equippedId === d.id;
+              const isLocked = !isOwned && d.minLevel && petLevel < d.minLevel;
 
               return (
-                <div key={d.id} className={`pet-deco${isActiveSingle || onL || onR ? ' pet-deco--active' : ''}`}>
+                <div key={d.id} className={`pet-deco${isActiveSingle || onL || onR ? ' pet-deco--active' : ''}${isLocked ? ' pet-deco--locked' : ''}`}>
                   <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
                   <span className="pet-deco__meta">
                     <span className="pet-deco__name">{d.name}</span>
@@ -332,7 +335,11 @@ function CheerPanel({ owned, equipped, coins, onBuy, onEquip, onUnequipSlot }) {
                     <span className="pet-deco__bonus">+{d.bonusPct}% к награде</span>
                   </span>
                   <div className="pet-deco__cta">
-                    {!isOwned ? (
+                    {isLocked ? (
+                      <span className="pet-deco__lock" title={`Доступно с ${d.minLevel} уровня Букли`}>
+                        🔒 Ур. {d.minLevel}
+                      </span>
+                    ) : !isOwned ? (
                       <button
                         type="button"
                         className="btn btn--primary pet-deco__btn pet-deco__btn--price"

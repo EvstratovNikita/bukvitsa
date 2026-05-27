@@ -21,30 +21,34 @@ export const SLOT_LABEL = SLOTS.reduce((m, s) => { m[s.id] = s.label; return m; 
 // Per-item visual hints used when rendering on the owl SVG. `bandColor`
 // applies to neck items (collar wrap colour); `wingTint` is a future hook
 // for wing-amulet recolouring.
+// `minLevel` gates purchases behind Букля's level. First few items in each
+// slot stay open from level 1 so a new player has something to spend on
+// immediately; higher tiers unlock as the pet grows. Designed so a typical
+// player hits level 5–10 mid-game and the top trio unlocks around 15–18.
 export const PET_DECORATIONS = [
   // ---------- HEAD ----------
-  { id: 'bow',      slot: 'head', icon: '🎀', name: 'Розовый бантик',    desc: 'Прибавляет шарма',                  price: 60,  bonusPct: 3 },
-  { id: 'academic', slot: 'head', icon: '🎓', name: 'Шапка академика',   desc: 'Знание — золото',                   price: 200, bonusPct: 7 },
-  { id: 'cap',      slot: 'head', icon: '🧢', name: 'Кепка',             desc: 'Простая и удобная',                price: 250, bonusPct: 8 },
-  { id: 'tophat',   slot: 'head', icon: '🎩', name: 'Цилиндр',           desc: 'Аристократический вид',             price: 380, bonusPct: 12 },
-  { id: 'crown',    slot: 'head', icon: '👑', name: 'Корона мудрости',   desc: 'На голове совы — повелитель монет', price: 600, bonusPct: 18 },
+  { id: 'bow',      slot: 'head', icon: '🎀', name: 'Розовый бантик',    desc: 'Прибавляет шарма',                  price: 60,  bonusPct: 3,  minLevel: 1 },
+  { id: 'academic', slot: 'head', icon: '🎓', name: 'Шапка академика',   desc: 'Знание — золото',                   price: 200, bonusPct: 7,  minLevel: 4 },
+  { id: 'cap',      slot: 'head', icon: '🧢', name: 'Кепка',             desc: 'Простая и удобная',                price: 250, bonusPct: 8,  minLevel: 6 },
+  { id: 'tophat',   slot: 'head', icon: '🎩', name: 'Цилиндр',           desc: 'Аристократический вид',             price: 380, bonusPct: 12, minLevel: 10 },
+  { id: 'crown',    slot: 'head', icon: '👑', name: 'Корона мудрости',   desc: 'На голове совы — повелитель монет', price: 600, bonusPct: 18, minLevel: 15 },
 
   // ---------- EYES ----------
-  { id: 'glasses',  slot: 'eyes', icon: '👓', name: 'Учёные очки',       desc: 'Умный вид — больше монет',          price: 180, bonusPct: 7 },
-  { id: 'shades',   slot: 'eyes', icon: '🕶️', name: 'Солнечные очки',    desc: 'Слепят соперников',                 price: 230, bonusPct: 8 },
-  { id: 'monocle',  slot: 'eyes', icon: '🧐', name: 'Монокль',           desc: 'Только серьёзные дела',             price: 300, bonusPct: 10 },
+  { id: 'glasses',  slot: 'eyes', icon: '👓', name: 'Учёные очки',       desc: 'Умный вид — больше монет',          price: 180, bonusPct: 7,  minLevel: 1 },
+  { id: 'shades',   slot: 'eyes', icon: '🕶️', name: 'Солнечные очки',    desc: 'Слепят соперников',                 price: 230, bonusPct: 8,  minLevel: 5 },
+  { id: 'monocle',  slot: 'eyes', icon: '🧐', name: 'Монокль',           desc: 'Только серьёзные дела',             price: 300, bonusPct: 10, minLevel: 9 },
 
   // ---------- BROOCH (small pin on the right of the chest) ----------
-  { id: 'rose',     slot: 'brooch', icon: '🌹', name: 'Брошь-роза',    desc: 'Классическая нежность',     price: 110, bonusPct: 5 },
-  { id: 'medal',    slot: 'brooch', icon: '🥇', name: 'Медаль',         desc: 'За заслуги перед словарём', price: 150, bonusPct: 6 },
-  { id: 'lightning', slot: 'brooch', icon: '⚡', name: 'Молния',         desc: 'Заряд бодрости',           price: 200, bonusPct: 7 },
-  { id: 'heart',    slot: 'brooch', icon: '❤️', name: 'Сердечко',       desc: 'С любовью к буквам',       price: 240, bonusPct: 9 },
+  { id: 'rose',     slot: 'brooch', icon: '🌹', name: 'Брошь-роза',    desc: 'Классическая нежность',     price: 110, bonusPct: 5, minLevel: 1 },
+  { id: 'medal',    slot: 'brooch', icon: '🥇', name: 'Медаль',         desc: 'За заслуги перед словарём', price: 150, bonusPct: 6, minLevel: 3 },
+  { id: 'lightning', slot: 'brooch', icon: '⚡', name: 'Молния',         desc: 'Заряд бодрости',           price: 200, bonusPct: 7, minLevel: 7 },
+  { id: 'heart',    slot: 'brooch', icon: '❤️', name: 'Сердечко',       desc: 'С любовью к буквам',       price: 240, bonusPct: 9, minLevel: 11 },
 
   // ---------- WING AMULETS (up to 2, one per wing) ----------
-  { id: 'feather', slot: 'wing', icon: '🪶', name: 'Перьевой амулет',    desc: 'Лёгкость в перьях — тяжесть в монете', price: 250, bonusPct: 9 },
-  { id: 'sparkle', slot: 'wing', icon: '🔮', name: 'Магический амулет',  desc: 'Искрит при каждой победе',           price: 350, bonusPct: 12 },
-  { id: 'crystal', slot: 'wing', icon: '💎', name: 'Хрустальная капля', desc: 'Притягивает удачу и золото',          price: 500, bonusPct: 16 },
-  { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusPct: 22 }
+  { id: 'feather', slot: 'wing', icon: '🪶', name: 'Перьевой амулет',    desc: 'Лёгкость в перьях — тяжесть в монете', price: 250, bonusPct: 9,  minLevel: 2 },
+  { id: 'sparkle', slot: 'wing', icon: '🔮', name: 'Магический амулет',  desc: 'Искрит при каждой победе',           price: 350, bonusPct: 12, minLevel: 8 },
+  { id: 'crystal', slot: 'wing', icon: '💎', name: 'Хрустальная капля', desc: 'Притягивает удачу и золото',          price: 500, bonusPct: 16, minLevel: 13 },
+  { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusPct: 22, minLevel: 18 }
 ];
 
 export const getDecoration = (id) => PET_DECORATIONS.find((d) => d.id === id);
