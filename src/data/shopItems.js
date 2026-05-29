@@ -371,8 +371,8 @@ export const SHOP_ITEMS = [
     id: 'boost-ad-coins',
     category: 'boost',
     name: 'Щедрая реклама',
-    desc: '+3 монеты к каждому просмотру рекламы — на следующие 10 просмотров',
-    price: 40,
+    desc: '+4 монеты к каждому просмотру рекламы — на следующие 10 просмотров',
+    price: 30,
     consumable: true
   },
   {
@@ -380,7 +380,7 @@ export const SHOP_ITEMS = [
     category: 'boost',
     name: 'Запас энергии',
     desc: 'Лимит энергии повышается до 7 на 2 дня',
-    price: 50,
+    price: 100,
     consumable: true
   }
 ];

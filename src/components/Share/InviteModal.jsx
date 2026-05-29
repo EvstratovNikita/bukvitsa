@@ -6,7 +6,7 @@ import { CoinIcon, UserIcon } from '../icons/Icon.jsx';
 import { ShareButton } from './ShareButton.jsx';
 
 // Friend-invite screen accessible from the side menu. Surfaces:
-//   - explanation of the reward (+30 to friend, +20 to you on verified join)
+//   - explanation of the reward (+50 to friend, +50 to you on verified join)
 //   - the personal invite link (copy button)
 //   - the platform-native share trigger
 //   - running tally of how many friends already joined
@@ -15,7 +15,7 @@ export function InviteModal({ open, onClose }) {
   const url = buildInviteUrl(auth?.userId);
   const [copyMsg, setCopyMsg] = useState(null);
   const count = stats.referralsCount || 0;
-  const earned = count * 20;
+  const earned = count * 50;
 
   const onCopy = async () => {
     try {
@@ -33,9 +33,9 @@ export function InviteModal({ open, onClose }) {
         <div className="invite__hero">
           <div className="invite__icon"><UserIcon /></div>
           <div className="invite__lead">
-            Друг получит <b>+30 монет</b> на старте,
+            Друг получит <b>+50 монет</b> на старте,
             <br />
-            ты — <b>+20 монет</b>, когда он войдёт через Google или почту.
+            ты — <b>+50 монет</b>, когда он войдёт через Google или почту.
           </div>
         </div>
 

@@ -49,7 +49,7 @@ export const HINT_COST = {
 
 // Energy budget. One unit is consumed per started puzzle.
 export const ENERGY_MAX = 5;
-export const ENERGY_REFILL_COST = 10;             // coins per +1 energy
+export const ENERGY_REFILL_COST = 20;             // coins per +1 energy
 export const ENERGY_AD_REWARD = 1;                 // energy per ad watched
 export const ENERGY_REGEN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours per unit
 
@@ -58,7 +58,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export const BOOST_DOUBLE_MS = 1 * DAY_MS;        // double coins for 1 day
 export const BOOST_ENERGY_CAP = 7;                 // raised energy ceiling
 export const BOOST_ENERGY_CAP_MS = 2 * DAY_MS;     // for 2 days
-export const AD_COIN_BONUS = 3;                    // extra coins per ad view
+export const AD_COIN_BONUS = 4;                    // extra coins per ad view
 export const AD_COIN_BONUS_USES = 10;              // number of boosted ad views
 
 // Soft daily cap on "double reward via ad" presses. High enough not to bother
