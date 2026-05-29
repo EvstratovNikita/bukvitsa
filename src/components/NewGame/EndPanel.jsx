@@ -13,7 +13,7 @@ export function EndPanel() {
   const {
     status, reset, solution, evaluations, guesses,
     lastEarned, lastEarnedBase,
-    doubledLastWin, doublingAd, doubleLastReward,
+    doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft,
     gameMode, exitDailyMode, auth, wordLength, stats
   } = useGameContext();
   const [shareStatus, setShareStatus] = useState(null);
@@ -30,7 +30,7 @@ export function EndPanel() {
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   // Daily wins do NOT show the ×2 ad button — the doubled reward is built
   // into the daily payout already.
-  const canDouble = !isDaily && isWin && lastEarned > 0 && !doubledLastWin;
+  const canDouble = !isDaily && isWin && lastEarned > 0 && !doubledLastWin && (adsDoubleLeft ?? 0) > 0;
   const dayN = getDailyNumber();
 
   const onShare = async () => {

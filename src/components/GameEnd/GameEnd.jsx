@@ -50,7 +50,7 @@ export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, stats,
     guesses, evaluations, auth, gameMode, exitDailyMode, reset,
-    doubledLastWin, doublingAd, doubleLastReward, wordLength
+    doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength
   } = useGameContext();
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   const isAlt = gameMode !== 'daily' && wordLength !== 5;
@@ -200,7 +200,7 @@ export function GameEnd() {
                      'Поделиться сеткой'}</span>
             </button>
           )}
-          {!isDaily && isWin && lastEarned > 0 && !doubledLastWin && (
+          {!isDaily && isWin && lastEarned > 0 && !doubledLastWin && (adsDoubleLeft ?? 0) > 0 && (
             <button
               type="button"
               className="btn btn--ad-double gameend__btn"

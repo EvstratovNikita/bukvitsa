@@ -332,7 +332,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                   <span className="pet-deco__meta">
                     <span className="pet-deco__name">{d.name}</span>
                     <span className="pet-deco__desc">{d.desc}</span>
-                    <span className="pet-deco__bonus">+{d.bonusPct}% к награде</span>
+                    <span className="pet-deco__bonus">+{d.bonusCoins} монет за победу</span>
                   </span>
                   <div className="pet-deco__cta">
                     {isLocked ? (

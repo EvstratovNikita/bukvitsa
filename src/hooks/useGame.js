@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
+import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, doubleCoinsActive, petXpForWin, rewardFor } from '../constants/game.js';
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd } from '../lib/ads.js';
@@ -210,10 +210,9 @@ export function useGame() {
             if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
           } else {
             const base = rewardFor(nextGuesses.length);
-            const decoPct = equippedDecorationsBonus(stats.stats.pet);
-            const decoMul = 1 + decoPct / 100;
-            const boostMul = stats.stats.boostDoubleCoins ? 2 : 1;
-            const total = Math.round(base * decoMul * boostMul);
+            const decoCoins = equippedDecorationsBonus(stats.stats.pet);
+            const boostMul = doubleCoinsActive(stats.stats) ? 2 : 1;
+            const total = Math.round((base + decoCoins) * boostMul);
             setLastEarnedBase(base);
             setLastEarned(total);
           }
@@ -394,12 +393,22 @@ export function useGame() {
     if (status !== GAME_STATUS.WON) return 'wrong_state';
     if (doubledLastWin || doublingAd) return 'busy';
     if (!lastEarned || lastEarned <= 0) return 'nothing';
+    // Soft daily cap on ad-doubling — protects the coin economy.
+    if ((stats.adsDoubleLeft ?? 0) <= 0) {
+      showToast('Лимит удвоений за рекламу на сегодня исчерпан');
+      return 'limit';
+    }
     setDoublingAd(true);
     const r = await showRewardedAd();
     setDoublingAd(false);
     if (r !== 'rewarded') {
       showToast(r === 'closed' ? 'Реклама закрыта раньше' : 'Реклама недоступна');
       return r;
+    }
+    // Re-check + tally against the cap (guards against races / stale closure).
+    if (!stats.recordAdDouble?.()) {
+      showToast('Лимит удвоений за рекламу на сегодня исчерпан');
+      return 'limit';
     }
     stats.addCoins(lastEarned);
     const adBonus = stats.recordAdWatched?.() || 0;
@@ -497,6 +506,7 @@ export function useGame() {
     doubledLastWin,
     doublingAd,
     doubleLastReward,
+    adsDoubleLeft: stats.adsDoubleLeft,
     gameMode,
     exitDailyMode,
     wordLength,

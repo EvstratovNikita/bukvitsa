@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   AD_COIN_BONUS,
   AD_COIN_BONUS_USES,
+  ADS_DOUBLE_PER_DAY,
   BOOST_DOUBLE_MS,
   BOOST_ENERGY_CAP_MS,
   ENERGY_AD_REWARD,
@@ -72,6 +73,11 @@ const DEFAULT_STATS = {
     plays: 0,               // plays since the last energy grant
     energyGranted: 0        // grants made today (≤ 3)
   },
+  adsDouble: {
+    // "Double reward via ad" daily counter — soft cap, resets at midnight.
+    dayKey: null,           // 'YYYY-MM-DD' of last counted double
+    count: 0                // doubles used today
+  },
   // Companion pet (Букля the owlet). Lightweight JSON blob; new fields
   // (xp, hunger, mood, equipped) get appended as the pet feature grows.
   pet: {
@@ -103,6 +109,7 @@ function load() {
     pet: migratePet(raw.pet),
     prefs: { ...DEFAULT_STATS.prefs, ...(raw.prefs || {}) },
     altMode: { ...DEFAULT_STATS.altMode, ...(raw.altMode || {}) },
+    adsDouble: { ...DEFAULT_STATS.adsDouble, ...(raw.adsDouble || {}) },
     // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
     // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
     lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
@@ -228,19 +235,19 @@ export function useStats() {
     // reward (currently 0.5 for the 4/6 modes). creditCoins=false skips the
     // coin credit entirely — 4/6 modes don't pay coins, only XP via callers.
     const base = Math.round(rewardFor(attemptsUsed) * lengthMul);
-    const decoPct = equippedDecorationsBonus(stats.pet);
-    const decoMul = 1 + decoPct / 100;
+    const decoCoins = equippedDecorationsBonus(stats.pet);
     // Double-coins is now a time-based boost (1 day) — never consumed on win.
     const boostMul = doubleCoinsActive(stats) ? 2 : 1;
-    const boosted = Math.round(base * decoMul * boostMul);
+    // Flat deco coins are added to base, then the whole total is doubled by
+    // the boost (so the boost is worth it for a decorated player).
+    const boosted = Math.round((base + decoCoins) * boostMul);
     setStats((s) => {
       const dist = s.distribution.slice();
       dist[attemptsUsed - 1] = (dist[attemptsUsed - 1] || 0) + 1;
       const currentStreak = s.currentStreak + 1;
-      const dPct = equippedDecorationsBonus(s.pet);
-      const dMul = 1 + dPct / 100;
+      const dCoins = equippedDecorationsBonus(s.pet);
       const bMul = doubleCoinsActive(s) ? 2 : 1;
-      const earned = creditCoins ? Math.round(base * dMul * bMul) : 0;
+      const earned = creditCoins ? Math.round((base + dCoins) * bMul) : 0;
       const prevFast = s.fastestWinMs;
       const nextFast = (elapsedMs != null && elapsedMs > 0)
         ? (prevFast == null ? elapsedMs : Math.min(prevFast, elapsedMs))
@@ -675,6 +682,28 @@ export function useStats() {
     return granted;
   }, []);
 
+  // Remaining "double via ad" presses today (resets at local midnight).
+  const adsDoubleLeft = useMemo(() => {
+    const cur = stats.adsDouble || DEFAULT_STATS.adsDouble;
+    const used = cur.dayKey === todayKey() ? (cur.count || 0) : 0;
+    return Math.max(0, ADS_DOUBLE_PER_DAY - used);
+  }, [stats.adsDouble]);
+
+  // Tally one "double via ad" use against the daily soft cap. Returns false
+  // (and does nothing) when the cap is already reached.
+  const recordAdDouble = useCallback(() => {
+    const today = todayKey();
+    const cur = stats.adsDouble || DEFAULT_STATS.adsDouble;
+    const used = cur.dayKey === today ? (cur.count || 0) : 0;
+    if (used >= ADS_DOUBLE_PER_DAY) return false;
+    setStats((s) => {
+      const c = s.adsDouble || DEFAULT_STATS.adsDouble;
+      const u = c.dayKey === today ? (c.count || 0) : 0;
+      return { ...s, adsDouble: { dayKey: today, count: u + 1 } };
+    });
+    return true;
+  }, [stats.adsDouble]);
+
   return {
     stats,
     recordWin,
@@ -694,6 +723,8 @@ export function useStats() {
     buyEnergy,
     grantAdEnergy,
     recordAdWatched,
+    adsDoubleLeft,
+    recordAdDouble,
     addCoins,
     setPref,
     recordDailyResult,

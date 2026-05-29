@@ -10,7 +10,7 @@ export const PET_TREATS = [
     icon: '🐛',
     name: 'Червячок',
     desc: 'Маленький, но вкусный',
-    price: 10,
+    price: 8,
     hungerGain: 10
   },
   {
@@ -18,7 +18,7 @@ export const PET_TREATS = [
     icon: '🥚',
     name: 'Перепелиное яичко',
     desc: 'Сытный завтрак для совёнка',
-    price: 22,
+    price: 18,
     hungerGain: 25
   },
   {
@@ -26,7 +26,7 @@ export const PET_TREATS = [
     icon: '🐭',
     name: 'Мышка',
     desc: 'Классическое лакомство ночной охотницы',
-    price: 40,
+    price: 32,
     hungerGain: 50
   },
   {
@@ -34,7 +34,7 @@ export const PET_TREATS = [
     icon: '🍖',
     name: 'Кусочек мяса',
     desc: 'Большая порция — наестся надолго',
-    price: 60,
+    price: 48,
     hungerGain: 80
   },
   {
@@ -42,7 +42,7 @@ export const PET_TREATS = [
     icon: '🌟',
     name: 'Звёздный нектар',
     desc: 'Сразу до полного! Тает на язычке',
-    price: 110,
+    price: 85,
     hungerGain: 100
   }
 ];

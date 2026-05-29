@@ -363,8 +363,8 @@ export const SHOP_ITEMS = [
     id: 'boost-double',
     category: 'boost',
     name: 'Двойные монеты',
-    desc: 'Удваивает все монеты за победы в течение 1 дня',
-    price: 200,
+    desc: 'Удваивает монеты за победы (база + бонус Букли) в течение 1 дня',
+    price: 120,
     consumable: true
   },
   {
@@ -372,7 +372,7 @@ export const SHOP_ITEMS = [
     category: 'boost',
     name: 'Щедрая реклама',
     desc: '+3 монеты к каждому просмотру рекламы — на следующие 10 просмотров',
-    price: 20,
+    price: 40,
     consumable: true
   },
   {
