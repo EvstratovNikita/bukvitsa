@@ -286,7 +286,7 @@ export function useGame() {
     setTimeout(() => {
       performReset();
       setIsClearing(false);
-    }, 340);
+    }, 460);
   }, [guesses.length, current.length, hints, performReset, stats, wordLength]);
 
   // Called after the user successfully tops up energy from the modal. Spends
@@ -343,39 +343,50 @@ export function useGame() {
     if (gameMode !== 'daily') return;
     setGameMode('normal');
     const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
-    if (backup?.solution) {
-      const restoreLen = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
-      setWordLength(restoreLen);
-      setSolution(backup.solution);
-      setGuesses(backup.guesses || []);
-      setEvaluations(backup.evaluations || []);
-      setStatus(backup.status || GAME_STATUS.PLAYING);
-      setHints(backup.hints || Array(restoreLen).fill(null));
-      setCurrent('');
-      setRevealRow(-1);
-      isLocked.current = false;
-      storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
-      gameStartRef.current = Date.now();
-      return;
-    }
-    if (stats.consumeEnergy()) {
-      gameStartRef.current = Date.now();
-      setSolution(pickRandomWord(Math.random, wordLength));
-      setGuesses([]);
-      setEvaluations([]);
-      setCurrent('');
-      setStatus(GAME_STATUS.PLAYING);
-      setHints(Array(wordLength).fill(null));
-      setRevealRow(-1);
-      isLocked.current = false;
-    } else {
-      setSolution(null);
-      setGuesses([]);
-      setEvaluations([]);
-      setStatus(GAME_STATUS.PLAYING);
-      setEnergyModalOpen(true);
-    }
-  }, [gameMode, stats]);
+
+    // The board is full of the daily result — play the flip-close animation
+    // before swapping in the next puzzle, mirroring the "Новая игра" reset.
+    const applyNext = () => {
+      if (backup?.solution) {
+        const restoreLen = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
+        setWordLength(restoreLen);
+        setSolution(backup.solution);
+        setGuesses(backup.guesses || []);
+        setEvaluations(backup.evaluations || []);
+        setStatus(backup.status || GAME_STATUS.PLAYING);
+        setHints(backup.hints || Array(restoreLen).fill(null));
+        setCurrent('');
+        setRevealRow(-1);
+        isLocked.current = false;
+        storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
+        gameStartRef.current = Date.now();
+        return;
+      }
+      if (stats.consumeEnergy()) {
+        gameStartRef.current = Date.now();
+        setSolution(pickRandomWord(Math.random, wordLength));
+        setGuesses([]);
+        setEvaluations([]);
+        setCurrent('');
+        setStatus(GAME_STATUS.PLAYING);
+        setHints(Array(wordLength).fill(null));
+        setRevealRow(-1);
+        isLocked.current = false;
+      } else {
+        setSolution(null);
+        setGuesses([]);
+        setEvaluations([]);
+        setStatus(GAME_STATUS.PLAYING);
+        setEnergyModalOpen(true);
+      }
+    };
+
+    setIsClearing(true);
+    setTimeout(() => {
+      applyNext();
+      setIsClearing(false);
+    }, 460);
+  }, [gameMode, stats, wordLength]);
 
   // Watch an ad → credit the just-won reward a second time. One-shot per
   // round; further presses are ignored until the next puzzle starts.

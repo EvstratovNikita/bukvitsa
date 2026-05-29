@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { CoinIcon, PlayIcon, RefreshIcon, ShareIcon } from '../icons/Icon.jsx';
+import { BoltIcon, CoinIcon, PlayIcon, RefreshIcon, ShareIcon } from '../icons/Icon.jsx';
 import { buildInviteUrl, buildWordleShareText, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
 
@@ -14,12 +14,19 @@ export function EndPanel() {
     status, reset, solution, evaluations, guesses,
     lastEarned, lastEarnedBase,
     doubledLastWin, doublingAd, doubleLastReward,
-    gameMode, exitDailyMode, auth
+    gameMode, exitDailyMode, auth, wordLength, stats
   } = useGameContext();
   const [shareStatus, setShareStatus] = useState(null);
   if (status === GAME_STATUS.PLAYING) return null;
   const isWin = status === GAME_STATUS.WON;
   const isDaily = gameMode === 'daily';
+  const isAlt = !isDaily && wordLength !== 5;
+  // Alt-mode (4/6) series toward the next +1 energy refund. plays counts
+  // completed rounds in the current local day; every 5 grants energy (≤3/day).
+  const altPlays = (stats?.altMode?.plays || 0) % 5;
+  const altGranted = stats?.altMode?.energyGranted || 0;
+  const altLeft = 5 - altPlays;
+  const altCapped = altGranted >= 3;
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   // Daily wins do NOT show the ×2 ad button — the doubled reward is built
   // into the daily payout already.
@@ -71,6 +78,22 @@ export function EndPanel() {
           {isDaily && (
             <div className="end-panel__breakdown">
               Слово дня #{dayN} · {isWin ? `${guesses?.length || 0}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`}
+            </div>
+          )}
+          {isAlt && (
+            <div className="end-panel__alt">
+              <div className="end-panel__alt-bar" aria-hidden="true">
+                {Array.from({ length: 5 }, (_, i) => (
+                  <span key={i} className={`end-panel__alt-pip${i < altPlays ? ' end-panel__alt-pip--on' : ''}`} />
+                ))}
+              </div>
+              <div className="end-panel__alt-text">
+                {altCapped
+                  ? 'Лимит энергии за режимы достигнут (3/3 сегодня)'
+                  : altLeft === 5
+                    ? <>Серия {altPlays}/5 — ещё <b>5</b> побед до <BoltIcon /> +1</>
+                    : <>Серия {altPlays}/5 — ещё <b>{altLeft}</b> {altLeft === 1 ? 'победа' : altLeft < 5 ? 'победы' : 'побед'} до <BoltIcon /> +1</>}
+              </div>
             </div>
           )}
         </div>

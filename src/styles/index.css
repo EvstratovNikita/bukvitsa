@@ -1076,6 +1076,21 @@ button { font-family: inherit; }
 }
 .daily__big--claimed { animation: daily-big-claimed 280ms ease-out forwards; }
 
+/* Light theme: the gold-on-cream coin numbers were too pale to read. Bump
+   to a saturated amber with darker ink, matching the reward chips elsewhere. */
+[data-theme="light"] .daily__day-coin { color: #9a5e00; }
+[data-theme="light"] .daily__day-coin svg { color: #c8870f; }
+[data-theme="light"] .daily__day--current .daily__day-coin { color: #7a3f00; }
+[data-theme="light"] .daily__big {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.55), rgba(247, 170, 40, 0.30));
+  border: 1.5px solid rgba(150, 95, 10, 0.7);
+  color: #6a3a04;
+}
+[data-theme="light"] .daily__big-coin { color: #c8870f; }
+[data-theme="light"] .daily__big-glow {
+  background: radial-gradient(60% 60% at 50% 50%, rgba(247, 170, 40, 0.5), transparent 70%);
+}
+
 @keyframes daily-big-in {
   0%   { opacity: 0; transform: scale(0.4) rotate(-20deg); }
   60%  { opacity: 1; transform: scale(1.12) rotate(4deg); }
@@ -1344,18 +1359,22 @@ button { font-family: inherit; }
 }
 .board--clearing {
   pointer-events: none;
+  perspective: 600px;
 }
 .board--clearing .cell {
-  animation: cell-out 320ms cubic-bezier(.4, .0, .6, 1) both;
+  animation: cell-out 300ms cubic-bezier(.45, .05, .55, .95) both;
 }
+/* Flip each column shut, left → right, like the reveal in reverse. */
 .board--clearing .row .cell:nth-child(1) { animation-delay: 0ms; }
-.board--clearing .row .cell:nth-child(2) { animation-delay: 25ms; }
-.board--clearing .row .cell:nth-child(3) { animation-delay: 50ms; }
-.board--clearing .row .cell:nth-child(4) { animation-delay: 75ms; }
-.board--clearing .row .cell:nth-child(5) { animation-delay: 100ms; }
+.board--clearing .row .cell:nth-child(2) { animation-delay: 45ms; }
+.board--clearing .row .cell:nth-child(3) { animation-delay: 90ms; }
+.board--clearing .row .cell:nth-child(4) { animation-delay: 135ms; }
+.board--clearing .row .cell:nth-child(5) { animation-delay: 180ms; }
+.board--clearing .row .cell:nth-child(6) { animation-delay: 225ms; }
 @keyframes cell-out {
-  0%   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-  100% { opacity: 0; transform: translateY(-12px) scale(0.85); filter: blur(2px); }
+  0%   { opacity: 1; transform: rotateX(0deg)   scale(1);    filter: blur(0); }
+  55%  { opacity: 1; transform: rotateX(90deg)  scale(0.98); filter: blur(0); }
+  100% { opacity: 0; transform: rotateX(90deg)  scale(0.9);  filter: blur(1px); }
 }
 .row {
   display: grid;
@@ -1590,6 +1609,41 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   white-space: nowrap;
 }
 .end-panel__double:disabled { opacity: 0.55; cursor: not-allowed; }
+.end-panel__alt {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.end-panel__alt-bar { display: inline-flex; gap: 4px; }
+.end-panel__alt-pip {
+  width: 18px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(108, 140, 255, 0.22);
+  border: 1px solid rgba(108, 140, 255, 0.35);
+}
+.end-panel__alt-pip--on {
+  background: linear-gradient(135deg, #8ca8ff, #5a78e8);
+  border-color: rgba(90, 120, 230, 0.8);
+  box-shadow: 0 0 6px rgba(108, 140, 255, 0.5);
+}
+.end-panel__alt-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(229, 235, 255, 0.78);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+.end-panel__alt-text b { color: #b5c5ff; }
+.end-panel__alt-text svg { width: 13px; height: 13px; color: #8ca8ff; vertical-align: -2px; }
+[data-theme="light"] .end-panel__alt-pip { background: rgba(60, 90, 220, 0.18); border-color: rgba(60, 90, 220, 0.4); }
+[data-theme="light"] .end-panel__alt-pip--on { background: linear-gradient(135deg, #5a78e8, #2840a8); }
+[data-theme="light"] .end-panel__alt-text { color: rgba(26, 29, 40, 0.78); }
+[data-theme="light"] .end-panel__alt-text b { color: #2840a0; }
+[data-theme="light"] .end-panel__alt-text svg { color: #2840a0; }
 /* Ad-double button in EndPanel: keep the gold gradient + pill layout from
    the win-modal copy, just shrink type/padding so it fits the narrow column. */
 .end-panel__double.btn--ad-double {

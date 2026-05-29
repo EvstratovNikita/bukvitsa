@@ -12,7 +12,8 @@ export function Board() {
     hints,
     hintPickMode,
     revealPositionHint,
-    wordLength
+    wordLength,
+    isClearing
   } = useGameContext();
   const currentIdx = guesses.length;
 
@@ -31,7 +32,7 @@ export function Board() {
   }, [evaluations]);
 
   return (
-    <div className="board" style={{ '--wl': wordLength }}>
+    <div className={`board${isClearing ? ' board--clearing' : ''}`} style={{ '--wl': wordLength }}>
       {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => {
         const isPast = i < currentIdx;
         const isCurrent = i === currentIdx;
