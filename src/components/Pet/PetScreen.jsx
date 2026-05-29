@@ -3,6 +3,7 @@ import { HUNGER_MAX, PET_UNLOCK_GAMES, energySpeedFromHunger, petComputeLevel } 
 import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '../../data/petDecorations.js';
 import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
+import { pluralCoins } from '../../utils/plural.js';
 import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
@@ -12,7 +13,7 @@ const HATCH_DURATION_MS = 3200;
 const TABS = [
   { id: 'feed',  icon: '🍖', label: 'Покормить' },
   { id: 'cheer', icon: '🎁', label: 'Порадовать' },
-  { id: 'train', icon: '✨', label: 'Обучить'    }
+  { id: 'train', icon: '🎓', label: 'Обучить'    }
 ];
 
 function ageInDays(iso) {
@@ -179,7 +180,7 @@ export function PetScreen({ open, onClose }) {
 
                 {decoBonus > 0 && (
                   <div className="pet-deco-active">
-                    На Букле: <b>+{decoBonus}%</b> к награде за победы
+                    На Букле: <b>+{decoBonus} {pluralCoins(decoBonus)}</b> к награде за победы
                   </div>
                 )}
                 <div className="pet-summary__meta">
@@ -332,7 +333,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                   <span className="pet-deco__meta">
                     <span className="pet-deco__name">{d.name}</span>
                     <span className="pet-deco__desc">{d.desc}</span>
-                    <span className="pet-deco__bonus">+{d.bonusCoins} монет за победу</span>
+                    <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)} за победу</span>
                   </span>
                   <div className="pet-deco__cta">
                     {isLocked ? (

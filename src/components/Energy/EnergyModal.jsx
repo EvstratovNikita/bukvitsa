@@ -9,6 +9,7 @@ import {
 } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { showRewardedAd } from '../../lib/ads.js';
+import { pluralCoins } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
 
@@ -70,7 +71,7 @@ export function EnergyModal() {
     if (result === 'rewarded') {
       grantAdEnergy();
       const adBonus = recordAdWatched?.() || 0;
-      flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} монет` : `+${ENERGY_AD_REWARD} энергия`);
+      flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} ${pluralCoins(adBonus)}` : `+${ENERGY_AD_REWARD} энергия`);
       if (needsStart) startAfterRefuel();
     } else if (result === 'closed') {
       flash('err', 'Реклама закрыта раньше');

@@ -29,7 +29,11 @@ export const KEYBOARD_ROWS = [
 export const ANIM = {
   FLIP_MS: 500,
   FLIP_STAGGER_MS: 280,
-  REVEAL_TOTAL_MS: 500 + 280 * (WORD_LENGTH - 1)
+  REVEAL_TOTAL_MS: 500 + 280 * (WORD_LENGTH - 1),
+  // Board clear (flip-close) on "Новая игра": cell-out is 300ms with a 45ms
+  // per-column stagger up to the 6th column (225ms) → 525ms. Wait the full
+  // duration before swapping in the next puzzle so the animation isn't cut.
+  CLEAR_TOTAL_MS: 300 + 45 * 5 + 40
 };
 
 // Coin reward per attempts-used to win. Index 0 = 1st try.

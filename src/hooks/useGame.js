@@ -5,6 +5,7 @@ import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js'
 import { showRewardedAd } from '../lib/ads.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
+import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
 
@@ -285,7 +286,7 @@ export function useGame() {
     setTimeout(() => {
       performReset();
       setIsClearing(false);
-    }, 460);
+    }, ANIM.CLEAR_TOTAL_MS);
   }, [guesses.length, current.length, hints, performReset, stats, wordLength]);
 
   // Called after the user successfully tops up energy from the modal. Spends
@@ -299,7 +300,7 @@ export function useGame() {
       setTimeout(() => {
         performReset();
         setIsClearing(false);
-      }, 340);
+      }, ANIM.CLEAR_TOTAL_MS);
     } else {
       performReset();
     }
@@ -384,7 +385,7 @@ export function useGame() {
     setTimeout(() => {
       applyNext();
       setIsClearing(false);
-    }, 460);
+    }, ANIM.CLEAR_TOTAL_MS);
   }, [gameMode, stats, wordLength]);
 
   // Watch an ad → credit the just-won reward a second time. One-shot per
@@ -414,8 +415,8 @@ export function useGame() {
     const adBonus = stats.recordAdWatched?.() || 0;
     setDoubledLastWin(true);
     showToast(adBonus > 0
-      ? `+${lastEarned} монет + ${adBonus} за рекламу!`
-      : `+${lastEarned} монет за просмотр!`);
+      ? `+${lastEarned} ${pluralCoins(lastEarned)} + ${adBonus} за рекламу!`
+      : `+${lastEarned} ${pluralCoins(lastEarned)} за просмотр!`);
     return 'ok';
   }, [status, doubledLastWin, doublingAd, lastEarned, stats, showToast]);
 

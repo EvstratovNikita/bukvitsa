@@ -8,6 +8,7 @@ import { SettingsModal } from './components/Settings/Settings.jsx';
 import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
+import { pluralCoins } from './utils/plural.js';
 import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
@@ -92,7 +93,7 @@ function GameShell() {
   useReferralClaim({
     userId: auth?.userId,
     isAnonymous: auth?.isAnonymous,
-    onClaim: (r) => showToast?.(`Бонус за приглашение: +${r.invitee_bonus} монет!`)
+    onClaim: (r) => showToast?.(`Бонус за приглашение: +${r.invitee_bonus} ${pluralCoins(r.invitee_bonus)}!`)
   });
   const [statsOpen, setStatsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
