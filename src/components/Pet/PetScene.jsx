@@ -34,10 +34,10 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
             <stop offset="0%"   stopColor="#1e1408" />
             <stop offset="100%" stopColor="#06030a" />
           </radialGradient>
-          <radialGradient id="ps-egg" cx="35%" cy="30%" r="75%">
-            <stop offset="0%"   stopColor="#fff7e2" />
-            <stop offset="55%"  stopColor="#f5d8a3" />
-            <stop offset="100%" stopColor="#b3833f" />
+          <radialGradient id="ps-egg" cx="38%" cy="26%" r="82%">
+            <stop offset="0%"   stopColor="#fffdf6" />
+            <stop offset="55%"  stopColor="#f3e6cd" />
+            <stop offset="100%" stopColor="#dcc097" />
           </radialGradient>
 
           {/* Owl gradients */}
@@ -131,44 +131,58 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
           <path d="M222 296 L232 286" />
         </g>
 
-        {/* --- Egg group (egg + hatching modes) --- */}
+        {/* --- Egg group (egg + hatching modes) ---
+            Two halves so the hatch animation can split them apart. Egg shape:
+            narrow rounded top, broad rounded base — a real egg, not a bean. */}
         <g className="pet-scene__egg">
           {/* Left half */}
           <g className="pet-egg-left">
             <path
-              d="M200 130
-                 C 165 130, 145 165, 145 220
-                 C 145 268, 165 290, 200 290
-                 L 200 130 Z"
+              d="M200 118
+                 C 181 118, 153 158, 151 222
+                 C 150 274, 173 304, 200 304
+                 L 200 118 Z"
               fill="url(#ps-egg)"
-              stroke="#8a5a1d"
-              strokeWidth="1.6"
+              stroke="#cdae82"
+              strokeWidth="1.4"
             />
           </g>
           {/* Right half */}
           <g className="pet-egg-right">
             <path
-              d="M200 130
-                 C 235 130, 255 165, 255 220
-                 C 255 268, 235 290, 200 290
-                 L 200 130 Z"
+              d="M200 118
+                 C 219 118, 247 158, 249 222
+                 C 250 274, 227 304, 200 304
+                 L 200 118 Z"
               fill="url(#ps-egg)"
-              stroke="#8a5a1d"
-              strokeWidth="1.6"
+              stroke="#cdae82"
+              strokeWidth="1.4"
             />
           </g>
+          {/* Soft top highlight for a glossy shell */}
+          <ellipse cx="184" cy="160" rx="20" ry="30" fill="#ffffff" opacity="0.30" />
           {/* Speckles */}
-          <g fill="#8a5a1d" opacity="0.45" className="pet-egg-speckles">
-            <ellipse cx="175" cy="180" rx="2.5" ry="1.5" />
-            <ellipse cx="225" cy="200" rx="2.2" ry="1.4" />
-            <ellipse cx="195" cy="240" rx="1.8" ry="1.1" />
-            <ellipse cx="230" cy="160" rx="1.6" ry="1.0" />
-            <ellipse cx="170" cy="225" rx="1.9" ry="1.2" />
+          <g fill="#c2a06f" opacity="0.42" className="pet-egg-speckles">
+            <ellipse cx="178" cy="205" rx="2.4" ry="1.5" />
+            <ellipse cx="224" cy="218" rx="2.1" ry="1.3" />
+            <ellipse cx="195" cy="258" rx="1.8" ry="1.1" />
+            <ellipse cx="226" cy="182" rx="1.6" ry="1.0" />
+            <ellipse cx="170" cy="240" rx="1.9" ry="1.2" />
           </g>
-          {/* Crack — appears mid-animation */}
+          {/* Small static crack at the top — always visible while waiting */}
+          <path
+            d="M184 150 L193 138 L200 150 L207 137 L216 150"
+            fill="none"
+            stroke="#a8814a"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.75"
+          />
+          {/* Wider crack that grows mid-hatch */}
           <path
             className="pet-egg-crack"
-            d="M170 200 L182 188 L188 202 L196 192 L204 206 L214 196 L226 210"
+            d="M178 150 L190 168 L200 152 L210 170 L222 152"
             fill="none"
             stroke="#3b1f08"
             strokeWidth="2"

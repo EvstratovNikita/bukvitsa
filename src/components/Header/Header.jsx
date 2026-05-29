@@ -1,4 +1,5 @@
 import { useGameContext } from '../../context/GameContext.jsx';
+import { PET_UNLOCK_GAMES } from '../../constants/game.js';
 import { PetHeaderButton } from '../Pet/PetHeaderButton.jsx';
 import { HelpIcon, PlusIcon } from '../icons/Icon.jsx';
 import { MenuButton } from '../Menu/Menu.jsx';
@@ -8,6 +9,9 @@ export function Header({ onOpenHelp, onOpenMenu, onOpenPet, onOpenModes }) {
   // pet is always one tap away without floating chrome over the board.
   const { stats } = useGameContext();
   const hatched = Boolean(stats.pet?.hatched);
+  // The egg is ready to hatch once the player has hit the unlock threshold but
+  // hasn't opened the pet section yet — shout about it so they notice.
+  const ready = !hatched && (stats.played || 0) >= PET_UNLOCK_GAMES;
 
   return (
     <header className="header">
@@ -40,7 +44,7 @@ export function Header({ onOpenHelp, onOpenMenu, onOpenPet, onOpenModes }) {
       </div>
 
       <div className="header__actions">
-        <PetHeaderButton onClick={onOpenPet} hatched={hatched} />
+        <PetHeaderButton onClick={onOpenPet} hatched={hatched} ready={ready} />
         <MenuButton onClick={onOpenMenu} />
       </div>
     </header>

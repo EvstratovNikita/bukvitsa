@@ -1,17 +1,20 @@
 // Compact pet icon for the header — owl glyph after hatch, egg before.
-// Pulsing dot before first visit hints the user there's a discovery there.
-export function PetHeaderButton({ onClick, hatched }) {
+// When `ready` (unlock threshold reached, not yet hatched) the button gets a
+// pulsing glow + "!" badge so the player notices the egg is ready to hatch.
+export function PetHeaderButton({ onClick, hatched, ready }) {
   return (
     <button
       type="button"
-      className={`iconbtn pet-headerbtn${hatched ? '' : ' pet-headerbtn--egg'}`}
+      className={`iconbtn pet-headerbtn${hatched ? '' : ' pet-headerbtn--egg'}${ready ? ' pet-headerbtn--ready' : ''}`}
       onClick={onClick}
       onMouseDown={(e) => e.preventDefault()}
-      aria-label={hatched ? 'Букля' : 'Дупло'}
-      title={hatched ? 'Букля' : 'Дупло'}
+      aria-label={hatched ? 'Букля' : ready ? 'Яйцо готово вылупиться!' : 'Дупло'}
+      title={hatched ? 'Букля' : ready ? 'Яйцо готово вылупиться!' : 'Дупло'}
     >
       {hatched ? <HeaderOwl /> : <HeaderEgg />}
-      {!hatched && <span className="pet-headerbtn__dot" aria-hidden="true" />}
+      {ready
+        ? <span className="pet-headerbtn__badge" aria-hidden="true">!</span>
+        : !hatched && <span className="pet-headerbtn__dot" aria-hidden="true" />}
     </button>
   );
 }
@@ -56,15 +59,16 @@ function HeaderEgg() {
   return (
     <svg viewBox="0 0 40 50" width="20" height="24" aria-hidden="true">
       <defs>
-        <radialGradient id="hdr-egg" cx="35%" cy="30%" r="70%">
-          <stop offset="0%"   stopColor="#fff7e2" />
-          <stop offset="60%"  stopColor="#f5d8a3" />
-          <stop offset="100%" stopColor="#c9974c" />
+        <radialGradient id="hdr-egg" cx="38%" cy="26%" r="78%">
+          <stop offset="0%"   stopColor="#fffdf6" />
+          <stop offset="55%"  stopColor="#f3e6cd" />
+          <stop offset="100%" stopColor="#dcc097" />
         </radialGradient>
       </defs>
-      <ellipse cx="20" cy="28" rx="14" ry="20" fill="url(#hdr-egg)" stroke="#8a5a1d" strokeWidth="1.2" />
-      <ellipse cx="14" cy="20" rx="2.2" ry="1.4" fill="#8a5a1d" opacity="0.45" />
-      <ellipse cx="26" cy="32" rx="2"   ry="1.4" fill="#8a5a1d" opacity="0.45" />
+      <ellipse cx="20" cy="28" rx="13" ry="19" fill="url(#hdr-egg)" stroke="#cdae82" strokeWidth="1.1" />
+      <path d="M15 13 L18 9 L20 13 L22 8 L25 13" fill="none" stroke="#a8814a" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" opacity="0.75" />
+      <ellipse cx="15" cy="22" rx="2" ry="1.3" fill="#c2a06f" opacity="0.4" />
+      <ellipse cx="26" cy="32" rx="1.8" ry="1.2" fill="#c2a06f" opacity="0.4" />
     </svg>
   );
 }

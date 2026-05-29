@@ -393,7 +393,7 @@ function LockedStub({ gamesLeft, played }) {
     <section className="pet-locked">
       <div className="pet-locked__lock" aria-hidden="true">🔒</div>
       <h3 className="pet-locked__title">
-        Букля ещё не готова вылупиться
+        Совсем скоро тут кое-кто появится…
       </h3>
       <p className="pet-locked__desc">
         Сыграй {gamesLeft} {pluralGames(gamesLeft)}, и в дупле начнётся что-то интересное.
