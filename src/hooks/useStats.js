@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  AD_COIN_BONUS,
+  AD_COIN_BONUS_USES,
+  BOOST_DOUBLE_MS,
+  BOOST_ENERGY_CAP_MS,
   ENERGY_AD_REWARD,
   ENERGY_MAX,
   ENERGY_REFILL_COST,
@@ -7,6 +11,8 @@ import {
   MAX_ATTEMPTS,
   STORAGE_KEYS,
   computeDailyReward,
+  doubleCoinsActive,
+  energyCapFor,
   petComputeLevel,
   reconcilePetTimers,
   rewardFor,
@@ -35,7 +41,10 @@ const DEFAULT_STATS = {
   inventory: [],          // array of owned non-consumable item ids
   activeBackground: null, // id of currently equipped background skin
   activeCellStyle: null,  // id of currently equipped cell style
-  boostDoubleCoins: false, // one-shot x2 boost for the next won game
+  boostDoubleCoins: false, // legacy one-shot flag (kept for back-compat)
+  boostDoubleUntil: null,  // ISO — double coins active while now < this
+  energyCapUntil: null,    // ISO — energy ceiling is 7 while now < this
+  adBonusLeft: 0,          // remaining ad views that grant +3 bonus coins
   energy: ENERGY_MAX,           // current units; regens over time
   lastEnergyTickAt: null,       // ISO of last reconciliation
   hintsUsed: 0,            // cumulative paid-hint reveals
@@ -149,14 +158,18 @@ export function useStats() {
   // Reconciled (post-decay/regen) view derived on every render. Cheap because
   // reconcilePetTimers is pure math. Used everywhere the UI needs current
   // values; the stored stats lag behind until a real mutation flushes them.
+  // Active energy ceiling — 7 while the cap boost is live, else 5.
+  const energyMax = useMemo(() => energyCapFor(stats, nowMs), [stats.energyCapUntil, nowMs]);
+
   const reconciled = useMemo(() => reconcilePetTimers({
     energy: stats.energy,
     lastEnergyTickAt: stats.lastEnergyTickAt,
     hunger: stats.pet?.hunger,
     lastHungerTickAt: stats.pet?.lastHungerTickAt,
     hatched: Boolean(stats.pet?.hatched),
+    maxEnergy: energyMax,
     nowMs
-  }), [stats.energy, stats.lastEnergyTickAt, stats.pet?.hunger, stats.pet?.lastHungerTickAt, stats.pet?.hatched, nowMs]);
+  }), [stats.energy, stats.lastEnergyTickAt, stats.pet?.hunger, stats.pet?.lastHungerTickAt, stats.pet?.hatched, energyMax, nowMs]);
 
   // Persist when integer energy crosses a unit boundary. This keeps the
   // displayed value durable across reloads and avoids divergence between
@@ -217,7 +230,8 @@ export function useStats() {
     const base = Math.round(rewardFor(attemptsUsed) * lengthMul);
     const decoPct = equippedDecorationsBonus(stats.pet);
     const decoMul = 1 + decoPct / 100;
-    const boostMul = stats.boostDoubleCoins ? 2 : 1;
+    // Double-coins is now a time-based boost (1 day) — never consumed on win.
+    const boostMul = doubleCoinsActive(stats) ? 2 : 1;
     const boosted = Math.round(base * decoMul * boostMul);
     setStats((s) => {
       const dist = s.distribution.slice();
@@ -225,7 +239,7 @@ export function useStats() {
       const currentStreak = s.currentStreak + 1;
       const dPct = equippedDecorationsBonus(s.pet);
       const dMul = 1 + dPct / 100;
-      const bMul = s.boostDoubleCoins ? 2 : 1;
+      const bMul = doubleCoinsActive(s) ? 2 : 1;
       const earned = creditCoins ? Math.round(base * dMul * bMul) : 0;
       const prevFast = s.fastestWinMs;
       const nextFast = (elapsedMs != null && elapsedMs > 0)
@@ -244,13 +258,11 @@ export function useStats() {
         coins: (s.coins || 0) + earned,
         coinsEarned: (s.coinsEarned || 0) + earned,
         distribution: dist,
-        // Only burn the ×2 boost when we actually credited coins.
-        boostDoubleCoins: creditCoins ? false : s.boostDoubleCoins,
         fastestWinMs: nextFast
       };
     });
     return creditCoins ? boosted : 0;
-  }, [stats.boostDoubleCoins, stats.pet?.equipped]);
+  }, [stats.boostDoubleUntil, stats.pet?.equipped]);
 
   const recordLoss = useCallback(() => {
     setStats((s) => ({
@@ -280,17 +292,19 @@ export function useStats() {
       if (!reward) return s;
       // Energy bonus is reconciled inline (caps at ENERGY_MAX, refreshes
       // lastEnergyTickAt so regen starts from now if we topped off).
+      const cap = energyCapFor(s);
       const r = reconcilePetTimers({
         energy: s.energy,
         lastEnergyTickAt: s.lastEnergyTickAt,
         hunger: s.pet?.hunger,
         lastHungerTickAt: s.pet?.lastHungerTickAt,
-        hatched: Boolean(s.pet?.hatched)
+        hatched: Boolean(s.pet?.hatched),
+        maxEnergy: cap
       });
       const nextEnergy = reward.energy > 0
-        ? Math.min(ENERGY_MAX, r.energy + reward.energy)
+        ? Math.min(cap, r.energy + reward.energy)
         : r.energy;
-      const nextTick = (reward.energy > 0 && r.energy < ENERGY_MAX && nextEnergy >= ENERGY_MAX)
+      const nextTick = (reward.energy > 0 && r.energy < cap && nextEnergy >= cap)
         ? new Date().toISOString()
         : r.lastEnergyTickAt;
       return {
@@ -537,8 +551,20 @@ export function useStats() {
         itemsBought: (s.itemsBought || 0) + 1
       };
       if (item.consumable) {
-        // Consumables don't enter inventory — they flip a flag instead.
-        if (item.id === 'boost-double') next.boostDoubleCoins = true;
+        // Consumables don't enter inventory — they arm a timed/counted boost.
+        const now = Date.now();
+        if (item.id === 'boost-double') {
+          // Stack onto remaining time if re-bought while still active.
+          const base = (s.boostDoubleUntil && now < new Date(s.boostDoubleUntil).getTime())
+            ? new Date(s.boostDoubleUntil).getTime() : now;
+          next.boostDoubleUntil = new Date(base + BOOST_DOUBLE_MS).toISOString();
+        } else if (item.id === 'boost-energy-cap') {
+          const base = (s.energyCapUntil && now < new Date(s.energyCapUntil).getTime())
+            ? new Date(s.energyCapUntil).getTime() : now;
+          next.energyCapUntil = new Date(base + BOOST_ENERGY_CAP_MS).toISOString();
+        } else if (item.id === 'boost-ad-coins') {
+          next.adBonusLeft = (s.adBonusLeft || 0) + AD_COIN_BONUS_USES;
+        }
       } else {
         next.inventory = [...(s.inventory || []), itemId];
         // Auto-equip cosmetic items on first purchase.
@@ -566,17 +592,19 @@ export function useStats() {
   // regen ticks when mutating energy. All energy ops route through this.
   const mutateEnergy = useCallback((delta) => {
     setStats((s) => {
+      const cap = energyCapFor(s);
       const r = reconcilePetTimers({
         energy: s.energy,
         lastEnergyTickAt: s.lastEnergyTickAt,
         hunger: s.pet?.hunger,
         lastHungerTickAt: s.pet?.lastHungerTickAt,
-        hatched: Boolean(s.pet?.hatched)
+        hatched: Boolean(s.pet?.hatched),
+        maxEnergy: cap
       });
-      const nextEnergy = Math.max(0, Math.min(ENERGY_MAX, r.energy + delta));
+      const nextEnergy = Math.max(0, Math.min(cap, r.energy + delta));
       // If we were full and spent one, lastEnergyTickAt becomes "now" so the
       // regen timer starts cleanly instead of crediting time from earlier.
-      const nextTick = (r.energy >= ENERGY_MAX && delta < 0)
+      const nextTick = (r.energy >= cap && delta < 0)
         ? new Date().toISOString()
         : r.lastEnergyTickAt;
       return {
@@ -619,16 +647,33 @@ export function useStats() {
   }, [reconciled.energy, mutateEnergy]);
 
   const buyEnergy = useCallback(() => {
-    if (reconciled.energy >= ENERGY_MAX) return 'full';
+    if (reconciled.energy >= energyMax) return 'full';
     if ((stats.coins || 0) < ENERGY_REFILL_COST) return 'not_enough_coins';
     setStats((s) => ({ ...s, coins: Math.max(0, (s.coins || 0) - ENERGY_REFILL_COST) }));
     mutateEnergy(+1);
     return 'ok';
-  }, [reconciled.energy, stats.coins, mutateEnergy]);
+  }, [reconciled.energy, energyMax, stats.coins, mutateEnergy]);
 
   const grantAdEnergy = useCallback(() => {
     mutateEnergy(+ENERGY_AD_REWARD);
   }, [mutateEnergy]);
+
+  // Called whenever a rewarded ad finishes. If the "Щедрая реклама" boost has
+  // uses left, credit +3 coins and decrement. Returns the bonus granted (0/3).
+  const recordAdWatched = useCallback(() => {
+    let granted = 0;
+    setStats((s) => {
+      if ((s.adBonusLeft || 0) <= 0) return s;
+      granted = AD_COIN_BONUS;
+      return {
+        ...s,
+        coins: (s.coins || 0) + AD_COIN_BONUS,
+        coinsEarned: (s.coinsEarned || 0) + AD_COIN_BONUS,
+        adBonusLeft: (s.adBonusLeft || 0) - 1
+      };
+    });
+    return granted;
+  }, []);
 
   return {
     stats,
@@ -642,11 +687,13 @@ export function useStats() {
     setActiveBackground,
     setActiveCellStyle,
     energy: effectiveEnergy,
+    energyMax,
     petHunger: reconciled.hunger,
     lastEnergyTickAt: reconciled.lastEnergyTickAt,
     consumeEnergy,
     buyEnergy,
     grantAdEnergy,
+    recordAdWatched,
     addCoins,
     setPref,
     recordDailyResult,

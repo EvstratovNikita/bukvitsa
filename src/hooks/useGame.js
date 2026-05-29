@@ -402,8 +402,11 @@ export function useGame() {
       return r;
     }
     stats.addCoins(lastEarned);
+    const adBonus = stats.recordAdWatched?.() || 0;
     setDoubledLastWin(true);
-    showToast(`+${lastEarned} монет за просмотр!`);
+    showToast(adBonus > 0
+      ? `+${lastEarned} монет + ${adBonus} за рекламу!`
+      : `+${lastEarned} монет за просмотр!`);
     return 'ok';
   }, [status, doubledLastWin, doublingAd, lastEarned, stats, showToast]);
 
@@ -537,11 +540,13 @@ export function useGame() {
     lastEnergyTickAt: stats.lastEnergyTickAt,
     // Energy
     energy: stats.energy,
+    energyMax: stats.energyMax,
     energyModalOpen,
     openEnergyModal: () => setEnergyModalOpen(true),
     closeEnergyModal,
     buyEnergy: stats.buyEnergy,
     grantAdEnergy: stats.grantAdEnergy,
+    recordAdWatched: stats.recordAdWatched,
     startAfterRefuel
   };
 }

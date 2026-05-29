@@ -49,6 +49,28 @@ export const ENERGY_REFILL_COST = 20;             // coins per +1 energy
 export const ENERGY_AD_REWARD = 1;                 // energy per ad watched
 export const ENERGY_REGEN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours per unit
 
+// ---- Timed boost consumables (Бонусы tab) ----
+const DAY_MS = 24 * 60 * 60 * 1000;
+export const BOOST_DOUBLE_MS = 1 * DAY_MS;        // double coins for 1 day
+export const BOOST_ENERGY_CAP = 7;                 // raised energy ceiling
+export const BOOST_ENERGY_CAP_MS = 2 * DAY_MS;     // for 2 days
+export const AD_COIN_BONUS = 3;                    // extra coins per ad view
+export const AD_COIN_BONUS_USES = 10;              // number of boosted ad views
+
+// Resolve the active energy ceiling for a stats blob (7 while the cap boost
+// is live, otherwise the base 5).
+export const energyCapFor = (s, nowMs) => {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  return (s?.energyCapUntil && now < new Date(s.energyCapUntil).getTime())
+    ? BOOST_ENERGY_CAP : ENERGY_MAX;
+};
+
+// Is the double-coins boost currently active?
+export const doubleCoinsActive = (s, nowMs) => {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  return Boolean(s?.boostDoubleUntil) && now < new Date(s.boostDoubleUntil).getTime();
+};
+
 // Hunger drives the pet's bonus to energy regen speed:
 //   speedMultiplier = 1 + floor(hunger / 10) * 0.1
 //   hunger 0   → 1.0x (2h per unit)
@@ -111,7 +133,8 @@ export function petComputeLevel(xp) {
 // Hunger decays first, then energy regen uses the post-decay hunger for its
 // speed multiplier. Close enough to a continuous integral that the player
 // won't notice the discretisation.
-export function reconcilePetTimers({ energy, lastEnergyTickAt, hunger, lastHungerTickAt, hatched, nowMs }) {
+export function reconcilePetTimers({ energy, lastEnergyTickAt, hunger, lastHungerTickAt, hatched, nowMs, maxEnergy }) {
+  const cap = Number.isFinite(maxEnergy) ? maxEnergy : ENERGY_MAX;
   const now = Number.isFinite(nowMs) ? nowMs : Date.now();
   const nowIso = new Date(now).toISOString();
 
@@ -129,21 +152,21 @@ export function reconcilePetTimers({ energy, lastEnergyTickAt, hunger, lastHunge
   }
 
   // Energy regen.
-  const startEnergy = Number.isFinite(energy) ? energy : ENERGY_MAX;
+  const startEnergy = Number.isFinite(energy) ? energy : cap;
   let nextEnergy = startEnergy;
   let nextEnergyTick = lastEnergyTickAt || nowIso;
 
-  if (startEnergy < ENERGY_MAX) {
+  if (startEnergy < cap) {
     const lastE = lastEnergyTickAt ? new Date(lastEnergyTickAt).getTime() : now;
     const elapsedE = Math.max(0, now - lastE);
     const speedMul = energySpeedFromHunger(nextHunger);
     const interval = ENERGY_REGEN_INTERVAL_MS / speedMul;
     const units = Math.floor(elapsedE / interval);
     if (units > 0) {
-      nextEnergy = Math.min(ENERGY_MAX, startEnergy + units);
+      nextEnergy = Math.min(cap, startEnergy + units);
       const remainder = elapsedE - units * interval;
       // If we capped at MAX, stop accumulating debt — reset tick to now.
-      nextEnergyTick = nextEnergy >= ENERGY_MAX
+      nextEnergyTick = nextEnergy >= cap
         ? nowIso
         : new Date(now - remainder).toISOString();
     }
@@ -166,9 +189,10 @@ export function reconcilePetTimers({ energy, lastEnergyTickAt, hunger, lastHunge
 // Implementation: real_remaining * speedMul. With hunger 0 (×1) this is just
 // the real time. With hunger 100 (×2) the display starts at 2h and reaches
 // 0 in 1h of wall-clock — each real second drops the visible counter by 2s.
-export function msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger, nowMs }) {
-  const e = Number.isFinite(energy) ? energy : ENERGY_MAX;
-  if (e >= ENERGY_MAX) return 0;
+export function msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger, nowMs, maxEnergy }) {
+  const cap = Number.isFinite(maxEnergy) ? maxEnergy : ENERGY_MAX;
+  const e = Number.isFinite(energy) ? energy : cap;
+  if (e >= cap) return 0;
   const now = Number.isFinite(nowMs) ? nowMs : Date.now();
   const last = lastEnergyTickAt ? new Date(lastEnergyTickAt).getTime() : now;
   const speedMul = energySpeedFromHunger(hunger);

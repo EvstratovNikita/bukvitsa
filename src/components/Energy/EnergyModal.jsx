@@ -15,23 +15,26 @@ import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
 export function EnergyModal() {
   const {
     energy,
+    energyMax,
     lastEnergyTickAt,
     petHunger,
     energyModalOpen,
     closeEnergyModal,
     buyEnergy,
     grantAdEnergy,
+    recordAdWatched,
     startAfterRefuel,
     stats,
     solution,
     status
   } = useGameContext();
+  const cap = energyMax || ENERGY_MAX;
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (!energyModalOpen || energy >= ENERGY_MAX) return;
+    if (!energyModalOpen || energy >= cap) return;
     const t = setInterval(() => setTick((n) => n + 1), 1000);
     return () => clearInterval(t);
-  }, [energyModalOpen, energy]);
+  }, [energyModalOpen, energy, cap]);
   const [feedback, setFeedback] = useState(null);  // { type, text }
   const [adRunning, setAdRunning] = useState(false);
 
@@ -66,7 +69,8 @@ export function EnergyModal() {
     setAdRunning(false);
     if (result === 'rewarded') {
       grantAdEnergy();
-      flash('ok', `+${ENERGY_AD_REWARD} энергия`);
+      const adBonus = recordAdWatched?.() || 0;
+      flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} монет` : `+${ENERGY_AD_REWARD} энергия`);
       if (needsStart) startAfterRefuel();
     } else if (result === 'closed') {
       flash('err', 'Реклама закрыта раньше');
@@ -76,7 +80,7 @@ export function EnergyModal() {
   };
 
   const cannotAfford = (stats.coins || 0) < ENERGY_REFILL_COST;
-  const full = energy >= ENERGY_MAX;
+  const full = energy >= cap;
 
   return (
     <Modal open onClose={closeEnergyModal} title="Энергия">
@@ -85,7 +89,7 @@ export function EnergyModal() {
           <div className="energy-modal__bolt">
             <BoltIcon />
           </div>
-          <div className="energy-modal__count">{energy} / {ENERGY_MAX}</div>
+          <div className="energy-modal__count">{energy} / {cap}</div>
           <div className="energy-modal__desc">
             {full
               ? 'Энергия полная — можно играть!'
@@ -93,7 +97,7 @@ export function EnergyModal() {
           </div>
           {!full && (
             <div className="energy-modal__timer">
-              Следующая через <b>{formatDuration(msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger: petHunger }))}</b>
+              Следующая через <b>{formatDuration(msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger: petHunger, maxEnergy: cap }))}</b>
               {' '}<span className="energy-modal__speed">×{energySpeedFromHunger(petHunger).toFixed(1)} от Букли</span>
             </div>
           )}

@@ -1,8 +1,30 @@
 import { useMemo, useState } from 'react';
 import { SHOP_CATEGORIES, SHOP_ITEMS, itemsByCategory } from '../../data/shopItems.js';
+import { doubleCoinsActive, energyCapFor, formatDuration } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
+
+const BOOST_EMOJI = {
+  'boost-double': '×2',
+  'boost-ad-coins': '📺',
+  'boost-energy-cap': '⚡'
+};
+
+// Human "still active" line for a timed/counted boost, or null when idle.
+function boostStatus(item, stats) {
+  const now = Date.now();
+  if (item.id === 'boost-double' && doubleCoinsActive(stats, now)) {
+    return `Активно ещё ${formatDuration(new Date(stats.boostDoubleUntil).getTime() - now)}`;
+  }
+  if (item.id === 'boost-energy-cap' && energyCapFor(stats, now) > 5) {
+    return `Активно ещё ${formatDuration(new Date(stats.energyCapUntil).getTime() - now)}`;
+  }
+  if (item.id === 'boost-ad-coins' && (stats.adBonusLeft || 0) > 0) {
+    return `Осталось просмотров: ${stats.adBonusLeft}`;
+  }
+  return null;
+}
 
 // Virtual "default" cards prepended to cosmetic categories. They aren't part
 // of the inventory — they just clear the active selection back to the
@@ -108,8 +130,10 @@ export function Shop({ open, onClose }) {
 
         {activeCat === 'boost' && (
           <p className="shop__hint">
-            Бонусы — одноразовые: тратятся при первом срабатывании.
-            «Двойные монеты» удвоят награду за следующую победу.
+            «Двойные монеты» удваивают монеты за победы на 1 день. «Щедрая
+            реклама» добавляет +3 монеты к 10 следующим просмотрам. «Запас
+            энергии» поднимает лимит до 7 на 2 дня. Можно докупать — время и
+            просмотры складываются.
           </p>
         )}
       </div>
@@ -124,7 +148,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
       (item.category === 'cells' && !stats.activeCellStyle)
     : (item.category === 'background' && stats.activeBackground === item.id) ||
       (item.category === 'cells' && stats.activeCellStyle === item.id);
-  const armedBoost = item.id === 'boost-double' && Boolean(stats.boostDoubleCoins);
+  const boostActive = item.category === 'boost' ? boostStatus(item, stats) : null;
 
   const previewStyle =
     item.category === 'background' && item.payload?.gradient
@@ -147,7 +171,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
           <span className="shop-card__preview-letter shop-card__preview-letter--plain">А</span>
         )}
         {item.category === 'boost' && (
-          <span className="shop-card__preview-emoji">×2</span>
+          <span className="shop-card__preview-emoji">{BOOST_EMOJI[item.id] || '×2'}</span>
         )}
         {item.isDefault && item.category === 'background' && (
           <span className="shop-card__preview-default-label">по умолчанию</span>
@@ -165,22 +189,18 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
             {feedback.text}
           </div>
         ) : item.consumable ? (
-          <button
-            type="button"
-            className={`btn ${armedBoost ? 'btn--ghost' : 'btn--primary'} shop-card__btn`}
-            onClick={onBuy}
-            onMouseDown={(e) => e.preventDefault()}
-            disabled={armedBoost}
-          >
-            {armedBoost ? (
-              'Активно ×2'
-            ) : (
-              <>
-                <CoinIcon />
-                <span>{item.price}</span>
-              </>
-            )}
-          </button>
+          <div className="shop-card__boost-cta">
+            {boostActive && <span className="shop-card__boost-status">{boostActive}</span>}
+            <button
+              type="button"
+              className="btn btn--primary shop-card__btn"
+              onClick={onBuy}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <CoinIcon />
+              <span>{item.price}</span>
+            </button>
+          </div>
         ) : active ? (
           <button
             type="button"

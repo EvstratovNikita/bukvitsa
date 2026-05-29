@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
+import { BoltIcon, CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
 import { buildInviteUrl, buildWordleShareText, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
 
@@ -50,9 +50,14 @@ export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, stats,
     guesses, evaluations, auth, gameMode, exitDailyMode, reset,
-    doubledLastWin, doublingAd, doubleLastReward
+    doubledLastWin, doublingAd, doubleLastReward, wordLength
   } = useGameContext();
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
+  const isAlt = gameMode !== 'daily' && wordLength !== 5;
+  const altPlays = (stats?.altMode?.plays || 0) % 5;
+  const altGranted = stats?.altMode?.energyGranted || 0;
+  const altLeft = 5 - altPlays;
+  const altCapped = altGranted >= 3;
   const [closed, setClosed] = useState(false);
   const [shareStatus, setShareStatus] = useState(null);
 
@@ -162,6 +167,21 @@ export function GameEnd() {
         {isDaily && isWin && percentile != null && (
           <div className="gameend__percentile">
             Вы справились лучше, чем <b>{percentile}%</b> игроков!
+          </div>
+        )}
+
+        {isAlt && (
+          <div className="gameend__alt">
+            <div className="gameend__alt-bar" aria-hidden="true">
+              {Array.from({ length: 5 }, (_, i) => (
+                <span key={i} className={`gameend__alt-pip${i < altPlays ? ' gameend__alt-pip--on' : ''}`} />
+              ))}
+            </div>
+            <div className="gameend__alt-text">
+              {altCapped
+                ? 'Лимит энергии за режимы достигнут (3/3 сегодня)'
+                : <>Серия {altPlays}/5 — ещё <b>{altLeft}</b> {altLeft === 1 ? 'победа' : 'побед'} до <BoltIcon /> +1 энергии</>}
+            </div>
           </div>
         )}
 
