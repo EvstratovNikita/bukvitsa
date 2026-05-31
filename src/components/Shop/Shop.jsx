@@ -55,15 +55,22 @@ const ERROR_LABEL = {
 };
 
 export function Shop({ open, onClose }) {
-  const { stats, buyItem, setActiveBackground, setActiveCellStyle } = useGameContext();
+  const { stats, buyItem, setActiveBackground, setActiveCellStyle, setPref } = useGameContext();
   const [activeCat, setActiveCat] = useState(SHOP_CATEGORIES[0].id);
+  // Backgrounds split by the theme they belong to (dark / light "summer").
+  const [bgTheme, setBgTheme] = useState('dark');
   const [feedback, setFeedback] = useState(null); // { id, type: 'ok'|'err', text }
 
   const items = useMemo(() => {
     const cataloged = itemsByCategory(activeCat);
+    if (activeCat === 'background') {
+      const filtered = cataloged.filter((i) => (i.theme || 'dark') === bgTheme);
+      // The "Стандартный" (default) card only belongs to the dark sub-tab.
+      return bgTheme === 'dark' ? [DEFAULT_ITEM.background, ...filtered] : filtered;
+    }
     const defaultItem = DEFAULT_ITEM[activeCat];
     return defaultItem ? [defaultItem, ...cataloged] : cataloged;
-  }, [activeCat]);
+  }, [activeCat, bgTheme]);
 
   const flash = (id, type, text) => {
     setFeedback({ id, type, text });
@@ -81,8 +88,12 @@ export function Shop({ open, onClose }) {
 
   const onEquip = (item) => {
     const id = item.isDefault ? null : item.id;
-    if (item.category === 'background') setActiveBackground(id);
-    else if (item.category === 'cells') setActiveCellStyle(id);
+    if (item.category === 'background') {
+      setActiveBackground(id);
+      // A background carries the theme it was designed for — switch the whole
+      // app theme to match so the colours don't clash. Default = dark.
+      setPref?.('theme', item.theme || 'dark');
+    } else if (item.category === 'cells') setActiveCellStyle(id);
   };
 
   const onUnequip = (item) => {
@@ -113,6 +124,23 @@ export function Shop({ open, onClose }) {
             </button>
           ))}
         </div>
+
+        {activeCat === 'background' && (
+          <div className="shop__subtabs" role="tablist">
+            {[['dark', 'Тёмные'], ['light', 'Светлые']].map(([id, label]) => (
+              <button
+                key={id}
+                role="tab"
+                type="button"
+                className={`shop__subtab${bgTheme === id ? ' shop__subtab--active' : ''}`}
+                onClick={() => setBgTheme(id)}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="shop__grid">
           {items.map((item) => (

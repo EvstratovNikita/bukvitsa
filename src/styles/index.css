@@ -424,6 +424,36 @@ button { font-family: inherit; }
   border-bottom-color: var(--accent-2);
 }
 
+/* Background theme sub-tabs (Тёмные / Светлые) — pill toggle. */
+.shop__subtabs {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 12px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+}
+.shop__subtab {
+  padding: 6px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--t-fast), background var(--t-fast);
+}
+.shop__subtab--active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #0b0d12;
+}
+[data-theme="light"] .shop__subtabs { background: rgba(0, 0, 0, 0.04); }
+[data-theme="light"] .shop__subtab { color: rgba(26, 29, 40, 0.6); }
+[data-theme="light"] .shop__subtab--active { color: #fff; }
+
 .shop__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2503,6 +2533,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   -webkit-tap-highlight-color: transparent;
 }
 .share-btn--icon svg { width: 16px; height: 16px; }
+[data-theme="light"] .share-btn--icon {
+  background: linear-gradient(135deg, #6c8cff, #4a64e0);
+  border-color: rgba(40, 64, 170, 0.8);
+  color: #fff;
+}
 
 .ach-card__status-row {
   display: flex;

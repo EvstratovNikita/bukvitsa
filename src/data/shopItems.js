@@ -83,15 +83,6 @@ const DIAMONDS = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='80' height=
 
 // ---- Summer patterns (light themes) ----
 
-// Picnic gingham — classic red+white checker.
-const PICNIC = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'>
-  <rect width='48' height='48' fill='#ffffff' opacity='0.55'/>
-  <rect width='24' height='24' fill='#d44848' opacity='0.55'/>
-  <rect x='24' y='24' width='24' height='24' fill='#d44848' opacity='0.55'/>
-  <rect x='24' width='24' height='24' fill='#ffbcbc' opacity='0.45'/>
-  <rect y='24' width='24' height='24' fill='#ffbcbc' opacity='0.45'/>
-</svg>`);
-
 // Fluffy summer clouds — soft white blobs on tile.
 const CLOUDS = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='160'>
   <g fill='#ffffff' opacity='0.7'>
@@ -184,6 +175,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-sunset',
     category: 'background',
+    theme: 'dark',
     name: 'Закат',
     desc: 'Тёплый закат сквозь пелену облаков',
     price: 50,
@@ -199,6 +191,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-ocean',
     category: 'background',
+    theme: 'dark',
     name: 'Океан',
     desc: 'Спокойные волны в глубокой воде',
     price: 50,
@@ -213,6 +206,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-forest',
     category: 'background',
+    theme: 'dark',
     name: 'Лес',
     desc: 'Хвойный лес на закатном горизонте',
     price: 50,
@@ -227,6 +221,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-rose',
     category: 'background',
+    theme: 'dark',
     name: 'Лепестки',
     desc: 'Падающие розовые лепестки на тёплом фоне',
     price: 50,
@@ -242,6 +237,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-stars',
     category: 'background',
+    theme: 'dark',
     name: 'Звёздное небо',
     desc: 'Россыпь звёзд над глубоким космосом',
     price: 80,
@@ -257,6 +253,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-aurora',
     category: 'background',
+    theme: 'dark',
     name: 'Северное сияние',
     desc: 'Зелёно-фиолетовые волны полярного света',
     price: 80,
@@ -272,6 +269,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-diamonds',
     category: 'background',
+    theme: 'dark',
     name: 'Аметист',
     desc: 'Гранёный узор на фиолетовом фоне',
     price: 80,
@@ -288,6 +286,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-summer-sky',
     category: 'background',
+    theme: 'light',
     name: 'Летнее небо',
     desc: 'Голубое небо с пушистыми облаками',
     price: 80,
@@ -300,22 +299,9 @@ export const SHOP_ITEMS = [
     }
   },
   {
-    id: 'bg-picnic',
-    category: 'background',
-    name: 'Пикник',
-    desc: 'Клетчатая скатерть на солнышке',
-    price: 80,
-    payload: {
-      gradient: [
-        PICNIC,
-        'radial-gradient(800px 500px at 50% -10%, rgba(255, 235, 180, 0.45), transparent 70%)',
-        'linear-gradient(180deg, #fff6e8 0%, #ffeacc 50%, #ffd9b0 100%)'
-      ].join(', ')
-    }
-  },
-  {
     id: 'bg-berries',
     category: 'background',
+    theme: 'light',
     name: 'Ягоды',
     desc: 'Сладкие ягоды на кремовом фоне',
     price: 80,
@@ -330,6 +316,7 @@ export const SHOP_ITEMS = [
   {
     id: 'bg-meadow',
     category: 'background',
+    theme: 'light',
     name: 'Ромашковый луг',
     desc: 'Полевые ромашки в траве на свежем ветру',
     price: 80,
