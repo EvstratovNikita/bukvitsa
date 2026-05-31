@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 const DEBOUNCE_MS = 700;
@@ -91,6 +91,12 @@ export function useRemoteSync({ stats, setStats, userId }) {
   const syncedRef = useRef(false);
   const errorRef = useRef(null);
   const debounceRef = useRef(null);
+  // Stateful mirror of syncedRef so consumers re-render once the initial
+  // server reconcile lands. The game uses this to avoid acting on stale local
+  // state (e.g. re-offering the daily / login reward) before the server's
+  // truth is in. Settles to `true` in every completion path, including errors.
+  const [synced, setSyncedState] = useState(false);
+  const markSynced = () => { syncedRef.current = true; setSyncedState(true); };
 
   // Initial reconcile when user becomes available.
   useEffect(() => {
@@ -109,6 +115,8 @@ export function useRemoteSync({ stats, setStats, userId }) {
       if (error) {
         errorRef.current = error;
         console.warn('[remote-sync] fetch failed', error.message);
+        // Don't strand the game waiting on a failed sync — fall back to local.
+        markSynced();
         return;
       }
 
@@ -121,7 +129,7 @@ export function useRemoteSync({ stats, setStats, userId }) {
         if (insErr) {
           console.warn('[remote-sync] insert failed', insErr.message);
         }
-        syncedRef.current = true;
+        markSynced();
         return;
       }
 
@@ -139,7 +147,7 @@ export function useRemoteSync({ stats, setStats, userId }) {
         }
       }
 
-      syncedRef.current = true;
+      markSynced();
     })();
 
     return () => { active = false; };
@@ -164,5 +172,7 @@ export function useRemoteSync({ stats, setStats, userId }) {
     return () => clearTimeout(debounceRef.current);
   }, [stats, userId]);
 
-  return { synced: syncedRef.current, error: errorRef.current };
+  // Offline-only mode (no Supabase): there's nothing to wait for — treat as
+  // synced so the game can start immediately on local state.
+  return { synced: isSupabaseConfigured ? synced : true, error: errorRef.current };
 }

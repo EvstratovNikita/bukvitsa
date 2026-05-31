@@ -2847,6 +2847,10 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 .pet-scene--hatching .pet-egg-left       { animation: pet-egg-split-left  0.6s ease-in 1.5s forwards; }
 .pet-scene--hatching .pet-egg-right      { animation: pet-egg-split-right 0.6s ease-in 1.5s forwards; }
 .pet-scene--hatching .pet-egg-speckles   { animation: pet-egg-fade 0.6s ease-out 1.7s forwards; }
+/* The single outline + static hairline crack belong to the intact shell —
+   fade them out as the two halves split so they don't linger as a ghost. */
+.pet-scene--hatching .pet-egg-outline,
+.pet-scene--hatching .pet-egg-crack-static { animation: pet-egg-fade 0.5s ease-out 1.5s forwards; }
 .pet-scene--hatching .pet-scene__owl-img { animation: pet-owl-pop 0.7s cubic-bezier(.2,1.4,.4,1) 1.9s forwards; }
 .pet-scene--hatching .pet-scene__sparks  { animation: pet-sparks 0.9s ease-out 1.8s forwards; transform-origin: 200px 180px; }
 

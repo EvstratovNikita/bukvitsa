@@ -70,6 +70,10 @@ export function useGame() {
   //   3. otherwise pop the energy modal.
   useEffect(() => {
     if (solution !== null) return;
+    // Wait for the initial server reconcile so we decide daily-vs-normal from
+    // the server's truth, not stale/empty local state (which would otherwise
+    // re-offer an already-played daily after a cache clear / on a new device).
+    if (!stats.ready) return;
     const todayKey = getDailyKey();
     const dailyDone = stats.stats.daily?.lastPlayedKey === todayKey;
     if (!dailyDone) {
@@ -88,9 +92,9 @@ export function useGame() {
     } else {
       setEnergyModalOpen(true);
     }
-    // We intentionally only run once on mount.
+    // Re-runs once `stats.ready` flips true (server reconcile settled).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [stats.ready]);
 
   // Persist the in-flight puzzle so reload resumes it (no double energy charge).
   // Skip writing when solution/length disagree — that's a transient render
@@ -433,12 +437,11 @@ export function useGame() {
     }
     stats.addCoins(lastEarned);
     // Server re-credits the stored last-win reward + tallies the daily cap.
+    // (The "Щедрая реклама" +N ad-coin boost applies to energy ads only, not
+    // to reward-doubling — otherwise doubling pays twice.)
     stats.redeemAdDoubleServer?.();
-    const adBonus = stats.recordAdWatched?.() || 0;
     setDoubledLastWin(true);
-    showToast(adBonus > 0
-      ? `+${lastEarned} ${pluralCoins(lastEarned)} + ${adBonus} за рекламу!`
-      : `+${lastEarned} ${pluralCoins(lastEarned)} за просмотр!`);
+    showToast(`+${lastEarned} ${pluralCoins(lastEarned)} за просмотр!`);
     return 'ok';
   }, [status, doubledLastWin, doublingAd, lastEarned, stats, showToast]);
 
@@ -541,6 +544,7 @@ export function useGame() {
     isClearing,
     keyboardStatuses,
     stats: stats.stats,
+    ready: stats.ready,
     resetStats: stats.reset,
     pendingDailyReward: stats.pendingDailyReward,
     claimDailyReward: stats.claimDailyReward,

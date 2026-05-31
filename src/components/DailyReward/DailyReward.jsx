@@ -5,20 +5,23 @@ import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon } from '../icons/Icon.jsx';
 
 export function DailyReward() {
-  const { pendingDailyReward, claimDailyReward } = useGameContext();
+  const { pendingDailyReward, claimDailyReward, ready } = useGameContext();
 
-  // Open if a reward is pending at mount. Stays open until user claims/closes.
-  const [open, setOpen] = useState(() => pendingDailyReward != null);
-  const [reward, setReward] = useState(() => pendingDailyReward);
+  // Don't open from the optimistic local state: wait for the server reconcile
+  // (`ready`) so we never flash a reward that was already claimed today on
+  // another device / before a cache clear.
+  const [open, setOpen] = useState(false);
+  const [reward, setReward] = useState(null);
   const [claimed, setClaimed] = useState(false);
 
-  // Re-arm if a fresh day's reward appears (e.g., midnight cross while tab open).
+  // Arm once the synced state actually has a pending reward (also re-arms on a
+  // midnight cross while the tab stays open).
   useEffect(() => {
-    if (pendingDailyReward && !open && !claimed) {
+    if (ready && pendingDailyReward && !open && !claimed) {
       setReward(pendingDailyReward);
       setOpen(true);
     }
-  }, [pendingDailyReward, open, claimed]);
+  }, [ready, pendingDailyReward, open, claimed]);
 
   if (!open || !reward) return null;
 

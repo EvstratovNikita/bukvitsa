@@ -153,7 +153,11 @@ export function useStats() {
     storage.set(STORAGE_KEYS.STATS, stats);
   }, [stats]);
 
-  useRemoteSync({ stats, setStats, userId: auth.userId });
+  const remote = useRemoteSync({ stats, setStats, userId: auth.userId });
+  // True once the initial server reconcile has settled (or immediately in
+  // offline-only mode). The game waits for this before deciding whether to
+  // offer the daily word / login reward, so it never acts on stale local state.
+  const ready = remote.synced;
 
   // Wall-clock tick used to drive countdowns. Bumped every ~30s so the
   // EnergyBadge "+1 через M:SS" reads as continuous without flooding state.
@@ -795,6 +799,7 @@ export function useStats() {
 
   return {
     stats,
+    ready,
     recordWin,
     recordLoss,
     reset,

@@ -132,60 +132,77 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
         </g>
 
         {/* --- Egg group (egg + hatching modes) ---
-            Two halves so the hatch animation can split them apart. Egg shape:
-            narrow rounded top, broad rounded base — a real egg, not a bean. */}
+            The shell is two fill-only halves (so the hatch animation can split
+            them apart) tiled along the centre with NO inner stroke — so there's
+            no seam line down the middle. A single outline path drawn on top
+            gives one clean egg silhouette. Proportions are a natural egg
+            (~1.45 tall:wide), not an elongated bean. */}
         <g className="pet-scene__egg">
-          {/* Left half */}
+          {/* Left half — fill only */}
           <g className="pet-egg-left">
             <path
-              d="M200 118
-                 C 181 118, 153 158, 151 222
-                 C 150 274, 173 304, 200 304
-                 L 200 118 Z"
+              d="M200 130
+                 C 179 130, 148 168, 146 222
+                 C 144 270, 170 300, 200 300
+                 L 200 130 Z"
               fill="url(#ps-egg)"
-              stroke="#cdae82"
-              strokeWidth="1.4"
             />
           </g>
-          {/* Right half */}
+          {/* Right half — fill only */}
           <g className="pet-egg-right">
             <path
-              d="M200 118
-                 C 219 118, 247 158, 249 222
-                 C 250 274, 227 304, 200 304
-                 L 200 118 Z"
+              d="M200 130
+                 C 221 130, 252 168, 254 222
+                 C 256 270, 230 300, 200 300
+                 L 200 130 Z"
               fill="url(#ps-egg)"
-              stroke="#cdae82"
-              strokeWidth="1.4"
             />
           </g>
-          {/* Soft top highlight for a glossy shell */}
-          <ellipse cx="184" cy="160" rx="20" ry="30" fill="#ffffff" opacity="0.30" />
-          {/* Speckles */}
-          <g fill="#c2a06f" opacity="0.42" className="pet-egg-speckles">
-            <ellipse cx="178" cy="205" rx="2.4" ry="1.5" />
-            <ellipse cx="224" cy="218" rx="2.1" ry="1.3" />
-            <ellipse cx="195" cy="258" rx="1.8" ry="1.1" />
-            <ellipse cx="226" cy="182" rx="1.6" ry="1.0" />
-            <ellipse cx="170" cy="240" rx="1.9" ry="1.2" />
-          </g>
-          {/* Small static crack at the top — always visible while waiting */}
+          {/* Single outer outline — one continuous silhouette, no centre line */}
           <path
-            d="M184 150 L193 138 L200 150 L207 137 L216 150"
+            className="pet-egg-outline"
+            d="M200 130
+               C 179 130, 148 168, 146 222
+               C 144 270, 170 300, 200 300
+               C 230 300, 256 270, 254 222
+               C 252 168, 221 130, 200 130 Z"
             fill="none"
-            stroke="#a8814a"
-            strokeWidth="1.8"
+            stroke="#c6a571"
+            strokeWidth="1.6"
+          />
+          {/* Soft glossy highlight, upper-left */}
+          <ellipse cx="181" cy="180" rx="17" ry="27" fill="#ffffff" opacity="0.28" />
+          {/* Speckles scattered over the lower two-thirds */}
+          <g fill="#c2a06f" opacity="0.42" className="pet-egg-speckles">
+            <ellipse cx="176" cy="212" rx="2.4" ry="1.5" />
+            <ellipse cx="226" cy="222" rx="2.1" ry="1.3" />
+            <ellipse cx="198" cy="262" rx="1.8" ry="1.1" />
+            <ellipse cx="224" cy="190" rx="1.6" ry="1.0" />
+            <ellipse cx="170" cy="246" rx="1.9" ry="1.2" />
+            <ellipse cx="210" cy="248" rx="1.5" ry="1.0" />
+          </g>
+          {/* Static hairline fracture near the top — irregular, with a couple
+              of little forks so it reads as cracked shell, not a stitched thread. */}
+          <g
+            className="pet-egg-crack-static"
+            fill="none"
+            stroke="#9c7748"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            opacity="0.75"
-          />
-          {/* Wider crack that grows mid-hatch */}
+            opacity="0.7"
+          >
+            <path d="M171 170 L183 162 L189 171 L199 161 L206 172 L215 163 L226 171" />
+            <path d="M199 161 L201 150 L197 142" />
+            <path d="M206 172 L209 181" />
+          </g>
+          {/* Darker crack that widens mid-hatch (driven by .pet-egg-crack CSS) */}
           <path
             className="pet-egg-crack"
-            d="M178 150 L190 168 L200 152 L210 170 L222 152"
+            d="M168 172 L185 160 L200 174 L214 159 L232 172"
             fill="none"
             stroke="#3b1f08"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
