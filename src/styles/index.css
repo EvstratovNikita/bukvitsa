@@ -3116,6 +3116,21 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   color: rgba(229, 235, 255, 0.75);
 }
 
+/* On wide (desktop) screens the head used to stretch wider than the cards
+   below it (its background spanned the 560px cap while the body content is
+   inset by the body padding). Line it up with the cards/scene and round its
+   corners so it reads as a contained panel, not a full-bleed bar with sharp
+   edges. Mobile (viewport below the cap) keeps the flush top bar. */
+@media (min-width: 600px) {
+  .pet-screen__head {
+    /* 560px body cap minus the body's 14px side padding = card width. */
+    max-width: 532px;
+    margin-top: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+  }
+}
+
 /* ---------- Pet cards inside the screen ---------- */
 .pet-card {
   padding: 14px;

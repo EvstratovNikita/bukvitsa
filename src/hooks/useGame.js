@@ -412,6 +412,19 @@ export function useGame() {
     }, ANIM.CLEAR_TOTAL_MS);
   }, [gameMode, stats, wordLength]);
 
+  // If the player signs into an account mid-session (userId change → server
+  // reconcile) that has ALREADY completed today's daily word, don't leave them
+  // parked on an unfinished daily board carried over from the previous (e.g.
+  // anonymous) identity — drop out of daily mode so the UI matches reality.
+  useEffect(() => {
+    if (!stats.ready) return;
+    if (gameMode !== 'daily' || status !== GAME_STATUS.PLAYING) return;
+    if (stats.stats.daily?.lastPlayedKey === getDailyKey()) {
+      exitDailyMode();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.ready, stats.stats.daily?.lastPlayedKey, gameMode, status]);
+
   // Watch an ad → credit the just-won reward a second time. One-shot per
   // round; further presses are ignored until the next puzzle starts.
   const doubleLastReward = useCallback(async () => {
