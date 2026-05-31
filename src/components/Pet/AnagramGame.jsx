@@ -165,7 +165,7 @@ export function AnagramGame() {
         showToast?.(`Букля выросла! Уровень ${r.levelAfter}`);
       }
     }
-    recordMiniGamePlay?.('anagram');
+    recordMiniGamePlay?.('anagram', xpReward, coinReward);
   }, [phase, rewardClaimed, solved, xpReward, coinReward, recordPetXp, addCoins, recordMiniGamePlay, showToast]);
 
   const remainSec = Math.ceil(remaining / 1000);

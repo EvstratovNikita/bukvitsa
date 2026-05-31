@@ -3,39 +3,18 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
 
 const DEBOUNCE_MS = 700;
 
+// Anti-cheat cutover: the client may only write COSMETIC columns directly.
+// Every reward/economy column (coins, won, energy, inventory, pet rewards,
+// achievements, boosts, daily, …) is owned by the SECURITY DEFINER RPCs and
+// reconciled into local state from their results — so the debounced upsert can
+// no longer clobber a server-authoritative value. `fromRow` below still reads
+// the full row, so reloads pull the server's truth back in. (Phase 1 will
+// additionally REVOKE UPDATE on the locked columns at the DB level.)
 const toRow = (stats, userId) => ({
   user_id: userId,
-  played: stats.played || 0,
-  won: stats.won || 0,
-  lost: stats.lost || 0,
-  current_streak: stats.currentStreak || 0,
-  max_streak: stats.maxStreak || 0,
-  total_guesses: stats.totalGuesses || 0,
-  best_attempts: stats.bestAttempts ?? null,
-  distribution: stats.distribution || [0, 0, 0, 0, 0, 0],
-  coins: stats.coins || 0,
-  last_visit_date: stats.lastVisitDate || null,
-  daily_streak: stats.dailyStreak || 0,
-  inventory: stats.inventory || [],
   active_background: stats.activeBackground || null,
   active_cell_style: stats.activeCellStyle || null,
-  boost_double_coins: Boolean(stats.boostDoubleCoins),
-  boost_double_until: stats.boostDoubleUntil || null,
-  energy_cap_until: stats.energyCapUntil || null,
-  ad_bonus_left: Number.isFinite(stats.adBonusLeft) ? stats.adBonusLeft : 0,
-  energy: Number.isFinite(stats.energy) ? stats.energy : null,
-  last_energy_tick_at: stats.lastEnergyTickAt || null,
-  hints_used: stats.hintsUsed || 0,
-  items_bought: stats.itemsBought || 0,
-  coins_earned: stats.coinsEarned || 0,
-  fastest_win_ms: stats.fastestWinMs ?? null,
-  unlocked_achievements: Array.isArray(stats.unlockedAchievements) ? stats.unlockedAchievements : [],
-  referrals_count: stats.referralsCount || 0,
-  pet: stats.pet || null,
-  prefs: stats.prefs || null,
-  daily: stats.daily || null,
-  alt_mode: stats.altMode || null,
-  ads_double: stats.adsDouble || null
+  prefs: stats.prefs || null
 });
 
 const fromRow = (row) => clean({

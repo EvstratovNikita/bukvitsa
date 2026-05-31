@@ -136,7 +136,7 @@ export function MemoryGame() {
     setRewardClaimed(true);
     const r = recordPetXp(xpReward);
     addCoins(coinReward);
-    recordMiniGamePlay?.('memory');
+    recordMiniGamePlay?.('memory', xpReward, coinReward);
     if (r?.levelAfter > r?.levelBefore) {
       showToast?.(`Букля выросла! Уровень ${r.levelAfter}`);
     }

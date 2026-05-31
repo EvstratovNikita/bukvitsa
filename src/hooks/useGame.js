@@ -177,6 +177,7 @@ export function useGame() {
     setTimeout(() => {
       const won = guess === normalizeWord(solution);
       const lost = !won && nextGuesses.length >= MAX_ATTEMPTS;
+      const elapsedMs = Date.now() - gameStartRef.current;
       if (won) {
         setStatus(GAME_STATUS.WON);
         if (gameMode === 'daily') {
@@ -194,6 +195,12 @@ export function useGame() {
             evaluations: nextEvals,
             word: solution
           });
+          // Server is authoritative: records the daily result + streak and
+          // reconciles the coin total (base × 2 by its own rules).
+          stats.awardWinServer?.({
+            mode: 'daily', length: 5, won: true,
+            attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
+          });
           setLastEarnedBase(base);
           setLastEarned(total);
           setDoubledLastWin(false);
@@ -202,8 +209,13 @@ export function useGame() {
           // an alt-mode tally that grants +1 energy every 5 plays (≤ 3/day).
           const isAlt = wordLength !== 5;
           const lengthMul = isAlt ? 0.5 : 1;
-          const elapsedMs = Date.now() - gameStartRef.current;
           stats.recordWin(nextGuesses.length, elapsedMs, lengthMul, /* creditCoins */ !isAlt);
+          // Server records the win authoritatively (coins for 5-letter, half XP
+          // for alt, distribution, streak, fastest) and reconciles back.
+          stats.awardWinServer?.({
+            mode: 'normal', length: wordLength, won: true,
+            attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
+          });
           if (isAlt) {
             setLastEarned(0);
             setLastEarnedBase(0);
@@ -236,8 +248,16 @@ export function useGame() {
             evaluations: nextEvals,
             word: solution
           });
+          stats.awardWinServer?.({
+            mode: 'daily', length: 5, won: false,
+            attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
+          });
         } else {
           stats.recordLoss();
+          stats.awardWinServer?.({
+            mode: 'normal', length: wordLength, won: false,
+            attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
+          });
           if (wordLength !== 5) {
             const r = stats.recordAltModePlay?.();
             if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
@@ -412,6 +432,8 @@ export function useGame() {
       return 'limit';
     }
     stats.addCoins(lastEarned);
+    // Server re-credits the stored last-win reward + tallies the daily cap.
+    stats.redeemAdDoubleServer?.();
     const adBonus = stats.recordAdWatched?.() || 0;
     setDoubledLastWin(true);
     showToast(adBonus > 0
@@ -457,6 +479,7 @@ export function useGame() {
       return h.map((c, i) => (i === idx ? sol[i] : c));
     });
     stats.recordHintUsed();
+    stats.spendHintServer?.('random');
     return true;
   }, [status, solution, hints, stats, wordLength, showToast, correctSlots]);
 
@@ -470,6 +493,7 @@ export function useGame() {
     setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
     setHintPickMode(false);
     stats.recordHintUsed();
+    stats.spendHintServer?.('pick');
     return true;
   }, [status, solution, hints, stats, showToast, correctSlots]);
 

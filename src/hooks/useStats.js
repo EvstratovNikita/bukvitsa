@@ -24,6 +24,7 @@ import { getItem } from '../data/shopItems.js';
 import { getDecoration, equippedDecorationsBonus, WING_KEYS } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
 import { storage } from '../utils/storage.js';
+import { callRpc, serverPatch } from '../lib/economy.js';
 import { useAuth } from './useAuth.js';
 import { useRemoteSync } from './useRemoteSync.js';
 
@@ -225,6 +226,42 @@ export function useStats() {
     setAchievementToasts((q) => q.filter((t) => t.id !== id));
   }, []);
 
+  // ---------- Server reconcile (anti-cheat economy) ----------
+  // The server is authoritative for every reward column. Each mutating action
+  // updates local state optimistically (instant UI + offline) AND fires its
+  // SECURITY DEFINER RPC; when the RPC answers, we overwrite the affected
+  // fields with the server's values. On reload useRemoteSync pulls the full
+  // server row, so any drift self-heals.
+  const reconcile = useCallback((result) => {
+    const p = serverPatch(result);
+    if (!p) return;
+    setStats((s) => {
+      const next = { ...s, ...p };
+      // The server omits the answer word from daily.lastResult (it's only used
+      // client-side for the share card) — keep the local copy if present.
+      if (p.daily && p.daily.lastResult && !p.daily.lastResult.word && s.daily?.lastResult?.word) {
+        next.daily = { ...p.daily, lastResult: { ...p.daily.lastResult, word: s.daily.lastResult.word } };
+      }
+      return next;
+    });
+  }, []);
+
+  // Fire an economy RPC, reconcile authoritative fields, then ask the server
+  // to (re)compute achievements and reconcile the coin total it credits. The
+  // achievement toasts themselves are still produced by the local detector
+  // effect above — here we only trust the server for the coin balance.
+  const runEconomy = useCallback(async (name, args, { recompute = true } = {}) => {
+    const r = await callRpc(name, args);
+    reconcile(r);
+    if (recompute && r && r.ok !== false) {
+      const a = await callRpc('recompute_achievements');
+      if (a && a.ok !== false && typeof a.coins === 'number') {
+        setStats((s) => ({ ...s, coins: a.coins }));
+      }
+    }
+    return r;
+  }, [reconcile]);
+
 
   // Apply the double-coins boost (if armed) when computing the win reward.
   // The current snapshot of stats is captured in the closure so we read the
@@ -324,7 +361,10 @@ export function useStats() {
         lastEnergyTickAt: nextTick
       };
     });
-  }, []);
+    // Server is authoritative: it computes streak/reward/energy from its own
+    // clock (Europe/Moscow) and reconciles back over the optimistic values.
+    runEconomy('claim_daily_login', {});
+  }, [runEconomy]);
 
   // Record the outcome of a daily-mode round. Only the first attempt per
   // local calendar day counts. Streak increments on win, resets on loss.
@@ -394,6 +434,7 @@ export function useStats() {
   // Idempotent: hatching twice is a no-op. The first-ever call stamps bornAt
   // so we can later display "вылупилась N дней назад".
   const hatchPet = useCallback(() => {
+    if (stats.pet?.hatched) return;
     setStats((s) => {
       if (s.pet?.hatched) return s;
       return {
@@ -406,13 +447,15 @@ export function useStats() {
         }
       };
     });
-  }, []);
+    runEconomy('set_pet_cosmetic', { p_hatched: true });
+  }, [stats.pet?.hatched, runEconomy]);
 
   const renamePet = useCallback((name) => {
     const clean = (name || '').trim().slice(0, 20);
     if (!clean) return;
     setStats((s) => ({ ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), name: clean } }));
-  }, []);
+    runEconomy('set_pet_cosmetic', { p_name: clean }, { recompute: false });
+  }, [runEconomy]);
 
   // Buy a treat → spend coins, add to hunger (capped at 100). Returns:
   //   'ok' | 'not_enough_coins' | 'not_hatched' | 'unknown_treat' | 'full'
@@ -440,8 +483,9 @@ export function useStats() {
         pet: { ...(s.pet || DEFAULT_STATS.pet), hunger: nextHunger, lastHungerTickAt: r.lastHungerTickAt }
       };
     });
+    runEconomy('buy_treat', { p_id: treatId });
     return 'ok';
-  }, [stats.coins, stats.pet?.hatched, reconciled.hunger]);
+  }, [stats.coins, stats.pet?.hatched, reconciled.hunger, runEconomy]);
 
   // Buy a decoration → pay coins, add to owned, auto-equip. For single-slot
   // items the slot is replaced; for wing items the first empty wing is used
@@ -472,8 +516,9 @@ export function useStats() {
         }
       };
     });
+    runEconomy('buy_decoration', { p_id: decoId });
     return 'ok';
-  }, [stats.coins, stats.pet?.ownedDecorations, stats.pet?.level]);
+  }, [stats.coins, stats.pet?.ownedDecorations, stats.pet?.level, runEconomy]);
 
   // Equip an already-owned decoration. For wing items the caller passes the
   // explicit slot ('wingL' | 'wingR'); other items go to their declared slot.
@@ -481,6 +526,7 @@ export function useStats() {
   const equipDecoration = useCallback((decoId, slotOverride) => {
     const d = getDecoration(decoId);
     if (!d) return;
+    let nextEq = null;
     setStats((s) => {
       const owned = s.pet?.ownedDecorations || [];
       if (!owned.includes(decoId)) return s;
@@ -491,16 +537,18 @@ export function useStats() {
         if (eq[k] === decoId) delete eq[k];
       }
       eq[target] = decoId;
+      nextEq = eq;
       return {
         ...s,
         pet: { ...(s.pet || DEFAULT_STATS.pet), equipped: eq }
       };
     });
-  }, []);
+    if (nextEq) runEconomy('set_pet_cosmetic', { p_equipped: nextEq });
+  }, [runEconomy]);
 
   // Stamp the local-day timestamp when a mini-game finishes. UI reads
   // this to gate "once per day" play.
-  const recordMiniGamePlay = useCallback((gameId) => {
+  const recordMiniGamePlay = useCallback((gameId, xp = 0, coins = 0) => {
     setStats((s) => ({
       ...s,
       pet: {
@@ -508,17 +556,23 @@ export function useStats() {
         lastTrainAt: { ...((s.pet?.lastTrainAt) || {}), [gameId]: new Date().toISOString() }
       }
     }));
-  }, []);
+    // Server clamps xp/coins and enforces the once-per-day cooldown, then
+    // reconciles the authoritative pet xp/level + coin total.
+    runEconomy('record_minigame', { p_game: gameId, p_xp: Math.round(xp), p_coins: Math.round(coins) });
+  }, [runEconomy]);
 
   // Clear a specific slot (no-op if it's already empty).
   const unequipDecorationSlot = useCallback((slot) => {
+    let nextEq = null;
     setStats((s) => {
       const eq = { ...(s.pet?.equipped || {}) };
       if (!eq[slot]) return s;
       delete eq[slot];
+      nextEq = eq;
       return { ...s, pet: { ...(s.pet || DEFAULT_STATS.pet), equipped: eq } };
     });
-  }, []);
+    if (nextEq) runEconomy('set_pet_cosmetic', { p_equipped: nextEq });
+  }, [runEconomy]);
 
   // Adds XP to the pet, recomputes level. Returns { levelBefore, levelAfter,
   // gained } so the caller can fire a "Букля выросла!" toast on level-up.
@@ -580,8 +634,9 @@ export function useStats() {
       }
       return next;
     });
+    runEconomy('purchase_item', { p_id: itemId });
     return 'ok';
-  }, [stats.coins, stats.inventory]);
+  }, [stats.coins, stats.inventory, runEconomy]);
 
   const setActiveBackground = useCallback((itemId) => {
     setStats((s) => ({ ...s, activeBackground: itemId || null }));
@@ -644,26 +699,32 @@ export function useStats() {
         altMode: { dayKey: today, plays: nextPlays, energyGranted: granted }
       }));
     }
+    runEconomy('record_alt_mode', {}, { recompute: false });
     return { grantedEnergy: shouldGrant };
-  }, [stats.altMode, mutateEnergy]);
+  }, [stats.altMode, mutateEnergy, runEconomy]);
 
   const consumeEnergy = useCallback(() => {
     if (reconciled.energy < 1) return false;
     mutateEnergy(-1);
+    // Energy is spent server-side at the start of a normal round (award_win no
+    // longer decrements it). No achievements depend on energy → skip recompute.
+    runEconomy('spend_energy', {}, { recompute: false });
     return true;
-  }, [reconciled.energy, mutateEnergy]);
+  }, [reconciled.energy, mutateEnergy, runEconomy]);
 
   const buyEnergy = useCallback(() => {
     if (reconciled.energy >= energyMax) return 'full';
     if ((stats.coins || 0) < ENERGY_REFILL_COST) return 'not_enough_coins';
     setStats((s) => ({ ...s, coins: Math.max(0, (s.coins || 0) - ENERGY_REFILL_COST) }));
     mutateEnergy(+1);
+    runEconomy('buy_energy', {}, { recompute: false });
     return 'ok';
-  }, [reconciled.energy, energyMax, stats.coins, mutateEnergy]);
+  }, [reconciled.energy, energyMax, stats.coins, mutateEnergy, runEconomy]);
 
   const grantAdEnergy = useCallback(() => {
     mutateEnergy(+ENERGY_AD_REWARD);
-  }, [mutateEnergy]);
+    runEconomy('grant_ad_energy', {}, { recompute: false });
+  }, [mutateEnergy, runEconomy]);
 
   // Called whenever a rewarded ad finishes. If the "Щедрая реклама" boost has
   // uses left, credit +3 coins and decrement. Returns the bonus granted (0/3).
@@ -679,8 +740,9 @@ export function useStats() {
         adBonusLeft: (s.adBonusLeft || 0) - 1
       };
     });
+    runEconomy('redeem_ad_bonus', {});
     return granted;
-  }, []);
+  }, [runEconomy]);
 
   // Remaining "double via ad" presses today (resets at local midnight).
   const adsDoubleLeft = useMemo(() => {
@@ -703,6 +765,33 @@ export function useStats() {
     });
     return true;
   }, [stats.adsDouble]);
+
+  // ---------- Server-authoritative game-result calls (fired from useGame) ----------
+  // The single source of truth for a finished round. The client still updates
+  // local stats optimistically (recordWin/recordLoss/recordDailyResult) for
+  // instant UI; this reconciles the authoritative coins/energy/pet/daily back.
+  const awardWinServer = useCallback(({ mode, length, won, attempts, elapsedMs, evaluations }) => {
+    runEconomy('award_win', {
+      p_mode: mode,
+      p_length: length,
+      p_won: Boolean(won),
+      p_attempts: attempts,
+      p_elapsed_ms: Math.max(0, Math.round(elapsedMs || 0)),
+      p_evaluations: Array.isArray(evaluations) ? evaluations : []
+    });
+  }, [runEconomy]);
+
+  // Paid hint — server holds the price and debits coins + bumps hints_used.
+  const spendHintServer = useCallback((kind) => {
+    runEconomy('spend_hint', { p_kind: kind });
+  }, [runEconomy]);
+
+  // "Double reward via ad" — server re-credits the stored last-win reward and
+  // tallies the daily cap. (The +N ad-view bonus is handled by recordAdWatched
+  // → redeem_ad_bonus separately.)
+  const redeemAdDoubleServer = useCallback(() => {
+    runEconomy('redeem_ad_double', {});
+  }, [runEconomy]);
 
   return {
     stats,
@@ -738,6 +827,9 @@ export function useStats() {
     unequipDecorationSlot,
     recordMiniGamePlay,
     recordAltModePlay,
+    awardWinServer,
+    spendHintServer,
+    redeemAdDoubleServer,
     achievementToasts,
     consumeAchievementToast,
     auth
