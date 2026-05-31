@@ -7,6 +7,7 @@ import {
   GiftIcon,
   HelpIcon,
   LogoutIcon,
+  MailIcon,
   MenuIcon,
   SettingsIcon,
   ShopIcon,
@@ -30,7 +31,7 @@ export function MenuButton({ onClick }) {
   );
 }
 
-export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite, onOpenSettings }) {
+export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite, onOpenSettings, onOpenFeedback }) {
   const { stats, auth } = useGameContext();
   const unlockedCount = (stats.unlockedAchievements || []).length;
 
@@ -128,6 +129,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
           />
           <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
+          <MenuItem icon={<MailIcon />} label="Обратная связь" onClick={handle(onOpenFeedback)} />
           {isLinked && (
             <MenuItem
               icon={<LogoutIcon />}

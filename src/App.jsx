@@ -5,6 +5,7 @@ import { Header } from './components/Header/Header.jsx';
 import { InviteModal } from './components/Share/InviteModal.jsx';
 import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { SettingsModal } from './components/Settings/Settings.jsx';
+import { FeedbackModal } from './components/Feedback/Feedback.jsx';
 import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
@@ -104,6 +105,7 @@ function GameShell() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [petOpen, setPetOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
@@ -139,6 +141,7 @@ function GameShell() {
         onOpenAchievements={() => setAchOpen(true)}
         onOpenInvite={() => setInviteOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
+        onOpenFeedback={() => setFeedbackOpen(true)}
       />
 
       <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
@@ -147,6 +150,7 @@ function GameShell() {
       <InviteModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
       <PetScreen open={petOpen} onClose={() => setPetOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} />
       <EnergyModal />
 
