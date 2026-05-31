@@ -251,7 +251,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
         ) : active ? (
           <button
             type="button"
-            className="btn btn--ghost shop-card__btn"
+            className="btn shop-card__btn shop-card__btn--active"
             onClick={item.isDefault ? undefined : onUnequip}
             onMouseDown={(e) => e.preventDefault()}
             disabled={item.isDefault}
