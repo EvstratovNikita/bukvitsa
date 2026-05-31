@@ -3885,7 +3885,14 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 /* ---------- Shop cards ---------- */
 [data-theme="light"] .shop-card {
   background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.10);
+  border-color: rgba(40, 50, 80, 0.28);
+}
+/* Boost previews use a gold-on-dark icon — keep the backdrop dark in light
+   theme too, otherwise the yellow ×2/⚡/📺 glyphs vanish on white. */
+[data-theme="light"] .shop-card__preview--boost {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(247, 201, 72, 0.32), transparent 60%),
+    linear-gradient(180deg, #1b1f2b, #11141c);
 }
 [data-theme="light"] .shop-card__name { color: #1a1d28; }
 [data-theme="light"] .shop-card__desc { color: rgba(26, 29, 40, 0.65); }
@@ -3978,16 +3985,9 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 [data-theme="light"] .key--absent  { border-color: rgba(0, 0, 0, 0.22); }
 [data-theme="light"] .key--correct { border-color: rgba(180, 130, 30, 0.6); }
 
-/* Default-background preview card — flip to a light gradient in light theme. */
-[data-theme="light"] .shop-card__preview--default {
-  background:
-    radial-gradient(1100px 600px at 20% -10%, rgba(108, 140, 255, 0.12), transparent 60%),
-    radial-gradient(900px 500px at 100% 110%, rgba(247, 201, 72, 0.16), transparent 60%),
-    linear-gradient(180deg, #f4f1ea, #ffffff);
-}
-[data-theme="light"] .shop-card__preview-default-label {
-  color: rgba(26, 29, 40, 0.65);
-}
+/* The dark "Стандартный" card always previews dark (it represents the dark
+   theme) regardless of the player's current theme; the light default uses its
+   own .shop-card__preview--default-light always-light rule. */
 
 /* Yellow-on-yellow contrast fixes — reward badges + chips. */
 [data-theme="light"] .end-panel__reward,
