@@ -138,7 +138,21 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
             gives one clean egg silhouette. Proportions are a natural egg
             (~1.45 tall:wide), not an elongated bean. */}
         <g className="pet-scene__egg">
-          {/* Left half — fill only */}
+          {/* Whole shell — ONE solid filled silhouette (no seam). Shown while
+              the egg waits; hidden the instant hatching starts so the two
+              halves below can take over and split apart. */}
+          <path
+            className="pet-egg-whole"
+            d="M200 130
+               C 179 130, 148 168, 146 222
+               C 144 270, 170 300, 200 300
+               C 230 300, 256 270, 254 222
+               C 252 168, 221 130, 200 130 Z"
+            fill="url(#ps-egg)"
+            stroke="#c6a571"
+            strokeWidth="1.6"
+          />
+          {/* Left half — only used by the hatch split (hidden while intact) */}
           <g className="pet-egg-left">
             <path
               d="M200 130
@@ -148,7 +162,7 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
               fill="url(#ps-egg)"
             />
           </g>
-          {/* Right half — fill only */}
+          {/* Right half — only used by the hatch split (hidden while intact) */}
           <g className="pet-egg-right">
             <path
               d="M200 130
@@ -158,18 +172,6 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
               fill="url(#ps-egg)"
             />
           </g>
-          {/* Single outer outline — one continuous silhouette, no centre line */}
-          <path
-            className="pet-egg-outline"
-            d="M200 130
-               C 179 130, 148 168, 146 222
-               C 144 270, 170 300, 200 300
-               C 230 300, 256 270, 254 222
-               C 252 168, 221 130, 200 130 Z"
-            fill="none"
-            stroke="#c6a571"
-            strokeWidth="1.6"
-          />
           {/* Soft glossy highlight, upper-left */}
           <ellipse cx="181" cy="180" rx="17" ry="27" fill="#ffffff" opacity="0.28" />
           {/* Speckles scattered over the lower two-thirds */}
