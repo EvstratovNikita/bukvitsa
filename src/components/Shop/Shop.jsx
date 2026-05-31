@@ -33,6 +33,7 @@ const DEFAULT_ITEM = {
   background: {
     id: '__default-bg',
     category: 'background',
+    theme: 'dark',
     name: 'Стандартный',
     desc: 'Базовый тёмный фон по умолчанию',
     price: 0,
@@ -46,6 +47,19 @@ const DEFAULT_ITEM = {
     price: 0,
     isDefault: true
   }
+};
+
+// Light-theme counterpart of the default background — clears the custom
+// background AND switches to the standard light theme. Lives in the "Светлые"
+// sub-tab so the player can flip to the plain light look in one tap.
+const DEFAULT_BG_LIGHT = {
+  id: '__default-bg-light',
+  category: 'background',
+  theme: 'light',
+  name: 'Стандартный',
+  desc: 'Базовый светлый фон',
+  price: 0,
+  isDefault: true
 };
 
 const ERROR_LABEL = {
@@ -65,8 +79,9 @@ export function Shop({ open, onClose }) {
     const cataloged = itemsByCategory(activeCat);
     if (activeCat === 'background') {
       const filtered = cataloged.filter((i) => (i.theme || 'dark') === bgTheme);
-      // The "Стандартный" (default) card only belongs to the dark sub-tab.
-      return bgTheme === 'dark' ? [DEFAULT_ITEM.background, ...filtered] : filtered;
+      // Each sub-tab leads with its own "Стандартный" card (dark / light).
+      const def = bgTheme === 'dark' ? DEFAULT_ITEM.background : DEFAULT_BG_LIGHT;
+      return [def, ...filtered];
     }
     const defaultItem = DEFAULT_ITEM[activeCat];
     return defaultItem ? [defaultItem, ...cataloged] : cataloged;
@@ -171,8 +186,11 @@ export function Shop({ open, onClose }) {
 
 function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
   const owned = item.isDefault || (stats.inventory || []).includes(item.id);
+  const curTheme = stats.prefs?.theme === 'light' ? 'light' : 'dark';
   const active = item.isDefault
-    ? (item.category === 'background' && !stats.activeBackground) ||
+    ? // Default bg is "active" only when no custom bg AND the current theme
+      // matches this card's theme (so dark/light defaults don't both light up).
+      (item.category === 'background' && !stats.activeBackground && (item.theme || 'dark') === curTheme) ||
       (item.category === 'cells' && !stats.activeCellStyle)
     : (item.category === 'background' && stats.activeBackground === item.id) ||
       (item.category === 'cells' && stats.activeCellStyle === item.id);
@@ -188,6 +206,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
   if (item.category === 'cells') previewClasses.push(`shop-card__preview--${item.id}`);
   if (item.category === 'boost') previewClasses.push('shop-card__preview--boost');
   if (item.isDefault) previewClasses.push('shop-card__preview--default');
+  if (item.isDefault && item.theme === 'light') previewClasses.push('shop-card__preview--default-light');
 
   return (
     <div className={`shop-card${active ? ' shop-card--active' : ''}`}>
