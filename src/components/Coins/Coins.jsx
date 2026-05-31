@@ -3,23 +3,27 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 
 export function Coins() {
-  const { stats, lastEarned } = useGameContext();
+  const { stats } = useGameContext();
   const [pulseId, setPulseId] = useState(0);
   const [pop, setPop] = useState(null); // { id, value }
   const prevCoins = useRef(stats.coins);
 
   useEffect(() => {
-    if (stats.coins !== prevCoins.current) {
-      prevCoins.current = stats.coins;
-      setPulseId((n) => n + 1);
-      if (lastEarned > 0) {
-        const id = Date.now();
-        setPop({ id, value: lastEarned });
-        const t = setTimeout(() => setPop(null), 1400);
-        return () => clearTimeout(t);
-      }
+    const prev = prevCoins.current;
+    if (stats.coins === prev) return;
+    const delta = stats.coins - prev;
+    prevCoins.current = stats.coins;
+    setPulseId((n) => n + 1);
+    // Only flash a "+N" when coins actually increase. Spends (hints, shop)
+    // decrease the balance — no green pop for those.
+    if (delta > 0) {
+      const id = Date.now();
+      setPop({ id, value: delta });
+      const t = setTimeout(() => setPop(null), 1400);
+      return () => clearTimeout(t);
     }
-  }, [stats.coins, lastEarned]);
+    setPop(null);
+  }, [stats.coins]);
 
   return (
     <div className="coins" key={pulseId}>

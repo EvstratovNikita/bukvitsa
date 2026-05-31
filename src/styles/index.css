@@ -385,12 +385,13 @@ button { font-family: inherit; }
   gap: 8px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(247, 201, 72, 0.16), rgba(247, 201, 72, 0.04));
-  border: 1px solid rgba(247, 201, 72, 0.4);
-  color: #ffe07a;
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.30), rgba(247, 201, 72, 0.10));
+  border: 1px solid rgba(247, 201, 72, 0.6);
+  color: #ffe9b0;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   font-size: 16px;
+  box-shadow: 0 4px 16px rgba(247, 201, 72, 0.18);
 }
 .shop__balance svg { width: 18px; height: 18px; }
 .shop__balance-label {
@@ -3842,7 +3843,11 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 [data-theme="light"] .shop-card__name { color: #1a1d28; }
 [data-theme="light"] .shop-card__desc { color: rgba(26, 29, 40, 0.65); }
-[data-theme="light"] .shop__balance { color: #6a3a04; }
+[data-theme="light"] .shop__balance {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.55), rgba(247, 170, 40, 0.30));
+  border-color: rgba(150, 95, 10, 0.7);
+  color: #6a3a04;
+}
 [data-theme="light"] .shop__balance-label { color: rgba(26, 29, 40, 0.6); }
 [data-theme="light"] .shop__tab           { color: rgba(26, 29, 40, 0.65); }
 [data-theme="light"] .shop__tab--active   { color: #1a1d28; }
