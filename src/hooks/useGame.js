@@ -66,8 +66,9 @@ export function useGame() {
   // Counts inter-game transitions to throttle interstitials to "every other"
   // transition (on top of Yandex's own ~60s frequency cap). No-op off Yandex.
   const adTransitionRef = useRef(0);
-  // Native review prompt — asked once per session after a couple of wins.
-  const sessionWinsRef = useRef(0);
+  // Native review prompt — asked once per session, on a win, after the player
+  // has finished a few games (so they've actually felt the game first).
+  const sessionGamesRef = useRef(0);
   const reviewAskedRef = useRef(false);
   const stats = useStats();
 
@@ -213,11 +214,12 @@ export function useGame() {
       const elapsedMs = Date.now() - gameStartRef.current;
       if (won) {
         setStatus(GAME_STATUS.WON);
-        // After a couple of wins this session, ask for a native rating once
-        // (Yandex only shows it if eligible). Delayed so it doesn't cut into
-        // the win animation / reward panel. No-op off Yandex.
-        sessionWinsRef.current += 1;
-        if (sessionWinsRef.current >= 2 && !reviewAskedRef.current) {
+        // Ask for a native rating once per session, on a win, once the player
+        // has finished at least 4 games (let them feel the game first). Yandex
+        // only shows it if eligible; delayed so it doesn't cut into the win
+        // panel. No-op off Yandex.
+        sessionGamesRef.current += 1;
+        if (sessionGamesRef.current >= 4 && !reviewAskedRef.current) {
           reviewAskedRef.current = true;
           setTimeout(() => requestReview(), 1500);
         }
@@ -280,6 +282,7 @@ export function useGame() {
         }
       } else if (lost) {
         setStatus(GAME_STATUS.LOST);
+        sessionGamesRef.current += 1;
         if (gameMode === 'daily') {
           stats.recordDailyResult({
             key: getDailyKey(),

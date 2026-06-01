@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // First-run coachmarks: dim the screen, spotlight one UI element at a time and
 // describe it in a couple of words. Shown once per device (localStorage flag).
@@ -45,6 +45,8 @@ export function Tour({ onDone }) {
   const [steps] = useState(() => STEPS.filter((s) => document.querySelector(s.sel)));
   const [i, setI] = useState(0);
   const [rect, setRect] = useState(null);
+  const popRef = useRef(null);
+  const [popH, setPopH] = useState(0);
 
   const measure = useCallback(() => {
     const step = steps[i];
@@ -56,6 +58,7 @@ export function Tour({ onDone }) {
   }, [steps, i]);
 
   useLayoutEffect(() => { measure(); }, [measure]);
+  useLayoutEffect(() => { if (popRef.current) setPopH(popRef.current.offsetHeight); }, [i, rect]);
 
   useEffect(() => {
     const on = () => measure();
@@ -92,19 +95,23 @@ export function Tour({ onDone }) {
     height: rect.height + pad * 2
   };
 
-  // Place the bubble below the spot if there's room, otherwise above it; clamp
-  // horizontally to the viewport.
-  let popStyle = { top: '50%', left: '50%', transform: 'translate(-50%,-50%)' };
+  // Place the bubble below the spot if it fits, else above it; if the target is
+  // too tall to flank either way (e.g. the board), pin it near the top so the
+  // whole bubble — and its button — stays on screen. Clamp horizontally.
+  let popStyle = { top: 70, left: '50%', transform: 'translateX(-50%)' };
   if (rect) {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const W = 300;
     const center = rect.left + rect.width / 2;
     const left = Math.max(12, Math.min(center - W / 2, vw - W - 12));
-    const below = rect.top + rect.height + 180 < vh;
-    popStyle = below
-      ? { top: rect.top + rect.height + pad + 14, left }
-      : { top: rect.top - pad - 14, left, transform: 'translateY(-100%)' };
+    const belowTop = rect.top + rect.height + pad + 14;
+    const aboveTop = rect.top - pad - 14 - popH;
+    let top;
+    if (belowTop + popH + 12 <= vh) top = belowTop;
+    else if (aboveTop >= 12) top = aboveTop;
+    else top = 70;
+    popStyle = { top, left };
   }
 
   return (
@@ -115,7 +122,7 @@ export function Tour({ onDone }) {
           style={{ top: spot.top, left: spot.left, width: spot.width, height: spot.height }}
         />
       )}
-      <div className="tour__pop" style={popStyle}>
+      <div className="tour__pop" ref={popRef} style={popStyle}>
         <div className="tour__step">{i + 1} / {steps.length}</div>
         <div className="tour__title">{step.title}</div>
         <div className="tour__text">{step.text}</div>

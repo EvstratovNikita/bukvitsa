@@ -99,8 +99,18 @@ export async function showFullscreenAdv() {
 // just request it once after the game is ready. No-op off platform.
 export async function showStickyBanner() {
   if (!isYandex) return;
-  try { (await getYsdk()).adv?.showBannerAdv?.(); }
-  catch (e) { console.warn('[yandex] banner failed', e); }
+  try {
+    const ysdk = await getYsdk();
+    // Diagnostic: reason tells us WHY a banner won't show (e.g. no RTB block
+    // connected, or banners only serve on a published/moderated game).
+    try {
+      const status = await ysdk.adv?.getBannerAdvStatus?.();
+      console.info('[yandex] banner status', status);
+    } catch { /* status optional */ }
+    ysdk.adv?.showBannerAdv?.();
+  } catch (e) {
+    console.warn('[yandex] banner failed', e);
+  }
 }
 
 // Native rating prompt. Only fires if Yandex says the user can review now;
