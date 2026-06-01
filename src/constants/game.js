@@ -65,6 +65,10 @@ export const AD_COIN_BONUS_USES = 10;              // number of boosted ad views
 // a normal player, low enough to stop coin-farming via the stub/short ad.
 export const ADS_DOUBLE_PER_DAY = 10;
 
+// Daily cap on "watch ad → +1 energy". Without it the player can farm infinite
+// energy (especially with the instant stub ad), removing all energy pressure.
+export const ADS_ENERGY_PER_DAY = 5;
+
 // Resolve the active energy ceiling for a stats blob (7 while the cap boost
 // is live, otherwise the base 5).
 export const energyCapFor = (s, nowMs) => {

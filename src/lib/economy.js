@@ -22,6 +22,7 @@ export function serverPatch(result) {
   if (has('daily') && result.daily && typeof result.daily === 'object') p.daily = result.daily;
   if (has('alt_mode') && result.alt_mode && typeof result.alt_mode === 'object') p.altMode = result.alt_mode;
   if (has('ads_double') && result.ads_double && typeof result.ads_double === 'object') p.adsDouble = result.ads_double;
+  if (has('ads_energy') && result.ads_energy && typeof result.ads_energy === 'object') p.adEnergy = result.ads_energy;
   if (has('distribution') && Array.isArray(result.distribution)) p.distribution = result.distribution;
   // claim_daily_login returns the new login streak under `streak`.
   if (has('streak')) p.dailyStreak = result.streak;

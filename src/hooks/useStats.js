@@ -3,6 +3,7 @@ import {
   AD_COIN_BONUS,
   AD_COIN_BONUS_USES,
   ADS_DOUBLE_PER_DAY,
+  ADS_ENERGY_PER_DAY,
   BOOST_DOUBLE_MS,
   BOOST_ENERGY_CAP_MS,
   ENERGY_AD_REWARD,
@@ -79,6 +80,11 @@ const DEFAULT_STATS = {
     dayKey: null,           // 'YYYY-MM-DD' of last counted double
     count: 0                // doubles used today
   },
+  adEnergy: {
+    // "Watch ad → +1 energy" daily counter — caps free ad-energy per day.
+    dayKey: null,
+    count: 0
+  },
   // Companion pet (Букля the owlet). Lightweight JSON blob; new fields
   // (xp, hunger, mood, equipped) get appended as the pet feature grows.
   pet: {
@@ -111,6 +117,7 @@ function load() {
     prefs: { ...DEFAULT_STATS.prefs, ...(raw.prefs || {}) },
     altMode: { ...DEFAULT_STATS.altMode, ...(raw.altMode || {}) },
     adsDouble: { ...DEFAULT_STATS.adsDouble, ...(raw.adsDouble || {}) },
+    adEnergy: { ...DEFAULT_STATS.adEnergy, ...(raw.adEnergy || {}) },
     // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
     // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
     lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
@@ -154,10 +161,20 @@ export function useStats() {
   }, [stats]);
 
   const remote = useRemoteSync({ stats, setStats, userId: auth.userId });
-  // True once the initial server reconcile has settled (or immediately in
-  // offline-only mode). The game waits for this before deciding whether to
-  // offer the daily word / login reward, so it never acts on stale local state.
-  const ready = remote.synced;
+  // Fallback so the game ALWAYS becomes playable: if the server reconcile
+  // doesn't settle quickly (e.g. anonymous sign-in is blocked/slow inside the
+  // Yandex iframe, so userId never arrives and `synced` never flips), start on
+  // local state anyway. Without this the first-puzzle pick stays gated forever
+  // and the board is blank / unтypeable until a mode switch.
+  const [readyFallback, setReadyFallback] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setReadyFallback(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
+  // True once the initial server reconcile has settled (or the fallback fired).
+  // The game waits for this before deciding whether to offer the daily word /
+  // login reward, so it never acts on stale local state.
+  const ready = remote.synced || readyFallback;
 
   // Wall-clock tick used to drive countdowns. Bumped every ~30s so the
   // EnergyBadge "+1 через M:SS" reads as continuous without flooding state.
@@ -725,10 +742,29 @@ export function useStats() {
     return 'ok';
   }, [reconciled.energy, energyMax, stats.coins, mutateEnergy, runEconomy]);
 
+  // Remaining "watch ad → +1 energy" grants today (resets at local midnight).
+  const adsEnergyLeft = useMemo(() => {
+    const cur = stats.adEnergy || DEFAULT_STATS.adEnergy;
+    const used = cur.dayKey === todayKey() ? (cur.count || 0) : 0;
+    return Math.max(0, ADS_ENERGY_PER_DAY - used);
+  }, [stats.adEnergy]);
+
+  // Credit +1 energy from a watched ad, capped per day. Returns false (and does
+  // nothing) when the daily cap is already reached.
   const grantAdEnergy = useCallback(() => {
+    const today = todayKey();
+    const cur = stats.adEnergy || DEFAULT_STATS.adEnergy;
+    const used = cur.dayKey === today ? (cur.count || 0) : 0;
+    if (used >= ADS_ENERGY_PER_DAY) return false;
     mutateEnergy(+ENERGY_AD_REWARD);
+    setStats((s) => {
+      const c = s.adEnergy || DEFAULT_STATS.adEnergy;
+      const u = c.dayKey === today ? (c.count || 0) : 0;
+      return { ...s, adEnergy: { dayKey: today, count: u + 1 } };
+    });
     runEconomy('grant_ad_energy', {}, { recompute: false });
-  }, [mutateEnergy, runEconomy]);
+    return true;
+  }, [stats.adEnergy, mutateEnergy, runEconomy]);
 
   // Called whenever a rewarded ad finishes. If the "Щедрая реклама" boost has
   // uses left, credit +3 coins and decrement. Returns the bonus granted (0/3).
@@ -816,6 +852,7 @@ export function useStats() {
     consumeEnergy,
     buyEnergy,
     grantAdEnergy,
+    adsEnergyLeft,
     recordAdWatched,
     adsDoubleLeft,
     recordAdDouble,

@@ -627,6 +627,7 @@ export function useGame() {
     closeEnergyModal,
     buyEnergy: stats.buyEnergy,
     grantAdEnergy: stats.grantAdEnergy,
+    adsEnergyLeft: stats.adsEnergyLeft,
     recordAdWatched: stats.recordAdWatched,
     startAfterRefuel
   };

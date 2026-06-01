@@ -23,6 +23,7 @@ export function EnergyModal() {
     closeEnergyModal,
     buyEnergy,
     grantAdEnergy,
+    adsEnergyLeft = 0,
     recordAdWatched,
     startAfterRefuel,
     stats,
@@ -64,12 +65,14 @@ export function EnergyModal() {
 
   const onAd = async () => {
     if (adRunning) return;
+    if (adsEnergyLeft <= 0) { flash('err', 'Лимит рекламы на сегодня исчерпан'); return; }
     setAdRunning(true);
     flash('info', 'Реклама…');
     const result = await showRewardedAd();
     setAdRunning(false);
     if (result === 'rewarded') {
-      grantAdEnergy();
+      // grantAdEnergy enforces the daily cap and returns false if reached.
+      if (!grantAdEnergy()) { flash('err', 'Лимит рекламы на сегодня исчерпан'); return; }
       const adBonus = recordAdWatched?.() || 0;
       flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} ${pluralCoins(adBonus)}` : `+${ENERGY_AD_REWARD} энергия`);
       if (needsStart) startAfterRefuel();
@@ -82,6 +85,7 @@ export function EnergyModal() {
 
   const cannotAfford = (stats.coins || 0) < ENERGY_REFILL_COST;
   const full = energy >= cap;
+  const adCapReached = adsEnergyLeft <= 0;
 
   return (
     <Modal open onClose={closeEnergyModal} title="Энергия">
@@ -128,14 +132,18 @@ export function EnergyModal() {
             className="energy-option"
             onClick={onAd}
             onMouseDown={(e) => e.preventDefault()}
-            disabled={full || adRunning}
+            disabled={full || adRunning || adCapReached}
           >
             <span className="energy-option__icon"><PlayIcon /></span>
             <span className="energy-option__body">
               <span className="energy-option__title">
                 {adRunning ? 'Смотрим рекламу…' : 'Посмотреть рекламу'}
               </span>
-              <span className="energy-option__sub">+{ENERGY_AD_REWARD} энергия, бесплатно</span>
+              <span className="energy-option__sub">
+                {adCapReached
+                  ? 'Лимит на сегодня исчерпан'
+                  : `+${ENERGY_AD_REWARD} энергия, бесплатно · осталось ${adsEnergyLeft}`}
+              </span>
             </span>
             <span className="energy-option__price energy-option__price--ad">
               {adRunning ? '…' : 'Смотреть'}
