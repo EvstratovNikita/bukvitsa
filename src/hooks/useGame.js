@@ -3,7 +3,7 @@ import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial } from '../lib/ads.js';
-import { gameplayStart, gameplayStop } from '../lib/yandex.js';
+import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { pluralCoins } from '../utils/plural.js';
@@ -66,6 +66,9 @@ export function useGame() {
   // Counts inter-game transitions to throttle interstitials to "every other"
   // transition (on top of Yandex's own ~60s frequency cap). No-op off Yandex.
   const adTransitionRef = useRef(0);
+  // Native review prompt — asked once per session after a couple of wins.
+  const sessionWinsRef = useRef(0);
+  const reviewAskedRef = useRef(false);
   const stats = useStats();
 
   // On first mount, pick the first puzzle:
@@ -210,6 +213,14 @@ export function useGame() {
       const elapsedMs = Date.now() - gameStartRef.current;
       if (won) {
         setStatus(GAME_STATUS.WON);
+        // After a couple of wins this session, ask for a native rating once
+        // (Yandex only shows it if eligible). Delayed so it doesn't cut into
+        // the win animation / reward panel. No-op off Yandex.
+        sessionWinsRef.current += 1;
+        if (sessionWinsRef.current >= 2 && !reviewAskedRef.current) {
+          reviewAskedRef.current = true;
+          setTimeout(() => requestReview(), 1500);
+        }
         if (gameMode === 'daily') {
           // Daily mode: doubled reward to honour the social hook — base
           // (rewardFor(attempts)) + a matching "за Слово дня" bonus. No

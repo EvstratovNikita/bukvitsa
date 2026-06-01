@@ -95,6 +95,30 @@ export async function showFullscreenAdv() {
   }
 }
 
+// Sticky bottom banner (extra passive revenue). Yandex shows/places it; we
+// just request it once after the game is ready. No-op off platform.
+export async function showStickyBanner() {
+  if (!isYandex) return;
+  try { (await getYsdk()).adv?.showBannerAdv?.(); }
+  catch (e) { console.warn('[yandex] banner failed', e); }
+}
+
+// Native rating prompt. Only fires if Yandex says the user can review now;
+// returns true if they actually submitted feedback. Call at a positive moment.
+export async function requestReview() {
+  if (!isYandex) return false;
+  try {
+    const ysdk = await getYsdk();
+    const can = await ysdk.feedback?.canReview?.();
+    if (!can?.value) return false;
+    const res = await ysdk.feedback.requestReview();
+    return Boolean(res?.feedbackSent);
+  } catch (e) {
+    console.warn('[yandex] requestReview failed', e);
+    return false;
+  }
+}
+
 // Kick off SDK load as early as possible when we're on Yandex, so the first
 // LoadingAPI.ready / ad call doesn't wait on a cold init.
 if (isYandex) getYsdk().catch(() => { /* surfaced later by callers */ });

@@ -11,7 +11,7 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
 import { hideSplash } from './lib/splash.js';
-import { loadingReady } from './lib/yandex.js';
+import { loadingReady, showStickyBanner } from './lib/yandex.js';
 import { pluralCoins } from './utils/plural.js';
 import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
@@ -102,6 +102,7 @@ function GameShell() {
     if (!ready) return;
     hideSplash();
     loadingReady();
+    showStickyBanner();
   }, [ready]);
   // Server-side gated: only fires when user is verified (non-anon).
   useReferralClaim({
