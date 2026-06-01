@@ -129,6 +129,90 @@ export async function requestReview() {
   }
 }
 
+// ---------- Player + cloud save ----------
+// On Yandex we store the whole stats blob in the player's own cloud (works in
+// "lite"/guest mode too; migrates to the account on login → multidevice).
+
+let _playerPromise = null;
+export async function getPlayer() {
+  if (!isYandex) return null;
+  if (_playerPromise) return _playerPromise;
+  _playerPromise = getYsdk()
+    .then((y) => y.getPlayer({ scopes: false }))
+    .catch((e) => { _playerPromise = null; throw e; });
+  return _playerPromise;
+}
+
+export async function cloudLoad() {
+  if (!isYandex) return null;
+  try {
+    const data = await (await getPlayer()).getData();
+    return data && typeof data === 'object' ? data : null;
+  } catch (e) {
+    console.warn('[yandex] getData failed', e);
+    return null;
+  }
+}
+
+export async function cloudSave(obj) {
+  if (!isYandex || !obj) return;
+  try { await (await getPlayer()).setData(obj, true); }
+  catch (e) { console.warn('[yandex] setData failed', e); }
+}
+
+export async function getPlayerInfo() {
+  if (!isYandex) return null;
+  try {
+    const p = await getPlayer();
+    const mode = p.getMode?.();
+    return { authorized: mode !== 'lite', name: p.getName?.() || '' };
+  } catch { return null; }
+}
+
+// Opens the Yandex auth dialog (the ONLY permitted login on the platform).
+// Resolves true on success; refetches the player so data attaches to the
+// now-authorized account.
+export async function openAuth() {
+  if (!isYandex) return false;
+  try {
+    const y = await getYsdk();
+    await y.auth.openAuthDialog();
+    _playerPromise = null;
+    await getPlayer();
+    return true;
+  } catch (e) {
+    console.warn('[yandex] openAuthDialog failed/declined', e);
+    return false;
+  }
+}
+
+// ---------- Leaderboards ----------
+// Create a leaderboard with this technical name in the Yandex console.
+export const LEADERBOARD = 'wins';
+
+let _lbPromise = null;
+function getLb() {
+  if (!_lbPromise) _lbPromise = getYsdk().then((y) => y.getLeaderboards());
+  return _lbPromise;
+}
+
+export async function submitScore(score, board = LEADERBOARD) {
+  if (!isYandex || !Number.isFinite(score)) return;
+  try { (await getLb()).setLeaderboardScore(board, Math.max(0, Math.round(score))); }
+  catch (e) { console.warn('[yandex] setLeaderboardScore failed', e); }
+}
+
+export async function fetchLeaderboard(board = LEADERBOARD) {
+  if (!isYandex) return null;
+  try {
+    const lb = await getLb();
+    return await lb.getLeaderboardEntries(board, { includeUser: true, quantityTop: 20, quantityAround: 5 });
+  } catch (e) {
+    console.warn('[yandex] getLeaderboardEntries failed', e);
+    return null;
+  }
+}
+
 // Kick off SDK load as early as possible when we're on Yandex, so the first
 // LoadingAPI.ready / ad call doesn't wait on a cold init.
 if (isYandex) getYsdk().catch(() => { /* surfaced later by callers */ });

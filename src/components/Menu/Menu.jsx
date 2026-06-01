@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
-import { isYandex } from '../../lib/yandex.js';
+import { isYandex, openAuth, getPlayerInfo, cloudSave } from '../../lib/yandex.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
   CloseIcon,
@@ -33,7 +33,7 @@ export function MenuButton({ onClick }) {
   );
 }
 
-export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite, onOpenSettings, onOpenFeedback }) {
+export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite, onOpenSettings, onOpenFeedback, onOpenLeaderboard }) {
   const { stats, auth } = useGameContext();
   const unlockedCount = (stats.unlockedAchievements || []).length;
 
@@ -120,7 +120,11 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         )}
 
         <nav className="menu__list">
+          {isYandex && <YandexAuthRow onClose={onClose} />}
           <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} accent />
+          {isYandex && (
+            <MenuItem icon={<TrophyIcon />} label="Лидерборд" onClick={handle(onOpenLeaderboard)} />
+          )}
           <MenuItem
             icon={<TrophyIcon />}
             label="Достижения"
@@ -128,12 +132,14 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             onClick={handle(onOpenAchievements)}
           />
           <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} />
-          <MenuItem
-            icon={<GiftIcon />}
-            label="Пригласить друга"
-            badge={(stats.referralsCount || 0) > 0 ? stats.referralsCount : undefined}
-            onClick={handle(onOpenInvite)}
-          />
+          {!isYandex && (
+            <MenuItem
+              icon={<GiftIcon />}
+              label="Пригласить друга"
+              badge={(stats.referralsCount || 0) > 0 ? stats.referralsCount : undefined}
+              onClick={handle(onOpenInvite)}
+            />
+          )}
           <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
           <MenuItem icon={<MailIcon />} label="Обратная связь" onClick={handle(onOpenFeedback)} />
@@ -152,6 +158,39 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         </footer>
       </aside>
     </>
+  );
+}
+
+// Yandex-only login row. Login is optional and only via Yandex ID (platform
+// rule). Authorized → cloud progress syncs across devices; guests still save
+// to their browser. Shows the account name once signed in.
+function YandexAuthRow({ onClose }) {
+  const { stats, showToast } = useGameContext();
+  const [info, setInfo] = useState(null);
+
+  useEffect(() => { getPlayerInfo().then(setInfo); }, []);
+
+  const onLogin = async () => {
+    const ok = await openAuth();
+    if (ok) {
+      await cloudSave(stats);
+      const next = await getPlayerInfo();
+      setInfo(next);
+      showToast?.('Вход выполнен — прогресс сохранён в аккаунте');
+      onClose();
+    }
+  };
+
+  if (info?.authorized) {
+    return (
+      <div className="menu-item menu-item--static">
+        <span className="menu-item__icon"><UserIcon /></span>
+        <span className="menu-item__label">{info.name || 'Аккаунт Яндекс'}</span>
+      </div>
+    );
+  }
+  return (
+    <MenuItem icon={<UserIcon />} label="Войти через Яндекс" onClick={onLogin} accent />
   );
 }
 

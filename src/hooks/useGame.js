@@ -3,7 +3,7 @@ import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial } from '../lib/ads.js';
-import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
+import { gameplayStart, gameplayStop, requestReview, submitScore } from '../lib/yandex.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { pluralCoins } from '../utils/plural.js';
@@ -157,6 +157,12 @@ export function useGame() {
     if (status === GAME_STATUS.PLAYING && solution) gameplayStart();
     else gameplayStop();
   }, [status, solution]);
+
+  // Push total wins to the Yandex leaderboard whenever it changes. No-op off
+  // Yandex; the platform throttles/dedupes submissions.
+  useEffect(() => {
+    submitScore(stats.stats.won || 0);
+  }, [stats.stats.won]);
 
   useEffect(() => {
     const onVis = () => {

@@ -26,8 +26,10 @@ import { getDecoration, equippedDecorationsBonus, WING_KEYS } from '../data/petD
 import { getTreat } from '../data/petTreats.js';
 import { storage } from '../utils/storage.js';
 import { callRpc, serverPatch } from '../lib/economy.js';
+import { isYandex } from '../lib/yandex.js';
 import { useAuth } from './useAuth.js';
 import { useRemoteSync } from './useRemoteSync.js';
+import { useYandexSync } from './useYandexSync.js';
 
 const DEFAULT_STATS = {
   played: 0,
@@ -160,7 +162,10 @@ export function useStats() {
     storage.set(STORAGE_KEYS.STATS, stats);
   }, [stats]);
 
-  const remote = useRemoteSync({ stats, setStats, userId: auth.userId });
+  // Persistence backend depends on platform: Supabase on the web, the Yandex
+  // player cloud (multidevice) inside Yandex Games. Only one is active.
+  const remote = useRemoteSync({ stats, setStats, userId: auth.userId, enabled: !isYandex });
+  const yandex = useYandexSync({ stats, setStats, enabled: isYandex });
   // Fallback so the game ALWAYS becomes playable: if the server reconcile
   // doesn't settle quickly (e.g. anonymous sign-in is blocked/slow inside the
   // Yandex iframe, so userId never arrives and `synced` never flips), start on
@@ -171,10 +176,10 @@ export function useStats() {
     const t = setTimeout(() => setReadyFallback(true), 2500);
     return () => clearTimeout(t);
   }, []);
-  // True once the initial server reconcile has settled (or the fallback fired).
-  // The game waits for this before deciding whether to offer the daily word /
-  // login reward, so it never acts on stale local state.
-  const ready = remote.synced || readyFallback;
+  // True once the active backend's initial load has settled (or the fallback
+  // fired). The game waits for this before deciding whether to offer the daily
+  // word / login reward, so it never acts on stale local state.
+  const ready = (isYandex ? yandex.synced : remote.synced) || readyFallback;
 
   // Wall-clock tick used to drive countdowns. Bumped every ~30s so the
   // EnergyBadge "+1 через M:SS" reads as continuous without flooding state.

@@ -87,7 +87,7 @@ const hasServerProgress = (row) =>
  * Returns { synced, error }. The hook is a no-op when Supabase isn't
  * configured (offline-only mode) — local state remains source of truth.
  */
-export function useRemoteSync({ stats, setStats, userId }) {
+export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
   const syncedRef = useRef(false);
   const errorRef = useRef(null);
   const debounceRef = useRef(null);
@@ -100,7 +100,7 @@ export function useRemoteSync({ stats, setStats, userId }) {
 
   // Initial reconcile when user becomes available.
   useEffect(() => {
-    if (!isSupabaseConfigured || !userId) return;
+    if (!enabled || !isSupabaseConfigured || !userId) return;
     let active = true;
 
     (async () => {
@@ -154,11 +154,11 @@ export function useRemoteSync({ stats, setStats, userId }) {
     // We intentionally only depend on userId — we want the reconcile to run
     // once per session, not on every stats change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, enabled]);
 
   // Debounced upsert on local mutations after initial sync.
   useEffect(() => {
-    if (!isSupabaseConfigured || !userId || !syncedRef.current) return;
+    if (!enabled || !isSupabaseConfigured || !userId || !syncedRef.current) return;
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       const { error } = await supabase
@@ -170,7 +170,7 @@ export function useRemoteSync({ stats, setStats, userId }) {
       }
     }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
-  }, [stats, userId]);
+  }, [stats, userId, enabled]);
 
   // Offline-only mode (no Supabase): there's nothing to wait for — treat as
   // synced so the game can start immediately on local state.

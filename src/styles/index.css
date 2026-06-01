@@ -3729,6 +3729,29 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   box-shadow: 0 3px 12px rgba(247, 201, 72, 0.30);
 }
 
+/* ---------- Leaderboard (Yandex) ---------- */
+.menu-item--static { cursor: default; }
+.lb { display: flex; flex-direction: column; gap: 10px; }
+.lb__msg { text-align: center; color: var(--text-dim); padding: 18px 6px; font-size: 14px; }
+.lb__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }
+.lb__row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+}
+.lb__row--me { border-color: rgba(247, 201, 72, 0.6); background: rgba(247, 201, 72, 0.10); }
+.lb__rank { font-weight: 800; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.lb__name { font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb__score { font-weight: 800; color: #f7c948; font-variant-numeric: tabular-nums; }
+.lb__hint { margin: 4px 0 0; font-size: 12px; color: var(--text-mute); text-align: center; line-height: 1.4; }
+[data-theme="light"] .lb__row { background: rgba(20, 28, 46, 0.04); border-color: rgba(40, 50, 80, 0.16); }
+[data-theme="light"] .lb__score { color: #9a5e00; }
+
 /* ---------- Settings modal ---------- */
 .settings { display: flex; flex-direction: column; gap: 12px; }
 .setting {

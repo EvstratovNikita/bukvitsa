@@ -7,6 +7,7 @@ import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { SettingsModal } from './components/Settings/Settings.jsx';
 import { FeedbackModal } from './components/Feedback/Feedback.jsx';
 import { Tour, TOUR_DONE_KEY } from './components/Tour/Tour.jsx';
+import { LeaderboardModal } from './components/Leaderboard/Leaderboard.jsx';
 import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
@@ -122,6 +123,7 @@ function GameShell() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
   const [tourOn, setTourOn] = useState(false);
+  const [lbOpen, setLbOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
   // First-run coachmarks: once the game is ready and the daily-reward (or any)
@@ -174,6 +176,7 @@ function GameShell() {
         onOpenInvite={() => setInviteOpen(true)}
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenFeedback={() => setFeedbackOpen(true)}
+        onOpenLeaderboard={() => setLbOpen(true)}
       />
 
       <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
@@ -183,6 +186,7 @@ function GameShell() {
       <PetScreen open={petOpen} onClose={() => setPetOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} />
       <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} />
       <EnergyModal />
 
