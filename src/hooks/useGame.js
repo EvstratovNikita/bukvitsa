@@ -145,6 +145,9 @@ export function useGame() {
   // Show an interstitial on every 2nd inter-game transition. Yandex throttles
   // further by its own frequency cap; off-platform this is a no-op.
   const maybeInterstitial = useCallback(() => {
+    // Never show an interstitial before the player has finished at least one
+    // game — no ads ahead of the first round of actual gameplay.
+    if (sessionGamesRef.current < 1) return;
     adTransitionRef.current += 1;
     if (adTransitionRef.current % 2 === 0) showInterstitial();
   }, []);
