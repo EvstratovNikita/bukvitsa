@@ -8,6 +8,7 @@ export function DailyBadge() {
     <div
       className="daily-badge"
       role="status"
+      data-tour="daily"
       aria-label={`Слово дня номер ${dayN}`}
       title={`Слово дня #${dayN}`}
     >

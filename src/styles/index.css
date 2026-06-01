@@ -3651,6 +3651,78 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   border-color: rgba(40, 50, 80, 0.18);
 }
 
+/* ---------- First-run tour (coachmarks) ---------- */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  /* Capture all pointer events so the app can't be touched mid-tour; the dim
+     itself comes from the spotlight's huge box-shadow. */
+  pointer-events: auto;
+}
+.tour__spot {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(6, 8, 14, 0.74);
+  border: 2px solid rgba(247, 201, 72, 0.95);
+  pointer-events: none;
+  transition: top .28s ease, left .28s ease, width .28s ease, height .28s ease;
+  animation: tour-spot-pulse 1.8s ease-in-out infinite;
+}
+@keyframes tour-spot-pulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(6, 8, 14, 0.74), 0 0 0 0 rgba(247, 201, 72, 0.35); }
+  50%      { box-shadow: 0 0 0 9999px rgba(6, 8, 14, 0.74), 0 0 0 6px rgba(247, 201, 72, 0.0); }
+}
+.tour__pop {
+  position: fixed;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  animation: tour-pop-in .22s ease both;
+}
+@keyframes tour-pop-in { from { opacity: 0; } }
+.tour__step {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-mute);
+  margin-bottom: 4px;
+}
+.tour__title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 5px; }
+.tour__text { font-size: 13.5px; line-height: 1.45; color: var(--text-dim); }
+.tour__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+}
+.tour__skip {
+  background: none;
+  border: none;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+.tour__next {
+  background: linear-gradient(135deg, #f7c948, #e8a91a);
+  color: #1a1300;
+  border: none;
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(247, 201, 72, 0.30);
+}
+
 /* ---------- Settings modal ---------- */
 .settings { display: flex; flex-direction: column; gap: 12px; }
 .setting {

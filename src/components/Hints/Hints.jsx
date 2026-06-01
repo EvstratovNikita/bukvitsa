@@ -27,6 +27,7 @@ export function HintButton() {
       <button
         type="button"
         className={`hint-btn${hintPickMode ? ' hint-btn--active' : ''}`}
+        data-tour="hint"
         onClick={() => (hintPickMode ? cancelHintPick() : setOpen(true))}
         disabled={disabled}
         aria-label={isDaily ? 'Подсказки недоступны в Слове дня' : 'Подсказка'}

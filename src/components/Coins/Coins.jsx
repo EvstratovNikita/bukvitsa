@@ -26,7 +26,7 @@ export function Coins() {
   }, [stats.coins]);
 
   return (
-    <div className="coins" key={pulseId}>
+    <div className="coins" key={pulseId} data-tour="coins">
       <CoinIcon />
       <span className="coins__value">{stats.coins}</span>
       {pop && (

@@ -29,6 +29,7 @@ export function Header({ onOpenHelp, onOpenMenu, onOpenPet, onOpenModes }) {
         <button
           type="button"
           className="iconbtn iconbtn--modes"
+          data-tour="modes"
           onClick={onOpenModes}
           onMouseDown={(e) => e.preventDefault()}
           aria-label="Доп. режимы"

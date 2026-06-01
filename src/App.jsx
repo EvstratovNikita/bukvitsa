@@ -6,6 +6,7 @@ import { InviteModal } from './components/Share/InviteModal.jsx';
 import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { SettingsModal } from './components/Settings/Settings.jsx';
 import { FeedbackModal } from './components/Feedback/Feedback.jsx';
+import { Tour, TOUR_DONE_KEY } from './components/Tour/Tour.jsx';
 import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
@@ -119,7 +120,24 @@ function GameShell() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
+  const [tourOn, setTourOn] = useState(false);
   const closeHelp = () => setHelpOpen(false);
+
+  // First-run coachmarks: once the game is ready and the daily-reward (or any)
+  // modal is dismissed, start the tour. Shown once per device.
+  useEffect(() => {
+    if (!ready) return;
+    let skip = false;
+    try { skip = Boolean(localStorage.getItem(TOUR_DONE_KEY)); } catch { /* noop */ }
+    if (skip) return;
+    let raf = 0;
+    const tryStart = () => {
+      if (document.querySelector('.modal-backdrop')) { raf = requestAnimationFrame(tryStart); return; }
+      setTourOn(true);
+    };
+    const t = setTimeout(() => { raf = requestAnimationFrame(tryStart); }, 400);
+    return () => { clearTimeout(t); if (raf) cancelAnimationFrame(raf); };
+  }, [ready]);
 
   return (
     <div className="app">
@@ -134,7 +152,7 @@ function GameShell() {
         {gameMode === 'daily' ? <DailyBadge /> : <EnergyBadge />}
         <HintButton />
       </div>
-      <main className="main">
+      <main className="main" data-tour="board">
         <Board />
         <GameEnd />
       </main>
@@ -142,6 +160,7 @@ function GameShell() {
       <Toast />
       <AchievementToast />
       <DailyReward />
+      {tourOn && <Tour onDone={() => setTourOn(false)} />}
 
       <SideMenu
         open={menuOpen}

@@ -22,6 +22,7 @@ export function MenuButton({ onClick }) {
     <button
       type="button"
       className="iconbtn iconbtn--accent"
+      data-tour="menu"
       onClick={onClick}
       onMouseDown={(e) => e.preventDefault()}
       aria-label="Меню"
