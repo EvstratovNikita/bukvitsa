@@ -3,6 +3,9 @@ dist
 dist-ssr
 .local
 
+# platform build bundles (Yandex Games upload, etc.)
+*.zip
+
 # logs
 npm-debug.log*
 yarn-debug.log*
