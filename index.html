@@ -8,8 +8,154 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Boot splash. Lives in index.html so it paints on the very first frame,
+         before the JS bundle loads/executes — no white flash, no layout blink.
+         The animation is pure CSS (runs while the bundle downloads); React
+         fades it out once the game is ready (see src/lib/splash.js). -->
+    <style>
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(120% 80% at 50% 0%, #1a2030 0%, #0b0d12 60%);
+        font-family: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        opacity: 1;
+        transition: opacity 460ms ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      #splash.splash--light {
+        background: radial-gradient(120% 80% at 50% 0%, #ffffff 0%, #e9e3d4 70%);
+      }
+      #splash.splash--hide { opacity: 0; pointer-events: none; }
+
+      .splash__inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 22px;
+        transform: translateY(-4%);
+      }
+      .splash__cells { display: flex; gap: 8px; }
+      .splash__cell {
+        width: min(13vw, 58px);
+        height: min(13vw, 58px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: min(7vw, 30px);
+        font-weight: 800;
+        border-radius: 10px;
+        border: 2px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.04);
+        color: #6a7387;
+        transform: perspective(420px) rotateX(0deg);
+        transform-origin: center;
+        will-change: transform, background-color, color;
+        animation: splash-flip 2.6s cubic-bezier(.2, .7, .3, 1) infinite;
+        animation-delay: calc(var(--i) * 0.13s);
+      }
+      #splash.splash--light .splash__cell {
+        border-color: rgba(40, 50, 80, 0.18);
+        background: rgba(20, 28, 46, 0.05);
+        color: #8a8f9c;
+      }
+
+      /* Empty → flip edge-on → filled (yellow) → hold → flip back → empty.
+         Staggered per cell, so a wave of "БУКВИЦА" lights up and loops. */
+      @keyframes splash-flip {
+        0%      { transform: perspective(420px) rotateX(0deg); }
+        8%      { transform: perspective(420px) rotateX(-88deg); }
+        9%      { background-color: #f7c948; color: #1a1300; border-color: #f7c948; }
+        16%     { transform: perspective(420px) rotateX(0deg); }
+        46%     { background-color: #f7c948; color: #1a1300; border-color: #f7c948; }
+        54%     { transform: perspective(420px) rotateX(-88deg); }
+        55%     { background-color: rgba(255,255,255,0.04); color: #6a7387; border-color: rgba(255,255,255,0.14); }
+        62%,100% { transform: perspective(420px) rotateX(0deg); }
+      }
+      #splash.splash--light .splash__cell {
+        animation-name: splash-flip-light;
+      }
+      @keyframes splash-flip-light {
+        0%      { transform: perspective(420px) rotateX(0deg); }
+        8%      { transform: perspective(420px) rotateX(-88deg); }
+        9%      { background-color: #f7c948; color: #1a1300; border-color: #e7b400; }
+        16%     { transform: perspective(420px) rotateX(0deg); }
+        46%     { background-color: #f7c948; color: #1a1300; border-color: #e7b400; }
+        54%     { transform: perspective(420px) rotateX(-88deg); }
+        55%     { background-color: rgba(20,28,46,0.05); color: #8a8f9c; border-color: rgba(40,50,80,0.18); }
+        62%,100% { transform: perspective(420px) rotateX(0deg); }
+      }
+
+      .splash__tagline {
+        font-family: 'Cormorant Garamond', Georgia, serif;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #98a0b4;
+      }
+      #splash.splash--light .splash__tagline { color: #6a3a04; }
+
+      .splash__dots { display: inline-flex; gap: 5px; margin-left: 2px; vertical-align: middle; }
+      .splash__dots i {
+        width: 5px; height: 5px; border-radius: 50%;
+        background: #6c8cff;
+        display: inline-block;
+        animation: splash-dot 1.2s ease-in-out infinite;
+      }
+      .splash__dots i:nth-child(2) { animation-delay: 0.15s; }
+      .splash__dots i:nth-child(3) { animation-delay: 0.3s; }
+      @keyframes splash-dot {
+        0%, 100% { opacity: 0.25; transform: translateY(0); }
+        40%      { opacity: 1;    transform: translateY(-3px); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .splash__cell { animation: none; background-color: #f7c948; color: #1a1300; border-color: #f7c948; }
+        .splash__dots i { animation: none; opacity: 0.7; }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <div class="splash__inner">
+        <div class="splash__cells">
+          <span class="splash__cell" style="--i:0">Б</span>
+          <span class="splash__cell" style="--i:1">У</span>
+          <span class="splash__cell" style="--i:2">К</span>
+          <span class="splash__cell" style="--i:3">В</span>
+          <span class="splash__cell" style="--i:4">И</span>
+          <span class="splash__cell" style="--i:5">Ц</span>
+          <span class="splash__cell" style="--i:6">А</span>
+        </div>
+        <div class="splash__tagline">
+          Загрузка
+          <span class="splash__dots"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Match the splash background to the player's saved theme so there's no
+      // dark→light pop when React mounts. Also stamp the start time so the
+      // splash is shown for at least a moment even on instant loads.
+      (function () {
+        try {
+          var raw = localStorage.getItem('wordle-ru:stats');
+          if (raw) {
+            var prefs = (JSON.parse(raw) || {}).prefs;
+            if (prefs && prefs.theme === 'light') {
+              document.getElementById('splash').classList.add('splash--light');
+            }
+          }
+        } catch (e) { /* noop */ }
+        window.__splashStart = Date.now();
+      })();
+    </script>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
