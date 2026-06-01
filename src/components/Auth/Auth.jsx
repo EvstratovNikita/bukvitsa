@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
+import { isYandex } from '../../lib/yandex.js';
 import { translateAuthError } from '../../lib/authErrors.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
@@ -10,8 +11,8 @@ export function AuthButton() {
   const [open, setOpen] = useState(false);
 
   // Hide when Supabase isn't configured — no point offering sign-in
-  // if the backend isn't wired up.
-  if (!isSupabaseConfigured) return null;
+  // if the backend isn't wired up. Also hidden on Yandex (no third-party auth).
+  if (!isSupabaseConfigured || isYandex) return null;
 
   const isLinked = auth?.user && auth.isAnonymous === false;
   const label = isLinked ? 'Аккаунт' : 'Войти';
@@ -36,6 +37,10 @@ export function AuthButton() {
 export function AuthModal({ open, onClose }) {
   const { auth } = useGameContext();
   const isLinked = auth?.user && auth.isAnonymous === false;
+
+  // Yandex Games forbids third-party sign-in (Google/email) — only Yandex ID
+  // is permitted. We show no login UI there, so never render this modal.
+  if (isYandex) return null;
 
   return (
     <Modal open={open} onClose={onClose} title={isLinked ? 'Аккаунт' : 'Сохранить прогресс'}>

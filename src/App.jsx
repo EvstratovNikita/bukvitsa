@@ -10,6 +10,7 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { captureReferralFromUrl } from './lib/referral.js';
 import { hideSplash } from './lib/splash.js';
+import { loadingReady } from './lib/yandex.js';
 import { pluralCoins } from './utils/plural.js';
 import { useReferralClaim } from './hooks/useReferralClaim.js';
 import { Board } from './components/Board/Board.jsx';
@@ -93,8 +94,14 @@ function GameShell() {
   const { stats, resetStats, auth, showToast, status, gameMode, ready } = useGameContext();
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
-  // the player never sees the empty board flash before its first puzzle.
-  useEffect(() => { if (ready) hideSplash(); }, [ready]);
+  // the player never sees the empty board flash before its first puzzle. Also
+  // signal Yandex Games that the game is ready (hides their loader). No-op off
+  // the Yandex platform.
+  useEffect(() => {
+    if (!ready) return;
+    hideSplash();
+    loadingReady();
+  }, [ready]);
   // Server-side gated: only fires when user is verified (non-anon).
   useReferralClaim({
     userId: auth?.userId,

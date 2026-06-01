@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, doubleCoinsActive, petXpForWin, rewardFor } from '../constants/game.js';
 import { equippedDecorationsBonus } from '../data/petDecorations.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
-import { showRewardedAd } from '../lib/ads.js';
+import { showRewardedAd, showInterstitial } from '../lib/ads.js';
+import { gameplayStart, gameplayStop } from '../lib/yandex.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { pluralCoins } from '../utils/plural.js';
@@ -62,6 +63,9 @@ export function useGame() {
   // Wall-clock at which the active puzzle started — used for the "win in N
   // seconds" achievements. Resets every time a fresh solution is set.
   const gameStartRef = useRef(Date.now());
+  // Counts inter-game transitions to throttle interstitials to "every other"
+  // transition (on top of Yandex's own ~60s frequency cap). No-op off Yandex.
+  const adTransitionRef = useRef(0);
   const stats = useStats();
 
   // On first mount, pick the first puzzle:
@@ -133,6 +137,28 @@ export function useGame() {
     setToast({ text, id: Date.now() });
     setTimeout(() => setToast(null), 1600);
   }, []);
+
+  // Show an interstitial on every 2nd inter-game transition. Yandex throttles
+  // further by its own frequency cap; off-platform this is a no-op.
+  const maybeInterstitial = useCallback(() => {
+    adTransitionRef.current += 1;
+    if (adTransitionRef.current % 2 === 0) showInterstitial();
+  }, []);
+
+  // Tell Yandex when active play starts/stops (pause sound/ads correctly).
+  useEffect(() => {
+    if (status === GAME_STATUS.PLAYING && solution) gameplayStart();
+    else gameplayStop();
+  }, [status, solution]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) gameplayStop();
+      else if (status === GAME_STATUS.PLAYING && solution) gameplayStart();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [status, solution]);
 
   const addLetter = useCallback((letter) => {
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
@@ -300,6 +326,8 @@ export function useGame() {
         return;
       }
     }
+    // A real new game is starting → count it toward the interstitial throttle.
+    maybeInterstitial();
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
       gameStartRef.current = Date.now();
@@ -311,7 +339,7 @@ export function useGame() {
       performReset();
       setIsClearing(false);
     }, ANIM.CLEAR_TOTAL_MS);
-  }, [guesses.length, current.length, hints, performReset, stats, wordLength]);
+  }, [guesses.length, current.length, hints, performReset, stats, wordLength, maybeInterstitial]);
 
   // Called after the user successfully tops up energy from the modal. Spends
   // the freshly-acquired unit and starts a puzzle without a clearing animation
@@ -366,6 +394,7 @@ export function useGame() {
   const exitDailyMode = useCallback(() => {
     if (gameMode !== 'daily') return;
     setGameMode('normal');
+    maybeInterstitial();
     const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
 
     // The board is full of the daily result — play the flip-close animation
@@ -410,7 +439,7 @@ export function useGame() {
       applyNext();
       setIsClearing(false);
     }, ANIM.CLEAR_TOTAL_MS);
-  }, [gameMode, stats, wordLength]);
+  }, [gameMode, stats, wordLength, maybeInterstitial]);
 
   // If the player signs into an account mid-session (userId change → server
   // reconcile) that has ALREADY completed today's daily word, don't leave them

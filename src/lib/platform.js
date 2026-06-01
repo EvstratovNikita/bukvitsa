@@ -4,6 +4,8 @@
 //
 // Add new platforms by extending the chain; never break the 'web' fallback.
 
+import { isYandex as yandexEnv } from './yandex.js';
+
 export const PLATFORMS = {
   WEB: 'web',
   YANDEX: 'yandex',
@@ -13,7 +15,10 @@ export const PLATFORMS = {
 
 function detect() {
   if (typeof window === 'undefined') return PLATFORMS.WEB;
-  if (window.YaGames) return PLATFORMS.YANDEX;
+  // Yandex is detected by the embedding (iframe + referrer/host), not by
+  // window.YaGames — the SDK script is injected lazily and isn't on the page
+  // yet at module-eval time.
+  if (yandexEnv) return PLATFORMS.YANDEX;
   if (window.Telegram?.WebApp?.initData) return PLATFORMS.TELEGRAM;
   if (window.vkBridge) return PLATFORMS.VK;
   return PLATFORMS.WEB;

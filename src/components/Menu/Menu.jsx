@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
+import { isYandex } from '../../lib/yandex.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
   CloseIcon,
@@ -91,7 +92,11 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         </header>
 
         {/* Account / Auth section — whole row opens the auth modal so the
-            user has one obvious place to log in / see their account. */}
+            user has one obvious place to log in / see their account.
+            Hidden on Yandex Games: the platform forbids third-party login
+            (Google/email) — only Yandex ID is allowed (deferred to a later
+            bridge), so we show no login UI there. */}
+        {!isYandex && (
         <button
           type="button"
           className="menu__user menu__user--btn"
@@ -111,6 +116,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             <span>{stats.coins || 0}</span>
           </div>
         </button>
+        )}
 
         <nav className="menu__list">
           <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} accent />

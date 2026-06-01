@@ -9,6 +9,7 @@
 // to a new platform, add an adapter and extend `pickAdapter()`.
 
 import { platform, PLATFORMS } from './platform.js';
+import { getYsdk, showFullscreenAdv } from './yandex.js';
 
 // --- Stub adapter: used on plain web + dev. Fakes a 3s rewarded video so
 //     the energy flow stays testable without a live SDK.
@@ -19,20 +20,8 @@ const stubAdapter = {
   }
 };
 
-// --- Yandex Games adapter. Activated only when the YaGames SDK is on the
-//     page (i.e. game is being served from yandex.ru/games inside their
-//     iframe). Init is lazy + cached.
-let _ysdkPromise = null;
-const getYsdk = () => {
-  if (_ysdkPromise) return _ysdkPromise;
-  if (typeof window === 'undefined' || !window.YaGames) {
-    _ysdkPromise = Promise.reject(new Error('YaGames SDK not loaded'));
-  } else {
-    _ysdkPromise = window.YaGames.init();
-  }
-  return _ysdkPromise;
-};
-
+// --- Yandex Games adapter. The ysdk instance comes from lib/yandex.js (single
+//     source of truth); init is lazy + cached there.
 const yandexAdapter = {
   async showRewarded() {
     try {
@@ -73,6 +62,12 @@ const adapter = pickAdapter();
 
 export async function showRewardedAd() {
   return adapter.showRewarded();
+}
+
+// Fullscreen (interstitial) advert, shown at natural breaks (between games).
+// No-op off Yandex; resolves true only if an ad was actually displayed.
+export async function showInterstitial() {
+  return showFullscreenAdv();
 }
 
 // Useful for UI copy ("Реклама ~3 сек" vs platform's real average).
