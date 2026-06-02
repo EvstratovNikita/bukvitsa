@@ -134,8 +134,20 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
       }
 
       if (hasServerProgress(data)) {
-        // Server is source of truth; overwrite local.
-        setStats((s) => ({ ...s, ...fromRow(data) }));
+        // Server is source of truth for progress/economy; overwrite local with
+        // its values. BUT the cosmetic preferences (theme, active background,
+        // active cell style) are CLIENT-authoritative — anonymous auth can hand
+        // us `userId` only after the user has already toggled the theme, and a
+        // blind pull would clobber that local choice with a stale server value
+        // (then the debounced upsert would persist the stale one). Keep local
+        // for these three; the upsert below pushes them back up to the server.
+        setStats((s) => ({
+          ...s,
+          ...fromRow(data),
+          prefs: s.prefs,
+          activeBackground: s.activeBackground,
+          activeCellStyle: s.activeCellStyle
+        }));
       } else if (hasLocalProgress(stats)) {
         // Migrate local → server (first time the user authenticates).
         const row = toRow(stats, userId);
