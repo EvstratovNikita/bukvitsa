@@ -15,6 +15,7 @@ import {
   computeDailyReward,
   doubleCoinsActive,
   energyCapFor,
+  energySpeedFromHunger,
   petComputeLevel,
   reconcilePetTimers,
   rewardFor,
@@ -500,11 +501,28 @@ export function useStats() {
         hatched: Boolean(s.pet?.hatched)
       });
       const nextHunger = Math.min(HUNGER_MAX, (r.hunger || 0) + treat.hungerGain);
+      // Feeding raises hunger → a faster energy-regen speed. Re-anchor the
+      // energy tick so the progress already accrued toward the next unit keeps
+      // the SAME fraction under the new (faster) speed. Without this, the next
+      // reconcile would re-divide the elapsed time by the now-shorter interval
+      // and retroactively grant energy / shrink the timer the instant you feed.
+      let nextTick = r.lastEnergyTickAt;
+      const cap = energyCapFor(s);
+      if (r.energy < cap && r.lastEnergyTickAt) {
+        const oldSpeed = energySpeedFromHunger(r.hunger);
+        const newSpeed = energySpeedFromHunger(nextHunger);
+        if (newSpeed > oldSpeed) {
+          const now = Date.now();
+          const elapsed = Math.max(0, now - new Date(r.lastEnergyTickAt).getTime());
+          const preserved = elapsed * (oldSpeed / newSpeed);
+          nextTick = new Date(now - preserved).toISOString();
+        }
+      }
       return {
         ...s,
         coins: Math.max(0, (s.coins || 0) - treat.price),
         energy: r.energy,
-        lastEnergyTickAt: r.lastEnergyTickAt,
+        lastEnergyTickAt: nextTick,
         pet: { ...(s.pet || DEFAULT_STATS.pet), hunger: nextHunger, lastHungerTickAt: r.lastHungerTickAt }
       };
     });
