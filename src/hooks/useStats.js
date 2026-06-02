@@ -371,10 +371,9 @@ export function useStats() {
         hatched: Boolean(s.pet?.hatched),
         maxEnergy: cap
       });
-      const nextEnergy = reward.energy > 0
-        ? Math.min(cap, r.energy + reward.energy)
-        : r.energy;
-      const nextTick = (reward.energy > 0 && r.energy < cap && nextEnergy >= cap)
+      // Daily streak energy is an earned bonus — allowed to overfill above cap.
+      const nextEnergy = reward.energy > 0 ? (r.energy + reward.energy) : r.energy;
+      const nextTick = (reward.energy > 0 && nextEnergy >= cap)
         ? new Date().toISOString()
         : r.lastEnergyTickAt;
       return {
@@ -678,7 +677,7 @@ export function useStats() {
 
   // Apply the reconcile snapshot inside an updater so we never lose pending
   // regen ticks when mutating energy. All energy ops route through this.
-  const mutateEnergy = useCallback((delta) => {
+  const mutateEnergy = useCallback((delta, { overfill = false } = {}) => {
     setStats((s) => {
       const cap = energyCapFor(s);
       const r = reconcilePetTimers({
@@ -689,10 +688,22 @@ export function useStats() {
         hatched: Boolean(s.pet?.hatched),
         maxEnergy: cap
       });
-      const nextEnergy = Math.max(0, Math.min(cap, r.energy + delta));
-      // If we were full and spent one, lastEnergyTickAt becomes "now" so the
-      // regen timer starts cleanly instead of crediting time from earlier.
-      const nextTick = (r.energy >= cap && delta < 0)
+      // Earned bonuses (overfill=true) may push energy ABOVE the cap; the
+      // reconcile only regenerates while below cap, so the surplus persists
+      // until spent down. Everything else clamps to the cap as usual.
+      const raw = r.energy + delta;
+      let nextEnergy;
+      if (delta < 0) {
+        // Spending never clamps to the cap — it must preserve any overfill
+        // surplus (e.g. 7 → 6, not 7 → 5). Just floor at 0.
+        nextEnergy = Math.max(0, raw);
+      } else {
+        // Adding clamps to the cap, unless this is an earned overfill bonus.
+        nextEnergy = overfill ? Math.max(0, raw) : Math.max(0, Math.min(cap, raw));
+      }
+      // At/above cap, anchor the regen tick to now (regen is paused there);
+      // below cap, keep the reconciled tick so pending regen keeps counting.
+      const nextTick = nextEnergy >= cap
         ? new Date().toISOString()
         : r.lastEnergyTickAt;
       return {
@@ -714,7 +725,8 @@ export function useStats() {
     const granted = sameDay ? cur.energyGranted : 0;
     const shouldGrant = nextPlays >= 5 && granted < 3;
     if (shouldGrant) {
-      mutateEnergy(+1);
+      // Earned bonus — allowed to overfill above the energy cap.
+      mutateEnergy(+1, { overfill: true });
       setStats((s) => ({
         ...s,
         altMode: { dayKey: today, plays: 0, energyGranted: granted + 1 }
