@@ -111,7 +111,7 @@ export function EnergyModal() {
         <div className="energy-modal__options">
           <button
             type="button"
-            className="energy-option"
+            className="energy-option energy-option--buy"
             onClick={onBuy}
             onMouseDown={(e) => e.preventDefault()}
             disabled={full || cannotAfford || adRunning}
@@ -129,7 +129,7 @@ export function EnergyModal() {
 
           <button
             type="button"
-            className="energy-option"
+            className="energy-option energy-option--ad"
             onClick={onAd}
             onMouseDown={(e) => e.preventDefault()}
             disabled={full || adRunning || adCapReached}
@@ -146,7 +146,7 @@ export function EnergyModal() {
               </span>
             </span>
             <span className="energy-option__price energy-option__price--ad">
-              {adRunning ? '…' : 'Смотреть'}
+              {adRunning ? '…' : (<><PlayIcon /><span>Смотреть</span></>)}
             </span>
           </button>
         </div>

@@ -1329,7 +1329,19 @@ button { font-family: inherit; }
   font-weight: 700; color: #f7c948;
   white-space: nowrap;
 }
-.energy-option__price--ad { color: #b5c5ff; }
+/* Ad CTA — a lively accent badge (play icon + "Смотреть") so it reads as a
+   tappable freebie, not a price. */
+.energy-option__price--ad {
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 4px 12px rgba(108, 140, 255, 0.35);
+}
+.energy-option__price--ad svg { width: 15px; height: 15px; }
+/* Tint the ad row's left icon to match the accent badge. */
+.energy-option--ad .energy-option__icon { color: var(--accent); }
 
 .energy-modal__feedback {
   text-align: center;
@@ -4096,7 +4108,18 @@ body.cell-style-cells-emerald .cell--correct .cell__face--back {
 }
 [data-theme="light"] .energy-option__title { color: #1a1d28; }
 [data-theme="light"] .energy-option__sub   { color: rgba(26, 29, 40, 0.65); }
-[data-theme="light"] .energy-option__price--ad { color: #3a4cb0; }
+/* Coin price: same gold pill the coin balance uses elsewhere so it reads on
+   the cream background (matches "other prices"). Scope away from the ad CTA. */
+[data-theme="light"] .energy-option__price:not(.energy-option__price--ad) {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.32), rgba(247, 201, 72, 0.14));
+  border: 1px solid rgba(180, 130, 30, 0.55);
+  color: #6a3a04;
+}
+[data-theme="light"] .energy-option__price:not(.energy-option__price--ad) svg { color: #8a5a10; }
+/* Ad badge keeps its accent gradient + white text in light theme too. */
+[data-theme="light"] .energy-option__price--ad { color: #fff; }
 
 /* ---------- Achievements ---------- */
 [data-theme="light"] .ach__summary-text   { color: rgba(26, 29, 40, 0.78); }
