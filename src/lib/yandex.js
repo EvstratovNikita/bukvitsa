@@ -213,6 +213,19 @@ export async function fetchLeaderboard(board = LEADERBOARD) {
   }
 }
 
+// Player language from the SDK. We're RU-only, so we don't switch UI — but the
+// platform requires reading the language AT STARTUP for every game (req 2/14),
+// which also flips the moderation indicator to "I18N is used".
+export let yandexLang = 'ru';
+
 // Kick off SDK load as early as possible when we're on Yandex, so the first
-// LoadingAPI.ready / ad call doesn't wait on a cold init.
-if (isYandex) getYsdk().catch(() => { /* surfaced later by callers */ });
+// LoadingAPI.ready / ad call doesn't wait on a cold init — and read i18n.lang
+// right away to satisfy the startup language-detection requirement.
+if (isYandex) {
+  getYsdk()
+    .then((y) => {
+      try { yandexLang = y.environment?.i18n?.lang || 'ru'; }
+      catch { /* noop */ }
+    })
+    .catch(() => { /* surfaced later by callers */ });
+}
