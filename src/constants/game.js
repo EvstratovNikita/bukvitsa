@@ -67,7 +67,7 @@ export const ADS_DOUBLE_PER_DAY = 10;
 
 // Daily cap on "watch ad → +1 energy". Without it the player can farm infinite
 // energy (especially with the instant stub ad), removing all energy pressure.
-export const ADS_ENERGY_PER_DAY = 5;
+export const ADS_ENERGY_PER_DAY = 10;
 
 // Resolve the active energy ceiling for a stats blob (7 while the cap boost
 // is live, otherwise the base 5).
