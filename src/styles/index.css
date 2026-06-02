@@ -28,12 +28,12 @@
   --accent: #6c8cff;
   --accent-2: #b388ff;
 
-  --correct: #f7c948;   /* yellow — letter in correct spot */
-  --correct-ink: #1a1300;
-  --present: #f0f2f7;   /* white — letter present, wrong spot */
-  --present-ink: #14171f;
-  --absent:  #7c8499;   /* light gray — letter not in word */
-  --absent-ink: #181c27;
+  --correct: #5aa564;   /* green — letter in correct spot (classic Wordle) */
+  --correct-ink: #ffffff;
+  --present: #f7c948;   /* yellow — letter present, wrong spot */
+  --present-ink: #1a1300;
+  --absent:  #6b7280;   /* gray — letter not in word */
+  --absent-ink: #ffffff;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -1569,7 +1569,7 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   background-size: 240% 100%;
   background-repeat: no-repeat;
   animation: shimmer-slide 2.8s linear infinite;
-  color: var(--correct-ink);
+  color: #1a1300;
   border-color: #f7c948;
 }
 
@@ -4001,12 +4001,10 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   color: #1a2c70;
 }
 
-/* Tutorial "в другом месте" swatch: dark-theme present is white, but
-   light theme repaints present cells to #c8c2b0 beige. Mirror that here
-   so the legend matches what the player sees on the board. */
+/* Present is now yellow (classic Wordle). Give the legend swatch a darker
+   border so it reads on the cream light-theme background. */
 [data-theme="light"] .swatch--present {
-  background: #c8c2b0;
-  border: 1px solid rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(180, 130, 30, 0.6);
 }
 
 /* "Порадовать" tab — category headings, "Надето" chip, card border,
@@ -4213,14 +4211,12 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   background: #ffffff;
   color: #1a1d28;
 }
-/* Present cells: white bg vanishes on light theme — switch to a clearly
-   distinct beige with darker border and inked text. */
+/* Present cells are now yellow (classic Wordle) — darker border so the gold
+   reads on the cream light-theme background. */
 [data-theme="light"] .cell--present .cell__face--front,
 [data-theme="light"] .cell--present .cell__face--back,
 [data-theme="light"] .cell--present:not(.cell--flipping) .cell__face--front {
-  background: #c8c2b0;
-  color: #14171f;
-  border-color: rgba(0, 0, 0, 0.35);
+  border-color: rgba(180, 130, 30, 0.6);
 }
 [data-theme="light"] .cell--absent .cell__face--front,
 [data-theme="light"] .cell--absent .cell__face--back,
@@ -4242,7 +4238,7 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 }
 [data-theme="light"] .key--present { border-color: rgba(0, 0, 0, 0.32); }
 [data-theme="light"] .key--absent  { border-color: rgba(0, 0, 0, 0.22); }
-[data-theme="light"] .key--correct { border-color: rgba(180, 130, 30, 0.6); }
+[data-theme="light"] .key--correct { border-color: rgba(40, 120, 60, 0.6); }
 
 /* The dark "Стандартный" card always previews dark (it represents the dark
    theme) regardless of the player's current theme; the light default uses its
@@ -4336,12 +4332,12 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
 [data-theme="light"] .key--correct {
   background: var(--correct);
   color: var(--correct-ink);
-  border-color: rgba(180, 130, 30, 0.55);
+  border-color: rgba(40, 120, 60, 0.55);
 }
 [data-theme="light"] .key--present {
-  background: #c8c2b0;
-  color: #14171f;
-  border-color: rgba(0, 0, 0, 0.35);
+  background: var(--present);
+  color: var(--present-ink);
+  border-color: rgba(180, 130, 30, 0.55);
 }
 [data-theme="light"] .key--absent {
   background: var(--absent);
