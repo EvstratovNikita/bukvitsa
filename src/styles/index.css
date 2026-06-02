@@ -496,14 +496,22 @@ button { font-family: inherit; }
     var(--bg-2);
 }
 .shop-card__preview--cells-shimmer {
-  background: linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
-  background-size: 240% 100%;
-  animation: shimmer-slide 2.8s linear infinite;
+  background-image:
+    linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%),
+    linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
+  background-size: 200% 200%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 150% 150%, 0 0;
+  animation: shine-diagonal 2.8s linear infinite;
 }
 .shop-card__preview--cells-emerald {
-  background: linear-gradient(120deg, #3f9a52, #88e6a6 35%, #3f9a52 65%, #2f7a44);
-  background-size: 240% 100%;
-  animation: shimmer-slide 2.8s linear infinite;
+  background-image:
+    linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%),
+    linear-gradient(120deg, #3f9a52, #88e6a6 35%, #3f9a52 65%, #2f7a44);
+  background-size: 200% 200%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 150% 150%, 0 0;
+  animation: shine-diagonal 2.8s linear infinite;
 }
 .shop-card__preview--boost {
   background:
@@ -1556,9 +1564,11 @@ body.cell-style-cells-neon [data-theme="light"] .cell--tbd .cell__face--front {
     0 1px 2px rgba(180, 130, 30, 0.55);
 }
 
-@keyframes shimmer-slide {
-  0%   { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
+/* A single highlight streak that travels along the diagonal. The rich base
+   gradient (2nd layer) stays put; only the white streak (1st layer) moves. */
+@keyframes shine-diagonal {
+  0%   { background-position: 150% 150%, 0 0; }
+  100% { background-position: -50% -50%, 0 0; }
 }
 
 .cell--correct:not(.cell--flipping) .cell__face--front { background: var(--correct); color: var(--correct-ink); border-color: var(--correct); }
@@ -1569,24 +1579,31 @@ body.cell-style-cells-neon [data-theme="light"] .cell--tbd .cell__face--front {
    status colour. Placed AFTER the base .cell--present rule for specificity. */
 body.cell-style-cells-shimmer .cell--present:not(.cell--flipping) .cell__face--front,
 body.cell-style-cells-shimmer .cell--present .cell__face--back {
-  background-image: linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
+  background-image:
+    linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%),
+    linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
   background-color: #f7c948;
-  background-size: 240% 100%;
+  background-size: 200% 200%, 100% 100%;
   background-repeat: no-repeat;
-  animation: shimmer-slide 2.8s linear infinite;
+  background-position: 150% 150%, 0 0;
+  animation: shine-diagonal 2.8s linear infinite;
   color: #1a1300;
   border-color: #f7c948;
 }
 
-/* Emerald shine on winning "correct" cells — a premium green sweep plus a
-   soft glow. Placed AFTER the base .cell--correct rule for specificity. */
+/* Emerald shine on winning "correct" cells — a premium green base with a
+   single diagonal highlight sweep, plus a soft glow. Placed AFTER the base
+   .cell--correct rule for specificity. */
 body.cell-style-cells-emerald .cell--correct:not(.cell--flipping) .cell__face--front,
 body.cell-style-cells-emerald .cell--correct .cell__face--back {
-  background-image: linear-gradient(120deg, #3f9a52, #88e6a6 35%, #3f9a52 65%, #2f7a44);
+  background-image:
+    linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.55) 50%, transparent 60%),
+    linear-gradient(120deg, #3f9a52, #88e6a6 35%, #3f9a52 65%, #2f7a44);
   background-color: #5aa564;
-  background-size: 240% 100%;
+  background-size: 200% 200%, 100% 100%;
   background-repeat: no-repeat;
-  animation: shimmer-slide 2.8s linear infinite;
+  background-position: 150% 150%, 0 0;
+  animation: shine-diagonal 2.8s linear infinite;
   color: #ffffff;
   border-color: #6fd089;
   box-shadow: 0 0 12px rgba(110, 210, 140, 0.55);
