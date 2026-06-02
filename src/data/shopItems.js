@@ -338,10 +338,17 @@ export const SHOP_ITEMS = [
     price: 80
   },
   {
+    id: 'cells-emerald',
+    category: 'cells',
+    name: 'Изумрудные победы',
+    desc: 'Верные клетки сияют живым изумрудом',
+    price: 80
+  },
+  {
     id: 'cells-shimmer',
     category: 'cells',
-    name: 'Золотые победы',
-    desc: 'Победные клетки мерцают золотом',
+    name: 'Золотое мерцание',
+    desc: 'Клетки «не на месте» переливаются золотом',
     price: 80
   },
 

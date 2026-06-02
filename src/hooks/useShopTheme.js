@@ -26,7 +26,7 @@ export function useShopTheme() {
 
   // Cell style — toggle a single class on body so CSS handles the rest.
   useEffect(() => {
-    const all = ['cells-neon', 'cells-shimmer'];
+    const all = ['cells-neon', 'cells-shimmer', 'cells-emerald'];
     for (const c of all) document.body.classList.remove(`cell-style-${c}`);
     if (activeCellStyle) {
       document.body.classList.add(`cell-style-${activeCellStyle}`);

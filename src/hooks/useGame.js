@@ -28,7 +28,14 @@ export function useGame() {
     const persisted = storage.get(STORAGE_KEYS.STATS, null);
     const dailyDone = persisted?.daily?.lastPlayedKey === getDailyKey();
     if (raw.gameMode !== 'daily' && !dailyDone) {
-      storage.set(STORAGE_KEYS.GAME_STATE + ':normal-backup', raw);
+      // Only stash an IN-PROGRESS normal game to resume after the daily. A
+      // finished one (WON/LOST) must NOT be restored later — it would reappear
+      // as a stale, pre-filled board ("a random word already entered").
+      if (raw.status === GAME_STATUS.PLAYING) {
+        storage.set(STORAGE_KEYS.GAME_STATE + ':normal-backup', raw);
+      } else {
+        storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
+      }
       storage.remove(STORAGE_KEYS.GAME_STATE);
       return null;
     }
@@ -423,7 +430,9 @@ export function useGame() {
     // The board is full of the daily result — play the flip-close animation
     // before swapping in the next puzzle, mirroring the "Новая игра" reset.
     const applyNext = () => {
-      if (backup?.solution) {
+      // Resume the stashed normal game ONLY if it was still in progress.
+      // A finished backup is stale — drop it and start a fresh round instead.
+      if (backup?.solution && backup.status === GAME_STATUS.PLAYING) {
         const restoreLen = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
         setWordLength(restoreLen);
         setSolution(backup.solution);
@@ -438,6 +447,8 @@ export function useGame() {
         gameStartRef.current = Date.now();
         return;
       }
+      // Drop any stale (finished) backup so it can't resurface later.
+      storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
       if (stats.consumeEnergy()) {
         gameStartRef.current = Date.now();
         setSolution(pickRandomWord(Math.random, wordLength));

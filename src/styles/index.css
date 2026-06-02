@@ -500,6 +500,11 @@ button { font-family: inherit; }
   background-size: 240% 100%;
   animation: shimmer-slide 2.8s linear infinite;
 }
+.shop-card__preview--cells-emerald {
+  background: linear-gradient(120deg, #3f9a52, #88e6a6 35%, #3f9a52 65%, #2f7a44);
+  background-size: 240% 100%;
+  animation: shimmer-slide 2.8s linear infinite;
+}
 .shop-card__preview--boost {
   background:
     radial-gradient(circle at 30% 30%, rgba(247, 201, 72, 0.25), transparent 60%),
@@ -1560,10 +1565,10 @@ body.cell-style-cells-neon [data-theme="light"] .cell--tbd .cell__face--front {
 .cell--present:not(.cell--flipping) .cell__face--front { background: var(--present); color: var(--present-ink); border-color: var(--present); }
 .cell--absent:not(.cell--flipping)  .cell__face--front { background: var(--absent);  color: var(--absent-ink);  border-color: var(--absent); }
 
-/* Golden shimmer on winning correct cells — placed AFTER the base
-   .cell--correct rule so it actually wins specificity-wise. */
-body.cell-style-cells-shimmer .cell--correct:not(.cell--flipping) .cell__face--front,
-body.cell-style-cells-shimmer .cell--correct .cell__face--back {
+/* Golden shimmer on "present" (wrong-spot) cells — gold over the yellow
+   status colour. Placed AFTER the base .cell--present rule for specificity. */
+body.cell-style-cells-shimmer .cell--present:not(.cell--flipping) .cell__face--front,
+body.cell-style-cells-shimmer .cell--present .cell__face--back {
   background-image: linear-gradient(120deg, #f7c948, #ffe07a 35%, #f7c948 65%, #c89018);
   background-color: #f7c948;
   background-size: 240% 100%;
@@ -1571,6 +1576,20 @@ body.cell-style-cells-shimmer .cell--correct .cell__face--back {
   animation: shimmer-slide 2.8s linear infinite;
   color: #1a1300;
   border-color: #f7c948;
+}
+
+/* Emerald shine on winning "correct" cells — a premium green sweep plus a
+   soft glow. Placed AFTER the base .cell--correct rule for specificity. */
+body.cell-style-cells-emerald .cell--correct:not(.cell--flipping) .cell__face--front,
+body.cell-style-cells-emerald .cell--correct .cell__face--back {
+  background-image: linear-gradient(120deg, #3f9a52, #88e6a6 35%, #3f9a52 65%, #2f7a44);
+  background-color: #5aa564;
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer-slide 2.8s linear infinite;
+  color: #ffffff;
+  border-color: #6fd089;
+  box-shadow: 0 0 12px rgba(110, 210, 140, 0.55);
 }
 
 /* Pop on input */
