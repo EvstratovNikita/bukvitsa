@@ -164,15 +164,26 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
 // Yandex-only login row. Login is optional and only via Yandex ID (platform
 // rule). Authorized → cloud progress syncs across devices; guests still save
 // to their browser. Shows the account name once signed in.
+const YA_CONSENT_KEY = 'wordle-ru:yandex-authed';
+
 function YandexAuthRow({ onClose }) {
   const { stats, showToast } = useGameContext();
   const [info, setInfo] = useState(null);
 
-  useEffect(() => { getPlayerInfo().then(setInfo); }, []);
+  // Yandex compliance: authorization must be voluntary — only after the user
+  // taps the login button. NEVER auto-authorize / auto-show the account. We
+  // fetch + display the account only once the user has explicitly consented
+  // (persisted flag from a prior login); otherwise we always show the button.
+  useEffect(() => {
+    let consented = false;
+    try { consented = Boolean(localStorage.getItem(YA_CONSENT_KEY)); } catch { /* noop */ }
+    if (consented) getPlayerInfo().then(setInfo);
+  }, []);
 
   const onLogin = async () => {
     const ok = await openAuth();
     if (ok) {
+      try { localStorage.setItem(YA_CONSENT_KEY, '1'); } catch { /* noop */ }
       await cloudSave(stats);
       const next = await getPlayerInfo();
       setInfo(next);
@@ -189,8 +200,21 @@ function YandexAuthRow({ onClose }) {
       </div>
     );
   }
+  // Login offer carries a clear reason (required: "понятный текст, объясняющий
+  // причину необходимости авторизации").
   return (
-    <MenuItem icon={<UserIcon />} label="Войти через Яндекс" onClick={onLogin} accent />
+    <button
+      type="button"
+      className="menu-item menu-item--accent menu-item--login"
+      onClick={onLogin}
+      onMouseDown={(e) => e.preventDefault()}
+    >
+      <span className="menu-item__icon"><UserIcon /></span>
+      <span className="menu-item__login-body">
+        <span className="menu-item__label">Войти через Яндекс</span>
+        <span className="menu-item__login-sub">Сохранить прогресс на всех устройствах</span>
+      </span>
+    </button>
   );
 }
 
