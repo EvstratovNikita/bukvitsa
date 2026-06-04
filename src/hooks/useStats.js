@@ -25,6 +25,8 @@ import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
 import { getDecoration, equippedDecorationsBonus, WING_KEYS } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
+import { reconcileBond, BOND_PER_GIFT } from '../utils/petBond.js';
+import { GIFT_IDS, nextUnclaimedGiftId } from '../data/petGifts.js';
 import { storage } from '../utils/storage.js';
 import { callRpc, serverPatch } from '../lib/economy.js';
 import { isYandex } from '../lib/yandex.js';
@@ -61,7 +63,10 @@ const DEFAULT_STATS = {
   referralsCount: 0,        // verified (non-anon) invitees credited to this user
   prefs: {
     theme: 'dark',          // 'dark' | 'light'
-    enterOnLeft: false      // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
+    enterOnLeft: false,     // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
+    petBond: 0,             // привязанность к питомцу (0..BOND_PER_GIFT)
+    petBondTickAt: null,    // ISO якоря последнего пересчёта bond
+    petGifts: []            // id уже полученных подарков (по порядку)
   },
   daily: {
     lastPlayedKey: null,    // 'YYYY-MM-DD' of the most recent daily attempt
@@ -224,6 +229,39 @@ export function useStats() {
       }
     }));
   }, [reconciled.energy, stats.energy]);
+
+  // ---------- Pet bond (привязанность) ----------
+  // Есть ли ещё несобранные подарки — иначе bond заморожен.
+  const giftsLeft = (stats.prefs?.petGifts?.length || 0) < GIFT_IDS.length;
+
+  // Живой пересчёт bond (как energy/hunger). Источник истины для отображения и
+  // готовности подарка; в prefs флашится лениво (см. эффект ниже).
+  const reconciledBond = useMemo(() => reconcileBond({
+    bond: stats.prefs?.petBond,
+    bondTickAt: stats.prefs?.petBondTickAt,
+    hunger: stats.pet?.hunger,
+    hungerTickAt: stats.pet?.lastHungerTickAt,
+    now: nowMs,
+    hasGiftsLeft: giftsLeft
+  }), [stats.prefs?.petBond, stats.prefs?.petBondTickAt, stats.pet?.hunger, stats.pet?.lastHungerTickAt, nowMs, giftsLeft]);
+
+  // Флашим bond в prefs, когда целое число очков изменилось ИЛИ якорь ещё не
+  // инициализирован. Дробный bond не флашим каждый тик. Только после вылупления.
+  useEffect(() => {
+    if (!stats.pet?.hatched) return;
+    const storedBond = stats.prefs?.petBond || 0;
+    const integerChanged = Math.floor(reconciledBond.bond) !== Math.floor(storedBond);
+    const needsAnchor = !stats.prefs?.petBondTickAt;
+    if (!integerChanged && !needsAnchor) return;
+    setStats((s) => ({
+      ...s,
+      prefs: {
+        ...(s.prefs || DEFAULT_STATS.prefs),
+        petBond: reconciledBond.bond,
+        petBondTickAt: reconciledBond.bondTickAt
+      }
+    }));
+  }, [reconciledBond.bond, reconciledBond.bondTickAt, stats.prefs?.petBond, stats.prefs?.petBondTickAt, stats.pet?.hatched]);
 
   // After any stats mutation, detect achievements whose condition just got
   // satisfied. Mark them unlocked, credit reward coins, queue a toast. The
@@ -518,12 +556,22 @@ export function useStats() {
           nextTick = new Date(now - preserved).toISOString();
         }
       }
+      const nowIso = new Date().toISOString();
+      const bn = reconcileBond({
+        bond: s.prefs?.petBond,
+        bondTickAt: s.prefs?.petBondTickAt,
+        hunger: r.hunger,
+        hungerTickAt: r.lastHungerTickAt,
+        now: Date.now(),
+        hasGiftsLeft: (s.prefs?.petGifts?.length || 0) < GIFT_IDS.length
+      });
       return {
         ...s,
         coins: Math.max(0, (s.coins || 0) - treat.price),
         energy: r.energy,
         lastEnergyTickAt: nextTick,
-        pet: { ...(s.pet || DEFAULT_STATS.pet), hunger: nextHunger, lastHungerTickAt: r.lastHungerTickAt }
+        pet: { ...(s.pet || DEFAULT_STATS.pet), hunger: nextHunger, lastHungerTickAt: r.lastHungerTickAt },
+        prefs: { ...(s.prefs || DEFAULT_STATS.prefs), petBond: bn.bond, petBondTickAt: nowIso }
       };
     });
     runEconomy('buy_treat', { p_id: treatId });
@@ -868,6 +916,38 @@ export function useStats() {
     runEconomy('redeem_ad_double', {});
   }, [runEconomy]);
 
+  // Забрать готовый подарок: добавить следующий несобранный id в коллекцию,
+  // обнулить bond. Косметика НЕ применяется автоматически. Возвращает id
+  // подарка или null. Идемпотентно относительно порога/наличия.
+  const claimPetGift = useCallback(() => {
+    let claimedId = null;
+    setStats((s) => {
+      const claimed = s.prefs?.petGifts || [];
+      const id = nextUnclaimedGiftId(claimed);
+      if (!id) return s;
+      const bn = reconcileBond({
+        bond: s.prefs?.petBond,
+        bondTickAt: s.prefs?.petBondTickAt,
+        hunger: s.pet?.hunger,
+        hungerTickAt: s.pet?.lastHungerTickAt,
+        now: Date.now(),
+        hasGiftsLeft: claimed.length < GIFT_IDS.length
+      });
+      if (bn.bond < BOND_PER_GIFT) return s;
+      claimedId = id;
+      return {
+        ...s,
+        prefs: {
+          ...(s.prefs || DEFAULT_STATS.prefs),
+          petGifts: [...claimed, id],
+          petBond: 0,
+          petBondTickAt: new Date().toISOString()
+        }
+      };
+    });
+    return claimedId;
+  }, []);
+
   return {
     stats,
     ready,
@@ -899,6 +979,11 @@ export function useStats() {
     renamePet,
     recordPetXp,
     feedPet,
+    petBond: reconciledBond.bond,
+    petBondMax: BOND_PER_GIFT,
+    petGiftReady: reconciledBond.bond >= BOND_PER_GIFT && giftsLeft,
+    petGifts: stats.prefs?.petGifts || [],
+    claimPetGift,
     buyDecoration,
     equipDecoration,
     unequipDecorationSlot,

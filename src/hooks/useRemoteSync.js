@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
+import { mergeGiftProgress } from '../utils/petBond.js';
 
 const DEBOUNCE_MS = 700;
 
@@ -141,13 +142,27 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
         // blind pull would clobber that local choice with a stale server value
         // (then the debounced upsert would persist the stale one). Keep local
         // for these three; the upsert below pushes them back up to the server.
-        setStats((s) => ({
-          ...s,
-          ...fromRow(data),
-          prefs: s.prefs,
-          activeBackground: s.activeBackground,
-          activeCellStyle: s.activeCellStyle
-        }));
+        setStats((s) => {
+          const serverPrefs = (data.prefs && typeof data.prefs === 'object') ? data.prefs : {};
+          const merged = mergeGiftProgress(
+            s.prefs?.petGifts, s.prefs?.petBond,
+            serverPrefs.petGifts, serverPrefs.petBond
+          );
+          return {
+            ...s,
+            ...fromRow(data),
+            // prefs остаются клиент-авторитетными (фикс слёта темы), но
+            // коллекция подарков и bond мёржатся, чтобы не теряться на новом
+            // устройстве / после очистки localStorage.
+            prefs: {
+              ...(s.prefs || {}),
+              petGifts: merged.petGifts,
+              petBond: merged.petBond
+            },
+            activeBackground: s.activeBackground,
+            activeCellStyle: s.activeCellStyle
+          };
+        });
       } else if (hasLocalProgress(stats)) {
         // Migrate local → server (first time the user authenticates).
         const row = toRow(stats, userId);

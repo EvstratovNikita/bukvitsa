@@ -1,35 +1,36 @@
 import { useEffect } from 'react';
 import { getItem } from '../data/shopItems.js';
+import { getGift, GIFT_CELL_IDS } from '../data/petGifts.js';
 import { useGameContext } from '../context/GameContext.jsx';
 
-// Applies the user's selected cosmetic items to the document:
-//   - active background → sets body.style.background to the item gradient
-//   - active cell style → toggles a body class like "cell-style-neon"
-// Reset back to defaults when nothing is selected.
+// Resolve a cosmetic id from EITHER the shop catalog OR the pet-gift catalog.
+function resolveBackgroundGradient(id) {
+  if (!id) return null;
+  const shop = getItem(id);
+  if (shop?.payload?.gradient) return shop.payload.gradient;
+  const gift = getGift(id);
+  if (gift?.type === 'background' && gift.payload?.gradient) return gift.payload.gradient;
+  return null;
+}
+
+// All toggleable cell-style classes (shop + gifts), removed before applying one.
+const ALL_CELL_STYLES = ['cells-neon', 'cells-shimmer', 'cells-emerald', ...GIFT_CELL_IDS];
+
+// Applies the user's selected cosmetic items to the document.
 export function useShopTheme() {
   const { stats } = useGameContext();
   const { activeBackground, activeCellStyle } = stats;
 
   // Background
   useEffect(() => {
-    const item = activeBackground ? getItem(activeBackground) : null;
-    const grad = item?.payload?.gradient;
-    if (grad) {
-      document.body.style.backgroundImage = grad;
-      document.body.style.backgroundColor = '';
-    } else {
-      // Fall back to the default declared in CSS.
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundColor = '';
-    }
+    const grad = resolveBackgroundGradient(activeBackground);
+    document.body.style.backgroundImage = grad || '';
+    document.body.style.backgroundColor = '';
   }, [activeBackground]);
 
   // Cell style — toggle a single class on body so CSS handles the rest.
   useEffect(() => {
-    const all = ['cells-neon', 'cells-shimmer', 'cells-emerald'];
-    for (const c of all) document.body.classList.remove(`cell-style-${c}`);
-    if (activeCellStyle) {
-      document.body.classList.add(`cell-style-${activeCellStyle}`);
-    }
+    for (const c of ALL_CELL_STYLES) document.body.classList.remove(`cell-style-${c}`);
+    if (activeCellStyle) document.body.classList.add(`cell-style-${activeCellStyle}`);
   }, [activeCellStyle]);
 }

@@ -7,13 +7,15 @@ import { pluralCoins } from '../../utils/plural.js';
 import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
+import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
 
 const HATCH_DURATION_MS = 3200;
 
 const TABS = [
   { id: 'feed',  icon: '🍖', label: 'Покормить' },
   { id: 'cheer', icon: '🎁', label: 'Порадовать' },
-  { id: 'train', icon: '🎓', label: 'Обучить'    }
+  { id: 'train', icon: '🎓', label: 'Обучить'    },
+  { id: 'gifts', icon: '🎀', label: 'Подарки'    }
 ];
 
 function ageInDays(iso) {
@@ -35,7 +37,9 @@ export function PetScreen({ open, onClose }) {
     hatchPet,
     feedPet, petHunger,
     buyDecoration, equipDecoration, unequipDecorationSlot,
-    showToast
+    showToast,
+    petBond, petBondMax, petGiftReady, petGifts, claimPetGift,
+    setActiveBackground, setActiveCellStyle
   } = useGameContext();
   // Rename intentionally disabled — pet is always "Букля" for now.
   const pet = stats.pet || {};
@@ -109,6 +113,26 @@ export function PetScreen({ open, onClose }) {
     if (r === 'ok') showToast?.(`${d.name} — куплено и надето`);
     else if (r === 'not_enough_coins') showToast?.('Недостаточно монет');
     else if (r === 'locked') showToast?.(`Доступно с ${d.minLevel} уровня Букли`);
+  };
+
+  const onClaimGift = () => {
+    const id = claimPetGift();
+    if (id) {
+      const g = getGift(id);
+      showToast?.(`Букля принесла подарок: ${g?.name || 'сюрприз'}!`);
+    }
+  };
+
+  const onApplyGift = (g) => {
+    if (g.type === 'background') {
+      const isOn = stats.activeBackground === g.id;
+      setActiveBackground?.(isOn ? null : g.id);
+      showToast?.(isOn ? 'Фон снят' : `Применён фон: ${g.name}`);
+    } else {
+      const isOn = stats.activeCellStyle === g.id;
+      setActiveCellStyle?.(isOn ? null : g.id);
+      showToast?.(isOn ? 'Стиль снят' : `Применён стиль: ${g.name}`);
+    }
   };
 
   if (!open) return null;
@@ -219,6 +243,18 @@ export function PetScreen({ open, onClose }) {
                 />
               )}
               {tab === 'train' && <TrainPanel />}
+              {tab === 'gifts' && (
+                <GiftsPanel
+                  bond={petBond || 0}
+                  bondMax={petBondMax || 1}
+                  ready={petGiftReady}
+                  claimed={petGifts || []}
+                  activeBg={stats.activeBackground}
+                  activeCells={stats.activeCellStyle}
+                  onClaim={onClaimGift}
+                  onApply={onApplyGift}
+                />
+              )}
             </section>
           </>
         )}
@@ -411,5 +447,67 @@ function pluralGames(n) {
   if (m10 === 1 && m100 !== 11) return 'игру';
   if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'игры';
   return 'игр';
+}
+
+function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onClaim, onApply }) {
+  const have = new Set(claimed);
+  const pct = Math.min(100, Math.round((bond / bondMax) * 100));
+  const allClaimed = claimed.length >= GIFT_IDS.length;
+  return (
+    <div className="pet-gifts">
+      <p className="pet-tab__hint">
+        Корми Буклю — со временем растёт привязанность. На максимуме Букля
+        приносит эксклюзивный подарок, который можно применить здесь.
+      </p>
+
+      {ready ? (
+        <button
+          type="button"
+          className="btn btn--primary pet-gift-claim"
+          onClick={onClaim}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          🎁 Букля что-то принесла! Забрать
+        </button>
+      ) : (
+        <div className="pet-bar pet-gift-bar">
+          <div className="pet-bar__row">
+            <span className="pet-bar__label">Привязанность</span>
+            <span className="pet-bar__value">
+              {allClaimed ? 'Все подарки собраны' : `${Math.floor(bond)} / ${bondMax}`}
+            </span>
+          </div>
+          <div className="pet-bar__track">
+            <div className="pet-bar__fill pet-bar__fill--bond" style={{ width: `${allClaimed ? 100 : pct}%` }} />
+          </div>
+          {allClaimed && <div className="pet-gifts__soon">Скоро новые подарки ✨</div>}
+        </div>
+      )}
+
+      <div className="pet-gift-grid">
+        {PET_GIFTS.map((g) => {
+          const owned = have.has(g.id);
+          const isActive = owned && (g.type === 'background' ? activeBg === g.id : activeCells === g.id);
+          return (
+            <button
+              key={g.id}
+              type="button"
+              className={`pet-gift-card${owned ? '' : ' pet-gift-card--locked'}${isActive ? ' pet-gift-card--active' : ''}`}
+              onClick={owned ? () => onApply(g) : undefined}
+              onMouseDown={(e) => e.preventDefault()}
+              disabled={!owned}
+              title={owned ? g.name : 'Ещё не получен'}
+            >
+              <span className="pet-gift-card__icon" aria-hidden="true">{owned ? g.icon : '❔'}</span>
+              <span className="pet-gift-card__name">{owned ? g.name : '???'}</span>
+              <span className="pet-gift-card__cta">
+                {!owned ? 'Не получен' : isActive ? 'Применён ✓' : 'Применить'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
