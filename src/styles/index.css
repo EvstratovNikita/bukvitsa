@@ -1662,6 +1662,38 @@ body.cell-style-cells-emerald .cell--correct .cell__face--back {
   box-shadow: 0 0 12px rgba(110, 210, 140, 0.55);
 }
 
+/* Gift cell style — Лунное серебро: серебристый диагональный блик на верных. */
+body.cell-style-gift-moonsilver .cell--correct:not(.cell--flipping) .cell__face--front,
+body.cell-style-gift-moonsilver .cell--correct .cell__face--back {
+  background-image:
+    linear-gradient(120deg, transparent 40%, rgba(255, 255, 255, 0.65) 50%, transparent 60%),
+    linear-gradient(120deg, #8a93a8, #e8edf6 35%, #8a93a8 65%, #5f6878);
+  background-color: #9aa3b6;
+  background-size: 200% 200%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 150% 150%, 0 0;
+  animation: shine-diagonal 2.8s linear infinite;
+  color: #11151c;
+  border-color: #cfd6e6;
+  box-shadow: 0 0 12px rgba(200, 210, 230, 0.5);
+}
+
+/* Gift cell style — Совиный глаз: тёплое янтарное свечение верных. */
+body.cell-style-gift-owleye .cell--correct:not(.cell--flipping) .cell__face--front,
+body.cell-style-gift-owleye .cell--correct .cell__face--back {
+  background-image:
+    linear-gradient(120deg, transparent 40%, rgba(255, 240, 200, 0.6) 50%, transparent 60%),
+    linear-gradient(120deg, #c9821f, #ffd27a 35%, #c9821f 65%, #8a5410);
+  background-color: #d08a22;
+  background-size: 200% 200%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 150% 150%, 0 0;
+  animation: shine-diagonal 2.8s linear infinite;
+  color: #1a1300;
+  border-color: #ffcf7a;
+  box-shadow: 0 0 12px rgba(230, 170, 60, 0.55);
+}
+
 /* Pop on input */
 .cell--pop .cell__face--front { animation: pop 140ms ease-out; }
 
