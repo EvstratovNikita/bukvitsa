@@ -7,7 +7,7 @@ import { MenuButton } from '../Menu/Menu.jsx';
 export function Header({ onOpenHelp, onOpenMenu, onOpenPet, onOpenModes }) {
   // Stats moved into the side menu — the right slot now hosts Букля so the
   // pet is always one tap away without floating chrome over the board.
-  const { stats } = useGameContext();
+  const { stats, petGiftReady } = useGameContext();
   const hatched = Boolean(stats.pet?.hatched);
   // The egg is ready to hatch once the player has hit the unlock threshold but
   // hasn't opened the pet section yet — shout about it so they notice.
@@ -45,7 +45,7 @@ export function Header({ onOpenHelp, onOpenMenu, onOpenPet, onOpenModes }) {
       </div>
 
       <div className="header__actions">
-        <PetHeaderButton onClick={onOpenPet} hatched={hatched} ready={ready} />
+        <PetHeaderButton onClick={onOpenPet} hatched={hatched} ready={ready} giftReady={Boolean(petGiftReady)} />
         <MenuButton onClick={onOpenMenu} />
       </div>
     </header>

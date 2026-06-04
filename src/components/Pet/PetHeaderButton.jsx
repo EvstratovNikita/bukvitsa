@@ -1,20 +1,22 @@
 // Compact pet icon for the header — owl glyph after hatch, egg before.
 // When `ready` (unlock threshold reached, not yet hatched) the button gets a
 // pulsing glow + "!" badge so the player notices the egg is ready to hatch.
-export function PetHeaderButton({ onClick, hatched, ready }) {
+export function PetHeaderButton({ onClick, hatched, ready, giftReady }) {
   return (
     <button
       type="button"
-      className={`iconbtn pet-headerbtn${hatched ? '' : ' pet-headerbtn--egg'}${ready ? ' pet-headerbtn--ready' : ''}`}
+      className={`iconbtn pet-headerbtn${hatched ? '' : ' pet-headerbtn--egg'}${ready ? ' pet-headerbtn--ready' : ''}${giftReady ? ' pet-headerbtn--gift' : ''}`}
       onClick={onClick}
       onMouseDown={(e) => e.preventDefault()}
-      aria-label={hatched ? 'Букля' : ready ? 'Яйцо готово вылупиться!' : 'Дупло'}
-      title={hatched ? 'Букля' : ready ? 'Яйцо готово вылупиться!' : 'Дупло'}
+      aria-label={hatched ? (giftReady ? 'Букля принесла подарок!' : 'Букля') : ready ? 'Яйцо готово вылупиться!' : 'Дупло'}
+      title={hatched ? (giftReady ? 'Букля принесла подарок!' : 'Букля') : ready ? 'Яйцо готово вылупиться!' : 'Дупло'}
     >
       {hatched ? <HeaderOwl /> : <HeaderEgg />}
       {ready
         ? <span className="pet-headerbtn__badge" aria-hidden="true">!</span>
-        : !hatched && <span className="pet-headerbtn__dot" aria-hidden="true" />}
+        : giftReady
+          ? <span className="pet-headerbtn__gift" aria-hidden="true">🎁</span>
+          : !hatched && <span className="pet-headerbtn__dot" aria-hidden="true" />}
     </button>
   );
 }
