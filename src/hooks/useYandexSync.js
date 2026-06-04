@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { cloudLoad, cloudSave } from '../lib/yandex.js';
+import { mergeGiftProgress } from '../utils/petBond.js';
 
 const DEBOUNCE_MS = 900;
 
@@ -20,7 +21,14 @@ export function useYandexSync({ stats, setStats, enabled }) {
       const data = await cloudLoad();
       if (!active) return;
       if (data && Object.keys(data).length > 0) {
-        setStats((s) => ({ ...s, ...data }));
+        setStats((s) => {
+          const next = { ...s, ...data };
+          const lp = s.prefs || {};
+          const cp = data.prefs || {};
+          const merged = mergeGiftProgress(lp.petGifts, lp.petBond, cp.petGifts, cp.petBond);
+          next.prefs = { ...(cp || {}), ...(next.prefs || {}), petGifts: merged.petGifts, petBond: merged.petBond };
+          return next;
+        });
       }
       syncedRef.current = true;
       setSynced(true);
