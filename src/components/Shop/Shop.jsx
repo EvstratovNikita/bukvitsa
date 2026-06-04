@@ -243,6 +243,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
               className="btn btn--primary shop-card__btn"
               onClick={onBuy}
               onMouseDown={(e) => e.preventDefault()}
+              disabled={(stats.coins || 0) < item.price}
             >
               <CoinIcon />
               <span>{item.price}</span>

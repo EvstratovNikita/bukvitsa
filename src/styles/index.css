@@ -3635,6 +3635,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   display: inline-flex; align-items: center; gap: 4px;
   font-variant-numeric: tabular-nums;
 }
+/* Not enough coins → dim the buy button so it doesn't look purchasable. */
+.pet-deco__btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ---------- Flying treat (feed animation) ---------- */
 .feed-flier {
@@ -5047,9 +5049,19 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   cursor: pointer;
   text-align: center;
 }
-.pet-gift-card--locked { opacity: 0.5; cursor: default; }
+.pet-gift-card--locked { opacity: 0.7; cursor: default; }
 .pet-gift-card--active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 6px 16px rgba(108,140,255,0.25); }
 .pet-gift-card__icon { font-size: 28px; }
-.pet-gift-card__name { font-weight: 700; font-size: 13px; }
+/* Locked placeholder "?" — themed colour (not the white-on-light emoji). */
+.pet-gift-card--locked .pet-gift-card__icon { color: var(--text-mute); font-weight: 800; }
+.pet-gift-card__name { font-weight: 700; font-size: 13px; color: var(--text); }
 .pet-gift-card__cta { font-size: 11.5px; color: var(--text-dim); }
 .pet-gift-card--active .pet-gift-card__cta { color: var(--accent); font-weight: 700; }
+
+/* Light theme: ensure gift cards read on the cream background. */
+[data-theme="light"] .pet-gift-card {
+  background: #ffffff;
+  border-color: var(--line);
+}
+[data-theme="light"] .pet-gift-card__name { color: #1a1d28; }
+[data-theme="light"] .pet-gift-card--locked .pet-gift-card__icon { color: #8a8f9c; }

@@ -498,7 +498,7 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
               disabled={!owned}
               title={owned ? g.name : 'Ещё не получен'}
             >
-              <span className="pet-gift-card__icon" aria-hidden="true">{owned ? g.icon : '❔'}</span>
+              <span className="pet-gift-card__icon" aria-hidden="true">{owned ? g.icon : '?'}</span>
               <span className="pet-gift-card__name">{owned ? g.name : '???'}</span>
               <span className="pet-gift-card__cta">
                 {!owned ? 'Не получен' : isActive ? 'Применён ✓' : 'Применить'}
