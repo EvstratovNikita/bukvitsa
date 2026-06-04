@@ -3480,7 +3480,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- Pet action tabs ---------- */
 .pet-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   padding: 4px;
   background: rgba(255, 255, 255, 0.04);
