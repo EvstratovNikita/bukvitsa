@@ -8,6 +8,7 @@ import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
 import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
+import { BOND_MINUTES_PER_POINT } from '../../utils/petBond.js';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -456,8 +457,8 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
   return (
     <div className="pet-gifts">
       <p className="pet-tab__hint">
-        Корми Буклю — со временем растёт привязанность. На максимуме Букля
-        приносит эксклюзивный подарок, который можно применить здесь.
+        Пока Букля сыта, привязанность растёт на <b>+1 очко каждые {BOND_MINUTES_PER_POINT} минут</b>.
+        Набери {bondMax} очков — и Букля принесёт эксклюзивный подарок (применить можно здесь).
       </p>
 
       {ready ? (
