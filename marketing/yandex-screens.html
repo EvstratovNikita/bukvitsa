@@ -48,9 +48,15 @@
       linear-gradient(180deg,#1d3284 0%, #2742a6 48%, #20307e 100%);
     font-family:'Manrope',sans-serif;
   }
-  /* faint bokeh dots */
-  .card .bokeh{position:absolute;inset:0;pointer-events:none;opacity:.5}
-  .card .bokeh i{position:absolute;border-radius:50%;background:#fff;filter:blur(1px)}
+  /* starfield: soft colour blooms + glowing dots + 4-point sparkles */
+  .card .bokeh{position:absolute;inset:0;pointer-events:none}
+  .card .bokeh .bloom{position:absolute;transform:translate(-50%,-50%);border-radius:50%;filter:blur(14px)}
+  .card .bokeh i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 10px 2px rgba(180,210,255,.75)}
+  .card .bokeh .spark{
+    position:absolute;background:#fff;
+    clip-path:polygon(50% 0,57% 43%,100% 50%,57% 57%,50% 100%,43% 57%,0 50%,43% 43%);
+    filter:drop-shadow(0 0 6px rgba(190,215,255,.95));
+  }
 
   .card .head{position:absolute;top:0;left:0;right:0;padding:60px 80px 0;text-align:center}
   .brandtiles{display:inline-flex;gap:10px;margin-bottom:26px}
@@ -131,12 +137,27 @@ const CARDS = [
 const grid = document.getElementById('grid');
 
 function bokeh(){
-  const dots=[];
-  for(let i=0;i<14;i++){
-    const s=2+Math.random()*5, x=Math.random()*100, y=Math.random()*100, o=.2+Math.random()*.6;
-    dots.push(`<i style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;opacity:${o}"></i>`);
+  const out=[];
+  // soft colour blooms — varied glows like the cover art
+  const blooms=[
+    {x:16,y:20,s:360,c:'rgba(120,200,255,.40)'},
+    {x:86,y:26,s:320,c:'rgba(180,130,255,.38)'},
+    {x:62,y:88,s:420,c:'rgba(110,160,255,.34)'},
+    {x:30,y:70,s:260,c:'rgba(150,120,255,.28)'}
+  ];
+  blooms.forEach(b=>out.push(
+    `<div class="bloom" style="left:${b.x}%;top:${b.y}%;width:${b.s}px;height:${b.s}px;background:radial-gradient(circle,${b.c},transparent 70%)"></div>`));
+  // glowing dots
+  for(let i=0;i<16;i++){
+    const s=3+Math.random()*6, x=Math.random()*100, y=Math.random()*100, o=.4+Math.random()*.6;
+    out.push(`<i style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;opacity:${o}"></i>`);
   }
-  return `<div class="bokeh">${dots.join('')}</div>`;
+  // 4-point sparkles
+  for(let i=0;i<10;i++){
+    const s=10+Math.random()*20, x=Math.random()*100, y=Math.random()*100, o=.5+Math.random()*.5;
+    out.push(`<span class="spark" style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;opacity:${o}"></span>`);
+  }
+  return `<div class="bokeh">${out.join('')}</div>`;
 }
 function brandTiles(){
   const letters=['Б','У','К','В','И','Ц','А'];
@@ -166,7 +187,6 @@ CARDS.forEach((c,idx)=>{
             <div class="drop">Перетащи сюда<br>скриншот геймплея<br>(${c.id})</div>
             <img alt="" style="display:none" id="img-${c.id}">
           </div>
-          <div class="footmark">БУКВИЦА · угадай слово</div>
         </div>
       </div>
     </div>
