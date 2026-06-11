@@ -189,6 +189,10 @@ function YandexAuthRow({ onClose }) {
       setInfo(next);
       showToast?.('Вход выполнен — прогресс сохранён в аккаунте');
       onClose();
+    } else {
+      // Failed / declined. Most common in the device "draft preview" where the
+      // auth popup has no opener; works in the real published player.
+      showToast?.('Не удалось открыть вход. Попробуйте в опубликованной версии.');
     }
   };
 
