@@ -143,15 +143,22 @@
       // dark→light pop when React mounts. Also stamp the start time so the
       // splash is shown for at least a moment even on instant loads.
       (function () {
+        // Default theme is LIGHT, so the splash is light unless the player has
+        // explicitly saved a dark preference. This avoids a dark→light pop for
+        // new users (and for the light default).
         try {
           var raw = localStorage.getItem('wordle-ru:stats');
+          var theme = 'light';
           if (raw) {
             var prefs = (JSON.parse(raw) || {}).prefs;
-            if (prefs && prefs.theme === 'light') {
-              document.getElementById('splash').classList.add('splash--light');
-            }
+            if (prefs && prefs.theme === 'dark') theme = 'dark';
           }
-        } catch (e) { /* noop */ }
+          if (theme === 'light') {
+            document.getElementById('splash').classList.add('splash--light');
+          }
+        } catch (e) {
+          document.getElementById('splash').classList.add('splash--light');
+        }
         window.__splashStart = Date.now();
       })();
     </script>

@@ -62,7 +62,7 @@ const DEFAULT_STATS = {
   unlockedAchievements: [], // ids of unlocked achievements
   referralsCount: 0,        // verified (non-anon) invitees credited to this user
   prefs: {
-    theme: 'dark',          // 'dark' | 'light'
+    theme: 'light',         // 'dark' | 'light' — default light (friendlier)
     enterOnLeft: false,     // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
     petBond: 0,             // привязанность к питомцу (0..BOND_PER_GIFT)
     petBondTickAt: null,    // ISO якоря последнего пересчёта bond
@@ -719,8 +719,13 @@ export function useStats() {
         }
       } else {
         next.inventory = [...(s.inventory || []), itemId];
-        // Auto-equip cosmetic items on first purchase.
-        if (item.category === 'background') next.activeBackground = itemId;
+        // Auto-equip cosmetic items on first purchase. A background carries the
+        // theme it was designed for — switch the app theme to match so the
+        // colours don't clash (same as onEquip in the shop).
+        if (item.category === 'background') {
+          next.activeBackground = itemId;
+          next.prefs = { ...(s.prefs || DEFAULT_STATS.prefs), theme: item.theme || 'dark' };
+        }
         if (item.category === 'cells') next.activeCellStyle = itemId;
       }
       return next;
