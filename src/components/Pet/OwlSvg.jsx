@@ -201,13 +201,15 @@ export function OwlSvg({ className = '', equipped = {} }) {
           <path d="M 268 106 Q 274 78 270 50" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
         </g>
 
-        {/* ---- FACIAL DISC (wider rings around eyes, like a real owl) ---- */}
+        {/* ---- FACIAL DISC (rings around eyes, like a real owl) ----
+             Oval (taller than wide) so each disc stays large without the two
+             rings intersecting near the bridge. */}
         <g fill="none">
-          <circle cx="166" cy="172" r="40" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
-          <circle cx="234" cy="172" r="40" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
+          <ellipse cx="166" cy="172" rx="32" ry="39" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
+          <ellipse cx="234" cy="172" rx="32" ry="39" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
           {/* faint inner disc tint */}
-          <circle cx="166" cy="172" r="37" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
-          <circle cx="234" cy="172" r="37" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
+          <ellipse cx="166" cy="172" rx="29" ry="36" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
+          <ellipse cx="234" cy="172" rx="29" ry="36" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
         </g>
 
         {/* ---- CHEEK BLUSH ---- */}
