@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Буквица — скриншоты для Яндекс.Игр (9:16)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<style>
+  :root{
+    --bg0:#070a18; --bg1:#0b1024; --bg2:#0a0e1f;
+    --accent:#6c8cff; --accent2:#b388ff;
+    --gold:#f7c948; --green:#5aa564; --gray:#6b7280;
+    --ink:#eaf0ff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:#11151c; color:#cdd5e6;
+    font-family:'Manrope',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    padding:24px;
+  }
+  h1{font-size:20px;margin:0 0 4px}
+  .hint{font-size:13px;color:#8a93a8;margin:0 0 20px;max-width:760px;line-height:1.5}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+  .btn{
+    appearance:none;border:0;border-radius:10px;cursor:pointer;
+    padding:10px 16px;font-weight:800;font-family:inherit;font-size:14px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+  }
+  .btn--ghost{background:rgba(255,255,255,.06);color:#cdd5e6;border:1px solid rgba(255,255,255,.14)}
+  .grid{display:flex;flex-wrap:wrap;gap:28px}
+  .cell{display:flex;flex-direction:column;gap:10px;align-items:center}
+  .cell .row{display:flex;gap:8px}
+
+  /* ----- The exported card: real 1080x1920, previewed scaled down ----- */
+  .scale{transform:scale(.34);transform-origin:top left;width:1080px;height:1920px}
+  .wrap{width:1080px;height:1920px;margin-bottom:-1268px} /* 1920*(1-.34) collapse preview gap */
+
+  .card{
+    position:relative;width:1080px;height:1920px;overflow:hidden;
+    border-radius:0; color:var(--ink);
+    background:
+      radial-gradient(70% 45% at 50% 16%, rgba(108,140,255,.32), transparent 60%),
+      radial-gradient(80% 50% at 50% 100%, rgba(179,136,255,.22), transparent 65%),
+      linear-gradient(180deg,var(--bg0) 0%, var(--bg1) 55%, var(--bg2) 100%);
+    font-family:'Manrope',sans-serif;
+  }
+  /* faint bokeh dots */
+  .card .bokeh{position:absolute;inset:0;pointer-events:none;opacity:.5}
+  .card .bokeh i{position:absolute;border-radius:50%;background:#fff;filter:blur(1px)}
+
+  .card .head{position:absolute;top:0;left:0;right:0;padding:84px 80px 0;text-align:center}
+  .brandtiles{display:inline-flex;gap:10px;margin-bottom:40px}
+  .brandtiles span{
+    width:56px;height:56px;display:grid;place-items:center;border-radius:12px;
+    font-weight:800;font-size:30px;color:#10131c;
+    box-shadow:0 6px 16px rgba(0,0,0,.35);
+  }
+  .cap{
+    margin:0;font-weight:800;line-height:1.08;letter-spacing:.2px;
+    font-size:72px;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.45);
+  }
+  .cap .accent{
+    background:linear-gradient(120deg,var(--accent),var(--accent2));
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .subcap{margin:24px 0 0;font-size:34px;font-weight:600;color:#aeb8d6}
+
+  /* screenshot frame — fills the lower ~74% of the card */
+  .shot{
+    position:absolute;left:50%;bottom:96px;transform:translateX(-50%);
+    width:880px;height:1240px;border-radius:48px;overflow:hidden;
+    background:#0c1024;
+    border:2px solid rgba(255,255,255,.12);
+    box-shadow:0 40px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(108,140,255,.18);
+    display:grid;place-items:center;
+  }
+  .shot img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block}
+  .shot .drop{
+    position:absolute;inset:0;display:grid;place-items:center;text-align:center;
+    color:#7f8aa8;font-weight:700;font-size:30px;padding:40px;
+    border:3px dashed rgba(255,255,255,.18);border-radius:48px;
+  }
+  .shot.dragover .drop{border-color:var(--accent);color:#cdd5e6}
+  .shot.has-img .drop{display:none}
+
+  .footmark{
+    position:absolute;left:0;right:0;bottom:34px;text-align:center;
+    font-size:26px;font-weight:700;color:rgba(255,255,255,.42);letter-spacing:.5px;
+  }
+
+  .capedit{font-size:12px;color:#8a93a8}
+  .capedit input{
+    width:330px;background:#0d1220;border:1px solid #243049;color:#cdd5e6;
+    border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;margin-top:4px
+  }
+  .dl{font-size:13px}
+</style>
+</head>
+<body>
+  <h1>Буквица — скриншоты для Яндекс.Игр · 9:16 (1080×1920)</h1>
+  <p class="hint">
+    Перетащи свой игровой скриншот в рамку каждой карточки (или кликни по ней и выбери файл).
+    Подпись можно отредактировать в поле под карточкой. Игровой контент занимает ~75% площади.
+    Жми «Скачать PNG» под карточкой или «Скачать все» сверху — получишь готовые файлы 1080×1920.
+  </p>
+  <div class="toolbar">
+    <button class="btn" id="dlall">⬇ Скачать все PNG</button>
+    <span class="hint" style="margin:0;align-self:center">Шрифты подгружаются с Google Fonts — нужен интернет при экспорте.</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+<script>
+const TILE_COLORS = ['#5aa564','#6b7280','#f7c948','#6c8cff','#6b7280','#5aa564','#f7c948'];
+const TILE_INK    = ['#fff','#fff','#1a1300','#fff','#fff','#fff','#1a1300'];
+
+// caption: array of lines; words wrapped in {} are accent-gradient.
+const CARDS = [
+  { id:'cells',  cap:'Стиль для каждой\n{победы}',        sub:'Десятки оформлений клеток' },
+  { id:'bg',     cap:'Меняй {атмосферу}\nкрасивыми фонами', sub:'Закаты, космос, северное сияние' },
+  { id:'pet',    cap:'Питомец {Букля}\nрастёт с тобой',    sub:'Корми, наряжай, получай подарки' },
+  { id:'stats',  cap:'Следи за {прогрессом}\nи сериями',    sub:'Статистика и распределение попыток' },
+  { id:'ach',    cap:'Собирай {достижения}\nи награды',     sub:'31 ачивка и монеты за успехи' },
+];
+
+const grid = document.getElementById('grid');
+
+function bokeh(){
+  const dots=[];
+  for(let i=0;i<14;i++){
+    const s=2+Math.random()*5, x=Math.random()*100, y=Math.random()*100, o=.2+Math.random()*.6;
+    dots.push(`<i style="left:${x}%;top:${y}%;width:${s}px;height:${s}px;opacity:${o}"></i>`);
+  }
+  return `<div class="bokeh">${dots.join('')}</div>`;
+}
+function brandTiles(){
+  const letters=['Б','У','К','В','И','Ц','А'];
+  return `<div class="brandtiles">`+letters.map((l,i)=>
+    `<span style="background:${TILE_COLORS[i]};color:${TILE_INK[i]}">${l}</span>`).join('')+`</div>`;
+}
+function capHtml(text){
+  return text.split('\n').map(line=>{
+    const html=line.replace(/\{([^}]+)\}/g,'<span class="accent">$1</span>');
+    return `<div>${html}</div>`;
+  }).join('');
+}
+
+CARDS.forEach((c,idx)=>{
+  const cell=document.createElement('div'); cell.className='cell';
+  cell.innerHTML=`
+    <div class="wrap">
+      <div class="scale">
+        <div class="card" id="card-${c.id}">
+          ${bokeh()}
+          <div class="head">
+            ${brandTiles()}
+            <h2 class="cap" id="cap-${c.id}">${capHtml(c.cap)}</h2>
+            <p class="subcap" id="sub-${c.id}">${c.sub}</p>
+          </div>
+          <div class="shot" id="shot-${c.id}">
+            <div class="drop">Перетащи сюда<br>скриншот геймплея<br>(${c.id})</div>
+            <img alt="" style="display:none" id="img-${c.id}">
+          </div>
+          <div class="footmark">БУКВИЦА · угадай слово</div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn dl" data-id="${c.id}">⬇ Скачать PNG</button>
+      <button class="btn btn--ghost dl" data-clear="${c.id}">Очистить</button>
+    </div>
+    <div class="capedit">
+      Заголовок (перенос — \\n, акцент — {слово}):
+      <input data-cap="${c.id}" value="${c.cap.replace(/\n/g,'\\n').replace(/"/g,'&quot;')}">
+      <br>Подзаголовок:
+      <input data-sub="${c.id}" value="${c.sub.replace(/"/g,'&quot;')}">
+    </div>`;
+  grid.appendChild(cell);
+  wireShot(c.id);
+});
+
+function wireShot(id){
+  const shot=document.getElementById('shot-'+id);
+  const img=document.getElementById('img-'+id);
+  const setFile=(file)=>{
+    if(!file||!file.type.startsWith('image/'))return;
+    const r=new FileReader();
+    r.onload=()=>{ img.src=r.result; img.style.display='block'; shot.classList.add('has-img'); };
+    r.readAsDataURL(file);
+  };
+  shot.addEventListener('click',()=>{
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+    inp.onchange=()=>setFile(inp.files[0]); inp.click();
+  });
+  shot.addEventListener('dragover',e=>{e.preventDefault();shot.classList.add('dragover')});
+  shot.addEventListener('dragleave',()=>shot.classList.remove('dragover'));
+  shot.addEventListener('drop',e=>{e.preventDefault();shot.classList.remove('dragover');setFile(e.dataTransfer.files[0])});
+}
+
+document.querySelectorAll('input[data-cap]').forEach(inp=>{
+  inp.addEventListener('input',()=>{
+    const id=inp.getAttribute('data-cap');
+    document.getElementById('cap-'+id).innerHTML=capHtml(inp.value.replace(/\\n/g,'\n'));
+  });
+});
+document.querySelectorAll('input[data-sub]').forEach(inp=>{
+  inp.addEventListener('input',()=>{
+    const id=inp.getAttribute('data-sub');
+    document.getElementById('sub-'+id).textContent=inp.value;
+  });
+});
+
+async function exportCard(id){
+  const node=document.getElementById('card-'+id);
+  const dataUrl=await htmlToImage.toPng(node,{width:1080,height:1920,pixelRatio:1,cacheBust:true});
+  const a=document.createElement('a');
+  a.download=`bukvitsa-${id}-1080x1920.png`; a.href=dataUrl; a.click();
+}
+
+document.querySelectorAll('button[data-id]').forEach(b=>{
+  b.addEventListener('click',()=>exportCard(b.getAttribute('data-id')));
+});
+document.querySelectorAll('button[data-clear]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const id=b.getAttribute('data-clear');
+    const img=document.getElementById('img-'+id), shot=document.getElementById('shot-'+id);
+    img.src=''; img.style.display='none'; shot.classList.remove('has-img');
+  });
+});
+document.getElementById('dlall').addEventListener('click',async()=>{
+  for(const c of CARDS){ await exportCard(c.id); await new Promise(r=>setTimeout(r,400)); }
+});
+</script>
+</body>
+</html>
