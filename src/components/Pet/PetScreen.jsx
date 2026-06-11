@@ -182,7 +182,7 @@ export function PetScreen({ open, onClose }) {
               <div className="pet-summary__bars">
                 <div className="pet-bar">
                   <div className="pet-bar__row">
-                    <span className="pet-bar__label">XP</span>
+                    <span className="pet-bar__label">XP (очки опыта)</span>
                     <span className="pet-bar__value">{lvl.xpInLevel} / {lvl.xpForNext}</span>
                   </div>
                   <div className="pet-bar__track">

@@ -166,33 +166,25 @@ export function OwlSvg({ className = '', equipped = {} }) {
         </g>
 
         {/* ---- EAR TUFTS (eagle-owl style) ----
-             Rendered BEFORE the body so each tuft's base tucks behind the
-             head, with pointed feathered tips rising up and outward. */}
-        <g className="owl-tufts">
-          {/* Left tuft */}
-          <path
-            d="M 160 96
-               Q 150 52 150 30
-               Q 170 52 180 94 Z"
-            fill="url(#owl-wing-grad)"
-            stroke="#5a4a32"
-            strokeWidth="1.2"
-            strokeLinejoin="round"
-          />
-          <path d="M 162 90 Q 156 60 153 38" stroke="#4a3a24" strokeWidth="1" fill="none" opacity="0.5" strokeLinecap="round" />
-          <path d="M 152 36 Q 158 48 160 60" stroke="#fff3d8" strokeWidth="1" fill="none" opacity="0.45" strokeLinecap="round" />
-          {/* Right tuft */}
-          <path
-            d="M 240 96
-               Q 250 52 250 30
-               Q 230 52 220 94 Z"
-            fill="url(#owl-wing-grad)"
-            stroke="#5a4a32"
-            strokeWidth="1.2"
-            strokeLinejoin="round"
-          />
-          <path d="M 238 90 Q 244 60 247 38" stroke="#4a3a24" strokeWidth="1" fill="none" opacity="0.5" strokeLinecap="round" />
-          <path d="M 248 36 Q 242 48 240 60" stroke="#fff3d8" strokeWidth="1" fill="none" opacity="0.45" strokeLinecap="round" />
+             Side tufts: a fan of three overlapping feathers on each upper-side
+             of the head, fanning up-and-outward for a full, feathery look.
+             Rendered BEFORE the body so the bases tuck behind the head. */}
+        <g className="owl-tufts" fill="url(#owl-wing-grad)" stroke="#5a4a32" strokeWidth="1.1" strokeLinejoin="round">
+          {/* Left fan — three feathers */}
+          <path d="M 112 130 Q 80 100 72 64 Q 104 96 112 130 Z" />
+          <path d="M 116 132 Q 96 92 92 50 Q 118 96 116 132 Z" />
+          <path d="M 122 132 Q 110 92 114 56 Q 126 98 122 132 Z" />
+          {/* Right fan — mirror */}
+          <path d="M 288 130 Q 320 100 328 64 Q 296 96 288 130 Z" />
+          <path d="M 284 132 Q 304 92 308 50 Q 282 96 284 132 Z" />
+          <path d="M 278 132 Q 290 92 286 56 Q 274 98 278 132 Z" />
+        </g>
+        {/* Tuft barb shafts + cream tip glints (drawn over the fans) */}
+        <g fill="none" strokeLinecap="round">
+          <path d="M 110 124 Q 96 90 92 54" stroke="#4a3a24" strokeWidth="1" opacity="0.45" />
+          <path d="M 92 54 Q 98 72 104 90" stroke="#fff3d8" strokeWidth="1" opacity="0.5" />
+          <path d="M 290 124 Q 304 90 308 54" stroke="#4a3a24" strokeWidth="1" opacity="0.45" />
+          <path d="M 308 54 Q 302 72 296 90" stroke="#fff3d8" strokeWidth="1" opacity="0.5" />
         </g>
 
         {/* ---- MAIN BODY ---- */}
