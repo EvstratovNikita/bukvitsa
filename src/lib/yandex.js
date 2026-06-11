@@ -27,6 +27,10 @@ function detectYandex() {
 export const isYandex = detectYandex();
 
 let _ysdkPromise = null;
+// Synchronously-accessible resolved ysdk (set once init completes). Needed so
+// auth can call openAuthDialog() WITHOUT an `await` in front — the dialog
+// requires the user-activation from the click, which an `await` would consume.
+let _ysdk = null;
 
 function loadSdkScript() {
   return new Promise((resolve, reject) => {
@@ -48,7 +52,9 @@ export function getYsdk() {
     _ysdkPromise = Promise.reject(new Error('not Yandex Games'));
     return _ysdkPromise;
   }
-  _ysdkPromise = loadSdkScript().then(() => window.YaGames.init());
+  _ysdkPromise = loadSdkScript()
+    .then(() => window.YaGames.init())
+    .then((y) => { _ysdk = y; return y; });
   return _ysdkPromise;
 }
 
@@ -174,8 +180,12 @@ export async function getPlayerInfo() {
 // now-authorized account.
 export async function openAuth() {
   if (!isYandex) return false;
+  // Use the already-initialised ysdk synchronously when available so the
+  // openAuthDialog() call happens inside the click's user-activation window.
+  // Only fall back to awaiting init if the SDK isn't ready yet (rare — we
+  // eager-init on load).
+  const y = _ysdk || (await getYsdk());
   try {
-    const y = await getYsdk();
     await y.auth.openAuthDialog();
     _playerPromise = null;
     await getPlayer();
