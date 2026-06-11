@@ -165,28 +165,6 @@ export function OwlSvg({ className = '', equipped = {} }) {
           {renderWingDeco('wingR', equipped.wingR)}
         </g>
 
-        {/* ---- EAR TUFTS (eagle-owl style) ----
-             Side tufts: a fan of three overlapping feathers on each upper-side
-             of the head, fanning up-and-outward for a full, feathery look.
-             Rendered BEFORE the body so the bases tuck behind the head. */}
-        <g className="owl-tufts" fill="url(#owl-wing-grad)" stroke="#5a4a32" strokeWidth="1.1" strokeLinejoin="round">
-          {/* Left fan — three feathers */}
-          <path d="M 112 130 Q 80 100 72 64 Q 104 96 112 130 Z" />
-          <path d="M 116 132 Q 96 92 92 50 Q 118 96 116 132 Z" />
-          <path d="M 122 132 Q 110 92 114 56 Q 126 98 122 132 Z" />
-          {/* Right fan — mirror */}
-          <path d="M 288 130 Q 320 100 328 64 Q 296 96 288 130 Z" />
-          <path d="M 284 132 Q 304 92 308 50 Q 282 96 284 132 Z" />
-          <path d="M 278 132 Q 290 92 286 56 Q 274 98 278 132 Z" />
-        </g>
-        {/* Tuft barb shafts + cream tip glints (drawn over the fans) */}
-        <g fill="none" strokeLinecap="round">
-          <path d="M 110 124 Q 96 90 92 54" stroke="#4a3a24" strokeWidth="1" opacity="0.45" />
-          <path d="M 92 54 Q 98 72 104 90" stroke="#fff3d8" strokeWidth="1" opacity="0.5" />
-          <path d="M 290 124 Q 304 90 308 54" stroke="#4a3a24" strokeWidth="1" opacity="0.45" />
-          <path d="M 308 54 Q 302 72 296 90" stroke="#fff3d8" strokeWidth="1" opacity="0.5" />
-        </g>
-
         {/* ---- MAIN BODY ---- */}
         <ellipse cx="200" cy="195" rx="108" ry="118" fill="url(#owl-body-grad)" />
 
@@ -206,6 +184,36 @@ export function OwlSvg({ className = '', equipped = {} }) {
           <ellipse cx="200" cy="125" rx="3"   ry="1.8" />
           <ellipse cx="185" cy="118" rx="2.5" ry="1.5" />
           <ellipse cx="215" cy="118" rx="2.5" ry="1.5" />
+        </g>
+
+        {/* ---- EAR TUFTS ----
+             Two solid pointed tufts sitting ON the head crown, tilted outward
+             (like the reference). Same cream gradient as the body so the base
+             blends seamlessly into the head; the tip rises above the silhouette
+             with a soft outline. */}
+        <g className="owl-tufts" stroke="#c2b08c" strokeWidth="2" strokeLinejoin="round">
+          {/* Left tuft — tip up-left */}
+          <path d="M 150 104 Q 138 72 146 40 Q 168 60 184 100 Q 168 110 150 104 Z" fill="url(#owl-body-grad)" />
+          {/* Right tuft — tip up-right */}
+          <path d="M 250 104 Q 262 72 254 40 Q 232 60 216 100 Q 232 110 250 104 Z" fill="url(#owl-body-grad)" />
+          {/* Inner shading streak for a soft feathered tip */}
+          <path d="M 152 100 Q 146 74 150 48" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
+          <path d="M 248 100 Q 254 74 250 48" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
+        </g>
+
+        {/* ---- FACIAL DISC (rings around eyes, like a real owl) ---- */}
+        <g fill="none">
+          <circle cx="166" cy="172" r="35" stroke="#d8c7a2" strokeWidth="3.5" opacity="0.75" />
+          <circle cx="234" cy="172" r="35" stroke="#d8c7a2" strokeWidth="3.5" opacity="0.75" />
+          {/* faint inner disc tint */}
+          <circle cx="166" cy="172" r="33" stroke="#fff6e2" strokeWidth="1.4" opacity="0.5" />
+          <circle cx="234" cy="172" r="33" stroke="#fff6e2" strokeWidth="1.4" opacity="0.5" />
+        </g>
+
+        {/* ---- CHEEK BLUSH ---- */}
+        <g>
+          <ellipse cx="146" cy="206" rx="13" ry="8" fill="#ffb3c2" opacity="0.4" />
+          <ellipse cx="254" cy="206" rx="13" ry="8" fill="#ffb3c2" opacity="0.4" />
         </g>
 
         {/* ---- EYES (smaller, more proportionate) ---- */}
