@@ -165,6 +165,36 @@ export function OwlSvg({ className = '', equipped = {} }) {
           {renderWingDeco('wingR', equipped.wingR)}
         </g>
 
+        {/* ---- EAR TUFTS (eagle-owl style) ----
+             Rendered BEFORE the body so each tuft's base tucks behind the
+             head, with pointed feathered tips rising up and outward. */}
+        <g className="owl-tufts">
+          {/* Left tuft */}
+          <path
+            d="M 160 96
+               Q 150 52 150 30
+               Q 170 52 180 94 Z"
+            fill="url(#owl-wing-grad)"
+            stroke="#5a4a32"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+          />
+          <path d="M 162 90 Q 156 60 153 38" stroke="#4a3a24" strokeWidth="1" fill="none" opacity="0.5" strokeLinecap="round" />
+          <path d="M 152 36 Q 158 48 160 60" stroke="#fff3d8" strokeWidth="1" fill="none" opacity="0.45" strokeLinecap="round" />
+          {/* Right tuft */}
+          <path
+            d="M 240 96
+               Q 250 52 250 30
+               Q 230 52 220 94 Z"
+            fill="url(#owl-wing-grad)"
+            stroke="#5a4a32"
+            strokeWidth="1.2"
+            strokeLinejoin="round"
+          />
+          <path d="M 238 90 Q 244 60 247 38" stroke="#4a3a24" strokeWidth="1" fill="none" opacity="0.5" strokeLinecap="round" />
+          <path d="M 248 36 Q 242 48 240 60" stroke="#fff3d8" strokeWidth="1" fill="none" opacity="0.45" strokeLinecap="round" />
+        </g>
+
         {/* ---- MAIN BODY ---- */}
         <ellipse cx="200" cy="195" rx="108" ry="118" fill="url(#owl-body-grad)" />
 
