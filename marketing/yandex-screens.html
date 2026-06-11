@@ -51,8 +51,8 @@
   .card .bokeh{position:absolute;inset:0;pointer-events:none;opacity:.5}
   .card .bokeh i{position:absolute;border-radius:50%;background:#fff;filter:blur(1px)}
 
-  .card .head{position:absolute;top:0;left:0;right:0;padding:84px 80px 0;text-align:center}
-  .brandtiles{display:inline-flex;gap:10px;margin-bottom:40px}
+  .card .head{position:absolute;top:0;left:0;right:0;padding:60px 80px 0;text-align:center}
+  .brandtiles{display:inline-flex;gap:10px;margin-bottom:26px}
   .brandtiles span{
     width:56px;height:56px;display:grid;place-items:center;border-radius:12px;
     font-weight:800;font-size:30px;color:#10131c;
@@ -70,8 +70,8 @@
 
   /* screenshot frame — fills the lower ~74% of the card */
   .shot{
-    position:absolute;left:50%;bottom:96px;transform:translateX(-50%);
-    width:880px;height:1240px;border-radius:48px;overflow:hidden;
+    position:absolute;left:50%;bottom:78px;transform:translateX(-50%);
+    width:936px;height:1430px;border-radius:48px;overflow:hidden;
     background:#0c1024;
     border:2px solid rgba(255,255,255,.12);
     box-shadow:0 40px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(108,140,255,.18);
@@ -114,8 +114,9 @@
   <div class="grid" id="grid"></div>
 
 <script>
-const TILE_COLORS = ['#5aa564','#6b7280','#f7c948','#6c8cff','#6b7280','#5aa564','#f7c948'];
-const TILE_INK    = ['#fff','#fff','#1a1300','#fff','#fff','#fff','#1a1300'];
+// Matches the cover/owl icon: Б-жёлт У-сер К-зел В-жёлт И-сер Ц-зел А-жёлт
+const TILE_COLORS = ['#f7c948','#6b7280','#5aa564','#f7c948','#6b7280','#5aa564','#f7c948'];
+const TILE_INK    = ['#1a1300','#fff','#fff','#1a1300','#fff','#fff','#1a1300'];
 
 // caption: array of lines; words wrapped in {} are accent-gradient.
 const CARDS = [
