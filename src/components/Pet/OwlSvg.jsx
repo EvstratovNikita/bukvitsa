@@ -192,22 +192,22 @@ export function OwlSvg({ className = '', equipped = {} }) {
              blends seamlessly into the head; the tip rises above the silhouette
              with a soft outline. */}
         <g className="owl-tufts" stroke="#c2b08c" strokeWidth="2" strokeLinejoin="round">
-          {/* Left tuft — tip up-left */}
-          <path d="M 150 104 Q 138 72 146 40 Q 168 60 184 100 Q 168 110 150 104 Z" fill="url(#owl-body-grad)" />
-          {/* Right tuft — tip up-right */}
-          <path d="M 250 104 Q 262 72 254 40 Q 232 60 216 100 Q 232 110 250 104 Z" fill="url(#owl-body-grad)" />
+          {/* Left tuft — out at the head's top-left corner, tip up-left */}
+          <path d="M 130 110 Q 118 76 126 42 Q 150 64 168 106 Q 150 116 130 110 Z" fill="url(#owl-body-grad)" />
+          {/* Right tuft — top-right corner, tip up-right */}
+          <path d="M 270 110 Q 282 76 274 42 Q 250 64 232 106 Q 250 116 270 110 Z" fill="url(#owl-body-grad)" />
           {/* Inner shading streak for a soft feathered tip */}
-          <path d="M 152 100 Q 146 74 150 48" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
-          <path d="M 248 100 Q 254 74 250 48" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
+          <path d="M 132 106 Q 126 78 130 50" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
+          <path d="M 268 106 Q 274 78 270 50" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
         </g>
 
-        {/* ---- FACIAL DISC (rings around eyes, like a real owl) ---- */}
+        {/* ---- FACIAL DISC (wider rings around eyes, like a real owl) ---- */}
         <g fill="none">
-          <circle cx="166" cy="172" r="35" stroke="#d8c7a2" strokeWidth="3.5" opacity="0.75" />
-          <circle cx="234" cy="172" r="35" stroke="#d8c7a2" strokeWidth="3.5" opacity="0.75" />
+          <circle cx="166" cy="172" r="40" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
+          <circle cx="234" cy="172" r="40" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
           {/* faint inner disc tint */}
-          <circle cx="166" cy="172" r="33" stroke="#fff6e2" strokeWidth="1.4" opacity="0.5" />
-          <circle cx="234" cy="172" r="33" stroke="#fff6e2" strokeWidth="1.4" opacity="0.5" />
+          <circle cx="166" cy="172" r="37" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
+          <circle cx="234" cy="172" r="37" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
         </g>
 
         {/* ---- CHEEK BLUSH ---- */}
