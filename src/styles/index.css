@@ -1729,7 +1729,9 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   /* Match keyboard area: same vertical footprint so the board doesn't shift
      up. Keyboard ≈ 3 rows × 48px + gaps = ~160px including padding. */
   padding-top: 4px;
-  min-height: 168px;
+  /* Track the keyboard's viewport-scaled footprint so the board doesn't jump
+     between playing and end states. */
+  min-height: clamp(132px, 22vh, 168px);
   display: flex;
   animation: end-panel-rise 360ms cubic-bezier(.2, .9, .2, 1);
 }
@@ -1892,7 +1894,9 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   flex: 1 1 0;
   min-width: 0;
   padding: 0 2px;
-  height: 52px;
+  /* Scale with viewport height so short screens (Yandex phone frame) shrink
+     the keyboard instead of starving the board. */
+  height: clamp(38px, 6.4vh, 52px);
   border-radius: 8px;
   border: 1px solid var(--line);
   background: var(--bg-2);
@@ -5065,3 +5069,22 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 [data-theme="light"] .pet-gift-card__name { color: #1a1d28; }
 [data-theme="light"] .pet-gift-card--locked .pet-gift-card__icon { color: #8a8f9c; }
+
+/* ---------- Short-viewport compaction (Yandex phone frame, landscape) ----------
+   The board fills the 1fr middle row, so on short screens it shrinks while the
+   header/brand/keyboard kept fixed sizes — board tiny, chrome huge. Shrink the
+   fixed chrome by height so everything scales together. (.key/.end-panel already
+   use vh-clamp heights.) */
+@media (max-height: 700px) {
+  .app { padding: 8px 12px 10px; gap: 6px; }
+  .header { padding: 3px 4px 7px; }
+  .brand__mark { width: 24px; height: 24px; font-size: 19px; }
+  .brand__title { font-size: 23px; }
+}
+@media (max-height: 600px) {
+  .app { padding: 6px 10px 8px; gap: 4px; }
+  .header { padding: 2px 4px 5px; }
+  .brand__mark { width: 22px; height: 22px; font-size: 17px; }
+  .brand__title { font-size: 20px; }
+  .keyboard { gap: 4px; padding-top: 2px; }
+}
