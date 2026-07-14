@@ -24,6 +24,7 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
         <button
           type="button"
           className="iconbtn"
+          data-tour="theme"
           onClick={toggleTheme}
           onMouseDown={(e) => e.preventDefault()}
           aria-label={isLight ? 'Тёмная тема' : 'Светлая тема'}

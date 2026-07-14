@@ -39,6 +39,18 @@ export function GameModesModal({ open, onClose }) {
           только опыт питомцу! <b>Бонус:</b> каждые 5 побед восстанавливают
           +1 энергию в основном режиме (не более 3 единиц в день).
         </p>
+
+        {wordLength !== 5 && (
+          <button
+            type="button"
+            className="btn modes__back"
+            onClick={() => onPick(5)}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            ← Вернуться на 5 букв (основной)
+          </button>
+        )}
+
         {MODES.map((m) => {
           const active = wordLength === m.length;
           return (
@@ -65,17 +77,6 @@ export function GameModesModal({ open, onClose }) {
             </button>
           );
         })}
-
-        {wordLength !== 5 && (
-          <button
-            type="button"
-            className="btn modes__back"
-            onClick={() => onPick(5)}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            ← Вернуться на 5 букв (основной)
-          </button>
-        )}
 
         <p className="modes__foot">
           Сейчас: <b>{wordLength} букв</b>.
