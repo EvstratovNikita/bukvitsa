@@ -62,7 +62,7 @@ const DEFAULT_STATS = {
   unlockedAchievements: [], // ids of unlocked achievements
   referralsCount: 0,        // verified (non-anon) invitees credited to this user
   prefs: {
-    theme: 'light',         // 'dark' | 'light' — default light (friendlier)
+    theme: 'dark',          // 'dark' | 'light' — dark is the default
     enterOnLeft: false,     // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
     petBond: 0,             // привязанность к питомцу (0..BOND_PER_GIFT)
     petBondTickAt: null,    // ISO якоря последнего пересчёта bond

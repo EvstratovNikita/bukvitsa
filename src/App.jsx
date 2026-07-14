@@ -144,7 +144,6 @@ function GameShell() {
   return (
     <div className="app">
       <Header
-        onOpenHelp={() => setHelpOpen(true)}
         onOpenMenu={() => setMenuOpen(true)}
         onOpenPet={() => setPetOpen(true)}
         onOpenModes={() => setModesOpen(true)}
