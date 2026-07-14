@@ -26,6 +26,7 @@ import { EndPanel } from './components/NewGame/EndPanel.jsx';
 import { GameEnd } from './components/GameEnd/GameEnd.jsx';
 import { DailyReward } from './components/DailyReward/DailyReward.jsx';
 import { Modal } from './components/Modal/Modal.jsx';
+import { HowToPlay } from './components/Help/HowToPlay.jsx';
 import { SideMenu } from './components/Menu/Menu.jsx';
 import { Shop } from './components/Shop/Shop.jsx';
 import { AuthModal } from './components/Auth/Auth.jsx';
@@ -34,54 +35,6 @@ import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
 import { useAuthRedirectFallback } from './hooks/useAuthRedirectFallback.js';
 import { useShopTheme } from './hooks/useShopTheme.js';
-
-function HelpBody() {
-  return (
-    <div className="help">
-      <p>Угадай слово из 5 букв за 6 попыток.</p>
-      <p>После каждой попытки клетки подсветятся:</p>
-      <ul className="help__legend">
-        <li><span className="swatch swatch--correct" /> буква на своём месте</li>
-        <li><span className="swatch swatch--present" /> буква есть, но в другом месте</li>
-        <li><span className="swatch swatch--absent" /> буквы нет в слове</li>
-      </ul>
-
-      <h3 className="help__heading">Награды</h3>
-      <p>За угаданное слово ты получаешь монеты — чем меньше попыток, тем выше награда:</p>
-      <ul className="help__rewards">
-        <li><span className="help__rewardN">1</span> попытка <em>— 8 монет</em></li>
-        <li><span className="help__rewardN">2</span> попытки <em>— 5 монет</em></li>
-        <li><span className="help__rewardN">3</span> попытки <em>— 4 монеты</em></li>
-        <li><span className="help__rewardN">4</span> попытки <em>— 3 монеты</em></li>
-        <li><span className="help__rewardN">5</span> попыток <em>— 2 монеты</em></li>
-        <li><span className="help__rewardN">6</span> попыток <em>— 1 монета</em></li>
-      </ul>
-      <p className="help__hint">
-        Если слово не угадано — 0 монет. Общее число монет видно сверху и сохраняется
-        между играми.
-      </p>
-
-      <h3 className="help__heading">Подсказки</h3>
-      <p>Монеты можно потратить на подсказки — открыть букву загаданного слова:</p>
-      <ul className="help__rewards">
-        <li><span className="help__rewardN">10</span> случайная буква <em>— 10 монет</em></li>
-        <li><span className="help__rewardN">15</span> выбранная позиция <em>— 15 монет</em></li>
-      </ul>
-
-      <h3 className="help__heading">Магазин</h3>
-      <p>
-        В меню (правый верхний угол) есть Магазин — там за монеты можно купить
-        смены фона, стили клеток и одноразовые бонусы, например «Двойные монеты»
-        на следующую победу.
-      </p>
-
-      <p className="help__hint">
-        Используются только нарицательные русские существительные. Имена и
-        географические названия не загадываются.
-      </p>
-    </div>
-  );
-}
 
 function Toast() {
   const { toast } = useGameContext();
@@ -192,7 +145,7 @@ function GameShell() {
         <Stats stats={stats} onReset={resetStats} />
       </Modal>
       <Modal open={helpOpen} onClose={closeHelp} title="Как играть">
-        <HelpBody />
+        <HowToPlay />
       </Modal>
     </div>
   );

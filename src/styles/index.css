@@ -2474,6 +2474,96 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .swatch--present { background: var(--present); }
 .swatch--absent  { background: var(--absent); }
 
+/* ---------- Help: tabbed reference ---------- */
+/* Segmented control — sticky so switching topics never scrolls it away. */
+.help-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.help-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 6px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-dim);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast), transform var(--t-fast);
+}
+.help-tab__icon { font-size: 15px; line-height: 1; }
+.help-tab:hover { color: var(--text); }
+.help-tab--active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #0b0d12;
+  box-shadow: 0 4px 12px rgba(108, 140, 255, 0.28);
+}
+.help-tab--active:hover { color: #0b0d12; }
+
+.help-cat { animation: help-fade 220ms ease; }
+@keyframes help-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.help-cat__lead {
+  line-height: 1.5;
+  margin: 0 0 12px;
+  color: var(--text);
+}
+.help-cat .help__legend { margin-top: 0; }
+
+/* Topic row: emoji chip + title + one-line explanation. */
+.help-topic {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 11px 12px;
+  margin: 8px 0;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.help-topic__icon {
+  display: grid;
+  place-items: center;
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  font-size: 18px;
+  line-height: 1;
+}
+.help-topic__title {
+  font-weight: 800;
+  font-size: 14.5px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.help-topic__text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+
+/* Light theme: the segmented track reads better as a faint inset. The active
+   pill keeps its dark ink in both themes — the accent gradient is light, so
+   dark text is the higher-contrast choice (white would wash out). */
+[data-theme="light"] .help-tabs { background: rgba(0, 0, 0, 0.04); }
+
 /* ---------- Small screens ---------- */
 @media (max-width: 380px) {
   .app { padding: 12px 8px 14px; }
