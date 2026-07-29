@@ -32,15 +32,33 @@ let _ysdkPromise = null;
 // requires the user-activation from the click, which an `await` would consume.
 let _ysdk = null;
 
+// Wait for the SDK that index.html loads via the documented static
+// <script src="/sdk.js"> tag (req 1.19.1). We don't inject the absolute
+// yandex.ru URL anymore — that was the non-conforming load the moderation
+// flagged. If the tag is somehow missing we inject /sdk.js as a defensive
+// fallback (still the documented path).
 function loadSdkScript() {
   return new Promise((resolve, reject) => {
     if (window.YaGames) return resolve();
-    const s = document.createElement('script');
-    s.src = 'https://yandex.ru/games/sdk/v2';
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error('YaGames SDK failed to load'));
-    document.head.appendChild(s);
+
+    const existing = document.querySelector('script[src="/sdk.js"]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('YaGames SDK failed to load')), { once: true });
+    } else {
+      const s = document.createElement('script');
+      s.src = '/sdk.js';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('YaGames SDK failed to load'));
+      document.head.appendChild(s);
+    }
+
+    // Safety poll: the tag's load event may have fired before we attached.
+    let waited = 0;
+    const iv = setInterval(() => {
+      if (window.YaGames) { clearInterval(iv); resolve(); }
+      else if ((waited += 100) >= 10000) { clearInterval(iv); reject(new Error('YaGames SDK timeout')); }
+    }, 100);
   });
 }
 

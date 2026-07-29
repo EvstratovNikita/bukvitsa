@@ -200,7 +200,7 @@ function YandexAuthRow({ onClose }) {
     return (
       <div className="menu-item menu-item--static">
         <span className="menu-item__icon"><UserIcon /></span>
-        <span className="menu-item__label">{info.name || 'Аккаунт Яндекс'}</span>
+        <span className="menu-item__label">{info.name || 'Аккаунт'}</span>
       </div>
     );
   }
@@ -215,7 +215,7 @@ function YandexAuthRow({ onClose }) {
     >
       <span className="menu-item__icon"><UserIcon /></span>
       <span className="menu-item__login-body">
-        <span className="menu-item__label">Войти через Яндекс</span>
+        <span className="menu-item__label">Войти</span>
         <span className="menu-item__login-sub">Сохранить прогресс на всех устройствах</span>
       </span>
     </button>
