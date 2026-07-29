@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 // Inline SVG icons — single shared sizing, currentColor-driven, no dependency.
 const base = {
   width: 20,
@@ -274,8 +276,6 @@ export function HintIcon(props) {
   );
 }
 
-let coinIdSeq = 0;
-
 export function MenuIcon(props) {
   return (
     <svg {...base} {...props} aria-hidden="true">
@@ -296,7 +296,12 @@ export function ShopIcon(props) {
 }
 
 export function CoinIcon(props) {
-  const id = `coin-${++coinIdSeq}`;
+  // Stable, unique, concurrent-safe gradient ids per instance. The old global
+  // counter mutated during render, which could desync the <defs> id from the
+  // fill="url(#…)" reference under React 18 concurrent/StrictMode re-renders —
+  // rendering the coin empty/black (looked "not loaded" to Yandex moderation).
+  // Strip the ':' useId can emit so the url(#…) fragment stays clean.
+  const id = `coin-${useId().replace(/:/g, '')}`;
   return (
     <svg
       width="22"
