@@ -7,6 +7,8 @@
   --text: #e9ecf3;
   --text-dim: #98a0b4;
   --text-mute: #6a7387;
+  --scroll-thumb: rgba(120, 142, 210, 0.34);
+  --scroll-thumb-hover: rgba(138, 160, 230, 0.60);
 }
 
 /* Light theme — overrides only the core palette tokens. Components built
@@ -21,6 +23,8 @@
   --text: #1a1d28;
   --text-dim: #5a6072;
   --text-mute: #8a8f9c;
+  --scroll-thumb: rgba(70, 90, 160, 0.32);
+  --scroll-thumb-hover: rgba(55, 75, 150, 0.58);
 }
 
 :root {
@@ -96,6 +100,26 @@ body {
   text-rendering: optimizeLegibility;
 }
 button { font-family: inherit; }
+
+/* Custom scrollbars — replaces the default OS bar (mostly visible on desktop;
+   mobile uses overlay bars) with a slim, rounded, theme-tinted thumb that
+   matches the game's chrome. Track is transparent so it blends into panels. */
+* {
+  scrollbar-width: thin;                              /* Firefox */
+  scrollbar-color: var(--scroll-thumb) transparent;  /* thumb / track */
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb);
+  border-radius: 999px;
+  /* Transparent border + padding-box clip = a floating pill with breathing
+     room from the track edge. */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+::-webkit-scrollbar-corner { background: transparent; }
 
 .app {
   max-width: 520px;
