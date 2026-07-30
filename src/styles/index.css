@@ -1544,14 +1544,20 @@ button { font-family: inherit; }
    cells shrink to fit, and give the keyboard slightly smaller keys + breathing
    room. Scoped to fine-pointer devices so touch/mobile is untouched. */
 @media (hover: hover) and (pointer: fine) {
+  /* A touch wider so the board has room to grow instead of sitting tiny in a
+     sea of whitespace on big monitors. */
+  .app { max-width: 600px; }
   .main { gap: 12px; padding: 6px 0; }
   .board {
     width: auto;
     height: 100%;
-    max-height: 408px;
-    max-width: min(100%, calc(64px * var(--wl)));
+    /* Fill the available height and grow the cells with the viewport, capped
+       at a comfortable size. The old fixed 64px cell / 408px caps pinned the
+       board to ~320px on desktop, leaving big gaps above and below it. */
+    max-height: min(100%, calc(92px * 6));
+    max-width: min(100%, calc(92px * var(--wl)));
   }
-  .key { height: 46px; font-size: 16px; }
+  .key { height: clamp(46px, 7vh, 60px); font-size: 16px; }
   .keyboard { gap: 7px; padding-top: 6px; }
 }
 .row--shake { animation: shake 420ms cubic-bezier(.36,.07,.19,.97); }
@@ -1932,7 +1938,9 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   cursor: pointer;
   transition: transform var(--t-fast), background var(--t-fast), color var(--t-fast), border-color var(--t-med);
 }
-.key--wide  { flex: 1.6 1 0; font-size: 13px; letter-spacing: 0.04em; }
+/* Wider action keys. Extra side padding + tighter tracking so the "ВВОД"
+   label keeps a margin from the edges instead of running edge-to-edge. */
+.key--wide  { flex: 1.6 1 0; font-size: 12px; letter-spacing: 0.01em; padding: 0 8px; }
 .key--wide  svg { width: 22px; height: 22px; }
 
 /* Ввод / Удалить get the same tinted-pill treatment as the coins & energy
@@ -2596,7 +2604,9 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   .app { padding: 12px 8px 14px; }
   .keyboard__row { gap: 3px; }
   .key { height: 48px; font-size: 16px; border-radius: 7px; padding: 0; }
-  .key--wide { font-size: 12px; }
+  /* Keep side padding on the action keys so "ВВОД" isn't edge-to-edge even on
+     the narrowest phones (the base .key padding:0 above would strip it). */
+  .key--wide { font-size: 12px; padding: 0 6px; }
   .cell { font-size: clamp(22px, 8.5vw, 32px); }
   .stats__grid { grid-template-columns: repeat(2, 1fr); }
 }
