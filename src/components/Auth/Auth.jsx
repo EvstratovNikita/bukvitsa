@@ -4,7 +4,7 @@ import { isYandex } from '../../lib/yandex.js';
 import { translateAuthError } from '../../lib/authErrors.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
-import { GoogleIcon, LogoutIcon, MailIcon, UserIcon, VkIcon, YandexIcon } from '../icons/Icon.jsx';
+import { LogoutIcon, MailIcon, UserIcon, VkIcon, YandexIcon } from '../icons/Icon.jsx';
 
 export function AuthButton() {
   const { auth } = useGameContext();
@@ -138,22 +138,6 @@ function SignInPanel() {
         Привяжи аккаунт — и прогресс не потеряется при сбросе данных или
         переходе на другое устройство.
       </p>
-
-      <button
-        type="button"
-        className="auth-option"
-        onClick={() => onOAuth('google')}
-        onMouseDown={(e) => e.preventDefault()}
-        disabled={busy}
-      >
-        <div className="auth-option__icon auth-option__icon--white">
-          <GoogleIcon />
-        </div>
-        <div className="auth-option__body">
-          <div className="auth-option__title">Войти через Google</div>
-          <div className="auth-option__sub">Один клик — без пароля</div>
-        </div>
-      </button>
 
       <button
         type="button"
