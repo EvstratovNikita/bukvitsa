@@ -4917,7 +4917,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 [data-theme="light"] .mini-card__cd b { color: #1f6b2a; }
 
 /* ---------- Memory mini-game (Обучить tab) ---------- */
-.memory { display: flex; flex-direction: column; gap: 12px; }
+.memory { display: flex; flex-direction: column; gap: 12px; position: relative; }
 .memory__hud {
   display: flex;
   justify-content: center;
@@ -4973,8 +4973,10 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   font-weight: 800;
 }
 .memory-card__face--front {
-  background: linear-gradient(135deg, #ffe07a, #f7a522);
-  border: 1px solid rgba(180, 130, 30, 0.65);
+  /* Light-grey (not yellow) so the pet-themed emoji stay legible instead of
+     blending into a warm gold face. Matched cards go green below. */
+  background: linear-gradient(135deg, #eef1f7, #cfd5e2);
+  border: 1px solid rgba(120, 130, 160, 0.55);
   transform: rotateY(180deg);
 }
 .memory-card--matched .memory-card__face--front {
@@ -4982,16 +4984,36 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   border-color: rgba(40, 110, 60, 0.75);
   box-shadow: 0 0 0 1px rgba(40, 110, 60, 0.45);
 }
+/* Win panel floats centred OVER the board instead of sitting below it — the
+   player never has to scroll down to find it. Opaque card + soft dim so it
+   reads as a modal over the grid. */
 .memory__result {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  width: min(90%, 300px);
   text-align: center;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(247, 201, 72, 0.20), rgba(247, 201, 72, 0.06));
-  border: 1px solid rgba(247, 201, 72, 0.50);
+  padding: 18px 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(30, 28, 46, 0.98), rgba(20, 18, 30, 0.98));
+  border: 1px solid rgba(247, 201, 72, 0.55);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 0 0 100vmax rgba(4, 6, 12, 0.5);
   display: flex;
   flex-direction: column;
   gap: 8px;
   align-items: center;
+  animation: memory-result-pop 300ms cubic-bezier(.2, .9, .2, 1);
+}
+@keyframes memory-result-pop {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+[data-theme="light"] .memory__result {
+  background: linear-gradient(135deg, #ffffff, #f4f1ea);
+  border-color: rgba(200, 150, 30, 0.6);
+  box-shadow: 0 18px 50px rgba(60, 50, 20, 0.28), 0 0 0 100vmax rgba(20, 18, 10, 0.28);
 }
 .memory__result-title { font-size: 18px; font-weight: 800; color: var(--text); }
 .memory__result-stats { font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums; }
@@ -5152,8 +5174,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   border-color: rgba(40, 70, 200, 0.55);
 }
 [data-theme="light"] .memory-card__face--front {
-  background: linear-gradient(135deg, #ffe07a, #f0a128);
-  border-color: rgba(180, 130, 30, 0.7);
+  background: linear-gradient(135deg, #e2e7f0, #c3cbdb);
+  border-color: rgba(90, 100, 130, 0.6);
 }
 [data-theme="light"] .memory-card--matched .memory-card__face--front {
   background: linear-gradient(135deg, #b8efc8, #4ab06e);
