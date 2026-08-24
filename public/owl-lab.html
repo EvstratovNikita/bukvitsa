@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Букля 2.0 — витрина арта</title>
+<style>
+/* ─────────────────────────────────────────────────────────────
+   ТОКЕНЫ. Тёмная тема — база, светлая переопределяет палитру.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --bg-0: #0b0d12;
+  --bg-1: #11151c;
+  --bg-2: #1a2030;
+  --line: #2a3145;
+  --text: #e9ecf3;
+  --text-dim: #98a0b4;
+  --text-mute: #6a7387;
+
+  --gold: #f5c86a;
+  --gold-2: #e0a33c;
+  --accent: #6c8cff;
+
+  /* Сцена вокруг совы */
+  --stage-bg-1: #171f30;
+  --stage-bg-2: #0c1018;
+  --stage-ring: rgba(245, 200, 106, 0.20);
+  --aura: rgba(245, 200, 106, 0.16);
+  --mote: rgba(255, 224, 160, 0.85);
+
+  /* Свет и тень на самой сове (единственное, что меняем по теме) */
+  --owl-rim: rgba(255, 236, 190, 0.55);   /* контровой ободок */
+  --owl-drop: rgba(0, 0, 0, 0.55);        /* падающая тень */
+  --owl-contact: rgba(0, 0, 0, 0.42);     /* контактная тень под лапами */
+  --owl-edge: rgba(0, 0, 0, 0.20);        /* контур силуэта */
+
+  --radius: 18px;
+  --shadow-1: 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+:root[data-theme="light"] {
+  --bg-0: #f4f1ea;
+  --bg-1: #ffffff;
+  --bg-2: #f0eee6;
+  --line: #d2cdc0;
+  --text: #1a1d28;
+  --text-dim: #5a6072;
+  --text-mute: #8a8f9c;
+
+  --stage-bg-1: #fffaf0;
+  --stage-bg-2: #ece3d2;
+  --stage-ring: rgba(180, 130, 40, 0.22);
+  --aura: rgba(255, 196, 92, 0.30);
+  --mote: rgba(196, 140, 40, 0.75);
+
+  --owl-rim: rgba(255, 253, 246, 0.55);
+  --owl-drop: rgba(90, 62, 26, 0.28);
+  --owl-contact: rgba(90, 62, 26, 0.22);
+  --owl-edge: rgba(150, 114, 58, 0.34);
+
+  --shadow-1: 0 14px 36px rgba(120, 96, 56, 0.18);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background:
+    radial-gradient(900px 600px at 50% -10%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 70%),
+    var(--bg-0);
+  color: var(--text);
+  font: 15px/1.55 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+  padding: clamp(16px, 3vw, 36px) clamp(12px, 3vw, 32px) 64px;
+  transition: background 300ms ease, color 300ms ease;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+/* ── Шапка ───────────────────────────────────────────────── */
+.head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: clamp(18px, 3vw, 32px);
+}
+.head__title {
+  margin: 0; font-size: clamp(24px, 4.4vw, 38px); font-weight: 800; letter-spacing: -0.02em;
+  background: linear-gradient(100deg, var(--text) 20%, var(--gold) 120%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.head__sub { margin: 6px 0 0; color: var(--text-dim); max-width: 62ch; font-size: 14px; }
+.themebtn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-radius: 999px; cursor: pointer;
+  background: var(--bg-1); color: var(--text);
+  border: 1px solid var(--line); font: inherit; font-size: 13px; font-weight: 600;
+  transition: transform 140ms ease, border-color 140ms ease;
+}
+.themebtn:hover { transform: translateY(-1px); border-color: var(--gold-2); }
+
+/* ── Секции ──────────────────────────────────────────────── */
+.section { margin-top: clamp(28px, 5vw, 52px); }
+.section__label {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-mute); margin-bottom: 14px;
+}
+.section__label::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* ── Главная сцена ───────────────────────────────────────── */
+.stage {
+  position: relative; overflow: hidden;
+  border-radius: clamp(20px, 3vw, 28px);
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(120% 90% at 50% 8%, var(--stage-bg-1), var(--stage-bg-2) 72%);
+  box-shadow: var(--shadow-1);
+  display: grid; place-items: center;
+  padding: clamp(20px, 4vw, 44px) 16px clamp(16px, 3vw, 32px);
+  min-height: clamp(360px, 56vh, 560px);
+}
+/* Тёплое пятно света за совой */
+.stage::before {
+  content: ""; position: absolute; left: 50%; top: 46%;
+  width: min(76%, 560px); aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--aura), transparent 68%);
+  filter: blur(6px); animation: aura 7s ease-in-out infinite; pointer-events: none;
+}
+/* Тонкое золотое кольцо-подиум */
+.stage::after {
+  content: ""; position: absolute; left: 50%; bottom: clamp(26px, 6%, 56px);
+  width: min(52%, 340px); height: 0; transform: translateX(-50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--stage-ring), 0 0 44px 6px var(--aura);
+  pointer-events: none;
+}
+@keyframes aura {
+  0%, 100% { opacity: 0.75; transform: translate(-50%, -50%) scale(1); }
+  50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.06); }
+}
+.stage__owl { position: relative; z-index: 2; width: min(78vw, 380px); }
+.stage__hint {
+  position: relative; z-index: 2; margin-top: 8px;
+  font-size: 12.5px; color: var(--text-mute); text-align: center;
+}
+
+/* Пылинки-искры */
+.motes { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.mote {
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--mote); filter: blur(0.4px);
+  animation: mote-rise linear infinite;
+  opacity: 0;
+}
+@keyframes mote-rise {
+  0%   { opacity: 0;    transform: translateY(0) scale(0.6); }
+  12%  { opacity: 0.9; }
+  70%  { opacity: 0.7; }
+  100% { opacity: 0;    transform: translateY(-190px) scale(1.15); }
+}
+
+/* ── Панель управления ───────────────────────────────────── */
+.controls {
+  display: flex; flex-wrap: wrap; gap: 20px 34px; justify-content: center;
+  margin-top: 20px;
+}
+.ctrl__title {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--text-mute); margin-bottom: 8px; text-align: center;
+}
+.chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.chip {
+  padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  background: var(--bg-1); border: 1px solid var(--line); color: var(--text-dim);
+  font: inherit; font-size: 13px; font-weight: 600;
+  transition: all 160ms cubic-bezier(.2,.7,.3,1);
+}
+.chip:hover { color: var(--text); border-color: var(--gold-2); transform: translateY(-1px); }
+.chip[aria-pressed="true"] {
+  color: #2a1a02;
+  background: linear-gradient(140deg, #ffdd92, var(--gold-2));
+  border-color: transparent;
+  box-shadow: 0 6px 18px -6px var(--gold-2);
+}
+
+/* ── Сравнение / размеры ─────────────────────────────────── */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.card {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1);
+  padding: 18px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.card--old { background: linear-gradient(180deg, var(--bg-1), var(--bg-2)); }
+.card__tag {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+}
+.card__tag--old { background: rgba(140, 148, 168, 0.18); color: var(--text-dim); }
+.card__tag--new { background: linear-gradient(140deg, #ffdd92, var(--gold-2)); color: #2a1a02; }
+.card__art { width: 100%; max-width: 260px; }
+.card__note { font-size: 12.5px; color: var(--text-dim); text-align: center; margin: 0; }
+
+.sizes { display: flex; align-items: flex-end; gap: clamp(14px, 3vw, 36px); flex-wrap: wrap; justify-content: center;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-1); padding: 22px 18px; }
+.size { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.size__cap { font-size: 11px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+
+/* ── Список улучшений ────────────────────────────────────── */
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; }
+.note {
+  border: 1px solid var(--line); border-radius: 14px; background: var(--bg-1); padding: 14px 16px;
+}
+.note__h { margin: 0 0 4px; font-size: 14px; font-weight: 700; }
+.note__p { margin: 0; font-size: 13px; color: var(--text-dim); }
+
+/* ─────────────────────────────────────────────────────────────
+   АНИМАЦИИ СОВЫ
+   ───────────────────────────────────────────────────────────── */
+.owl-svg { display: block; width: 100%; height: auto; overflow: visible; cursor: pointer; }
+.owl-svg * { transform-box: fill-box; }
+
+/* Дыхание всего тела */
+.owl-alive .owl-breathe {
+  transform-origin: 50% 92%;
+  animation: owl-breathe 4.2s ease-in-out infinite;
+}
+@keyframes owl-breathe {
+  0%, 100% { transform: scale(1, 1)        translateY(0); }
+  50%      { transform: scale(1.014, 0.99) translateY(1.6px); }
+}
+
+/* Мягкое покачивание головы */
+.owl-alive .owl-head {
+  transform-origin: 50% 100%;
+  animation: owl-sway 6.5s ease-in-out infinite;
+}
+@keyframes owl-sway {
+  0%, 100% { transform: rotate(0deg); }
+  28%      { transform: rotate(1.6deg); }
+  62%      { transform: rotate(-1.4deg); }
+}
+
+/* Перья-ушки качаются с запаздыванием */
+.owl-alive .owl-tuft-l { transform-origin: 70% 100%; animation: owl-tuft 6.5s ease-in-out infinite; }
+.owl-alive .owl-tuft-r { transform-origin: 30% 100%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
+@keyframes owl-tuft {
+  0%, 100% { transform: rotate(0deg); }
+  30%      { transform: rotate(3.2deg); }
+  65%      { transform: rotate(-2.4deg); }
+}
+
+/* Крылья — еле заметное «дыхание» перьев */
+.owl-alive .owl-wing-l { transform-origin: 88% 8%; animation: owl-wing 5.4s ease-in-out infinite; }
+.owl-alive .owl-wing-r { transform-origin: 12% 8%; animation: owl-wing 5.4s ease-in-out infinite reverse; }
+@keyframes owl-wing {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(2.1deg); }
+}
+
+/* Моргание: два быстрых схлопывания раз в ~6 с */
+.owl-lid { transform-origin: 50% 0%; transform: scaleY(0); }
+.owl-alive .owl-lid { animation: owl-blink 6.4s ease-in-out infinite; }
+@keyframes owl-blink {
+  0%, 84%, 100% { transform: scaleY(0); }
+  86%           { transform: scaleY(1); }
+  88.5%         { transform: scaleY(0); }
+  91%           { transform: scaleY(1); }
+  93.5%         { transform: scaleY(0); }
+}
+
+/* Блик по радужке — медленный проход световой полосы */
+.owl-alive .owl-shine { animation: owl-shine 5.8s ease-in-out infinite; }
+@keyframes owl-shine {
+  0%, 62%, 100% { opacity: 0;   transform: translateX(-6px); }
+  74%           { opacity: 0.9; transform: translateX(3px); }
+  88%           { opacity: 0;   transform: translateX(9px); }
+}
+
+/* Клик — радостный прыжок с взмахом */
+.owl--flap .owl-breathe { animation: owl-jump 760ms cubic-bezier(.24,.9,.32,1.2); }
+.owl--flap .owl-wing-l  { animation: owl-flap-l 760ms cubic-bezier(.3,.8,.3,1); }
+.owl--flap .owl-wing-r  { animation: owl-flap-r 760ms cubic-bezier(.3,.8,.3,1); }
+@keyframes owl-jump {
+  0%   { transform: translateY(0)     scale(1, 1); }
+  18%  { transform: translateY(6px)   scale(1.06, 0.93); }
+  46%  { transform: translateY(-30px) scale(0.96, 1.06); }
+  74%  { transform: translateY(4px)   scale(1.05, 0.95); }
+  100% { transform: translateY(0)     scale(1, 1); }
+}
+@keyframes owl-flap-l {
+  0%, 100% { transform: rotate(0deg); }
+  40%      { transform: rotate(-26deg); }
+  70%      { transform: rotate(6deg); }
+}
+@keyframes owl-flap-r {
+  0%, 100% { transform: rotate(0deg); }
+  40%      { transform: rotate(26deg); }
+  70%      { transform: rotate(-6deg); }
+}
+
+/* ── Настроения ─────────────────────────────────────────── */
+.owl-happy-eye, .owl-brow, .owl-zzz, .owl-sleep-lid { opacity: 0; }
+
+/* Радость: глаза-дуги, щёки ярче, лёгкие подскоки */
+.owl--happy .owl-eyeball { opacity: 0; }
+.owl--happy .owl-happy-eye { opacity: 1; }
+.owl--happy .owl-lid { animation: none; transform: scaleY(0); }
+.owl--happy .owl-blush { opacity: 0.85; }
+.owl--happy .owl-breathe { animation: owl-hop 900ms ease-in-out infinite; }
+@keyframes owl-hop {
+  0%, 100% { transform: translateY(0)    scale(1, 1); }
+  35%      { transform: translateY(-9px) scale(0.985, 1.02); }
+  70%      { transform: translateY(1px)  scale(1.02, 0.98); }
+}
+
+/* Сон: веки на 3/4, Zzz, дыхание глубже и медленнее */
+.owl--sleepy .owl-lid { animation: none; transform: scaleY(0); }
+.owl--sleepy .owl-sleep-lid { opacity: 1; }
+.owl--sleepy .owl-shine { animation: none; opacity: 0; }
+.owl--sleepy .owl-zzz { opacity: 1; animation: owl-zzz 3s ease-out infinite; }
+.owl--sleepy .owl-zzz--2 { animation-delay: 1s; }
+.owl--sleepy .owl-zzz--3 { animation-delay: 2s; }
+.owl--sleepy .owl-breathe { animation: owl-breathe 6.5s ease-in-out infinite; }
+.owl--sleepy .owl-tuft-l, .owl--sleepy .owl-tuft-r { animation: none; }
+.owl--sleepy .owl-tuft-l { transform: rotate(-9deg); }
+.owl--sleepy .owl-tuft-r { transform: rotate(9deg); }
+@keyframes owl-zzz {
+  0%   { opacity: 0;   transform: translate(0, 0)      scale(0.6); }
+  25%  { opacity: 0.9; }
+  100% { opacity: 0;   transform: translate(14px, -34px) scale(1.1); }
+}
+
+/* Голод: брови домиком, зрачки крупнее, уши поникли */
+.owl--hungry .owl-brow { opacity: 1; }
+.owl--hungry .owl-pupil { transform: scale(1.12); transform-origin: 50% 50%; }
+.owl--hungry .owl-tuft-l { animation: none; transform: rotate(-13deg); }
+.owl--hungry .owl-tuft-r { animation: none; transform: rotate(13deg); }
+.owl--hungry .owl-breathe { animation: owl-breathe 5.6s ease-in-out infinite; }
+
+/* Аксессуары */
+.owl-acc { opacity: 0; transition: opacity 220ms ease; }
+.owl--acc-glasses .owl-acc--glasses { opacity: 1; }
+.owl--acc-crown   .owl-acc--crown   { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .owl-svg *, .mote, .stage::before { animation: none !important; }
+  .owl-lid { transform: scaleY(0); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <div>
+      <h1 class="head__title">Букля 2.0</h1>
+      <p class="head__sub">
+        Новый арт питомца: многослойное оперение, объёмные глаза с радужкой,
+        живая анимация и настроения. Отдельная витрина — в игру пока не подключено.
+      </p>
+    </div>
+    <button class="themebtn" id="themebtn" type="button">
+      <span id="themeicon">☀️</span><span id="themelabel">Светлая тема</span>
+    </button>
+  </header>
+
+  <!-- ГЛАВНАЯ СЦЕНА -->
+  <div class="stage">
+    <div class="motes" id="motes"></div>
+    <div class="stage__owl owl-alive" id="hero"></div>
+    <p class="stage__hint">Кликни по сове — подпрыгнет и взмахнёт крыльями</p>
+  </div>
+
+  <div class="controls">
+    <div>
+      <div class="ctrl__title">Настроение</div>
+      <div class="chips" id="moods">
+        <button class="chip" type="button" data-mood="" aria-pressed="true">Обычное</button>
+        <button class="chip" type="button" data-mood="happy" aria-pressed="false">Радость</button>
+        <button class="chip" type="button" data-mood="sleepy" aria-pressed="false">Сон</button>
+        <button class="chip" type="button" data-mood="hungry" aria-pressed="false">Голод</button>
+      </div>
+    </div>
+    <div>
+      <div class="ctrl__title">Аксессуар</div>
+      <div class="chips" id="accs">
+        <button class="chip" type="button" data-acc="" aria-pressed="true">Без</button>
+        <button class="chip" type="button" data-acc="glasses" aria-pressed="false">Очки</button>
+        <button class="chip" type="button" data-acc="crown" aria-pressed="false">Корона</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- СРАВНЕНИЕ -->
+  <section class="section">
+    <div class="section__label">Было / стало</div>
+    <div class="grid2">
+      <div class="card card--old">
+        <span class="card__tag card__tag--old">Было</span>
+        <div class="card__art" id="oldowl"></div>
+        <p class="card__note">Плоская заливка, глаза-точки, крылья одним пятном, лапы-палочки.</p>
+      </div>
+      <div class="card">
+        <span class="card__tag card__tag--new">Стало</span>
+        <div class="card__art owl-alive" id="newowl"></div>
+        <p class="card__note">Слои маховых перьев, лицевой диск с лучами, объёмная радужка, ветка-жёрдочка.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- РАЗМЕРЫ -->
+  <section class="section">
+    <div class="section__label">Читаемость в разных размерах</div>
+    <div class="sizes" id="sizes"></div>
+  </section>
+
+  <!-- ЧТО ИЗМЕНИЛОСЬ -->
+  <section class="section">
+    <div class="section__label">Что именно стало премиальнее</div>
+    <div class="notes">
+      <div class="note"><h3 class="note__h">Оперение слоями</h3><p class="note__p">Три ряда чешуек на груди и отдельные маховые перья на крыльях вместо одной заливки — силуэт читается как объём.</p></div>
+      <div class="note"><h3 class="note__h">Глаза с радужкой</h3><p class="note__p">Янтарная радужка с волокнами, тень верхнего века, крупный блик и отражённый свет снизу. Плюс медленный проход блика.</p></div>
+      <div class="note"><h3 class="note__h">Лицевой диск</h3><p class="note__p">Сердцевидный диск с расходящимися лучами перьев — узнаваемая анатомия совы, а не два кольца.</p></div>
+      <div class="note"><h3 class="note__h">Свет и тень</h3><p class="note__p">Контровой ободок сверху-слева, затенение под крыльями и мягкая контактная тень. Обе темы — свои значения.</p></div>
+      <div class="note"><h3 class="note__h">Живая идлка</h3><p class="note__p">Дыхание, покачивание головы, качание ушек с запаздыванием, двойное моргание. Ничего не дёргается.</p></div>
+      <div class="note"><h3 class="note__h">Настроения</h3><p class="note__p">Радость, сон и голод меняют глаза, брови, уши и ритм дыхания — можно завязать на шкалы питомца.</p></div>
+      <div class="note"><h3 class="note__h">Жёрдочка</h3><p class="note__p">Ветка с корой и листом даёт сцене опору и «дороговизну» вместо висящих в воздухе лап.</p></div>
+      <div class="note"><h3 class="note__h">Слоты магазина живы</h3><p class="note__p">Очки и корона садятся на новые якоря — покупки из магазина продолжат работать.</p></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ГЕНЕРАТОР СОВЫ
+   Все id градиентов/фильтров получают суффикс uid, чтобы
+   несколько экземпляров на странице не конфликтовали.
+   viewBox 0 0 400 400
+   ═══════════════════════════════════════════════════════════ */
+
+// Ряд «чешуек» оперения: n дуг по ширине w с центром cx на высоте y.
+function scallops(cx, y, w, n, h, fill, op) {
+  const step = w / n, x0 = cx - w / 2;
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const a = x0 + i * step;
+    d += `M ${a.toFixed(1)} ${y} q ${(step / 2).toFixed(1)} ${h} ${step.toFixed(1)} 0 `;
+  }
+  return `<path d="${d}" fill="none" stroke="${fill}" stroke-width="1.6" stroke-linecap="round" opacity="${op}"/>`;
+}
+
+// Лучи лицевого диска — тонкие штрихи от центра глаза наружу.
+function discRays(cx, cy, r0, r1, n, from, to, color) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const a = from + (to - from) * (i / (n - 1));
+    const x1 = cx + Math.cos(a) * r0, y1 = cy + Math.sin(a) * r0;
+    const x2 = cx + Math.cos(a) * r1, y2 = cy + Math.sin(a) * r1;
+    s += `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`;
+  }
+  return `<g stroke="${color}" stroke-width="1.5" stroke-linecap="round" opacity="0.5" fill="none">${s}</g>`;
+}
+
+// Волокна радужки.
+function irisFibers(cx, cy, r0, r1, n, color) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n + 0.3;
+    const x1 = cx + Math.cos(a) * r0, y1 = cy + Math.sin(a) * r0;
+    const x2 = cx + Math.cos(a) * r1, y2 = cy + Math.sin(a) * r1;
+    s += `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}"/>`;
+  }
+  return `<g stroke="${color}" stroke-width="0.9" stroke-linecap="round" opacity="0.55" fill="none">${s}</g>`;
+}
+
+// Одно маховое перо: вытянутая капля с центральным стержнем.
+function primary(x, y, len, w, rot, u, i) {
+  return `<g transform="translate(${x} ${y}) rotate(${rot})">
+    <path d="M 0 0 q ${w} ${len * 0.36} ${w * 0.34} ${len} q ${-w * 0.34} ${len * 0.13} ${-w * 0.72} 0 q ${-w * 0.5} ${-len * 0.62} ${w * 0.38} ${-len} Z"
+          fill="url(#g-prim-${u})" stroke="#4a2c16" stroke-width="0.9" stroke-linejoin="round" opacity="0.98"/>
+    <path d="M ${(w * 0.05).toFixed(1)} 3 q ${(w * 0.24).toFixed(1)} ${(len * 0.5).toFixed(1)} 0 ${(len * 0.9).toFixed(1)}"
+          stroke="#f0dcb8" stroke-width="1" fill="none" opacity="0.4"/>
+  </g>`;
+}
+
+// Крыло целиком (side = -1 левое, 1 правое)
+function wing(side, u) {
+  const sx = side < 0 ? 1 : -1;                 // отражение
+  const tx = side < 0 ? 100 : 300;
+  const cls = side < 0 ? 'owl-wing-l' : 'owl-wing-r';
+  // Маховые перья: сложены вдоль тела, каждое следующее чуть длиннее наружу.
+  // Верхушки спрятаны под «лопасть» кроющих перьев, наружу торчат только концы.
+  const feathers = [
+    [-12, 28, 124, -3],
+    [-24, 37, 110, -6],
+    [-35, 47,  97, -9],
+    [-45, 57,  85, -12]
+  ].map(([fx, fy, len, rot], i) => primary(fx, fy, len, 17, rot, u, i)).join('');
+
+  return `<g class="${cls}" transform="translate(${tx} 166) scale(${sx} 1)">
+    <!-- маховые перья (под кроющими) -->
+    <g>${feathers}</g>
+    <!-- кроющие перья: мягкая «лопасть», прикрывает основания махов -->
+    <path d="M 12 -16 q -52 10 -66 60 q -11 42 3 78 q 28 12 52 -4 q 16 -66 11 -134 Z"
+          fill="url(#g-wing-${u})" stroke="#5a3a1e" stroke-width="1.2" stroke-linejoin="round"/>
+    <!-- чешуйки на плече -->
+    <g>
+      ${scallops(-18, 6,  44, 4, 8, '#f2e0c0', 0.34)}
+      ${scallops(-24, 26, 48, 4, 8, '#f2e0c0', 0.28)}
+      ${scallops(-28, 46, 46, 4, 8, '#f2e0c0', 0.22)}
+      ${scallops(-30, 66, 40, 3, 8, '#f2e0c0', 0.16)}
+    </g>
+    <!-- затенение по нижней кромке, чтобы махи «уходили» под лопасть -->
+    <path d="M 0 100 q -24 14 -48 8 q 20 18 50 12 Z" fill="#3a2412" opacity="0.28"/>
+    ${side > 0 ? `<path d="M 12 -16 q -52 10 -66 60 q -11 42 3 78 q 28 12 52 -4 q 16 -66 11 -134 Z" fill="#2e1c0c" opacity="0.16"/>` : ''}
+    <!-- контровой блик по верхней кромке -->
+    <path d="M 8 -10 q -42 10 -56 52" stroke="var(--owl-rim)" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>`;
+}
+
+// Глаз целиком
+function eye(cx, cy, u) {
+  const r = 30;
+  return `<g>
+    <!-- глазница: мягкая тень вокруг -->
+    <ellipse cx="${cx}" cy="${cy + 2}" rx="${r + 5}" ry="${r + 5}" fill="#8a6a44" opacity="0.16"/>
+    <g class="owl-eyeball">
+      <!-- склера/ободок -->
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#g-sclera-${u})"/>
+      <!-- радужка -->
+      <circle cx="${cx}" cy="${cy}" r="${r - 3}" fill="url(#g-iris-${u})"/>
+      ${irisFibers(cx, cy, 9, r - 5, 34, '#a85c14')}
+      <circle cx="${cx}" cy="${cy}" r="${r - 3}" fill="none" stroke="#7a3f0a" stroke-width="2" opacity="0.7"/>
+      <!-- зрачок -->
+      <circle class="owl-pupil" cx="${cx}" cy="${cy}" r="14" fill="url(#g-pupil-${u})"/>
+      <!-- тень верхнего века на глазном яблоке -->
+      <path d="M ${cx - r} ${cy} a ${r} ${r} 0 0 1 ${r * 2} 0 q ${-r} ${-r * 0.42} ${-r * 2} 0 Z" fill="#3a1e06" opacity="0.30"/>
+      <!-- отражённый свет снизу -->
+      <path d="M ${cx - 15} ${cy + 15} q 15 12 30 -2" stroke="#ffd9a0" stroke-width="3" fill="none" opacity="0.35" stroke-linecap="round"/>
+      <!-- главный блик + вторичный -->
+      <ellipse cx="${cx - 9}" cy="${cy - 11}" rx="8" ry="6" fill="#ffffff" opacity="0.95" transform="rotate(-22 ${cx - 9} ${cy - 11})"/>
+      <circle cx="${cx + 10}" cy="${cy + 8}" r="3.2" fill="#ffffff" opacity="0.55"/>
+      <!-- бегущий блик -->
+      <g class="owl-shine"><ellipse cx="${cx + 2}" cy="${cy - 4}" rx="3" ry="12" fill="#fff6dd" opacity="0" transform="rotate(-24 ${cx + 2} ${cy - 4})"/></g>
+    </g>
+    <!-- дуга «счастливых» глаз -->
+    <path class="owl-happy-eye" d="M ${cx - 20} ${cy + 6} q 20 -26 40 0" stroke="#3d2410" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- полуприкрытое веко для сна -->
+    <g class="owl-sleep-lid">
+      <path d="M ${cx - r} ${cy - 4} a ${r} ${r} 0 0 1 ${r * 2} 0 L ${cx + r} ${cy + 6} q ${-r} ${r * 0.5} ${-r * 2} 0 Z" fill="url(#g-lid-${u})"/>
+      <path d="M ${cx - r + 2} ${cy + 6} q ${r - 2} ${r * 0.45} ${(r - 2) * 2} 0" stroke="#b89468" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- веко для моргания -->
+    <g class="owl-lid">
+      <path d="M ${cx - r - 1} ${cy - 1} a ${r + 1} ${r + 1} 0 0 1 ${(r + 1) * 2} 0 L ${cx + r + 1} ${cy + r} a ${r + 1} ${r + 1} 0 0 1 ${-(r + 1) * 2} 0 Z" fill="url(#g-lid-${u})"/>
+      <path d="M ${cx - r} ${cy} q ${r} ${r * 0.3} ${r * 2} 0" stroke="#b89468" stroke-width="1.8" fill="none" opacity="0.8"/>
+    </g>
+  </g>`;
+}
+
+function owlMarkup(u) {
+  const EL = 163, ER = 237, EY = 168;  // центры глаз
+  return `
+<svg class="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" role="button" aria-label="Букля">
+  <defs>
+    <radialGradient id="g-body-${u}" cx="38%" cy="26%" r="82%">
+      <stop offset="0%"   stop-color="#fffdf7"/>
+      <stop offset="34%"  stop-color="#f7ecd8"/>
+      <stop offset="70%"  stop-color="#e2cba6"/>
+      <stop offset="100%" stop-color="#a9825a"/>
+    </radialGradient>
+    <radialGradient id="g-belly-${u}" cx="50%" cy="34%" r="66%">
+      <stop offset="0%"   stop-color="#fffefb"/>
+      <stop offset="60%"  stop-color="#fdf4e4" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f3e2c4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g-disc-${u}" cx="50%" cy="34%" r="70%">
+      <stop offset="0%"   stop-color="#fffdf6"/>
+      <stop offset="72%"  stop-color="#f6e9d2"/>
+      <stop offset="100%" stop-color="#dcc39c"/>
+    </radialGradient>
+    <radialGradient id="g-wing-${u}" cx="26%" cy="16%" r="96%">
+      <stop offset="0%"   stop-color="#eed6ae"/>
+      <stop offset="42%"  stop-color="#c39a63"/>
+      <stop offset="78%"  stop-color="#8a5a2e"/>
+      <stop offset="100%" stop-color="#3f2611"/>
+    </radialGradient>
+    <linearGradient id="g-prim-${u}" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0%"   stop-color="#d8b382"/>
+      <stop offset="45%"  stop-color="#a97a45"/>
+      <stop offset="100%" stop-color="#5e3a1c"/>
+    </linearGradient>
+    <radialGradient id="g-iris-${u}" cx="38%" cy="30%" r="78%">
+      <stop offset="0%"   stop-color="#ffdc93"/>
+      <stop offset="40%"  stop-color="#f0a63a"/>
+      <stop offset="78%"  stop-color="#c76e12"/>
+      <stop offset="100%" stop-color="#7d3f06"/>
+    </radialGradient>
+    <radialGradient id="g-sclera-${u}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#fff8ea"/>
+      <stop offset="100%" stop-color="#e6d0ab"/>
+    </radialGradient>
+    <radialGradient id="g-pupil-${u}" cx="40%" cy="34%" r="80%">
+      <stop offset="0%"   stop-color="#2b1a0e"/>
+      <stop offset="55%"  stop-color="#120a06"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="g-lid-${u}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#f3e3c6"/>
+      <stop offset="100%" stop-color="#d8bf95"/>
+    </linearGradient>
+    <linearGradient id="g-beak-${u}" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0%"   stop-color="#ffe6a8"/>
+      <stop offset="38%"  stop-color="#f5b13a"/>
+      <stop offset="100%" stop-color="#9c5a12"/>
+    </linearGradient>
+    <linearGradient id="g-talon-${u}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#ffd08a"/>
+      <stop offset="100%" stop-color="#c07a22"/>
+    </linearGradient>
+    <linearGradient id="g-branch-${u}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#8a6034"/>
+      <stop offset="45%"  stop-color="#5f3e1f"/>
+      <stop offset="100%" stop-color="#3a2412"/>
+    </linearGradient>
+    <linearGradient id="g-crown-${u}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#ffe9a8"/>
+      <stop offset="50%"  stop-color="#f2c14e"/>
+      <stop offset="100%" stop-color="#b8801c"/>
+    </linearGradient>
+    <filter id="f-soft-${u}" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+    <filter id="f-drop-${u}" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="var(--owl-drop)"/>
+    </filter>
+  </defs>
+
+  <!-- контактная тень под жёрдочкой -->
+  <ellipse cx="200" cy="378" rx="112" ry="13" fill="var(--owl-contact)" filter="url(#f-soft-${u})"/>
+
+  <g filter="url(#f-drop-${u})">
+    <g class="owl-breathe">
+
+      <!-- ══ КРЫЛЬЯ (за телом) ══ -->
+      ${wing(-1, u)}
+      ${wing(1, u)}
+
+      <!-- ══ ГОЛОВА+ТЕЛО одним силуэтом ══ -->
+      <g class="owl-head">
+        <!-- перьевые ушки (за телом, чтобы основание сливалось) -->
+        <g class="owl-tuft-l">
+          <path d="M 122 122 q -14 -46 -2 -80 q 8 -6 14 2 q 20 34 38 76 q -26 14 -50 2 Z"
+                fill="url(#g-body-${u})" stroke="#c9ad82" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M 126 114 q -8 -34 0 -60" stroke="#b8996c" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+        </g>
+        <g class="owl-tuft-r">
+          <path d="M 278 122 q 14 -46 2 -80 q -8 -6 -14 2 q -20 34 -38 76 q 26 14 50 2 Z"
+                fill="url(#g-body-${u})" stroke="#c9ad82" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M 274 114 q 8 -34 0 -60" stroke="#b8996c" stroke-width="2" fill="none" opacity="0.5" stroke-linecap="round"/>
+        </g>
+
+        <!-- корпус -->
+        <path d="M 200 62
+                 C 274 62 312 122 310 194
+                 C 308 274 264 330 200 330
+                 C 136 330 92 274 90 194
+                 C 88 122 126 62 200 62 Z"
+              fill="url(#g-body-${u})" stroke="var(--owl-edge)" stroke-width="1.6"/>
+
+        <!-- боковое затенение (объём) -->
+        <path d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 q 46 -132 0 -268 Z"
+              fill="#8a6a42" opacity="0.16" filter="url(#f-soft-${u})"/>
+        <!-- светлое пузо -->
+        <ellipse cx="196" cy="252" rx="84" ry="76" fill="url(#g-belly-${u})"/>
+
+        <!-- ряды чешуек на груди -->
+        <g>
+          ${scallops(196, 210, 132, 9, 11, '#cbb083', 0.5)}
+          ${scallops(196, 234, 144, 10, 11, '#cbb083', 0.45)}
+          ${scallops(196, 258, 140, 10, 11, '#cbb083', 0.38)}
+          ${scallops(196, 282, 120, 8,  11, '#cbb083', 0.30)}
+          ${scallops(196, 304, 90,  6,  10, '#cbb083', 0.22)}
+        </g>
+
+        <!-- контровой ободок сверху-слева -->
+        <path d="M 200 62 C 150 62 108 96 95 152" stroke="var(--owl-rim)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8"/>
+        <path d="M 214 63 C 262 68 296 100 306 150" stroke="var(--owl-rim)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.35"/>
+
+        <!-- ══ ЛИЦЕВОЙ ДИСК (сердце) ══ -->
+        <path d="M 200 104
+                 C 172 76 122 90 120 144
+                 C 118 196 154 240 200 268
+                 C 246 240 282 196 280 144
+                 C 278 90 228 76 200 104 Z"
+              fill="url(#g-disc-${u})" opacity="0.96"/>
+        <path d="M 200 104
+                 C 172 76 122 90 120 144
+                 C 118 196 154 240 200 268
+                 C 246 240 282 196 280 144
+                 C 278 90 228 76 200 104 Z"
+              fill="none" stroke="#cdb188" stroke-width="2" opacity="0.65"/>
+        <!-- лучи перьев по диску -->
+        ${discRays(EL, EY, 36, 50, 11, Math.PI * 0.62, Math.PI * 1.62, '#c6a97e')}
+        ${discRays(ER, EY, 36, 50, 11, Math.PI * -0.62, Math.PI * 0.38, '#c6a97e')}
+
+        <!-- брови (голод) -->
+        <g class="owl-brow" stroke="#8a6a42" stroke-width="5" stroke-linecap="round" fill="none">
+          <path d="M ${EL - 24} ${EY - 40} q 22 -8 40 4"/>
+          <path d="M ${ER + 24} ${EY - 40} q -22 -8 -40 4"/>
+        </g>
+
+        <!-- румянец -->
+        <g class="owl-blush" opacity="0.5">
+          <ellipse cx="132" cy="212" rx="19" ry="11" fill="#ff9fb0" opacity="0.55" filter="url(#f-soft-${u})"/>
+          <ellipse cx="268" cy="212" rx="19" ry="11" fill="#ff9fb0" opacity="0.55" filter="url(#f-soft-${u})"/>
+        </g>
+
+        <!-- ══ ГЛАЗА ══ -->
+        ${eye(EL, EY, u)}
+        ${eye(ER, EY, u)}
+
+        <!-- ══ КЛЮВ ══ -->
+        <g>
+          <path d="M 200 196 q 15 4 13 18 q -3 20 -13 28 q -10 -8 -13 -28 q -2 -14 13 -18 Z"
+                fill="url(#g-beak-${u})" stroke="#8a4c0c" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M 196 202 q 5 -3 9 1 q -4 12 -5 20" stroke="#fff0c8" stroke-width="1.6" fill="none" opacity="0.55" stroke-linecap="round"/>
+          <path d="M 208 204 q 4 12 -1 24" stroke="#7a3f06" stroke-width="1.4" fill="none" opacity="0.4" stroke-linecap="round"/>
+          <ellipse cx="195" cy="203" rx="1.8" ry="1.2" fill="#7a3f06" opacity="0.6"/>
+          <ellipse cx="205" cy="203" rx="1.8" ry="1.2" fill="#7a3f06" opacity="0.6"/>
+        </g>
+
+        <!-- Zzz для сна -->
+        <g class="owl-zzz" fill="#cbb083" font-family="Inter, sans-serif" font-weight="800">
+          <text x="292" y="118" font-size="20">Z</text>
+        </g>
+        <g class="owl-zzz owl-zzz--2" fill="#cbb083" font-family="Inter, sans-serif" font-weight="800">
+          <text x="302" y="132" font-size="15">z</text>
+        </g>
+        <g class="owl-zzz owl-zzz--3" fill="#cbb083" font-family="Inter, sans-serif" font-weight="800">
+          <text x="310" y="144" font-size="11">z</text>
+        </g>
+
+        <!-- ══ АКСЕССУАРЫ ══ -->
+        <g class="owl-acc owl-acc--glasses">
+          <circle cx="${EL}" cy="${EY}" r="34" fill="#bcd8ff" opacity="0.12"/>
+          <circle cx="${ER}" cy="${EY}" r="34" fill="#bcd8ff" opacity="0.12"/>
+          <circle cx="${EL}" cy="${EY}" r="34" fill="none" stroke="url(#g-crown-${u})" stroke-width="4"/>
+          <circle cx="${ER}" cy="${EY}" r="34" fill="none" stroke="url(#g-crown-${u})" stroke-width="4"/>
+          <path d="M ${EL + 34} ${EY - 4} q 37 -10 ${ER - EL - 68} 0" stroke="url(#g-crown-${u})" stroke-width="4" fill="none"/>
+          <path d="M ${EL - 34} ${EY - 6} q -18 -6 -26 2" stroke="url(#g-crown-${u})" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+          <path d="M ${ER + 34} ${EY - 6} q 18 -6 26 2" stroke="url(#g-crown-${u})" stroke-width="3.4" fill="none" stroke-linecap="round"/>
+          <path d="M ${EL - 20} ${EY - 20} q 14 -6 26 4" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+          <path d="M ${ER - 20} ${EY - 20} q 14 -6 26 4" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+        </g>
+
+        <g class="owl-acc owl-acc--crown">
+          <path d="M 154 78 L 162 34 L 182 60 L 200 22 L 218 60 L 238 34 L 246 78 Z"
+                fill="url(#g-crown-${u})" stroke="#8a5c08" stroke-width="2" stroke-linejoin="round"/>
+          <rect x="152" y="76" width="96" height="14" rx="5" fill="url(#g-crown-${u})" stroke="#8a5c08" stroke-width="2"/>
+          <circle cx="200" cy="83" r="4.4" fill="#e0466e" stroke="#8a2040" stroke-width="1"/>
+          <circle cx="176" cy="83" r="3.2" fill="#4fb0e8" stroke="#1a6a99" stroke-width="1"/>
+          <circle cx="224" cy="83" r="3.2" fill="#4fb0e8" stroke="#1a6a99" stroke-width="1"/>
+          <circle cx="200" cy="22" r="4" fill="#fff6d8"/>
+          <path d="M 158 80 L 242 80" stroke="#fff3c8" stroke-width="1.6" opacity="0.6"/>
+        </g>
+      </g>
+
+    </g><!-- /breathe -->
+
+    <!-- ══ ЖЁРДОЧКА (под лапами) ══ -->
+    <g>
+      <path d="M 58 344 q 142 -14 284 0 q 5 13 0 24 q -142 13 -284 0 q -6 -12 0 -24 Z"
+            fill="url(#g-branch-${u})" stroke="#2e1c0c" stroke-width="1.6" stroke-linejoin="round"/>
+      <g stroke="#3a2412" stroke-width="1.4" opacity="0.5" fill="none" stroke-linecap="round">
+        <path d="M 94 350 q 30 4 62 3"/>
+        <path d="M 178 352 q 40 4 84 2"/>
+        <path d="M 106 361 q 46 4 92 2"/>
+        <path d="M 218 361 q 40 3 80 0"/>
+      </g>
+      <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" stroke-width="2" fill="none" opacity="0.5"/>
+      <!-- листок -->
+      <g>
+        <path d="M 330 348 q 26 -17 45 -4 q -15 22 -45 4 Z" fill="#5f9c4a" stroke="#3d6d2e" stroke-width="1.4" stroke-linejoin="round"/>
+        <path d="M 332 347 q 21 -4 41 -2" stroke="#8fd06e" stroke-width="1.2" fill="none" opacity="0.8"/>
+      </g>
+    </g>
+
+    <!-- ══ ЛАПЫ поверх ветки — пальцы обхватывают её ══ -->
+    <g>
+      <!-- голени, верх спрятан за телом -->
+      <g stroke="url(#g-talon-${u})" stroke-width="11" stroke-linecap="round" fill="none">
+        <path d="M 170 316 L 170 342"/>
+        <path d="M 230 316 L 230 342"/>
+      </g>
+      <!-- пальцы: два вперёд-вниз через ветку + один назад -->
+      <g stroke="url(#g-talon-${u})" stroke-width="9" stroke-linecap="round" fill="none">
+        <path d="M 170 342 q -13 6 -18 18"/>
+        <path d="M 170 342 q 3 10 2 19"/>
+        <path d="M 170 342 q 14 5 19 17"/>
+        <path d="M 230 342 q -14 5 -19 17"/>
+        <path d="M 230 342 q -3 10 -2 19"/>
+        <path d="M 230 342 q 13 6 18 18"/>
+      </g>
+      <!-- складки на пальцах -->
+      <g stroke="#b8761c" stroke-width="1.6" opacity="0.6" fill="none" stroke-linecap="round">
+        <path d="M 161 348 l 4 3"/><path d="M 179 348 l -4 3"/>
+        <path d="M 221 348 l 4 3"/><path d="M 239 348 l -4 3"/>
+      </g>
+      <!-- когти -->
+      <g stroke="#6a3d08" stroke-width="2.6" stroke-linecap="round" fill="none">
+        <path d="M 152 360 q -4 3 -5 7"/>
+        <path d="M 172 361 q 1 4 0 7"/>
+        <path d="M 189 359 q 4 3 5 7"/>
+        <path d="M 211 359 q -4 3 -5 7"/>
+        <path d="M 228 361 q -1 4 0 7"/>
+        <path d="M 248 360 q 4 3 5 7"/>
+      </g>
+    </g>
+  </g>
+</svg>`;
+}
+
+/* ═══════════════ СТАРАЯ СОВА (для сравнения) ═══════════════ */
+function oldOwlMarkup(u) {
+  return `
+<svg class="owl-svg" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" style="cursor:default">
+  <defs>
+    <radialGradient id="o-body-${u}" cx="50%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="55%" stop-color="#f1e8d4"/><stop offset="100%" stop-color="#9a8868"/>
+    </radialGradient>
+    <radialGradient id="o-belly-${u}" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#e8dcc0"/>
+    </radialGradient>
+    <radialGradient id="o-wing-${u}" cx="50%" cy="40%" r="75%">
+      <stop offset="0%" stop-color="#e8dcc0"/><stop offset="55%" stop-color="#b8a484"/><stop offset="100%" stop-color="#5a4a32"/>
+    </radialGradient>
+    <radialGradient id="o-eye-${u}" cx="40%" cy="35%" r="70%">
+      <stop offset="0%" stop-color="#4a3a55"/><stop offset="60%" stop-color="#1a1020"/><stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <linearGradient id="o-beak-${u}" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffd066"/><stop offset="55%" stop-color="#f0931a"/><stop offset="100%" stop-color="#a85a08"/>
+    </linearGradient>
+  </defs>
+  <g>
+    <path d="M 140 195 Q 70 180 30 220 Q 10 260 45 295 Q 95 305 135 280 Q 145 240 140 195 Z" fill="url(#o-wing-${u})"/>
+    <g stroke="#5a4a32" stroke-width="1.2" opacity="0.55" fill="none" stroke-linecap="round">
+      <path d="M 60 225 Q 75 245 70 270"/><path d="M 80 215 Q 95 235 95 265"/>
+      <path d="M 100 210 Q 115 235 120 270"/><path d="M 45 250 Q 60 270 60 290"/>
+    </g>
+    <path d="M 260 195 Q 330 180 370 220 Q 390 260 355 295 Q 305 305 265 280 Q 255 240 260 195 Z" fill="url(#o-wing-${u})"/>
+    <g stroke="#5a4a32" stroke-width="1.2" opacity="0.55" fill="none" stroke-linecap="round">
+      <path d="M 340 225 Q 325 245 330 270"/><path d="M 320 215 Q 305 235 305 265"/>
+      <path d="M 300 210 Q 285 235 280 270"/><path d="M 355 250 Q 340 270 340 290"/>
+    </g>
+    <ellipse cx="200" cy="195" rx="108" ry="118" fill="url(#o-body-${u})"/>
+    <ellipse cx="200" cy="225" rx="60" ry="70" fill="url(#o-belly-${u})" opacity="0.7"/>
+    <g fill="#c9b896" opacity="0.35">
+      <ellipse cx="130" cy="180" rx="3.5" ry="2"/><ellipse cx="125" cy="210" rx="4" ry="2"/>
+      <ellipse cx="135" cy="240" rx="3.5" ry="2"/><ellipse cx="150" cy="260" rx="4" ry="2"/>
+      <ellipse cx="270" cy="180" rx="3.5" ry="2"/><ellipse cx="275" cy="210" rx="4" ry="2"/>
+      <ellipse cx="265" cy="240" rx="3.5" ry="2"/><ellipse cx="250" cy="260" rx="4" ry="2"/>
+    </g>
+    <g stroke="#c2b08c" stroke-width="2" stroke-linejoin="round">
+      <path d="M 130 110 Q 118 76 126 42 Q 150 64 168 106 Q 150 116 130 110 Z" fill="url(#o-body-${u})"/>
+      <path d="M 270 110 Q 282 76 274 42 Q 250 64 232 106 Q 250 116 270 110 Z" fill="url(#o-body-${u})"/>
+    </g>
+    <g fill="none">
+      <ellipse cx="166" cy="172" rx="32" ry="39" stroke="#d8c7a2" stroke-width="4" opacity="0.75"/>
+      <ellipse cx="234" cy="172" rx="32" ry="39" stroke="#d8c7a2" stroke-width="4" opacity="0.75"/>
+    </g>
+    <ellipse cx="146" cy="206" rx="13" ry="8" fill="#ffb3c2" opacity="0.4"/>
+    <ellipse cx="254" cy="206" rx="13" ry="8" fill="#ffb3c2" opacity="0.4"/>
+    <circle cx="166" cy="172" r="26" fill="url(#o-eye-${u})"/>
+    <ellipse cx="175" cy="162" rx="7" ry="5.5" fill="#ffffff"/>
+    <circle cx="234" cy="172" r="26" fill="url(#o-eye-${u})"/>
+    <ellipse cx="243" cy="162" rx="7" ry="5.5" fill="#ffffff"/>
+    <path d="M 184 219 Q 200 238 216 219 Q 208 234 200 236 Q 192 234 184 219 Z" fill="#2a0808"/>
+    <path d="M 190 205 Q 200 201 210 205 Q 207 217 200 219 Q 193 217 190 205 Z" fill="url(#o-beak-${u})" stroke="#7a4400" stroke-width="1"/>
+    <path d="M 194 232 Q 200 235 206 232 Q 204 238 200 239 Q 196 238 194 232 Z" fill="url(#o-beak-${u})" stroke="#7a4400" stroke-width="1"/>
+    <path d="M 184 219 Q 200 236 216 219" stroke="#2a0808" stroke-width="3.6" fill="none" stroke-linecap="round"/>
+    <g stroke="#c87018" stroke-width="6" stroke-linecap="round" fill="none">
+      <path d="M 172 290 L 172 305"/><path d="M 228 290 L 228 305"/>
+    </g>
+    <g stroke="#c87018" stroke-width="5" stroke-linecap="round" fill="none">
+      <path d="M 172 305 L 160 320"/><path d="M 172 305 L 172 322"/><path d="M 172 305 L 184 320"/>
+      <path d="M 228 305 L 216 320"/><path d="M 228 305 L 228 322"/><path d="M 228 305 L 240 320"/>
+    </g>
+  </g>
+</svg>`;
+}
+
+/* ═══════════════ МОНТАЖ ═══════════════ */
+let uid = 0;
+function mount(el, alive) {
+  el.innerHTML = owlMarkup('u' + (++uid));
+  const svg = el.querySelector('svg');
+  svg.addEventListener('click', () => {
+    if (el.classList.contains('owl--flap')) return;
+    el.classList.add('owl--flap');
+    setTimeout(() => el.classList.remove('owl--flap'), 780);
+  });
+  return el;
+}
+
+const hero = document.getElementById('hero');
+mount(hero);
+mount(document.getElementById('newowl'));
+document.getElementById('oldowl').innerHTML = oldOwlMarkup('o1');
+
+// Ряд размеров
+const SIZES = [
+  [176, 'Экран питомца'],
+  [104, 'Карточка'],
+  [56,  'Кнопка в шапке'],
+  [36,  'Иконка / бейдж']
+];
+const sizesEl = document.getElementById('sizes');
+SIZES.forEach(([px, cap]) => {
+  const box = document.createElement('div');
+  box.className = 'size';
+  const art = document.createElement('div');
+  art.className = 'owl-alive';
+  art.style.width = px + 'px';
+  box.appendChild(art);
+  const label = document.createElement('div');
+  label.className = 'size__cap';
+  label.textContent = px + ' px · ' + cap;
+  box.appendChild(label);
+  sizesEl.appendChild(box);
+  mount(art);
+});
+
+// Пылинки
+const motes = document.getElementById('motes');
+for (let i = 0; i < 18; i++) {
+  const m = document.createElement('span');
+  m.className = 'mote';
+  m.style.left = (8 + Math.random() * 84) + '%';
+  m.style.top = (48 + Math.random() * 46) + '%';
+  m.style.animationDuration = (5 + Math.random() * 6).toFixed(1) + 's';
+  m.style.animationDelay = (-Math.random() * 8).toFixed(1) + 's';
+  const s = (2 + Math.random() * 4).toFixed(1);
+  m.style.width = s + 'px'; m.style.height = s + 'px';
+  motes.appendChild(m);
+}
+
+// Настроения и аксессуары
+function bindGroup(rootId, attr, prefix) {
+  const root = document.getElementById(rootId);
+  // Снимаем только классы этой группы: префикс 'owl--' пересекается
+  // с 'owl--acc-', поэтому чистим по конкретному списку кнопок.
+  const own = [...root.querySelectorAll('.chip')]
+    .map((b) => b.dataset[attr]).filter(Boolean).map((v) => prefix + v);
+  root.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    root.querySelectorAll('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+    hero.classList.remove(...own);
+    const val = btn.dataset[attr];
+    if (val) hero.classList.add(prefix + val);
+  });
+}
+bindGroup('moods', 'mood', 'owl--');
+bindGroup('accs', 'acc', 'owl--acc-');
+
+// Тема
+const root = document.documentElement;
+const tb = document.getElementById('themebtn');
+const ti = document.getElementById('themeicon');
+const tl = document.getElementById('themelabel');
+function syncTheme() {
+  const light = root.getAttribute('data-theme') === 'light';
+  ti.textContent = light ? '🌙' : '☀️';
+  tl.textContent = light ? 'Тёмная тема' : 'Светлая тема';
+}
+tb.addEventListener('click', () => {
+  root.setAttribute('data-theme', root.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+  syncTheme();
+});
+syncTheme();
+</script>
+</body>
+</html>
