@@ -134,8 +134,10 @@ button { font-family: inherit; }
      (and thus the board + keyboard) balloons past the viewport to the right.
      minmax(0,1fr) forces the column to the app width and lets children shrink. */
   grid-template-columns: minmax(0, 1fr);
-  padding: 14px 12px 18px;
-  gap: 8px;
+  /* Fluid chrome: every fixed-size part of the shell scales with viewport
+     height so the board isn't the only thing that shrinks on short screens. */
+  padding: clamp(6px, 1.8vh, 14px) 12px clamp(8px, 2.2vh, 18px);
+  gap: clamp(4px, 1vh, 8px);
   overflow: hidden;
 }
 /* Grid children default to min-width:auto (won't shrink below content); let
@@ -147,7 +149,7 @@ button { font-family: inherit; }
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  padding: 6px 4px 12px;
+  padding: clamp(2px, 0.8vh, 6px) 4px clamp(4px, 1.5vh, 12px);
   border-bottom: 1px solid var(--line);
   position: relative;
 }
@@ -170,10 +172,10 @@ button { font-family: inherit; }
 }
 .brand__mark {
   display: grid; place-items: center;
-  width: 28px; height: 28px;
+  width: clamp(20px, 3.6vh, 28px); height: clamp(20px, 3.6vh, 28px);
   font-family: 'Cormorant Garamond', serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: clamp(15px, 2.8vh, 22px);
   line-height: 1;
   color: #0b0d12;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -187,7 +189,7 @@ button { font-family: inherit; }
   font-weight: 600;
   font-style: italic;
   letter-spacing: 0.01em;
-  font-size: 28px;
+  font-size: clamp(17px, 3.6vh, 28px);
   line-height: 1;
   color: var(--text);
   background: none;
@@ -208,7 +210,7 @@ button { font-family: inherit; }
   color: #154a23;
 }
 .iconbtn {
-  width: 38px; height: 38px;
+  width: clamp(28px, 4.75vh, 38px); height: clamp(28px, 4.75vh, 38px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -733,7 +735,7 @@ button { font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: clamp(4px, 1vh, 8px);
   flex-wrap: nowrap;
   width: 100%;
   padding: 0 4px;
@@ -1791,8 +1793,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- Keyboard ---------- */
 .keyboard {
   display: grid;
-  gap: 6px;
-  padding-top: 4px;
+  gap: clamp(3px, 0.85vh, 6px);
+  padding-top: clamp(2px, 0.6vh, 4px);
 }
 
 /* ---------- End-of-round bottom panel (replaces keyboard) ---------- */
@@ -1958,7 +1960,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 .keyboard__row {
   display: flex;
-  gap: 4px;
+  gap: clamp(2px, 0.6vh, 4px);
   justify-content: center;
 }
 .key {
@@ -1967,20 +1969,20 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   padding: 0 2px;
   /* Scale with viewport height so short screens (Yandex phone frame) shrink
      the keyboard instead of starving the board. */
-  height: clamp(38px, 6.4vh, 52px);
+  height: clamp(30px, 7vh, 52px);
   border-radius: 8px;
   border: 1px solid var(--line);
   background: var(--bg-2);
   color: var(--text);
   font-weight: 700;
-  font-size: 17px;
+  font-size: clamp(12px, 2.3vh, 17px);
   text-transform: uppercase;
   cursor: pointer;
   transition: transform var(--t-fast), background var(--t-fast), color var(--t-fast), border-color var(--t-med);
 }
 /* Wider action keys. Extra side padding + tighter tracking so the "ВВОД"
    label keeps a margin from the edges instead of running edge-to-edge. */
-.key--wide  { flex: 1.6 1 0; font-size: 12px; letter-spacing: 0.01em; padding: 0 8px; }
+.key--wide  { flex: 1.6 1 0; font-size: clamp(9.5px, 1.7vh, 12px); letter-spacing: 0.01em; padding: 0 8px; }
 .key--wide  svg { width: 22px; height: 22px; }
 
 /* Ввод / Удалить get the same tinted-pill treatment as the coins & energy
@@ -2666,7 +2668,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 @media (max-width: 380px) {
   .app { padding: 12px 8px 14px; }
   .keyboard__row { gap: 3px; }
-  .key { height: 48px; font-size: 16px; border-radius: 7px; padding: 0; }
+  /* height/font stay fluid (see .key) so short screens still shrink them. */
+  .key { border-radius: 7px; padding: 0; }
   /* Keep side padding on the action keys so "ВВОД" isn't edge-to-edge even on
      the narrowest phones (the base .key padding:0 above would strip it). */
   .key--wide { font-size: 12px; padding: 0 6px; }
@@ -2674,7 +2677,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   .stats__grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 320px) {
-  .key { height: 44px; font-size: 14px; }
+  .key { font-size: clamp(11px, 2vh, 14px); }
   .key--wide { font-size: 11px; }
   .row { gap: 6px; }
   .board { gap: 6px; }
@@ -5322,16 +5325,25 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
    header/brand/keyboard kept fixed sizes — board tiny, chrome huge. Shrink the
    fixed chrome by height so everything scales together. (.key/.end-panel already
    use vh-clamp heights.) */
-@media (max-height: 700px) {
-  .app { padding: 8px 12px 10px; gap: 6px; }
-  .header { padding: 3px 4px 7px; }
-  .brand__mark { width: 24px; height: 24px; font-size: 19px; }
-  .brand__title { font-size: 23px; }
+/* (The former stepwise max-height overrides are gone: .app/.header/.brand/
+   .keyboard now scale continuously via vh clamps above.) */
+
+/* ---------- Fluid top bar + icon glyphs ----------
+   Placed last so they win over the base chip rules (.daily-badge is defined
+   far below .topbar) and over the narrow-width tightening. Both axes stay
+   responsive: width media-queries tighten padding, vh clamps shrink the whole
+   chip on short screens so the board keeps its share of the height. */
+.coins, .energy, .hint-btn, .daily-badge {
+  padding: clamp(4px, 0.9vh, 6px) clamp(8px, 1.6vh, 12px);
+  font-size: clamp(11px, 1.75vh, 13px);
 }
-@media (max-height: 600px) {
-  .app { padding: 6px 10px 8px; gap: 4px; }
-  .header { padding: 2px 4px 5px; }
-  .brand__mark { width: 22px; height: 22px; font-size: 17px; }
-  .brand__title { font-size: 20px; }
-  .keyboard { gap: 4px; padding-top: 2px; }
+@media (max-width: 400px) {
+  .coins, .energy, .hint-btn, .daily-badge {
+    padding: clamp(3px, 0.75vh, 5px) clamp(6px, 1.3vh, 9px);
+    font-size: clamp(10.5px, 1.6vh, 12.5px);
+  }
+}
+.iconbtn > svg {
+  width: clamp(16px, 2.7vh, 20px);
+  height: clamp(16px, 2.7vh, 20px);
 }
