@@ -542,7 +542,10 @@ button { font-family: inherit; }
 }
 [data-theme="light"] .shop__subtabs { background: rgba(0, 0, 0, 0.04); }
 [data-theme="light"] .shop__subtab { color: rgba(26, 29, 40, 0.6); }
-[data-theme="light"] .shop__subtab--active { color: #fff; }
+/* Dark ink on the accent pill: the gradient is light, so white text only
+   reached 2.9:1. Must be stated explicitly - the generic light .shop__subtab
+   rule above outranks the base --active rule. Same call as the help tabs. */
+[data-theme="light"] .shop__subtab--active { color: #0b0d12; }
 
 .shop__grid {
   display: grid;
@@ -4184,6 +4187,18 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   color: rgba(229, 235, 255, 0.65);
   font-variant-numeric: tabular-nums;
 }
+
+/* Light theme for the pre-hatch "Дупло" stub. It was authored dark-only:
+   a near-transparent white surface, pale-gold title and near-white body text
+   all vanished on the light background (moderation: unreadable section). */
+[data-theme="light"] .pet-locked {
+  background: #ffffff;
+  border-color: rgba(180, 130, 30, 0.55);
+}
+[data-theme="light"] .pet-locked__title { color: #6a3a04; }
+[data-theme="light"] .pet-locked__desc,
+[data-theme="light"] .pet-locked__count { color: rgba(26, 29, 40, 0.72); }
+[data-theme="light"] .pet-locked__bar { background: rgba(0, 0, 0, 0.10); }
 
 /* ---------- Train (placeholder) ---------- */
 .pet-train {
