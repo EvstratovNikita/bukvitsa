@@ -522,6 +522,7 @@ function wing(side, u) {
 function eye(cx, cy, u) {
   const r = 30;
   return `<g>
+    <defs><clipPath id="clip-eye-${u}-${cx}"><circle cx="${cx}" cy="${cy}" r="${r + 0.5}"/></clipPath></defs>
     <!-- глазница: мягкая тень вокруг -->
     <ellipse class="owl-socket" cx="${cx}" cy="${cy + 2}" rx="${r + 5}" ry="${r + 5}" fill="#8a6a44" opacity="0.16"/>
     <g class="owl-eyeball">
@@ -550,10 +551,12 @@ function eye(cx, cy, u) {
       <path d="M ${cx - r} ${cy - 4} a ${r} ${r} 0 0 1 ${r * 2} 0 L ${cx + r} ${cy + 6} q ${-r} ${r * 0.5} ${-r * 2} 0 Z" fill="url(#g-lid-${u})"/>
       <path d="M ${cx - r + 2} ${cy + 6} q ${r - 2} ${r * 0.45} ${(r - 2) * 2} 0" stroke="#b89468" stroke-width="2" fill="none" stroke-linecap="round"/>
     </g>
-    <!-- веко для моргания -->
-    <g class="owl-lid">
-      <path d="M ${cx - r - 1} ${cy - 1} a ${r + 1} ${r + 1} 0 0 1 ${(r + 1) * 2} 0 L ${cx + r + 1} ${cy + r} a ${r + 1} ${r + 1} 0 0 1 ${-(r + 1) * 2} 0 Z" fill="url(#g-lid-${u})"/>
-      <path d="M ${cx - r} ${cy} q ${r} ${r * 0.3} ${r * 2} 0" stroke="#b89468" stroke-width="1.8" fill="none" opacity="0.8"/>
+    <!-- веко для моргания, подрезано кругом глаза -->
+    <g clip-path="url(#clip-eye-${u}-${cx})">
+      <g class="owl-lid">
+        <circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="url(#g-lid-${u})"/>
+        <path d="M ${cx - r * 0.8} ${cy + r * 0.5} q ${r * 0.8} ${r * 0.32} ${r * 1.6} 0" stroke="#b89468" stroke-width="1.8" fill="none" opacity="0.75" stroke-linecap="round"/>
+      </g>
     </g>
   </g>`;
 }
@@ -628,6 +631,7 @@ function owlMarkup(u) {
       <stop offset="50%"  stop-color="#f2c14e"/>
       <stop offset="100%" stop-color="#b8801c"/>
     </linearGradient>
+    <clipPath id="clip-body-${u}"><path d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 C 136 330 92 274 90 194 C 88 122 126 62 200 62 Z"/></clipPath>
     <filter id="f-soft-${u}" x="-40%" y="-40%" width="180%" height="180%">
       <feGaussianBlur stdDeviation="7"/>
     </filter>
@@ -668,9 +672,11 @@ function owlMarkup(u) {
                  C 88 122 126 62 200 62 Z"
               fill="url(#g-body-${u})" stroke="var(--owl-edge)" stroke-width="1.6"/>
 
-        <!-- боковое затенение (объём) -->
-        <path d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 q 46 -132 0 -268 Z"
-              fill="#8a6a42" opacity="0.12" filter="url(#f-soft-${u})"/>
+        <!-- боковое затенение (объём), подрезано силуэтом -->
+        <g clip-path="url(#clip-body-${u})">
+          <path d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 q 46 -132 0 -268 Z"
+                fill="#8a6a42" opacity="0.14" filter="url(#f-soft-${u})"/>
+        </g>
         <!-- светлое пузо -->
         <ellipse cx="196" cy="252" rx="84" ry="76" fill="url(#g-belly-${u})"/>
 
