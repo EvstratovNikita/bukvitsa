@@ -3310,12 +3310,15 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 
 /* ---------- Owl SVG: per-part idle life ---------- */
-/* Percent-based transform-origin needs the element's own box, not the
-   whole viewBox. */
-.owl-svg * { transform-box: fill-box; }
+/* transform-box: fill-box ONLY on the nodes we animate with percent
+   origins. Applying it to every descendant also flips their default
+   transform-origin from 0 0 to the centre of their own box, which silently
+   re-anchors the plain transform ATTRIBUTES underneath — the mirrored wing
+   and the decoration mapping both landed far off. */
 
 /* Breathing of the whole bird */
 .owl-svg .owl-breathe {
+  transform-box: fill-box;
   transform-origin: 50% 92%;
   animation: owl-breathe 4.2s ease-in-out infinite;
 }
@@ -3326,6 +3329,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 
 /* Head sway, with the ear tufts trailing behind it */
 .owl-svg .owl-head {
+  transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: owl-sway 6.5s ease-in-out infinite;
 }
@@ -3334,8 +3338,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   28%      { transform: rotate(1.6deg); }
   62%      { transform: rotate(-1.4deg); }
 }
-.owl-svg .owl-tuft-l { transform-origin: 70% 100%; animation: owl-tuft 6.5s ease-in-out infinite; }
-.owl-svg .owl-tuft-r { transform-origin: 30% 100%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
+.owl-svg .owl-tuft-l { transform-box: fill-box; transform-origin: 70% 100%; animation: owl-tuft 6.5s ease-in-out infinite; }
+.owl-svg .owl-tuft-r { transform-box: fill-box; transform-origin: 30% 100%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
 @keyframes owl-tuft {
   0%, 100% { transform: rotate(0deg); }
   30%      { transform: rotate(3.2deg); }
@@ -3346,6 +3350,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
    wings share one set of keyframes — a CSS transform here would override
    the presentation attribute and drop the mirror. */
 .owl-svg .owl-wing {
+  transform-box: fill-box;
   transform-origin: 92% 4%;
   animation: owl-wing 5.4s ease-in-out infinite;
 }
@@ -3367,6 +3372,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* Blink — two quick closes every ~6s. The lid is clipped to the eye, so
    it never reaches past it. */
 .owl-svg .owl-lid {
+  transform-box: fill-box;
   transform-origin: 50% 0%;
   transform: scaleY(0);
   animation: owl-blink 6.4s ease-in-out infinite;
@@ -3388,7 +3394,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 
 /* Mood sparks — rare twinkle, each on its own beat */
-.owl-svg .owl-spark { opacity: 0; transform-origin: 50% 50%; animation: owl-spark 4.6s ease-in-out infinite; }
+.owl-svg .owl-spark { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; animation: owl-spark 4.6s ease-in-out infinite; }
 .owl-svg .owl-spark--2 { animation-delay: 1.6s; }
 .owl-svg .owl-spark--3 { animation-delay: 3.1s; }
 @keyframes owl-spark {

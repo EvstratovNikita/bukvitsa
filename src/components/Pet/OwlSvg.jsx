@@ -46,6 +46,20 @@ const SLOT_POSITIONS = {
   wingR:  { x: 320, y: 250, size: 50  }
 };
 const DECO_TRANSFORM = 'translate(200 168) scale(1.088) translate(-200 -172)';
+// Headwear needs its own, gentler mapping: the tallest hats start at y≈12 in
+// the legacy space and the 1.088 scale pushed their tips past the top of the
+// viewBox, which the SVG clips.
+const HEAD_TRANSFORM = 'translate(200 172) scale(1.03) translate(-200 -172)';
+
+// Wing amulets don't go through that mapping: the old wings were far wider,
+// so a legacy anchor lands the charm half-way off the current one. Only a
+// ~37px band of each wing shows past the body (x 63…100 at this height), so
+// the charms get their own anchors and are scaled down to fit it.
+const WING_SLOT_POS = {
+  wingL: { x: 81,  y: 252 },
+  wingR: { x: 319, y: 252 }
+};
+const WING_SLOT_SCALE = 0.72;
 
 // Wing outline. The top starts inside the silhouette (y=118) and stays right
 // of the body's left edge until y≈180, so the wing emerges from under the
@@ -281,14 +295,18 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
       if (id === 'crown')    return <Crown    key={slot} />;
     }
     if (slot === 'wingL' || slot === 'wingR') {
+      const wp = WING_SLOT_POS[slot];
+      const fit = `translate(${wp.x} ${wp.y}) scale(${WING_SLOT_SCALE}) translate(${-wp.x} ${-wp.y})`;
       const Comp = WING_COMPS[id];
-      if (Comp) {
-        return (
-          <g key={slot} className={`owl-deco owl-deco--${slot} owl-deco--${id}`}>
-            <Comp x={pos.x} y={pos.y} />
-          </g>
-        );
-      }
+      return (
+        <g key={slot} className={`owl-deco owl-deco--${slot} owl-deco--${id}`} transform={fit}>
+          {Comp ? <Comp x={wp.x} y={wp.y} /> : (
+            <text x={wp.x} y={wp.y} fontSize={pos.size} textAnchor="middle" dominantBaseline="central">
+              {d.icon}
+            </text>
+          )}
+        </g>
+      );
     }
 
     // Emoji fallback for anything without a dedicated renderer.
@@ -388,10 +406,8 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
           <Wing side={1}  uid={uid} />
 
           {/* wing amulets sit outside the head group so they don't sway */}
-          <g transform={DECO_TRANSFORM}>
-            {renderSlot('wingL')}
-            {renderSlot('wingR')}
-          </g>
+          {renderSlot('wingL')}
+          {renderSlot('wingR')}
 
           <g className="owl-head">
             {/* ear tufts, behind the body so their base blends in */}
@@ -527,8 +543,8 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
             </g>
 
             {/* worn items, mapped from the legacy coordinate space */}
+            <g transform={HEAD_TRANSFORM}>{renderSlot('head')}</g>
             <g transform={DECO_TRANSFORM}>
-              {renderSlot('head')}
               {renderSlot('eyes')}
               {renderSlot('brooch')}
             </g>

@@ -213,10 +213,12 @@ body {
    АНИМАЦИИ СОВЫ
    ───────────────────────────────────────────────────────────── */
 .owl-svg { display: block; width: 100%; height: auto; overflow: visible; cursor: pointer; }
-.owl-svg * { transform-box: fill-box; }
+/* Только на анимируемых узлах: fill-box меняет и точку отсчёта у
+   обычных transform-атрибутов ниже по дереву. */
 
 /* Дыхание всего тела */
 .owl-alive .owl-breathe {
+  transform-box: fill-box;
   transform-origin: 50% 92%;
   animation: owl-breathe 4.2s ease-in-out infinite;
 }
@@ -227,6 +229,7 @@ body {
 
 /* Мягкое покачивание головы */
 .owl-alive .owl-head {
+  transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: owl-sway 6.5s ease-in-out infinite;
 }
@@ -237,8 +240,8 @@ body {
 }
 
 /* Перья-ушки качаются с запаздыванием */
-.owl-alive .owl-tuft-l { transform-origin: 70% 100%; animation: owl-tuft 6.5s ease-in-out infinite; }
-.owl-alive .owl-tuft-r { transform-origin: 30% 100%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
+.owl-alive .owl-tuft-l { transform-box: fill-box; transform-origin: 70% 100%; animation: owl-tuft 6.5s ease-in-out infinite; }
+.owl-alive .owl-tuft-r { transform-box: fill-box; transform-origin: 30% 100%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
 @keyframes owl-tuft {
   0%, 100% { transform: rotate(0deg); }
   30%      { transform: rotate(3.2deg); }
@@ -250,7 +253,7 @@ body {
    transform перебивает одноимённый атрибут, поэтому зеркалить правое крыло
    и вращать его нужно на разных узлах. Отражение снаружи → обоим крыльям
    подходят одни и те же кадры. */
-.owl-wing { transform-origin: 92% 4%; }
+.owl-wing { transform-box: fill-box; transform-origin: 92% 4%; }
 .owl-alive .owl-wing { animation: owl-wing 5.4s ease-in-out infinite; }
 @keyframes owl-wing {
   0%, 100% { transform: rotate(0deg); }
@@ -258,7 +261,7 @@ body {
 }
 
 /* Моргание: два быстрых схлопывания раз в ~6 с */
-.owl-lid { transform-origin: 50% 0%; transform: scaleY(0); }
+.owl-lid { transform-box: fill-box; transform-origin: 50% 0%; transform: scaleY(0); }
 .owl-alive .owl-lid { animation: owl-blink 6.4s ease-in-out infinite; }
 @keyframes owl-blink {
   0%, 84%, 100% { transform: scaleY(0); }
@@ -295,7 +298,7 @@ body {
 }
 
 /* Искорки — редкое мерцание, каждая в своём ритме */
-.owl-spark { opacity: 0; transform-origin: 50% 50%; }
+.owl-spark { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
 .owl-alive .owl-spark { animation: owl-spark 4.6s ease-in-out infinite; }
 .owl-spark--2 { animation-delay: 1.6s; }
 .owl-spark--3 { animation-delay: 3.1s; }
@@ -307,7 +310,7 @@ body {
 
 /* ── Настроения ─────────────────────────────────────────── */
 .owl-happy-eye, .owl-brow, .owl-zzz, .owl-sleep-lid, .owl-smile-sad { opacity: 0; }
-.owl-mouth { transform-origin: 50% 222px; }
+.owl-mouth { transform-box: fill-box; transform-origin: 50% 100%; }
 
 /* Радость: глаза-дуги, щёки ярче, лёгкие подскоки */
 .owl--happy .owl-eyeball, .owl--happy .owl-socket { opacity: 0; }
@@ -344,7 +347,7 @@ body {
 
 /* Голод: брови домиком, зрачки крупнее, уши поникли */
 .owl--hungry .owl-brow { opacity: 1; }
-.owl--hungry .owl-pupil { transform: scale(1.12); transform-origin: 50% 50%; }
+.owl--hungry .owl-pupil { transform: scale(1.12); transform-box: fill-box; transform-origin: 50% 50%; }
 .owl--hungry .owl-tuft-l { animation: none; transform: rotate(-13deg); }
 .owl--hungry .owl-tuft-r { animation: none; transform: rotate(13deg); }
 .owl--hungry .owl-breathe { animation: owl-breathe 5.6s ease-in-out infinite; }
