@@ -55,12 +55,11 @@
   --ps-nest-twig: #8a5f2c;
   --ps-moss: #2c4a2a;
 
-  /* Высота липкого баннера площадки; включается классом is-yandex. */
+  /* Высота липкого баннера площадки. По умолчанию ноль: значение
+     выставляет JS и только тогда, когда SDK подтвердил, что баннер
+     реально висит на экране (см. syncAdSafe в lib/yandex.js). Резерв
+     вслепую оставлял пустую полосу под клавиатурой там, где баннера нет. */
   --ad-safe: 0px;
-}
-html.is-yandex { --ad-safe: 60px; }
-@media (hover: hover) and (pointer: fine) {
-  html.is-yandex { --ad-safe: 96px; }
 }
 
 /* Light theme — overrides only the core palette tokens. Components built
