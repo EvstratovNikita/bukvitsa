@@ -137,32 +137,6 @@ export async function showStickyBanner() {
   }
 }
 
-// Липкий баннер площадки рисуется ПОВЕРХ кадра игры: dvh продолжает
-// отдавать полную высоту, и нижний ряд клавиатуры уезжает под баннер.
-// Поэтому под него резервируется полоса --ad-safe. Но резервировать
-// вслепую нельзя — без баннера (черновик, нет наливки, десктоп без
-// блока) внизу остаётся пустая полоса. Спрашиваем у SDK фактическое
-// состояние и включаем резерв только под реальный баннер.
-const STICKY_H_MOBILE = 60;
-const STICKY_H_DESKTOP = 96;
-
-export async function syncAdSafe() {
-  if (!isYandex) return 0;
-  let px = 0;
-  try {
-    const ysdk = await getYsdk();
-    const status = await ysdk.adv?.getBannerAdvStatus?.();
-    if (status?.stickyAdvIsShowing) {
-      const desktop = window.matchMedia?.('(hover: hover) and (pointer: fine)')?.matches;
-      px = desktop ? STICKY_H_DESKTOP : STICKY_H_MOBILE;
-    }
-  } catch (e) {
-    console.warn('[yandex] banner status failed', e);
-  }
-  document.documentElement.style.setProperty('--ad-safe', px + 'px');
-  return px;
-}
-
 // Native rating prompt. Only fires if Yandex says the user can review now;
 // returns true if they actually submitted feedback. Call at a positive moment.
 export async function requestReview() {
