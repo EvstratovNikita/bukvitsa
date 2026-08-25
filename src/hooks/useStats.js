@@ -302,6 +302,12 @@ export function useStats() {
     if (!p) return;
     setStats((s) => {
       const next = { ...s, ...p };
+      // Сервер присылает питомца частично (обычно только xp/level), а всё
+      // остальное — hatched, bornAt, equipped, lastTrainAt, hunger — живёт
+      // только на клиенте. Подменять объект целиком нельзя: питомец
+      // «развылупляется» посреди сессии, слетают надетые вещи и суточный
+      // кулдаун мини-игр. Накладываем серверные поля поверх локальных.
+      if (p.pet && s.pet) next.pet = { ...s.pet, ...p.pet };
       // The server omits the answer word from daily.lastResult (it's only used
       // client-side for the share card) — keep the local copy if present.
       if (p.daily && p.daily.lastResult && !p.daily.lastResult.word && s.daily?.lastResult?.word) {

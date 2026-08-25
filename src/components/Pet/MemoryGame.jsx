@@ -52,7 +52,7 @@ function pluralMoves(n) {
 // Mini-game: 4×4 memory — tap two cards, match the pair. Time-based reward
 // (XP for the pet + a small coin drop). Win the round and the player can
 // instantly replay for more XP.
-export function MemoryGame() {
+export function MemoryGame({ onExit }) {
   const { recordPetXp, addCoins, showToast, recordMiniGamePlay, stats } = useGameContext();
   const playedToday = isSameLocalDay(stats.pet?.lastTrainAt?.memory);
   const [cards, setCards] = useState(newDeck);
@@ -217,6 +217,14 @@ export function MemoryGame() {
           <p className="memory__cooldown-note">
             Возвращайся завтра — следующая игра будет доступна после полуночи.
           </p>
+          <button
+            type="button"
+            className="btn btn--primary memory__result-exit"
+            onClick={onExit}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            К списку игр
+          </button>
         </div>
       ) : startedAt ? (
         <button

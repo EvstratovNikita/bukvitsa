@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { MemoryGame } from './MemoryGame.jsx';
 import { AnagramGame } from './AnagramGame.jsx';
@@ -52,9 +52,36 @@ export function TrainPanel() {
   const { stats } = useGameContext();
   const [activeId, setActiveId] = useState(null);
   const [, setTick] = useState(0);
+  const hostRef = useRef(null);
+  const firstRender = useRef(true);
 
   const lastTrainAt = stats.pet?.lastTrainAt || {};
   const anyOnCooldown = MINI_GAMES.some((g) => isSameLocalDay(lastTrainAt[g.id]));
+
+  // Открыв игру (или вернувшись к списку), подводим её под глаза: панель
+  // живёт в самом низу прокручиваемого тела экрана, и без этого игра
+  // открывается за нижней кромкой. Пропускаем первый рендер — иначе
+  // экран прыгал бы при простом заходе на вкладку.
+  useEffect(() => {
+    if (firstRender.current) { firstRender.current = false; return; }
+    const raf = requestAnimationFrame(() => {
+      const el = hostRef.current;
+      const scroller = el && el.closest('.pet-screen__body');
+      if (!el) return;
+      if (!scroller) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      const pad = 12;
+      const r = el.getBoundingClientRect();
+      const s = scroller.getBoundingClientRect();
+      // Помещается целиком — центрируем; выше кадра — прижимаем верх,
+      // иначе центрирование увело бы начало игры за верхнюю кромку.
+      const fits = r.height <= s.height - pad * 2;
+      const delta = fits
+        ? (r.top - s.top) - (s.height - r.height) / 2
+        : (r.top - s.top) - pad;
+      scroller.scrollBy({ top: delta, behavior: 'smooth' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [activeId]);
 
   // Tick once a second so the "Сыграть ещё через" countdown reads live.
   // Only runs when at least one card is on cooldown.
@@ -67,7 +94,7 @@ export function TrainPanel() {
   if (activeId) {
     const game = MINI_GAMES.find((g) => g.id === activeId);
     return (
-      <div className="mini-host">
+      <div className="mini-host" ref={hostRef}>
         <button
           type="button"
           className="btn btn--ghost mini-host__back"
@@ -76,7 +103,7 @@ export function TrainPanel() {
         >
           ← К списку
         </button>
-        <game.Component />
+        <game.Component onExit={() => setActiveId(null)} />
       </div>
     );
   }
@@ -84,7 +111,7 @@ export function TrainPanel() {
   const nextMs = nextMidnightMs();
 
   return (
-    <div className="mini-list">
+    <div className="mini-list" ref={hostRef}>
       <p className="pet-tab__hint">
         Мини-игры тренируют Буклю и приносят опыт и монеты. В каждую можно
         играть один раз в сутки.

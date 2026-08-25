@@ -41,7 +41,7 @@ function isSameLocalDay(iso) {
 // goes back to the bank. Once all 5 slots match the target the round
 // auto-advances and the score ticks +1. Reward: XP_PER_WORD × solved
 // + 1 coin per solved word, stamped on Букля for the day.
-export function AnagramGame() {
+export function AnagramGame({ onExit }) {
   const { recordPetXp, addCoins, showToast, recordMiniGamePlay, stats } = useGameContext();
   const playedToday = isSameLocalDay(stats.pet?.lastTrainAt?.anagram);
 
@@ -217,6 +217,14 @@ export function AnagramGame() {
         <p className="memory__cooldown-note">
           Возвращайся завтра — следующая тренировка после полуночи.
         </p>
+        <button
+          type="button"
+          className="btn btn--primary memory__result-exit"
+          onClick={onExit}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          К списку игр
+        </button>
       </div>
     );
   }
