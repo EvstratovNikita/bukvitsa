@@ -287,9 +287,11 @@ body {
   100% { transform: translateY(0)     scale(1, 1); }
 }
 @keyframes owl-flap {
+  /* Плюс — наружу и вверх: центр вращения в плече, поэтому нижний конец
+     крыла уходит вверх-в сторону. Минус прятал крыло за спину. */
   0%, 100% { transform: rotate(0deg); }
-  40%      { transform: rotate(-24deg); }
-  70%      { transform: rotate(5deg); }
+  40%      { transform: rotate(30deg); }
+  70%      { transform: rotate(-7deg); }
 }
 
 /* Искорки — редкое мерцание, каждая в своём ритме */

@@ -1,69 +1,255 @@
-// Hand-drawn vector owl, designed to match the cream-coloured baby owl PNG
-// reference (round body, big black eyes with bright sparkles, small orange
-// beak, two outspread feathered wings, orange feet).
+// Hand-drawn vector owl — Букля.
 //
 // Layers, back to front:
-//   wings (left + right, behind body)  → rotate around shoulder for "wiggle"
-//   body                                → main cream-white blob
-//   feather texture (subtle dots)
-//   beak                                → small triangular orange shape
-//   feet                                → two orange ovals + toes
-//   eyes                                → black saucers + tiny white sparkles
-//   eyelids                             → invisible by default, scaleY for blink
+//   contact shadow                      → soft ellipse under the feet
+//   wings (left + right, behind body)   → single silhouette each, the tips of
+//                                         the primaries are carved into the
+//                                         lower edge so nothing floats loose
+//   body + head (one shape)             → cream blob with scalloped plumage
+//   facial disc                         → heart-shaped, with feather rays
+//   eyes                                → amber iris, lid clipped to the eye
+//   beak + open mouth                   → cavity, tongue, lower mandible
+//   feet (+ optional perch)             → talons gripping a branch
 //
-// Animations are driven entirely by classes on inner groups — CSS keyframes
-// live in styles/index.css.
+// Animations are driven by classes on inner groups — CSS keyframes live in
+// styles/index.css.
 //
-// Click anywhere on the owl → joyful jump animation (~700ms). Debounced:
-// while jumping, further clicks are ignored.
+// Mirroring the right wing lives on an OUTER <g> while the flap animation
+// sits on an inner one: a CSS transform overrides the same-named
+// presentation attribute, so both on one node would drop the mirror on
+// every keyframe.
+//
+// Click anywhere on the owl → joyful jump with the wings thrown up (~700ms).
+// Debounced: while jumping, further clicks are ignored.
 
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { getDecoration } from '../../data/petDecorations.js';
 
 const JUMP_MS = 700;
 
-// Per-slot anchor for the emoji glyph rendered on the owl.
-// Wing positions are centred on each wing's visual midpoint so amulets
-// stay aligned with the wing during the flap / jump animation (they
-// render INSIDE the wing group and inherit its transform).
+// Eyes of the current art.
+const EYE_L = 163;
+const EYE_R = 237;
+const EYE_Y = 168;
+const EYE_RAD = 30;
+
+// Per-slot anchor for equipped items. These are still expressed in the
+// PREVIOUS art's coordinate space (400×360, eyes at 166/234 × 172) because
+// every hat, lens and amulet further down is drawn there. DECO_TRANSFORM maps
+// that space onto the current owl in one place, so shop items keep fitting
+// without re-drawing each of them.
 const SLOT_POSITIONS = {
   head:   { x: 200, y: 50,  size: 110 }, // crown of the head
   eyes:   { x: 200, y: 178, size: 78  }, // straddles both eyes
-  brooch: { x: 244, y: 256, size: 28  }, // small pin, mid-chest above lower wing edge
+  brooch: { x: 244, y: 256, size: 28  }, // small pin, mid-chest
   wingL:  { x: 80,  y: 250, size: 50  },
   wingR:  { x: 320, y: 250, size: 50  }
 };
+const DECO_TRANSFORM = 'translate(200 168) scale(1.088) translate(-200 -172)';
 
-export function OwlSvg({ className = '', equipped = {} }) {
+// Wing outline. The top starts inside the silhouette (y=118) and stays right
+// of the body's left edge until y≈180, so the wing emerges from under the
+// body instead of being pasted onto its side.
+const WING_BLADE =
+  'M 150 118 C 132 128 108 146 96 178 C 78 210 62 246 68 284 ' +
+  'C 71 299 76 306 80 310 L 88 327 C 92 315 94 306 96 299 ' +
+  'L 106 323 C 108 312 110 303 112 296 L 122 317 C 126 306 128 297 130 290 ' +
+  'C 144 246 154 180 150 118 Z';
+
+const BODY_SHAPE =
+  'M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 ' +
+  'C 136 330 92 274 90 194 C 88 122 126 62 200 62 Z';
+
+// Row of feather scallops: n arcs of width w centred on cx at height y.
+function scallopRow(cx, y, w, n, h) {
+  const step = w / n;
+  const x0 = cx - w / 2;
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    d += `M ${(x0 + i * step).toFixed(1)} ${y} q ${(step / 2).toFixed(1)} ${h} ${step.toFixed(1)} 0 `;
+  }
+  return d;
+}
+
+function Scallops({ cx, y, w, n, h = 8, color = '#cbb083', op = 0.4 }) {
+  return (
+    <path
+      d={scallopRow(cx, y, w, n, h)}
+      fill="none"
+      stroke={color}
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      opacity={op}
+    />
+  );
+}
+
+// Thin feather strokes fanning out from an eye across the facial disc.
+function DiscRays({ cx, cy, r0, r1, n, from, to, color }) {
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const a = from + (to - from) * (i / (n - 1));
+    d += `M ${(cx + Math.cos(a) * r0).toFixed(1)} ${(cy + Math.sin(a) * r0).toFixed(1)} `;
+    d += `L ${(cx + Math.cos(a) * r1).toFixed(1)} ${(cy + Math.sin(a) * r1).toFixed(1)} `;
+  }
+  return <path d={d} stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.5" fill="none" />;
+}
+
+// Radial fibres inside the iris.
+function IrisFibers({ cx, cy, r0, r1, n, color }) {
+  let d = '';
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n + 0.3;
+    d += `M ${(cx + Math.cos(a) * r0).toFixed(1)} ${(cy + Math.sin(a) * r0).toFixed(1)} `;
+    d += `L ${(cx + Math.cos(a) * r1).toFixed(1)} ${(cy + Math.sin(a) * r1).toFixed(1)} `;
+  }
+  return <path d={d} stroke={color} strokeWidth="0.9" strokeLinecap="round" opacity="0.55" fill="none" />;
+}
+
+function Wing({ side, uid }) {
+  const mirror = side < 0 ? undefined : 'translate(400 0) scale(-1 1)';
+  return (
+    <g transform={mirror}>
+      <g className="owl-wing">
+        <path d={WING_BLADE} fill={`url(#${uid}-wing)`} stroke="#5a3a1e" strokeWidth="1.2" strokeLinejoin="round" />
+        {/* coverts */}
+        <Scallops cx={118} y={158} w={44} n={4} color="#f2e0c0" op={0.32} />
+        <Scallops cx={108} y={184} w={50} n={4} color="#f2e0c0" op={0.28} />
+        <Scallops cx={100} y={210} w={52} n={4} color="#f2e0c0" op={0.23} />
+        <Scallops cx={98}  y={236} w={48} n={3} color="#f2e0c0" op={0.18} />
+        <Scallops cx={98}  y={262} w={44} n={3} color="#f2e0c0" op={0.13} />
+        {/* separations continuing the notches of the lower edge */}
+        <g stroke="#4a2c16" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.45">
+          <path d="M 76 272 q 6 30 12 52" />
+          <path d="M 92 266 q 8 30 14 52" />
+          <path d="M 108 260 q 8 29 14 51" />
+        </g>
+        {/* shading where the body overlaps the wing */}
+        <path d="M 146 124 q 14 84 -12 166 q 20 -10 24 -30 q 10 -70 0 -136 Z" fill="#2e1c0c" opacity="0.20" />
+        {/* the far wing sits in the body's shadow */}
+        {side > 0 && <path d={WING_BLADE} fill="#2e1c0c" opacity="0.08" />}
+        <path
+          d="M 146 122 C 126 134 106 152 96 180"
+          stroke="var(--owl-rim)"
+          strokeWidth="2.4"
+          fill="none"
+          strokeLinecap="round"
+          opacity="0.7"
+        />
+      </g>
+    </g>
+  );
+}
+
+function Eye({ cx, cy, uid }) {
+  const r = EYE_RAD;
+  const clip = `${uid}-eye-${cx}`;
+  return (
+    <g>
+      <defs>
+        <clipPath id={clip}>
+          <circle cx={cx} cy={cy} r={r + 0.5} />
+        </clipPath>
+      </defs>
+
+      {/* soft socket shadow */}
+      <ellipse className="owl-socket" cx={cx} cy={cy + 2} rx={r + 5} ry={r + 5} fill="#8a6a44" opacity="0.16" />
+
+      <g className="owl-eyeball">
+        <circle cx={cx} cy={cy} r={r} fill={`url(#${uid}-sclera)`} />
+        <circle cx={cx} cy={cy} r={r - 3} fill={`url(#${uid}-iris)`} />
+        <IrisFibers cx={cx} cy={cy} r0={9} r1={r - 5} n={34} color="#a85c14" />
+        <circle cx={cx} cy={cy} r={r - 3} fill="none" stroke="#7a3f0a" strokeWidth="2" opacity="0.7" />
+        <circle className="owl-pupil" cx={cx} cy={cy} r="14" fill={`url(#${uid}-pupil)`} />
+        {/* upper-lid shadow cast on the eyeball */}
+        <path
+          d={`M ${cx - r} ${cy} a ${r} ${r} 0 0 1 ${r * 2} 0 q ${-r} ${-r * 0.42} ${-r * 2} 0 Z`}
+          fill="#3a1e06"
+          opacity="0.30"
+        />
+        {/* light bounced back from below */}
+        <path
+          d={`M ${cx - 15} ${cy + 15} q 15 12 30 -2`}
+          stroke="#ffd9a0"
+          strokeWidth="3"
+          fill="none"
+          opacity="0.35"
+          strokeLinecap="round"
+        />
+        <ellipse
+          cx={cx - 9}
+          cy={cy - 11}
+          rx="8"
+          ry="6"
+          fill="#ffffff"
+          opacity="0.95"
+          transform={`rotate(-22 ${cx - 9} ${cy - 11})`}
+        />
+        <circle cx={cx + 10} cy={cy + 8} r="3.2" fill="#ffffff" opacity="0.55" />
+        <g className="owl-shine">
+          <ellipse
+            cx={cx + 2}
+            cy={cy - 4}
+            rx="3"
+            ry="12"
+            fill="#fff6dd"
+            opacity="0"
+            transform={`rotate(-24 ${cx + 2} ${cy - 4})`}
+          />
+        </g>
+      </g>
+
+      {/* happy arc, shown instead of the eyeball */}
+      <path
+        className="owl-happy-eye"
+        d={`M ${cx - 20} ${cy + 6} q 20 -26 40 0`}
+        stroke="#3d2410"
+        strokeWidth="6"
+        fill="none"
+        strokeLinecap="round"
+      />
+
+      {/* half-closed lid for the sleepy mood */}
+      <g className="owl-sleep-lid">
+        <path
+          d={`M ${cx - r} ${cy - 4} a ${r} ${r} 0 0 1 ${r * 2} 0 L ${cx + r} ${cy + 6} q ${-r} ${r * 0.5} ${-r * 2} 0 Z`}
+          fill={`url(#${uid}-lid)`}
+        />
+        <path
+          d={`M ${cx - r + 2} ${cy + 6} q ${r - 2} ${r * 0.45} ${(r - 2) * 2} 0`}
+          stroke="#b89468"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </g>
+
+      {/* Blink. The clip lives on the wrapper and the scale on the inner
+          group: an element's own transform carries its clip-path along, so
+          both on one node would slide together and clip nothing. */}
+      <g clipPath={`url(#${clip})`}>
+        <g className="owl-lid">
+          <circle cx={cx} cy={cy} r={r + 2} fill={`url(#${uid}-lid)`} />
+          <path
+            d={`M ${cx - r * 0.8} ${cy + r * 0.5} q ${r * 0.8} ${r * 0.32} ${r * 1.6} 0`}
+            stroke="#b89468"
+            strokeWidth="1.8"
+            fill="none"
+            opacity="0.75"
+            strokeLinecap="round"
+          />
+        </g>
+      </g>
+    </g>
+  );
+}
+
+export function OwlSvg({ className = '', equipped = {}, perch = false }) {
   const [jumping, setJumping] = useState(false);
   const cooldown = useRef(false);
-
-  // Build a wing-deco node by id; used inside each wing group so the
-  // amulet rotates/lifts with the wing during the flap animation.
-  const renderWingDeco = (slot, id) => {
-    if (!id) return null;
-    const d = getDecoration(id);
-    const pos = SLOT_POSITIONS[slot];
-    if (!d || !pos) return null;
-    const Comp = WING_COMPS[id];
-    if (Comp) {
-      return (
-        <g className={`owl-deco owl-deco--${slot} owl-deco--${id}`}>
-          <Comp x={pos.x} y={pos.y} />
-        </g>
-      );
-    }
-    // Emoji fallback (unknown id) — keep the halo so it still pops.
-    return (
-      <g className={`owl-deco owl-deco--${slot}`}>
-        <circle cx={pos.x} cy={pos.y} r={pos.size * 0.55} fill="rgba(255, 240, 200, 0.25)" />
-        <circle cx={pos.x} cy={pos.y} r={pos.size * 0.45} fill="rgba(255, 220, 130, 0.45)" />
-        <text x={pos.x} y={pos.y} fontSize={pos.size} textAnchor="middle" dominantBaseline="central">
-          {d.icon}
-        </text>
-      </g>
-    );
-  };
+  // Gradient ids must be unique per instance, otherwise a second owl on the
+  // page re-points the first one's fills at its own defs.
+  const uid = `owl-${useId().replace(/:/g, '')}`;
 
   const onClick = () => {
     if (cooldown.current) return;
@@ -75,298 +261,339 @@ export function OwlSvg({ className = '', equipped = {} }) {
     }, JUMP_MS);
   };
 
+  // Head-worn slots ride inside the head group so hats follow the sway;
+  // wing amulets stay outside it.
+  const renderSlot = (slot) => {
+    const id = equipped[slot];
+    if (!id) return null;
+    const d = getDecoration(id);
+    const pos = SLOT_POSITIONS[slot];
+    if (!d || !pos) return null;
+
+    if (slot === 'eyes') {
+      if (id === 'monocle') return <Monocle key={slot} />;
+      if (id === 'glasses') return <Glasses key={slot} />;
+      if (id === 'shades')  return <Shades  key={slot} />;
+    }
+    if (slot === 'head') {
+      if (id === 'bow')      return <Bow      key={slot} />;
+      if (id === 'academic') return <Academic key={slot} />;
+      if (id === 'cap')      return <Cap      key={slot} />;
+      if (id === 'tophat')   return <TopHat   key={slot} />;
+      if (id === 'crown')    return <Crown    key={slot} />;
+    }
+    if (slot === 'wingL' || slot === 'wingR') {
+      const Comp = WING_COMPS[id];
+      if (Comp) {
+        return (
+          <g key={slot} className={`owl-deco owl-deco--${slot} owl-deco--${id}`}>
+            <Comp x={pos.x} y={pos.y} />
+          </g>
+        );
+      }
+    }
+
+    // Emoji fallback for anything without a dedicated renderer.
+    return (
+      <g key={slot} className={`owl-deco owl-deco--${slot}`}>
+        <text x={pos.x} y={pos.y} fontSize={pos.size} textAnchor="middle" dominantBaseline="central">
+          {d.icon}
+        </text>
+      </g>
+    );
+  };
+
   return (
     <svg
       className={`owl-svg ${jumping ? 'owl-svg--jump ' : ''}${className}`.trim()}
-      viewBox="0 0 400 360"
+      viewBox="0 0 400 400"
       xmlns="http://www.w3.org/2000/svg"
       onClick={onClick}
       role="button"
       aria-label="Букля"
     >
       <defs>
-        <radialGradient id="owl-body-grad" cx="50%" cy="35%" r="70%">
-          <stop offset="0%"  stopColor="#ffffff" />
-          <stop offset="55%" stopColor="#f1e8d4" />
-          <stop offset="100%" stopColor="#9a8868" />
+        <radialGradient id={`${uid}-body`} cx="38%" cy="26%" r="82%">
+          <stop offset="0%"   stopColor="#fffdf7" />
+          <stop offset="34%"  stopColor="#f7ecd8" />
+          <stop offset="70%"  stopColor="#e2cba6" />
+          <stop offset="100%" stopColor="#a9825a" />
         </radialGradient>
-        <radialGradient id="owl-belly-grad" cx="50%" cy="40%" r="60%">
-          <stop offset="0%"  stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#e8dcc0" />
+        <radialGradient id={`${uid}-belly`} cx="50%" cy="34%" r="66%">
+          <stop offset="0%"   stopColor="#fffefb" />
+          <stop offset="60%"  stopColor="#fdf4e4" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#f3e2c4" stopOpacity="0" />
         </radialGradient>
-        <radialGradient id="owl-wing-grad" cx="50%" cy="40%" r="75%">
-          <stop offset="0%"  stopColor="#e8dcc0" />
-          <stop offset="55%" stopColor="#b8a484" />
-          <stop offset="100%" stopColor="#5a4a32" />
+        <radialGradient id={`${uid}-disc`} cx="50%" cy="34%" r="70%">
+          <stop offset="0%"   stopColor="#fffdf6" />
+          <stop offset="72%"  stopColor="#f6e9d2" />
+          <stop offset="100%" stopColor="#dcc39c" />
         </radialGradient>
-        <radialGradient id="owl-eye-grad" cx="40%" cy="35%" r="70%">
-          <stop offset="0%"  stopColor="#4a3a55" />
-          <stop offset="60%" stopColor="#1a1020" />
+        <radialGradient id={`${uid}-wing`} cx="26%" cy="16%" r="96%">
+          <stop offset="0%"   stopColor="#eed6ae" />
+          <stop offset="42%"  stopColor="#c39a63" />
+          <stop offset="78%"  stopColor="#8a5a2e" />
+          <stop offset="100%" stopColor="#3f2611" />
+        </radialGradient>
+        <radialGradient id={`${uid}-iris`} cx="38%" cy="30%" r="78%">
+          <stop offset="0%"   stopColor="#ffdc93" />
+          <stop offset="40%"  stopColor="#f0a63a" />
+          <stop offset="78%"  stopColor="#c76e12" />
+          <stop offset="100%" stopColor="#7d3f06" />
+        </radialGradient>
+        <radialGradient id={`${uid}-sclera`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stopColor="#fff8ea" />
+          <stop offset="100%" stopColor="#e6d0ab" />
+        </radialGradient>
+        <radialGradient id={`${uid}-pupil`} cx="40%" cy="34%" r="80%">
+          <stop offset="0%"   stopColor="#2b1a0e" />
+          <stop offset="55%"  stopColor="#120a06" />
           <stop offset="100%" stopColor="#000000" />
         </radialGradient>
-        <linearGradient id="owl-beak-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#ffd066" />
-          <stop offset="55%" stopColor="#f0931a" />
-          <stop offset="100%" stopColor="#a85a08" />
+        <linearGradient id={`${uid}-lid`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#f3e3c6" />
+          <stop offset="100%" stopColor="#d8bf95" />
         </linearGradient>
-        <linearGradient id="owl-foot-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#ffc870" />
-          <stop offset="100%" stopColor="#c87018" />
+        <linearGradient id={`${uid}-beak`} x1="0.2" y1="0" x2="0.8" y2="1">
+          <stop offset="0%"   stopColor="#ffe6a8" />
+          <stop offset="38%"  stopColor="#f5b13a" />
+          <stop offset="100%" stopColor="#9c5a12" />
         </linearGradient>
-        <filter id="owl-shadow" x="-15%" y="-15%" width="130%" height="130%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="3.5" />
-          <feOffset dx="0" dy="5" result="off" />
-          <feComponentTransfer><feFuncA type="linear" slope="0.5" /></feComponentTransfer>
-          <feMerge>
-            <feMergeNode />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
+        <linearGradient id={`${uid}-talon`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#ffd08a" />
+          <stop offset="100%" stopColor="#c07a22" />
+        </linearGradient>
+        <linearGradient id={`${uid}-branch`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="#8a6034" />
+          <stop offset="45%"  stopColor="#5f3e1f" />
+          <stop offset="100%" stopColor="#3a2412" />
+        </linearGradient>
+
+        <clipPath id={`${uid}-clip-body`}>
+          <path d={BODY_SHAPE} />
+        </clipPath>
+        <filter id={`${uid}-soft`} x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="7" />
+        </filter>
+        <filter id={`${uid}-drop`} x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="var(--owl-drop)" />
         </filter>
       </defs>
 
-      <g filter="url(#owl-shadow)">
-        {/* ---- LEFT WING (behind body) — striations only, no floating tips.
-             Amulet rendered INSIDE this group so it moves with the wing
-             during the flap / jump animation. */}
-        <g className="owl-wing owl-wing--l">
-          <path
-            d="M 140 195
-               Q 70 180 30 220
-               Q 10 260 45 295
-               Q 95 305 135 280
-               Q 145 240 140 195 Z"
-            fill="url(#owl-wing-grad)"
-          />
-          <g stroke="#5a4a32" strokeWidth="1.2" opacity="0.55" fill="none" strokeLinecap="round">
-            <path d="M 60 225 Q 75 245 70 270" />
-            <path d="M 80 215 Q 95 235 95 265" />
-            <path d="M 100 210 Q 115 235 120 270" />
-            <path d="M 45 250 Q 60 270 60 290" />
+      {/* contact shadow */}
+      <ellipse cx="200" cy="378" rx="112" ry="13" fill="var(--owl-contact)" filter={`url(#${uid}-soft)`} />
+
+      <g filter={`url(#${uid}-drop)`}>
+        <g className="owl-breathe">
+          <Wing side={-1} uid={uid} />
+          <Wing side={1}  uid={uid} />
+
+          {/* wing amulets sit outside the head group so they don't sway */}
+          <g transform={DECO_TRANSFORM}>
+            {renderSlot('wingL')}
+            {renderSlot('wingR')}
           </g>
-          {renderWingDeco('wingL', equipped.wingL)}
-        </g>
 
-        {/* ---- RIGHT WING ---- */}
-        <g className="owl-wing owl-wing--r">
-          <path
-            d="M 260 195
-               Q 330 180 370 220
-               Q 390 260 355 295
-               Q 305 305 265 280
-               Q 255 240 260 195 Z"
-            fill="url(#owl-wing-grad)"
-          />
-          <g stroke="#5a4a32" strokeWidth="1.2" opacity="0.55" fill="none" strokeLinecap="round">
-            <path d="M 340 225 Q 325 245 330 270" />
-            <path d="M 320 215 Q 305 235 305 265" />
-            <path d="M 300 210 Q 285 235 280 270" />
-            <path d="M 355 250 Q 340 270 340 290" />
-          </g>
-          {renderWingDeco('wingR', equipped.wingR)}
-        </g>
-
-        {/* ---- MAIN BODY ---- */}
-        <ellipse cx="200" cy="195" rx="108" ry="118" fill="url(#owl-body-grad)" />
-
-        {/* Belly highlight — slightly brighter centre */}
-        <ellipse cx="200" cy="225" rx="60" ry="70" fill="url(#owl-belly-grad)" opacity="0.7" />
-
-        {/* Subtle feather speckle texture on sides */}
-        <g fill="#c9b896" opacity="0.35">
-          <ellipse cx="130" cy="180" rx="3.5" ry="2" />
-          <ellipse cx="125" cy="210" rx="4"   ry="2" />
-          <ellipse cx="135" cy="240" rx="3.5" ry="2" />
-          <ellipse cx="150" cy="260" rx="4"   ry="2" />
-          <ellipse cx="270" cy="180" rx="3.5" ry="2" />
-          <ellipse cx="275" cy="210" rx="4"   ry="2" />
-          <ellipse cx="265" cy="240" rx="3.5" ry="2" />
-          <ellipse cx="250" cy="260" rx="4"   ry="2" />
-          <ellipse cx="200" cy="125" rx="3"   ry="1.8" />
-          <ellipse cx="185" cy="118" rx="2.5" ry="1.5" />
-          <ellipse cx="215" cy="118" rx="2.5" ry="1.5" />
-        </g>
-
-        {/* ---- EAR TUFTS ----
-             Two solid pointed tufts sitting ON the head crown, tilted outward
-             (like the reference). Same cream gradient as the body so the base
-             blends seamlessly into the head; the tip rises above the silhouette
-             with a soft outline. */}
-        <g className="owl-tufts" stroke="#c2b08c" strokeWidth="2" strokeLinejoin="round">
-          {/* Left tuft — out at the head's top-left corner, tip up-left */}
-          <path d="M 130 110 Q 118 76 126 42 Q 150 64 168 106 Q 150 116 130 110 Z" fill="url(#owl-body-grad)" />
-          {/* Right tuft — top-right corner, tip up-right */}
-          <path d="M 270 110 Q 282 76 274 42 Q 250 64 232 106 Q 250 116 270 110 Z" fill="url(#owl-body-grad)" />
-          {/* Inner shading streak for a soft feathered tip */}
-          <path d="M 132 106 Q 126 78 130 50" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
-          <path d="M 268 106 Q 274 78 270 50" stroke="#cbb897" strokeWidth="2.5" fill="none" opacity="0.6" strokeLinecap="round" />
-        </g>
-
-        {/* ---- FACIAL DISC (rings around eyes, like a real owl) ----
-             Oval (taller than wide) so each disc stays large without the two
-             rings intersecting near the bridge. */}
-        <g fill="none">
-          <ellipse cx="166" cy="172" rx="32" ry="39" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
-          <ellipse cx="234" cy="172" rx="32" ry="39" stroke="#d8c7a2" strokeWidth="4" opacity="0.75" />
-          {/* faint inner disc tint */}
-          <ellipse cx="166" cy="172" rx="29" ry="36" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
-          <ellipse cx="234" cy="172" rx="29" ry="36" stroke="#fff6e2" strokeWidth="1.6" opacity="0.5" />
-        </g>
-
-        {/* ---- CHEEK BLUSH ---- */}
-        <g>
-          <ellipse cx="146" cy="206" rx="13" ry="8" fill="#ffb3c2" opacity="0.4" />
-          <ellipse cx="254" cy="206" rx="13" ry="8" fill="#ffb3c2" opacity="0.4" />
-        </g>
-
-        {/* ---- EYES (smaller, more proportionate) ---- */}
-        <g>
-          {/* Left */}
-          <circle cx="166" cy="172" r="26" fill="url(#owl-eye-grad)" />
-          <circle cx="166" cy="172" r="26" fill="none" stroke="#000" strokeWidth="1.2" opacity="0.5" />
-          <ellipse cx="175" cy="162" rx="7" ry="5.5" fill="#ffffff" />
-          <circle cx="158" cy="180" r="2.4" fill="#ffffff" opacity="0.7" />
-
-          {/* Right */}
-          <circle cx="234" cy="172" r="26" fill="url(#owl-eye-grad)" />
-          <circle cx="234" cy="172" r="26" fill="none" stroke="#000" strokeWidth="1.2" opacity="0.5" />
-          <ellipse cx="243" cy="162" rx="7" ry="5.5" fill="#ffffff" />
-          <circle cx="226" cy="180" r="2.4" fill="#ffffff" opacity="0.7" />
-        </g>
-
-        {/* ---- BEAK + SMILE ----
-             Layout (y axis, shifted down +6 vs prev for a friendlier face):
-               205-219 upper beak
-               219-236 mouth (wide visible smile)
-               232-239 lower beak */}
-        <g>
-          {/* Mouth interior */}
-          <path
-            d="M 184 219
-               Q 200 238 216 219
-               Q 208 234 200 236
-               Q 192 234 184 219 Z"
-            fill="#2a0808"
-          />
-          {/* Tongue glint */}
-          <ellipse cx="200" cy="228" rx="8" ry="3" fill="#c44048" opacity="0.85" />
-
-          {/* Upper beak — lowered */}
-          <path
-            d="M 190 205
-               Q 200 201 210 205
-               Q 207 217 200 219
-               Q 193 217 190 205 Z"
-            fill="url(#owl-beak-grad)"
-            stroke="#7a4400"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-          <path d="M 196 207 Q 200 205 204 207" stroke="#ffe4a0" strokeWidth="0.7" fill="none" opacity="0.7" />
-
-          {/* Lower beak */}
-          <path
-            d="M 194 232
-               Q 200 235 206 232
-               Q 204 238 200 239
-               Q 196 238 194 232 Z"
-            fill="url(#owl-beak-grad)"
-            stroke="#7a4400"
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-
-          {/* Smile line — thicker stroke from corner to corner */}
-          <path
-            d="M 184 219 Q 200 236 216 219"
-            stroke="#2a0808"
-            strokeWidth="3.6"
-            fill="none"
-            strokeLinecap="round"
-          />
-        </g>
-
-        {/* ---- FEET (chicken-style: 3 forward toes + 1 back, with claw tips) ---- */}
-        {/* Left leg */}
-        <g>
-          {/* Leg stub */}
-          <path d="M 172 290 L 172 305" stroke="#c87018" strokeWidth="6" strokeLinecap="round" />
-          {/* Foot toes — 3 forward splayed + 1 back */}
-          <g stroke="#c87018" strokeWidth="5" strokeLinecap="round" fill="none">
-            <path d="M 172 305 L 160 320" />   {/* outer-left toe */}
-            <path d="M 172 305 L 172 322" />   {/* middle toe */}
-            <path d="M 172 305 L 184 320" />   {/* outer-right toe */}
-            <path d="M 172 305 L 167 315" />   {/* back toe (short) */}
-          </g>
-          {/* Tiny claw tips */}
-          <g stroke="#6a3408" strokeWidth="1.6" strokeLinecap="round" fill="none">
-            <path d="M 159 320 L 156 322" />
-            <path d="M 172 322 L 172 325" />
-            <path d="M 185 320 L 188 322" />
-          </g>
-        </g>
-        {/* Right leg (mirror) */}
-        <g>
-          <path d="M 228 290 L 228 305" stroke="#c87018" strokeWidth="6" strokeLinecap="round" />
-          <g stroke="#c87018" strokeWidth="5" strokeLinecap="round" fill="none">
-            <path d="M 228 305 L 216 320" />
-            <path d="M 228 305 L 228 322" />
-            <path d="M 228 305 L 240 320" />
-            <path d="M 228 305 L 233 315" />
-          </g>
-          <g stroke="#6a3408" strokeWidth="1.6" strokeLinecap="round" fill="none">
-            <path d="M 215 320 L 212 322" />
-            <path d="M 228 322 L 228 325" />
-            <path d="M 241 320 L 244 322" />
-          </g>
-        </g>
-
-        {/* ---- EYELIDS for blink (hidden by default) ---- */}
-        <g className="owl-eyelid">
-          <ellipse cx="166" cy="172" rx="26" ry="26" fill="#d4c4a0" />
-          <ellipse cx="234" cy="172" rx="26" ry="26" fill="#d4c4a0" />
-        </g>
-
-        {/* ---- EQUIPPED DECORATIONS ----
-             Wing items get a bright halo so the emoji reads against the
-             dark wing. Monocle has a custom inline-SVG renderer (lens +
-             chain) so we don't fall back to the 🧐 face emoji. */}
-        {Object.entries(equipped).map(([slot, id]) => {
-          const d = getDecoration(id);
-          const pos = SLOT_POSITIONS[slot];
-          if (!d || !pos) return null;
-
-          if (slot === 'eyes') {
-            if (id === 'monocle') return <Monocle key={slot} />;
-            if (id === 'glasses') return <Glasses key={slot} />;
-            if (id === 'shades')  return <Shades  key={slot} />;
-          }
-
-          if (slot === 'head') {
-            if (id === 'bow')      return <Bow      key={slot} />;
-            if (id === 'academic') return <Academic key={slot} />;
-            if (id === 'cap')      return <Cap      key={slot} />;
-            if (id === 'tophat')   return <TopHat   key={slot} />;
-            if (id === 'crown')    return <Crown    key={slot} />;
-          }
-
-          // Wing slots are rendered INSIDE the wing groups above so
-          // they inherit the flap transform. Skip them here.
-          if (slot === 'wingL' || slot === 'wingR') return null;
-
-          return (
-            <g key={slot} className={`owl-deco owl-deco--${slot}`}>
-              <text
-                x={pos.x}
-                y={pos.y}
-                fontSize={pos.size}
-                textAnchor="middle"
-                dominantBaseline="central"
-              >
-                {d.icon}
-              </text>
+          <g className="owl-head">
+            {/* ear tufts, behind the body so their base blends in */}
+            <g className="owl-tuft-l">
+              <path
+                d="M 122 122 q -14 -46 -2 -80 q 8 -6 14 2 q 20 34 38 76 q -26 14 -50 2 Z"
+                fill={`url(#${uid}-body)`}
+                stroke="#c9ad82"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M 126 114 q -8 -34 0 -60" stroke="#b8996c" strokeWidth="2" fill="none" opacity="0.5" strokeLinecap="round" />
             </g>
-          );
-        })}
+            <g className="owl-tuft-r">
+              <path
+                d="M 278 122 q 14 -46 2 -80 q -8 -6 -14 2 q -20 34 -38 76 q 26 14 50 2 Z"
+                fill={`url(#${uid}-body)`}
+                stroke="#c9ad82"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
+              <path d="M 274 114 q 8 -34 0 -60" stroke="#b8996c" strokeWidth="2" fill="none" opacity="0.5" strokeLinecap="round" />
+            </g>
+
+            <path d={BODY_SHAPE} fill={`url(#${uid}-body)`} stroke="var(--owl-edge)" strokeWidth="1.6" />
+
+            {/* Side shading, clipped by the silhouette — the blur would
+                otherwise spill a dark halo past the body's right edge, right
+                into the seam with the wing. */}
+            <g clipPath={`url(#${uid}-clip-body)`}>
+              <path
+                d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 q 46 -132 0 -268 Z"
+                fill="#8a6a42"
+                opacity="0.14"
+                filter={`url(#${uid}-soft)`}
+              />
+            </g>
+            <ellipse cx="196" cy="252" rx="84" ry="76" fill={`url(#${uid}-belly)`} />
+
+            {/* chest plumage */}
+            <Scallops cx={196} y={210} w={132} n={9}  h={11} op={0.5} />
+            <Scallops cx={196} y={234} w={144} n={10} h={11} op={0.45} />
+            <Scallops cx={196} y={258} w={140} n={10} h={11} op={0.38} />
+            <Scallops cx={196} y={282} w={120} n={8}  h={11} op={0.30} />
+            <Scallops cx={196} y={304} w={90}  n={6}  h={10} op={0.22} />
+
+            {/* rim light from the upper left */}
+            <path d="M 200 62 C 150 62 108 96 95 152" stroke="var(--owl-rim)" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.8" />
+            <path d="M 214 63 C 262 68 296 100 306 150" stroke="var(--owl-rim)" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.35" />
+
+            {/* heart-shaped facial disc */}
+            <path
+              d="M 200 104 C 172 76 122 90 120 144 C 118 196 154 240 200 268 C 246 240 282 196 280 144 C 278 90 228 76 200 104 Z"
+              fill={`url(#${uid}-disc)`}
+              opacity="0.96"
+            />
+            <path
+              d="M 200 104 C 172 76 122 90 120 144 C 118 196 154 240 200 268 C 246 240 282 196 280 144 C 278 90 228 76 200 104 Z"
+              fill="none"
+              stroke="#cdb188"
+              strokeWidth="2"
+              opacity="0.65"
+            />
+            <DiscRays cx={EYE_L} cy={EYE_Y} r0={36} r1={50} n={11} from={Math.PI * 0.62}  to={Math.PI * 1.62} color="#c6a97e" />
+            <DiscRays cx={EYE_R} cy={EYE_Y} r0={36} r1={50} n={11} from={Math.PI * -0.62} to={Math.PI * 0.38} color="#c6a97e" />
+
+            {/* brows, shown when hungry */}
+            <g className="owl-brow" stroke="#8a6a42" strokeWidth="5" strokeLinecap="round" fill="none">
+              <path d={`M ${EYE_L - 24} ${EYE_Y - 40} q 22 -8 40 4`} />
+              <path d={`M ${EYE_R + 24} ${EYE_Y - 40} q -22 -8 -40 4`} />
+            </g>
+
+            <g className="owl-blush" opacity="0.72">
+              <ellipse cx="132" cy="212" rx="19" ry="11" fill="#ff9fb0" opacity="0.55" filter={`url(#${uid}-soft)`} />
+              <ellipse cx="268" cy="212" rx="19" ry="11" fill="#ff9fb0" opacity="0.55" filter={`url(#${uid}-soft)`} />
+            </g>
+
+            <Eye cx={EYE_L} cy={EYE_Y} uid={uid} />
+            <Eye cx={EYE_R} cy={EYE_Y} uid={uid} />
+
+            {/* ---- BEAK + OPEN MOUTH ---- */}
+            <g>
+              <g className="owl-mouth">
+                <path d="M 176 222 Q 200 258 224 222 Q 213 249 200 252 Q 187 249 176 222 Z" fill="#3a0f0a" />
+                <path d="M 176 222 Q 200 258 224 222 Q 215 238 200 240 Q 185 238 176 222 Z" fill="#5a1a12" opacity="0.7" />
+                <ellipse cx="200" cy="243" rx="8.5" ry="3.2" fill="#c4485a" opacity="0.9" />
+                <ellipse cx="200" cy="242" rx="5" ry="1.3" fill="#e0798a" opacity="0.6" />
+                <path
+                  d="M 190 241 q 10 6 20 0 q -4 10 -10 11 q -6 -1 -10 -11 Z"
+                  fill={`url(#${uid}-beak)`}
+                  stroke="#8a4c0c"
+                  strokeWidth="1.2"
+                  strokeLinejoin="round"
+                />
+                <path d="M 176 222 Q 200 258 224 222" stroke="#3a1508" strokeWidth="3.6" fill="none" strokeLinecap="round" />
+              </g>
+
+              <path
+                d="M 200 192 q 12 2 13 13 q 0 10 -6 16 q -4 4 -7 5 q -3 -1 -7 -5 q -6 -6 -6 -16 q 1 -11 13 -13 Z"
+                fill={`url(#${uid}-beak)`}
+                stroke="#8a4c0c"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+              <path d="M 195 199 q 5 -2 9 2 q -6 4 -7 11" stroke="#fff0c8" strokeWidth="1.5" fill="none" opacity="0.5" strokeLinecap="round" />
+              <path d="M 208 202 q 2 8 -3 14" stroke="#7a3f06" strokeWidth="1.3" fill="none" opacity="0.4" strokeLinecap="round" />
+              <ellipse cx="195" cy="199" rx="1.6" ry="1.1" fill="#7a3f06" opacity="0.55" />
+              <ellipse cx="205" cy="199" rx="1.6" ry="1.1" fill="#7a3f06" opacity="0.55" />
+
+              <path
+                className="owl-smile-sad"
+                d="M 182 250 q 18 -15 36 0"
+                stroke="#7a3f06"
+                strokeWidth="3.4"
+                fill="none"
+                strokeLinecap="round"
+                opacity="0.85"
+              />
+            </g>
+
+            {/* mood sparks */}
+            <g className="owl-spark owl-spark--1" fill="#ffe6a8">
+              <path d="M 96 132 l 3.4 8.6 8.6 3.4 -8.6 3.4 -3.4 8.6 -3.4 -8.6 -8.6 -3.4 8.6 -3.4 Z" />
+            </g>
+            <g className="owl-spark owl-spark--2" fill="#ffe6a8">
+              <path d="M 306 108 l 2.8 7 7 2.8 -7 2.8 -2.8 7 -2.8 -7 -7 -2.8 7 -2.8 Z" />
+            </g>
+            <g className="owl-spark owl-spark--3" fill="#ffe6a8">
+              <path d="M 318 214 l 2.2 5.6 5.6 2.2 -5.6 2.2 -2.2 5.6 -2.2 -5.6 -5.6 -2.2 5.6 -2.2 Z" />
+            </g>
+
+            {/* Zzz for the sleepy mood */}
+            <g className="owl-zzz" fill="#cbb083" fontFamily="Inter, sans-serif" fontWeight="800">
+              <text x="292" y="118" fontSize="20">Z</text>
+            </g>
+            <g className="owl-zzz owl-zzz--2" fill="#cbb083" fontFamily="Inter, sans-serif" fontWeight="800">
+              <text x="302" y="132" fontSize="15">z</text>
+            </g>
+            <g className="owl-zzz owl-zzz--3" fill="#cbb083" fontFamily="Inter, sans-serif" fontWeight="800">
+              <text x="310" y="144" fontSize="11">z</text>
+            </g>
+
+            {/* worn items, mapped from the legacy coordinate space */}
+            <g transform={DECO_TRANSFORM}>
+              {renderSlot('head')}
+              {renderSlot('eyes')}
+              {renderSlot('brooch')}
+            </g>
+          </g>
+        </g>
+
+        {perch && (
+          <g>
+            <path
+              d="M 58 344 q 142 -14 284 0 q 5 13 0 24 q -142 13 -284 0 q -6 -12 0 -24 Z"
+              fill={`url(#${uid}-branch)`}
+              stroke="#2e1c0c"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <g stroke="#3a2412" strokeWidth="1.4" opacity="0.5" fill="none" strokeLinecap="round">
+              <path d="M 94 350 q 30 4 62 3" />
+              <path d="M 178 352 q 40 4 84 2" />
+              <path d="M 106 361 q 46 4 92 2" />
+              <path d="M 218 361 q 40 3 80 0" />
+            </g>
+            <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" strokeWidth="2" fill="none" opacity="0.5" />
+            <g>
+              <path d="M 330 348 q 26 -17 45 -4 q -15 22 -45 4 Z" fill="#5f9c4a" stroke="#3d6d2e" strokeWidth="1.4" strokeLinejoin="round" />
+              <path d="M 332 347 q 21 -4 41 -2" stroke="#8fd06e" strokeWidth="1.2" fill="none" opacity="0.8" />
+            </g>
+          </g>
+        )}
+
+        {/* feet — drawn over the perch so the toes grip it */}
+        <g>
+          <g stroke={`url(#${uid}-talon)`} strokeWidth="11" strokeLinecap="round" fill="none">
+            <path d="M 170 316 L 170 342" />
+            <path d="M 230 316 L 230 342" />
+          </g>
+          <g stroke={`url(#${uid}-talon)`} strokeWidth="9" strokeLinecap="round" fill="none">
+            <path d="M 170 342 q -13 6 -18 18" />
+            <path d="M 170 342 q 3 10 2 19" />
+            <path d="M 170 342 q 14 5 19 17" />
+            <path d="M 230 342 q -14 5 -19 17" />
+            <path d="M 230 342 q -3 10 -2 19" />
+            <path d="M 230 342 q 13 6 18 18" />
+          </g>
+          <g stroke="#b8761c" strokeWidth="1.6" opacity="0.6" fill="none" strokeLinecap="round">
+            <path d="M 161 348 l 4 3" /><path d="M 179 348 l -4 3" />
+            <path d="M 221 348 l 4 3" /><path d="M 239 348 l -4 3" />
+          </g>
+          <g stroke="#6a3d08" strokeWidth="2.6" strokeLinecap="round" fill="none">
+            <path d="M 152 360 q -4 3 -5 7" />
+            <path d="M 172 361 q 1 4 0 7" />
+            <path d="M 189 359 q 4 3 5 7" />
+            <path d="M 211 359 q -4 3 -5 7" />
+            <path d="M 228 361 q -1 4 0 7" />
+            <path d="M 248 360 q 4 3 5 7" />
+          </g>
+        </g>
       </g>
     </svg>
   );
