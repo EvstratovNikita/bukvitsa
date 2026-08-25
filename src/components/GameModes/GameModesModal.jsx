@@ -6,14 +6,12 @@ const MODES = [
   {
     length: 4,
     title: '4 буквы',
-    desc: 'Короткие слова — быстрее партии, меньше комбинаций.',
     sample: 'ВАЗА',
     accent: 'mode--four'
   },
   {
     length: 6,
     title: '6 букв',
-    desc: 'Длинные слова — больше места для логики и подсказок.',
     sample: 'РАКЕТА',
     accent: 'mode--six'
   }
@@ -35,9 +33,8 @@ export function GameModesModal({ open, onClose }) {
     <Modal open={open} onClose={onClose} title="Режимы игры">
       <div className="modes">
         <p className="modes__hint">
-          В дополнительных режимах <b>энергия не тратится</b>, а начисляется
-          только опыт питомцу! <b>Бонус:</b> каждые 5 побед восстанавливают
-          +1 энергию в основном режиме (не более 3 единиц в день).
+          Без траты энергии, только опыт питомцу. Каждые 5 побед —
+          +1 энергия (до 3 в день).
         </p>
 
         {wordLength !== 5 && (
@@ -47,7 +44,7 @@ export function GameModesModal({ open, onClose }) {
             onClick={() => onPick(5)}
             onMouseDown={(e) => e.preventDefault()}
           >
-            ← Вернуться на 5 букв (основной)
+            ← Вернуться на 5 букв
           </button>
         )}
 
@@ -73,7 +70,6 @@ export function GameModesModal({ open, onClose }) {
               onMouseDown={(e) => e.preventDefault()}
             >
               <div className="mode-card__title">{m.title}</div>
-              <div className="mode-card__desc">{m.desc}</div>
               <div className="mode-card__preview" aria-hidden="true">
                 {[...m.sample].map((ch, i) => (
                   <span key={i} className="mode-card__cell">{ch}</span>
