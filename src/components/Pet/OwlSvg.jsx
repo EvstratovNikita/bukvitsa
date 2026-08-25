@@ -125,7 +125,7 @@ function Wing({ side, uid }) {
   return (
     <g transform={mirror}>
       <g className="owl-wing">
-        <path d={WING_BLADE} fill={`url(#${uid}-wing)`} stroke="#5a3a1e" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d={WING_BLADE} fill={`url(#${uid}-wing)`} stroke="#8a6538" strokeWidth="1.2" strokeLinejoin="round" />
         {/* coverts */}
         <Scallops cx={118} y={158} w={44} n={4} color="#f2e0c0" op={0.32} />
         <Scallops cx={108} y={184} w={50} n={4} color="#f2e0c0" op={0.28} />
@@ -133,7 +133,7 @@ function Wing({ side, uid }) {
         <Scallops cx={98}  y={236} w={48} n={3} color="#f2e0c0" op={0.18} />
         <Scallops cx={98}  y={262} w={44} n={3} color="#f2e0c0" op={0.13} />
         {/* separations continuing the notches of the lower edge */}
-        <g stroke="#4a2c16" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.45">
+        <g stroke="#7a5730" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.45">
           <path d="M 76 272 q 6 30 12 52" />
           <path d="M 92 266 q 8 30 14 52" />
           <path d="M 108 260 q 8 29 14 51" />
@@ -347,10 +347,10 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
           <stop offset="100%" stopColor="#eeddbe" stopOpacity="0" />
         </radialGradient>
         <radialGradient id={`${uid}-wing`} cx="26%" cy="16%" r="96%">
-          <stop offset="0%"   stopColor="#eed6ae" />
-          <stop offset="42%"  stopColor="#c39a63" />
-          <stop offset="78%"  stopColor="#8a5a2e" />
-          <stop offset="100%" stopColor="#3f2611" />
+          <stop offset="0%"   stopColor="#fbf0dc" />
+          <stop offset="42%"  stopColor="#e2c79c" />
+          <stop offset="78%"  stopColor="#bb9564" />
+          <stop offset="100%" stopColor="#7d5a33" />
         </radialGradient>
         <radialGradient id={`${uid}-iris`} cx="38%" cy="30%" r="78%">
           <stop offset="0%"   stopColor="#ffdc93" />

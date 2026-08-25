@@ -3239,13 +3239,16 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- Pet scene + hatching animation ---------- */
 .pet-scene {
   position: relative;
-  /* Fills the frame. The owl is a separate element sized as a share of this
-     box, so the box must keep the SVG's ratio — any letterboxing here would
-     slide the owl off the hollow. */
   width: 100%;
-  margin: 0;
-  /* Match the SVG viewBox so the owl isn't letterboxed/cropped. */
-  aspect-ratio: 400 / 360;
+  /* Свободная пропорция. SVG растянут через preserveAspectRatio="slice":
+     масштаб задаёт ВЫСОТА кадра, а лишняя ширина сцены (viewBox шире, чем
+     нужно) просто обрезается по бокам. Сова центрируется по той же оси и
+     потому остаётся в дупле — но её размер обязан считаться от высоты,
+     см. .pet-scene__owl-img. Ограничение max-width держит кадр не шире
+     2:1, иначе масштаб начнёт задавать ширина и появится обрезка сверху. */
+  height: clamp(150px, 34vh, 300px);
+  max-width: calc(clamp(150px, 34vh, 300px) * 2);
+  margin: 0 auto;
   border-radius: 16px;
   overflow: hidden;
   /* Inside a flex column with scroll, prevent shrink so the image keeps
@@ -3268,7 +3271,11 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 78%;
+  /* 312 of the scene's 360 vertical units. Sized off the HEIGHT because
+     that is what drives the scene's scale — off the width it would drift
+     as the frame's proportion changes. */
+  height: 86.7%;
+  width: auto;
   transform: translate(-50%, -42%);
   transform-origin: 50% 100%;
   /* Clickable for the jump animation; outer scene click won't fire */
@@ -3658,12 +3665,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
      wrapper only supplies the rounded clip. */
   display: block;
   flex-shrink: 0;
-  /* Высоту кадра задаёт его ширина — пропорцию менять нельзя: сова
-     отдельный элемент в долях от этого блока, при леттербоксе она уедет
-     с дупла. Поэтому ужимаем кадр целиком, по бюджету высоты экрана. */
   width: 100%;
-  max-width: min(100%, max(190px, 34vh * 400 / 360));
-  margin: 0 auto;
   overflow: hidden;
   background: var(--ps-sky-3);
   border-radius: 16px;

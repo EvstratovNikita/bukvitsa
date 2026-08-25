@@ -31,7 +31,8 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
     <div className={`pet-scene pet-scene--${mode}`}>
       <svg
         className="pet-scene__svg"
-        viewBox="0 0 400 360"
+        viewBox="-160 0 720 360"
+        preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
@@ -143,7 +144,7 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
         </defs>
 
         {/* ---- Sky ---- */}
-        <rect width="400" height="360" fill="url(#ps-sky)" />
+        <rect x="-160" y="0" width="720" height="360" fill="url(#ps-sky)" />
 
         {/* Moon by night, low sun by day — same shape, themed colours. */}
         <g className="pet-scene__moon">
@@ -168,25 +169,45 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
           <circle cx="12"  cy="66"  r="0.6" />
           <circle cx="96"  cy="88"  r="0.5" />
           <circle cx="286" cy="72"  r="0.5" />
+          <circle cx="-132" cy="52"  r="0.8" />
+          <circle cx="-96"  cy="118" r="0.6" />
+          <circle cx="-44"  cy="28"  r="0.7" />
+          <circle cx="-18"  cy="140" r="0.5" />
+          <circle cx="432"  cy="58"  r="0.8" />
+          <circle cx="470"  cy="24"  r="0.6" />
+          <circle cx="512"  cy="92"  r="0.7" />
+          <circle cx="418"  cy="136" r="0.5" />
+          <circle cx="536"  cy="46"  r="0.6" />
         </g>
 
         {/* Far treeline — two flat layers for depth */}
         <g fill="var(--ps-far-2)">
+          <path d="M-170 208 L-142 154 L-114 208 Z" />
+          <path d="M-126 212 L-92 144 L-58 212 Z" />
+          <path d="M-70 210 L-42 158 L-14 210 Z" />
           <path d="M-10 210 L18 150 L44 210 Z" />
           <path d="M30 214 L62 138 L96 214 Z" />
           <path d="M86 212 L112 162 L140 212 Z" />
           <path d="M262 212 L292 152 L322 212 Z" />
           <path d="M312 214 L344 142 L378 214 Z" />
           <path d="M366 210 L392 158 L410 210 Z" />
+          <path d="M400 212 L434 146 L468 212 Z" />
+          <path d="M456 210 L484 156 L512 210 Z" />
+          <path d="M500 212 L534 150 L568 212 Z" />
         </g>
         <g fill="var(--ps-far-1)">
+          <path d="M-172 220 L-136 172 L-100 220 Z" />
+          <path d="M-108 222 L-70 176 L-32 222 Z" />
           <path d="M-10 220 L22 176 L54 220 Z" />
           <path d="M46 222 L84 168 L122 222 Z" />
           <path d="M110 220 L140 182 L170 220 Z" />
           <path d="M244 220 L278 178 L312 220 Z" />
           <path d="M300 222 L340 170 L380 222 Z" />
+          <path d="M372 220 L410 174 L448 220 Z" />
+          <path d="M436 222 L476 172 L516 222 Z" />
+          <path d="M498 220 L534 178 L570 220 Z" />
         </g>
-        <rect x="-10" y="200" width="420" height="46" fill="url(#ps-mist)" />
+        <rect x="-170" y="200" width="740" height="46" fill="url(#ps-mist)" />
 
         {/* ---- Main trunk ----
             Organic silhouette running off the top and bottom of the frame, so
@@ -403,24 +424,36 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
             <path d="M40 -6 C 66 3 78 24 72 44 C 51 38 38 19 40 -6 Z" />
             <path d="M406 -4 C 372 0 353 18 356 41 C 379 41 400 25 406 -4 Z" />
             <path d="M360 -6 C 334 3 322 24 328 44 C 349 38 362 19 360 -6 Z" />
+            <path d="M-6 -4 C 28 0 47 18 44 41 C 21 41 0 25 -6 -4 Z" transform="translate(-150 6)" />
+            <path d="M40 -6 C 66 3 78 24 72 44 C 51 38 38 19 40 -6 Z" transform="translate(-150 6)" />
+            <path d="M406 -4 C 372 0 353 18 356 41 C 379 41 400 25 406 -4 Z" transform="translate(150 6)" />
+            <path d="M360 -6 C 334 3 322 24 328 44 C 349 38 362 19 360 -6 Z" transform="translate(150 6)" />
           </g>
           <g stroke="var(--ps-leaf-vein)" strokeWidth="1" fill="none" opacity="0.55">
             <path d="M0 0 C 18 11 32 24 38 38" />
             <path d="M44 0 C 59 14 68 28 69 41" />
             <path d="M400 0 C 382 11 368 24 362 38" />
             <path d="M356 0 C 341 14 332 28 331 41" />
+            <path d="M0 0 C 18 11 32 24 38 38" transform="translate(-150 6)" />
+            <path d="M400 0 C 382 11 368 24 362 38" transform="translate(150 6)" />
           </g>
         </g>
         <g fill="var(--ps-grass)">
-          <path d="M-10 360 L-10 342 C 20 336 44 348 70 338 C 96 328 120 346 150 338
+          <path d="M-170 360 L-170 344 C -140 336 -114 350 -86 340 C -58 330 -32 348 -4 338
+                   C 20 330 46 348 70 338 C 96 328 120 346 150 338
                    C 182 330 210 350 244 340 C 276 330 302 348 332 338 C 358 330 384 344 410 338
-                   L 410 360 Z" />
+                   C 438 330 464 348 492 340 C 520 332 546 346 570 340
+                   L 570 360 Z" />
         </g>
         <g stroke="var(--ps-grass)" strokeWidth="2.4" strokeLinecap="round" fill="none">
+          <path d="M-136 342 q 4 -14 0 -24" />
+          <path d="M-52 346 q -5 -15 -2 -25" />
           <path d="M36 344 q 4 -14 0 -24" />
           <path d="M120 340 q -5 -16 -2 -26" />
           <path d="M286 340 q 5 -15 1 -25" />
           <path d="M366 344 q -4 -14 0 -22" />
+          <path d="M452 346 q 5 -15 1 -25" />
+          <path d="M536 342 q -4 -14 0 -24" />
         </g>
       </svg>
 
