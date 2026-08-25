@@ -220,7 +220,10 @@ button { font-family: inherit; }
   max-width: 520px;
   width: 100%;
   margin: 0 auto;
-  height: 100dvh;
+  /* Липкий баннер площадки лежит поверх кадра игры и не уменьшает его.
+     Без вычета его высоты нижний ряд клавиатуры и кнопки панели
+     результата оказываются под баннером и не нажимаются. */
+  height: calc(100dvh - var(--ad-safe));
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   /* Pin the single column to the container width. Without this the implicit
@@ -351,7 +354,8 @@ button { font-family: inherit; }
   position: fixed;
   top: 0;
   right: 0;
-  bottom: 0;
+  /* Не залезаем под липкий баннер площадки. */
+  bottom: var(--ad-safe);
   width: min(340px, 100vw);
   background: var(--bg-1);
   border-left: 1px solid var(--line);
@@ -726,7 +730,7 @@ button { font-family: inherit; }
   bottom: 6px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -820,7 +824,12 @@ button { font-family: inherit; }
 @media (max-width: 380px) {
   .shop__grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .shop-card__name { font-size: 13px; }
-  .shop-card__desc { font-size: 10px; }
+  .shop-card__desc { font-size: 11px; }
+}
+
+@media (max-width: 360px) {
+  .energy-option__price--ad span { display: none; }
+  .energy-option__price--ad { padding-left: 8px; padding-right: 8px; }
 }
 
 /* ---------- Topbar ---------- */
@@ -2080,7 +2089,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 /* Wider action keys. Extra side padding + tighter tracking so the "ВВОД"
    label keeps a margin from the edges instead of running edge-to-edge. */
-.key--wide  { flex: 1.6 1 0; font-size: clamp(9.5px, 1.7vh, 12px); letter-spacing: 0.01em; padding: 0 8px; }
+.key--wide  { flex: 1.6 1 0; font-size: clamp(11px, 1.7vh, 12px); letter-spacing: 0.01em; padding: 0 8px; }
 .key--wide  svg { width: 22px; height: 22px; }
 
 /* Ввод / Удалить get the same tinted-pill treatment as the coins & energy
@@ -2210,7 +2219,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 
 .gameend__label {
   margin-top: 14px;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: var(--text-mute);
   text-transform: uppercase;
@@ -3602,7 +3611,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- Pet screen (full-screen) ---------- */
 .pet-screen {
   position: fixed;
-  inset: 0;
+  /* Нижняя кромка — над баннером площадки. */
+  inset: 0 0 var(--ad-safe) 0;
   background: linear-gradient(180deg, #11141f 0%, #0a0c14 100%);
   z-index: 50;
   display: flex;
@@ -3923,7 +3933,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   align-items: center;
   min-width: 0;
   gap: 2px;
-  padding: 8px 6px;
+  padding: 8px 4px;
   border: 0;
   border-radius: 8px;
   background: transparent;
@@ -4058,7 +4068,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 .pet-deco__meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pet-deco__name { font-size: 14px; font-weight: 700; color: #e6ecff; }
-.pet-deco__desc { font-size: 12px; color: rgba(229, 235, 255, 0.6); }
+.pet-deco__desc { font-size: 12px; color: rgba(229, 235, 255, 0.6); overflow-wrap: anywhere; }
 .pet-deco__bonus { font-size: 11.5px; font-weight: 700; color: #f7c948; }
 .pet-deco__cta { display: flex; align-items: center; }
 .pet-deco__btn {
@@ -4174,6 +4184,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .feedback__email {
   flex: 1;
   min-width: 0;
+  /* Пальцем в 19px строку не попасть — даём ссылке высоту. */
+  padding: 6px 0;
   font-weight: 700;
   font-size: 14px;
   color: var(--text);
@@ -4227,7 +4239,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- First-run tour (coachmarks) ---------- */
 .tour {
   position: fixed;
-  inset: 0;
+  inset: 0 0 var(--ad-safe) 0;
   z-index: 80;
   /* Capture all pointer events so the app can't be touched mid-tour; the dim
      itself comes from the spotlight's huge box-shadow. */
@@ -5617,4 +5629,42 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 @media (max-width: 360px) {
   .pet-tabs { gap: 4px; padding: 3px; }
   .pet-tab { padding: 7px 3px; font-size: 11px; }
+}
+
+/* Узкие экраны: ярлыки вкладок достижений («Покупки», «Питомец») не
+   помещались в колонку и обрезались многоточием. Правило в конце файла —
+   иначе его перебивает более позднее .ach-tab. */
+@media (max-width: 360px) {
+  .ach-tab { padding-left: 2px; padding-right: 2px; font-size: 12px; }
+}
+
+/* Ландшафт на телефоне: в одну колонку доска ужимается до 20px клеток
+   рядом с огромной клавиатурой. Раскладываем в две колонки — доска
+   слева, клавиатура справа, обе на всю доступную высоту. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app {
+    max-width: 900px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      "head head"
+      "top  top"
+      "board keys";
+    column-gap: 14px;
+  }
+  .app > .header { grid-area: head; }
+  .app > .topbar { grid-area: top; }
+  .app > .main { grid-area: board; }
+  .app > .keyboard,
+  .app > .end-panel { grid-area: keys; align-self: center; }
+}
+
+/* Очень низкие экраны (320x480 и подобные, да ещё с баннером площадки):
+   панель результата занимала половину высоты и доска сжималась в точки.
+   Ужимаем панель, доске остаётся больше места. */
+@media (max-height: 560px) {
+  .end-panel { min-height: 0; padding-top: 2px; }
+  .end-panel__inner { padding: 9px 11px; gap: 10px; }
+  .end-panel__title { font-size: 15.5px; }
+  .end-panel__word { font-size: 12.5px; }
 }
