@@ -114,19 +114,20 @@ export function MemoryGame({ onExit }) {
   const elapsedMs = startedAt ? (finishedAt || Date.now()) - startedAt : 0;
   const won = finishedAt != null;
 
-  // Reward formula: base 40 XP minus 1 XP per 3 seconds, floored at 15.
-  // Coins scale with speed.
+  // Reward formula: base 40 XP minus 1 XP per 3 seconds, floored at 15 —
+  // и всё это делится на 3: мини-игры давали слишком много опыта.
   const xpReward = useMemo(() => {
     if (!won) return 0;
     const sec = Math.floor(elapsedMs / 1000);
-    return Math.max(15, 40 - Math.floor(sec / 3));
+    return Math.round(Math.max(15, 40 - Math.floor(sec / 3)) / 3);
   }, [won, elapsedMs]);
+  // Монеты — половина прежних (10/6/3/1).
   const coinReward = useMemo(() => {
     if (!won) return 0;
     const sec = Math.floor(elapsedMs / 1000);
-    if (sec <= 30)  return 10;
-    if (sec <= 60)  return 6;
-    if (sec <= 120) return 3;
+    if (sec <= 30)  return 5;
+    if (sec <= 60)  return 3;
+    if (sec <= 120) return 2;
     return 1;
   }, [won, elapsedMs]);
 

@@ -5,6 +5,9 @@ import { pickRandomWord, normalizeWord } from '../../data/words.js';
 
 const ROUND_MS = 60_000;
 const XP_PER_WORD = 8;
+// Опыт мини-игр урезан втрое, монеты вдвое — прежние награды были
+// заметно щедрее всего остального в игре.
+const XP_DIV = 3;
 
 // Fisher-Yates shuffle with a guarantee that the result is NOT the source
 // order (so we never serve a "scramble" that's already the answer).
@@ -153,8 +156,9 @@ export function AnagramGame({ onExit }) {
   };
 
   // Reward + cooldown stamp on finish.
-  const xpReward = solved * XP_PER_WORD;
-  const coinReward = solved;
+  const xpReward = Math.round(solved * XP_PER_WORD / XP_DIV);
+  // Монеты — половина от числа собранных слов (было 1:1).
+  const coinReward = Math.round(solved / 2);
   useEffect(() => {
     if (phase !== 'done' || rewardClaimed) return;
     setRewardClaimed(true);

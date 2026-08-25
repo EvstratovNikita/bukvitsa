@@ -46,7 +46,7 @@ function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, resetStats, auth, showToast, status, gameMode, ready } = useGameContext();
+  const { stats, resetStats, auth, showToast, status, gameMode, ready, leaveDailyMode } = useGameContext();
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also
@@ -74,6 +74,19 @@ function GameShell() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
+  // Слово дня — одна попытка в сутки. Уход в доп. режимы посреди партии
+  // сжигает её, поэтому сначала спрашиваем.
+  const [dailyLeaveOpen, setDailyLeaveOpen] = useState(false);
+  const dailyInProgress = gameMode === 'daily' && status === GAME_STATUS.PLAYING;
+  const openModes = () => {
+    if (dailyInProgress) setDailyLeaveOpen(true);
+    else setModesOpen(true);
+  };
+  const confirmDailyLeave = () => {
+    setDailyLeaveOpen(false);
+    leaveDailyMode?.();
+    setModesOpen(true);
+  };
   const [tourOn, setTourOn] = useState(false);
   const [lbOpen, setLbOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
@@ -99,7 +112,7 @@ function GameShell() {
       <Header
         onOpenMenu={() => setMenuOpen(true)}
         onOpenPet={() => setPetOpen(true)}
-        onOpenModes={() => setModesOpen(true)}
+        onOpenModes={openModes}
       />
       <div className="topbar">
         <Coins />
@@ -139,6 +152,37 @@ function GameShell() {
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} />
       <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} />
+
+      <Modal
+        open={dailyLeaveOpen}
+        onClose={() => setDailyLeaveOpen(false)}
+        title="Выйти из Слова дня?"
+      >
+        <div className="confirm">
+          <p className="confirm__text">
+            Слово дня даётся раз в сутки. Если сейчас перейти в другой режим,
+            вернуться к сегодняшнему Слову дня уже не получится.
+          </p>
+          <div className="confirm__actions">
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setDailyLeaveOpen(false)}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              Отмена
+            </button>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={confirmDailyLeave}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              Подтвердить
+            </button>
+          </div>
+        </div>
+      </Modal>
       <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">

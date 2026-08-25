@@ -12,6 +12,13 @@ import { useStats } from './useStats.js';
 
 const isCyrillicLetter = (ch) => /^[а-яё]$/i.test(ch);
 
+// Игрок сам ушёл из Слова дня — в этот день его больше не предлагаем.
+// Иначе предупреждение «вернуться не получится» врало бы: после
+// перезагрузки Слово дня встречало бы игрока снова.
+function dailySkipped() {
+  return storage.get(STORAGE_KEYS.DAILY_SKIPPED, null) === getDailyKey();
+}
+
 export function useGame() {
   // Lazy-init from any persisted game so a page refresh resumes the same
   // puzzle without spending energy a second time.
@@ -26,7 +33,7 @@ export function useGame() {
     const raw = storage.get(STORAGE_KEYS.GAME_STATE, null);
     if (!raw || !raw.solution) return raw;
     const persisted = storage.get(STORAGE_KEYS.STATS, null);
-    const dailyDone = persisted?.daily?.lastPlayedKey === getDailyKey();
+    const dailyDone = persisted?.daily?.lastPlayedKey === getDailyKey() || dailySkipped();
     if (raw.gameMode !== 'daily' && !dailyDone) {
       // Only stash an IN-PROGRESS normal game to resume after the daily. A
       // finished one (WON/LOST) must NOT be restored later — it would reappear
@@ -90,7 +97,7 @@ export function useGame() {
     // re-offer an already-played daily after a cache clear / on a new device).
     if (!stats.ready) return;
     const todayKey = getDailyKey();
-    const dailyDone = stats.stats.daily?.lastPlayedKey === todayKey;
+    const dailyDone = stats.stats.daily?.lastPlayedKey === todayKey || dailySkipped();
     if (!dailyDone) {
       gameStartRef.current = Date.now();
       // Daily is always the canonical 5-letter format. Reset hints to 5
@@ -475,6 +482,14 @@ export function useGame() {
     }, ANIM.CLEAR_TOTAL_MS);
   }, [gameMode, stats, wordLength, maybeInterstitial]);
 
+  // Осознанный выход из Слова дня на полпути (игрок полез в доп. режимы).
+  // Помечаем день пропущенным и уходим обычным путём выхода.
+  const leaveDailyMode = useCallback(() => {
+    if (gameMode !== 'daily') return;
+    storage.set(STORAGE_KEYS.DAILY_SKIPPED, getDailyKey());
+    exitDailyMode();
+  }, [gameMode, exitDailyMode]);
+
   // If the player signs into an account mid-session (userId change → server
   // reconcile) that has ALREADY completed today's daily word, don't leave them
   // parked on an unfinished daily board carried over from the previous (e.g.
@@ -613,6 +628,7 @@ export function useGame() {
     adsDoubleLeft: stats.adsDoubleLeft,
     gameMode,
     exitDailyMode,
+    leaveDailyMode,
     wordLength,
     setGameLength,
     hints,

@@ -53,14 +53,24 @@ export function GameModesModal({ open, onClose }) {
 
         {MODES.map((m) => {
           const active = wordLength === m.length;
+          // Режим, в котором игрок уже находится, показываем строкой, а не
+          // карточкой: полноразмерная карточка с описанием и превью
+          // выталкивала модалку в скролл на 4 и 6 буквах.
+          if (active) {
+            return (
+              <div key={m.length} className={`mode-now ${m.accent}`}>
+                <span className="mode-now__title">{m.title}</span>
+                <span className="mode-now__badge">Сейчас играешь</span>
+              </div>
+            );
+          }
           return (
             <button
               key={m.length}
               type="button"
-              className={`mode-card ${m.accent}${active ? ' mode-card--active' : ''}`}
+              className={`mode-card ${m.accent}`}
               onClick={() => onPick(m.length)}
               onMouseDown={(e) => e.preventDefault()}
-              disabled={active}
             >
               <div className="mode-card__title">{m.title}</div>
               <div className="mode-card__desc">{m.desc}</div>
@@ -69,7 +79,6 @@ export function GameModesModal({ open, onClose }) {
                   <span key={i} className="mode-card__cell">{ch}</span>
                 ))}
               </div>
-              {active && <div className="mode-card__active">Сейчас играешь</div>}
               <span className="mode-card__half mode-card__free" aria-label="бесплатно">
                 <BoltIcon />
                 <span>бесплатно</span>
@@ -78,9 +87,11 @@ export function GameModesModal({ open, onClose }) {
           );
         })}
 
-        <p className="modes__foot">
-          Сейчас: <b>{wordLength} букв</b>.
-        </p>
+        {wordLength === 5 && (
+          <p className="modes__foot">
+            Сейчас: <b>основной режим, 5 букв</b>.
+          </p>
+        )}
       </div>
     </Modal>
   );

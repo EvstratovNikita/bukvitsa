@@ -17,7 +17,11 @@ export const GAME_STATUS = {
 
 export const STORAGE_KEYS = {
   STATS: 'wordle-ru:stats',
-  GAME_STATE: 'wordle-ru:game'
+  GAME_STATE: 'wordle-ru:game',
+  // День, в который игрок сам ушёл из Слова дня. Пока ключ совпадает с
+  // сегодняшним, Слово дня больше не предлагается — иначе предупреждение
+  // «вернуться не получится» было бы неправдой после перезагрузки.
+  DAILY_SKIPPED: 'wordle-ru:daily-skipped'
 };
 
 export const KEYBOARD_ROWS = [
