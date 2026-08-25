@@ -401,6 +401,27 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
       <ellipse cx="200" cy="378" rx="112" ry="13" fill="var(--owl-contact)" filter={`url(#${uid}-soft)`} />
 
       <g filter={`url(#${uid}-drop)`}>
+        {perch && (
+          <g>
+            <path
+              d="M 58 344 q 142 -14 284 0 q 5 13 0 24 q -142 13 -284 0 q -6 -12 0 -24 Z"
+              fill={`url(#${uid}-branch)`}
+              stroke="#2e1c0c"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <g stroke="#3a2412" strokeWidth="1.4" opacity="0.5" fill="none" strokeLinecap="round">
+              <path d="M 94 350 q 30 4 62 3" />
+              <path d="M 178 352 q 40 4 84 2" />
+              <path d="M 106 361 q 46 4 92 2" />
+              <path d="M 218 361 q 40 3 80 0" />
+            </g>
+            <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" strokeWidth="2" fill="none" opacity="0.5" />
+          </g>
+        )}
+
+        {/* Everything that leaves the ground when the owl hops. */}
+        <g className="owl-hop">
         <g className="owl-breathe">
           <Wing side={-1} uid={uid} />
           <Wing side={1}  uid={uid} />
@@ -551,25 +572,6 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
           </g>
         </g>
 
-        {perch && (
-          <g>
-            <path
-              d="M 58 344 q 142 -14 284 0 q 5 13 0 24 q -142 13 -284 0 q -6 -12 0 -24 Z"
-              fill={`url(#${uid}-branch)`}
-              stroke="#2e1c0c"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            />
-            <g stroke="#3a2412" strokeWidth="1.4" opacity="0.5" fill="none" strokeLinecap="round">
-              <path d="M 94 350 q 30 4 62 3" />
-              <path d="M 178 352 q 40 4 84 2" />
-              <path d="M 106 361 q 46 4 92 2" />
-              <path d="M 218 361 q 40 3 80 0" />
-            </g>
-            <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" strokeWidth="2" fill="none" opacity="0.5" />
-          </g>
-        )}
-
         {/* feet — drawn over the perch so the toes grip it */}
         <g>
           <g stroke={`url(#${uid}-talon)`} strokeWidth="11" strokeLinecap="round" fill="none">
@@ -596,6 +598,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
             <path d="M 228 361 q -1 4 0 7" />
             <path d="M 248 360 q 4 3 5 7" />
           </g>
+        </g>
         </g>
       </g>
     </svg>

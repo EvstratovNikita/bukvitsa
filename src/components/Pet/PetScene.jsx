@@ -37,19 +37,43 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
       >
         <defs>
           {/* Backdrop + tree gradients */}
-          <linearGradient id="ps-sky" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%"  stopColor="#1a2138" />
-            <stop offset="100%" stopColor="#0c1020" />
+          <linearGradient id="ps-sky" x1="0" x2="0.2" y1="0" y2="1">
+            <stop offset="0%"   stopColor="var(--ps-sky-1)" />
+            <stop offset="55%"  stopColor="var(--ps-sky-2)" />
+            <stop offset="100%" stopColor="var(--ps-sky-3)" />
+          </linearGradient>
+          {/* Halo around the moon / sun */}
+          <radialGradient id="ps-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor="var(--ps-halo)" stopOpacity="0.85" />
+            <stop offset="45%"  stopColor="var(--ps-halo)" stopOpacity="0.30" />
+            <stop offset="100%" stopColor="var(--ps-halo)" stopOpacity="0" />
+          </radialGradient>
+          {/* Ground mist lying between the far trees and the trunk */}
+          <linearGradient id="ps-mist" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%"   stopColor="var(--ps-mist)" stopOpacity="0" />
+            <stop offset="45%"  stopColor="var(--ps-mist)" stopOpacity="0.38" />
+            <stop offset="100%" stopColor="var(--ps-mist)" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="ps-tree" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%"   stopColor="#3b2412" />
-            <stop offset="50%"  stopColor="#5a3a1f" />
-            <stop offset="100%" stopColor="#3b2412" />
+            <stop offset="0%"   stopColor="var(--ps-trunk-3)" />
+            <stop offset="18%"  stopColor="var(--ps-trunk-1)" />
+            <stop offset="55%"  stopColor="var(--ps-trunk-2)" />
+            <stop offset="100%" stopColor="var(--ps-trunk-3)" />
           </linearGradient>
-          <radialGradient id="ps-hollow" cx="50%" cy="55%" r="55%">
-            <stop offset="0%"   stopColor="#1e1408" />
-            <stop offset="100%" stopColor="#06030a" />
+          <radialGradient id="ps-hollow" cx="50%" cy="46%" r="62%">
+            <stop offset="0%"   stopColor="var(--ps-hollow-1)" />
+            <stop offset="62%"  stopColor="var(--ps-hollow-2)" />
+            <stop offset="100%" stopColor="var(--ps-hollow-3)" />
           </radialGradient>
+          {/* Warm light pooling at the bottom of the hollow */}
+          <radialGradient id="ps-hearth" cx="50%" cy="88%" r="58%">
+            <stop offset="0%"   stopColor="var(--ps-hearth)" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="var(--ps-hearth)" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="ps-leaf" x1="0" x2="0.6" y1="0" y2="1">
+            <stop offset="0%"   stopColor="var(--ps-leaf-1)" />
+            <stop offset="100%" stopColor="var(--ps-leaf-2)" />
+          </linearGradient>
           <radialGradient id="ps-egg" cx="38%" cy="26%" r="82%">
             <stop offset="0%"   stopColor="#fffdf6" />
             <stop offset="55%"  stopColor="#f3e6cd" />
@@ -102,49 +126,129 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
           <path id="ps-chevron" d="M -10 0 Q 0 6 10 0" />
         </defs>
 
-        {/* Sky */}
+        {/* ---- Sky ---- */}
         <rect width="400" height="360" fill="url(#ps-sky)" />
 
-        {/* Twinkling stars */}
-        <g className="pet-scene__stars" fill="#fff">
-          <circle cx="35"  cy="40"  r="0.9" />
-          <circle cx="80"  cy="22"  r="0.6" />
-          <circle cx="220" cy="18"  r="0.8" />
-          <circle cx="320" cy="34"  r="0.6" />
-          <circle cx="360" cy="70"  r="0.5" />
-          <circle cx="42"  cy="100" r="0.7" />
-          <circle cx="370" cy="130" r="0.4" />
-          <circle cx="18"  cy="60"  r="0.5" />
+        {/* Moon by night, low sun by day — same shape, themed colours. */}
+        <g className="pet-scene__moon">
+          <circle cx="30" cy="72" r="58" fill="url(#ps-halo)" />
+          <circle cx="30" cy="72" r="16" fill="var(--ps-moon)" />
+          <circle cx="24" cy="67" r="3.4" fill="var(--ps-moon-crater)" opacity="0.5" />
+          <circle cx="36" cy="78" r="2.2" fill="var(--ps-moon-crater)" opacity="0.4" />
+          <circle cx="33" cy="63" r="1.5" fill="var(--ps-moon-crater)" opacity="0.35" />
         </g>
 
-        {/* Tree slab */}
-        <rect x="20" y="50" width="360" height="300" rx="22" fill="url(#ps-tree)" />
+        {/* Stars — faded out by the light theme via --ps-star-op */}
+        <g className="pet-scene__stars" fill="var(--ps-star)">
+          <circle cx="35"  cy="40"  r="1.1" />
+          <circle cx="80"  cy="22"  r="0.7" />
+          <circle cx="128" cy="46"  r="0.5" />
+          <circle cx="180" cy="14"  r="0.9" />
+          <circle cx="220" cy="30"  r="0.6" />
+          <circle cx="258" cy="12"  r="0.8" />
+          <circle cx="392" cy="34"  r="0.6" />
+          <circle cx="368" cy="96"  r="0.7" />
+          <circle cx="42"  cy="104" r="0.8" />
+          <circle cx="12"  cy="66"  r="0.6" />
+          <circle cx="96"  cy="88"  r="0.5" />
+          <circle cx="286" cy="72"  r="0.5" />
+        </g>
+
+        {/* Far treeline — two flat layers for depth */}
+        <g fill="var(--ps-far-2)">
+          <path d="M-10 210 L18 150 L44 210 Z" />
+          <path d="M30 214 L62 138 L96 214 Z" />
+          <path d="M86 212 L112 162 L140 212 Z" />
+          <path d="M262 212 L292 152 L322 212 Z" />
+          <path d="M312 214 L344 142 L378 214 Z" />
+          <path d="M366 210 L392 158 L410 210 Z" />
+        </g>
+        <g fill="var(--ps-far-1)">
+          <path d="M-10 220 L22 176 L54 220 Z" />
+          <path d="M46 222 L84 168 L122 222 Z" />
+          <path d="M110 220 L140 182 L170 220 Z" />
+          <path d="M244 220 L278 178 L312 220 Z" />
+          <path d="M300 222 L340 170 L380 222 Z" />
+        </g>
+        <rect x="-10" y="200" width="420" height="46" fill="url(#ps-mist)" />
+
+        {/* ---- Main trunk ----
+            Organic silhouette running off the top and bottom of the frame, so
+            the owl lives inside a tree rather than on a brown rectangle. */}
+        <path
+          d="M 78 -10
+             C 64 60 72 120 62 186
+             C 54 246 68 300 60 370
+             L 346 370
+             C 334 300 348 244 340 184
+             C 332 122 340 62 326 -10 Z"
+          fill="url(#ps-tree)"
+        />
         {/* Bark grain */}
-        <g stroke="#2a1808" strokeWidth="1.2" opacity="0.45" fill="none">
-          <path d="M55 70 Q70 130 60 200 T70 340" />
-          <path d="M110 60 Q100 140 130 210 T115 340" />
-          <path d="M285 60 Q300 140 275 210 T295 340" />
-          <path d="M340 70 Q330 140 350 200 T335 340" />
+        <g stroke="var(--ps-bark)" strokeWidth="1.3" opacity="0.5" fill="none" strokeLinecap="round">
+          <path d="M90 -6 Q104 70 94 150 T104 366" />
+          <path d="M124 0 Q112 90 132 170 T120 366" />
+          <path d="M282 0 Q296 90 274 170 T292 366" />
+          <path d="M314 -6 Q300 70 318 150 T306 366" />
+          <path d="M106 40 Q98 96 110 150" />
+          <path d="M296 214 Q308 268 292 330" />
         </g>
+        {/* Moonlit edge on the lit side, deep shade on the other */}
+        <path d="M 78 -10 C 64 60 72 120 62 186 C 54 246 68 300 60 370"
+              stroke="var(--ps-trunk-rim)" strokeWidth="4" fill="none" opacity="0.55" />
+        <path d="M 326 -10 C 340 62 332 122 340 184 C 348 244 334 300 346 370"
+              stroke="var(--ps-bark)" strokeWidth="7" fill="none" opacity="0.35" />
         {/* Knots */}
-        <ellipse cx="70"  cy="280" rx="9" ry="6" fill="#2a1808" opacity="0.55" />
-        <ellipse cx="335" cy="120" rx="8" ry="5" fill="#2a1808" opacity="0.55" />
+        <g>
+          <ellipse cx="98" cy="300" rx="9" ry="6" fill="var(--ps-bark)" opacity="0.6" />
+          <ellipse cx="98" cy="299" rx="4.5" ry="2.8" fill="var(--ps-trunk-3)" opacity="0.7" />
+          <ellipse cx="308" cy="112" rx="8" ry="5" fill="var(--ps-bark)" opacity="0.6" />
+          <ellipse cx="308" cy="111" rx="4" ry="2.4" fill="var(--ps-trunk-3)" opacity="0.7" />
+        </g>
 
-        {/* Hollow cavity */}
-        <ellipse cx="200" cy="210" rx="130" ry="120" fill="url(#ps-hollow)" />
-        <ellipse cx="200" cy="210" rx="130" ry="120" fill="none" stroke="#000" strokeOpacity="0.55" strokeWidth="3" />
-        {/* Inner shadow rim */}
-        <ellipse cx="200" cy="218" rx="118" ry="106" fill="none" stroke="#06030a" strokeOpacity="0.7" strokeWidth="6" />
+        {/* ---- Hollow ----
+            Slightly irregular opening; a raised lip catches the light on top
+            and the inside glows warm from below. */}
+        <path
+          d="M 200 96
+             C 258 96 309 142 310 206
+             C 311 268 258 318 200 318
+             C 142 318 89 268 90 206
+             C 91 142 142 96 200 96 Z"
+          fill="url(#ps-hollow)"
+        />
+        <path
+          d="M 200 96
+             C 258 96 309 142 310 206
+             C 311 268 258 318 200 318
+             C 142 318 89 268 90 206
+             C 91 142 142 96 200 96 Z"
+          fill="url(#ps-hearth)"
+        />
+        {/* Lip: lit rim above, dark undercut below */}
+        <path d="M 90 206 C 91 142 142 96 200 96 C 258 96 309 142 310 206"
+              stroke="var(--ps-lip)" strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.7" />
+        <path d="M 90 206 C 89 268 142 318 200 318 C 258 318 311 268 310 206"
+              stroke="var(--ps-lip-dark)" strokeWidth="6" fill="none" strokeLinecap="round" opacity="0.5" />
+        {/* Inner shadow so the cavity reads deep */}
+        <path
+          d="M 200 106
+             C 252 106 300 148 301 206
+             C 302 262 254 308 200 308
+             C 146 308 98 262 99 206
+             C 100 148 148 106 200 106 Z"
+          fill="none" stroke="var(--ps-hollow-3)" strokeWidth="13" opacity="0.5"
+        />
 
         {/* Nest hay at hollow bottom */}
         <g className="pet-scene__nest" stroke="#c89758" strokeWidth="1.6" strokeLinecap="round" fill="none">
-          <path d="M115 280 Q200 296 285 280" />
-          <path d="M125 286 L150 274" />
-          <path d="M160 290 L182 278" />
-          <path d="M210 290 L234 278" />
-          <path d="M245 284 L268 272" />
-          <path d="M198 296 L188 286" />
-          <path d="M222 296 L232 286" />
+          <path d="M126 276 Q200 292 274 276" />
+          <path d="M135 282 L158 271" />
+          <path d="M166 286 L186 275" />
+          <path d="M214 286 L234 275" />
+          <path d="M242 280 L262 269" />
+          <path d="M198 292 L189 283" />
+          <path d="M222 292 L231 283" />
         </g>
 
         {/* --- Egg group (egg + hatching modes) ---
@@ -235,6 +339,34 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
           <circle cx="150" cy="105" r="2"   />
           <circle cx="250" cy="105" r="2"   />
           <circle cx="200" cy="95"  r="2.4" />
+        </g>
+        {/* ---- Foreground ----
+            Leaves hanging into the frame and grass along the bottom edge give
+            the scene depth without crowding the owl. */}
+        <g className="pet-scene__leaves">
+          <g fill="url(#ps-leaf)" stroke="var(--ps-leaf-line)" strokeWidth="1.2" strokeLinejoin="round">
+            <path d="M-6 -4 C 28 0 47 18 44 41 C 21 41 0 25 -6 -4 Z" />
+            <path d="M40 -6 C 66 3 78 24 72 44 C 51 38 38 19 40 -6 Z" />
+            <path d="M406 -4 C 372 0 353 18 356 41 C 379 41 400 25 406 -4 Z" />
+            <path d="M360 -6 C 334 3 322 24 328 44 C 349 38 362 19 360 -6 Z" />
+          </g>
+          <g stroke="var(--ps-leaf-vein)" strokeWidth="1" fill="none" opacity="0.55">
+            <path d="M0 0 C 18 11 32 24 38 38" />
+            <path d="M44 0 C 59 14 68 28 69 41" />
+            <path d="M400 0 C 382 11 368 24 362 38" />
+            <path d="M356 0 C 341 14 332 28 331 41" />
+          </g>
+        </g>
+        <g fill="var(--ps-grass)">
+          <path d="M-10 360 L-10 342 C 20 336 44 348 70 338 C 96 328 120 346 150 338
+                   C 182 330 210 350 244 340 C 276 330 302 348 332 338 C 358 330 384 344 410 338
+                   L 410 360 Z" />
+        </g>
+        <g stroke="var(--ps-grass)" strokeWidth="2.4" strokeLinecap="round" fill="none">
+          <path d="M36 344 q 4 -14 0 -24" />
+          <path d="M120 340 q -5 -16 -2 -26" />
+          <path d="M286 340 q 5 -15 1 -25" />
+          <path d="M366 344 q -4 -14 0 -22" />
         </g>
       </svg>
 

@@ -17,6 +17,34 @@
   --owl-contact: rgba(0, 0, 0, 0.42);
   --owl-edge: rgba(0, 0, 0, 0.20);
 
+  /* Сцена питомца — ночной лес. Светлая тема переопределяет её на день. */
+  --ps-sky-1: #16203c;
+  --ps-sky-2: #101830;
+  --ps-sky-3: #080c1a;
+  --ps-halo: #b9cbff;
+  --ps-moon: #f3f0e2;
+  --ps-moon-crater: #b9b49c;
+  --ps-star: #ffffff;
+  --ps-far-2: #0d1526;
+  --ps-far-1: #121c33;
+  --ps-mist: #9fb4e0;
+  --ps-trunk-1: #6b4526;
+  --ps-trunk-2: #52351c;
+  --ps-trunk-3: #2f1f10;
+  --ps-trunk-rim: rgba(198, 216, 255, 0.55);
+  --ps-bark: #241608;
+  --ps-hollow-1: #241606;
+  --ps-hollow-2: #100a04;
+  --ps-hollow-3: #04020a;
+  --ps-hearth: #ffb964;
+  --ps-lip: rgba(255, 232, 192, 0.42);
+  --ps-lip-dark: #06030a;
+  --ps-leaf-1: #1e3d27;
+  --ps-leaf-2: #0f2416;
+  --ps-leaf-line: #0e2415;
+  --ps-leaf-vein: #4a6d51;
+  --ps-grass: #0f2416;
+
   /* Высота липкого баннера площадки; включается классом is-yandex. */
   --ad-safe: 0px;
 }
@@ -44,6 +72,34 @@ html.is-yandex { --ad-safe: 60px; }
   --owl-drop: rgba(90, 62, 26, 0.28);
   --owl-contact: rgba(90, 62, 26, 0.22);
   --owl-edge: rgba(150, 114, 58, 0.34);
+
+  /* Тот же лес днём: тёплое небо, солнце вместо луны, звёзды гаснут. */
+  --ps-sky-1: #bfe0f2;
+  --ps-sky-2: #dcecf5;
+  --ps-sky-3: #f2e8d4;
+  --ps-halo: #ffd98a;
+  --ps-moon: #fff0c2;
+  --ps-moon-crater: #ffe6a2;
+  --ps-star: #ffffff;
+  --ps-far-2: #7ea27c;
+  --ps-far-1: #96b98d;
+  --ps-mist: #ffffff;
+  --ps-trunk-1: #b07f49;
+  --ps-trunk-2: #8d6134;
+  --ps-trunk-3: #5c3d1e;
+  --ps-trunk-rim: rgba(255, 246, 222, 0.75);
+  --ps-bark: #4a2f16;
+  --ps-hollow-1: #3a2410;
+  --ps-hollow-2: #1d1207;
+  --ps-hollow-3: #0b0603;
+  --ps-hearth: #ffcf82;
+  --ps-lip: rgba(255, 248, 226, 0.85);
+  --ps-lip-dark: #2a1a0a;
+  --ps-leaf-1: #6aa85a;
+  --ps-leaf-2: #3f7539;
+  --ps-leaf-line: #2c5628;
+  --ps-leaf-vein: #cbe6b4;
+  --ps-grass: #4a8446;
 }
 
 :root {
@@ -3177,6 +3233,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .pet-scene__svg { width: 100%; height: 100%; display: block; }
 
 .pet-scene__stars { animation: pet-twinkle 4s ease-in-out infinite; }
+/* Днём звёзд нет — мерцание отключаем, иначе оно перебивает opacity. */
+[data-theme="light"] .pet-scene__stars { animation: none; opacity: 0; }
 @keyframes pet-twinkle {
   0%, 100% { opacity: 0.4; }
   50%      { opacity: 1; }
@@ -3207,10 +3265,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 
 /* --- mode: owl (settled) --- */
 .pet-scene--owl .pet-scene__egg     { opacity: 0; }
-.pet-scene--owl .pet-scene__owl-img {
-  opacity: 1;
-  animation: pet-owl-bob 3.6s ease-in-out infinite;
-}
+.pet-scene--owl .pet-scene__owl-img { opacity: 1; }
 
 /* --- mode: hatching --- */
 .pet-scene--hatching .pet-scene__egg     { animation: pet-egg-shake 0.4s ease-in-out 3; transform-origin: 200px 290px; }
@@ -3259,23 +3314,25 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   100% { opacity: 0; transform: scale(1.5); }
 }
 
-@keyframes pet-owl-bob {
-  0%, 100% { transform: translate(-50%, -42%); }
-  50%      { transform: translate(-50%, -44%); }
+/* Idle bob and the tap jump live on .owl-hop, which holds the bird and its
+   feet — the perch and the contact shadow stay outside it, so the branch no
+   longer leaps along with the owl. */
+.owl-svg .owl-hop { transform-box: fill-box; transform-origin: 50% 100%; }
+.pet-scene--owl .owl-svg .owl-hop { animation: owl-bob 3.6s ease-in-out infinite; }
+@keyframes owl-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
 }
-
-/* Joyful jump on tap — overrides the idle bob via higher specificity.
-   Squash on prep, leap up with slight tilt, slight squash on landing. */
-.pet-scene--owl .pet-scene__owl-img.owl-svg--jump {
-  animation: pet-owl-jump 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
+.owl-svg--jump .owl-hop {
+  animation: owl-hop-jump 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
 }
-@keyframes pet-owl-jump {
-  0%   { transform: translate(-50%, -42%) scale(1, 1); }
-  15%  { transform: translate(-50%, -38%) scale(1.08, 0.88); }
-  45%  { transform: translate(-50%, -62%) scale(0.95, 1.10) rotate(-4deg); }
-  70%  { transform: translate(-50%, -44%) scale(1.05, 0.95) rotate(3deg); }
-  85%  { transform: translate(-50%, -41%) scale(0.98, 1.02); }
-  100% { transform: translate(-50%, -42%) scale(1, 1); }
+@keyframes owl-hop-jump {
+  0%   { transform: translateY(0)     scale(1, 1); }
+  15%  { transform: translateY(7px)   scale(1.08, 0.88); }
+  45%  { transform: translateY(-52px) scale(0.95, 1.10) rotate(-4deg); }
+  70%  { transform: translateY(6px)   scale(1.05, 0.95) rotate(3deg); }
+  85%  { transform: translateY(-3px)  scale(0.98, 1.02); }
+  100% { transform: translateY(0)     scale(1, 1); }
 }
 
 /* ---------- Fireflies in the hollow ---------- */
