@@ -3278,6 +3278,37 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   100% { transform: translate(-50%, -42%) scale(1, 1); }
 }
 
+/* ---------- Fireflies in the hollow ---------- */
+/* Only once the owl is out — an empty egg shouldn't have a light show. */
+.pet-scene__motes { position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 600ms ease; }
+.pet-scene--owl .pet-scene__motes { opacity: 1; }
+.pet-scene__mote {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 224, 160, 0.9);
+  box-shadow: 0 0 6px 1px rgba(255, 210, 120, 0.55);
+  filter: blur(0.3px);
+  opacity: 0;
+  animation-name: pet-mote-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+[data-theme="light"] .pet-scene__mote {
+  background: rgba(255, 196, 72, 0.95);
+  box-shadow: 0 0 6px 1px rgba(228, 158, 40, 0.5);
+}
+@keyframes pet-mote-rise {
+  0%   { opacity: 0;    transform: translate(0, 0) scale(0.6); }
+  12%  { opacity: 0.9; }
+  55%  { transform: translate(6px, -60px) scale(1); }
+  70%  { opacity: 0.65; }
+  100% { opacity: 0;    transform: translate(-4px, -130px) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pet-scene__mote { animation: none; opacity: 0.5; }
+}
+
 /* ---------- Owl SVG: per-part idle life ---------- */
 /* Percent-based transform-origin needs the element's own box, not the
    whole viewBox. */

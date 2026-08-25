@@ -126,8 +126,6 @@ function Wing({ side, uid }) {
         </g>
         {/* shading where the body overlaps the wing */}
         <path d="M 146 124 q 14 84 -12 166 q 20 -10 24 -30 q 10 -70 0 -136 Z" fill="#2e1c0c" opacity="0.20" />
-        {/* the far wing sits in the body's shadow */}
-        {side > 0 && <path d={WING_BLADE} fill="#2e1c0c" opacity="0.08" />}
         <path
           d="M 146 122 C 126 134 106 152 96 180"
           stroke="var(--owl-rim)"
@@ -324,10 +322,11 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
           <stop offset="60%"  stopColor="#fdf4e4" stopOpacity="0.9" />
           <stop offset="100%" stopColor="#f3e2c4" stopOpacity="0" />
         </radialGradient>
-        <radialGradient id={`${uid}-disc`} cx="50%" cy="34%" r="70%">
+        <radialGradient id={`${uid}-disc`} cx="50%" cy="34%" r="72%">
           <stop offset="0%"   stopColor="#fffdf6" />
-          <stop offset="72%"  stopColor="#f6e9d2" />
-          <stop offset="100%" stopColor="#dcc39c" />
+          <stop offset="58%"  stopColor="#f9efdb" />
+          <stop offset="82%"  stopColor="#f2e3c8" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#eeddbe" stopOpacity="0" />
         </radialGradient>
         <radialGradient id={`${uid}-wing`} cx="26%" cy="16%" r="96%">
           <stop offset="0%"   stopColor="#eed6ae" />
@@ -426,7 +425,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
               <path
                 d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 q 46 -132 0 -268 Z"
                 fill="#8a6a42"
-                opacity="0.14"
+                opacity="0.08"
                 filter={`url(#${uid}-soft)`}
               />
             </g>
@@ -442,20 +441,12 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
             {/* rim light from the upper left */}
             <path d="M 200 62 C 150 62 108 96 95 152" stroke="var(--owl-rim)" strokeWidth="3" fill="none" strokeLinecap="round" opacity="0.8" />
             <path d="M 214 63 C 262 68 296 100 306 150" stroke="var(--owl-rim)" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.35" />
+            {/* bounce light along the shaded edge, so the body reads apart
+                from the wing behind it instead of merging into shadow */}
+            <path d="M 307 176 C 306 246 270 312 216 328" stroke="var(--owl-rim)" strokeWidth="2.6" fill="none" strokeLinecap="round" opacity="0.45" />
 
-            {/* heart-shaped facial disc */}
-            <path
-              d="M 200 104 C 172 76 122 90 120 144 C 118 196 154 240 200 268 C 246 240 282 196 280 144 C 278 90 228 76 200 104 Z"
-              fill={`url(#${uid}-disc)`}
-              opacity="0.96"
-            />
-            <path
-              d="M 200 104 C 172 76 122 90 120 144 C 118 196 154 240 200 268 C 246 240 282 196 280 144 C 278 90 228 76 200 104 Z"
-              fill="none"
-              stroke="#cdb188"
-              strokeWidth="2"
-              opacity="0.65"
-            />
+            {/* facial disc — plain oval whose edge dissolves into the plumage */}
+            <ellipse cx="200" cy="180" rx="94" ry="88" fill={`url(#${uid}-disc)`} />
             <DiscRays cx={EYE_L} cy={EYE_Y} r0={36} r1={50} n={11} from={Math.PI * 0.62}  to={Math.PI * 1.62} color="#c6a97e" />
             <DiscRays cx={EYE_R} cy={EYE_Y} r0={36} r1={50} n={11} from={Math.PI * -0.62} to={Math.PI * 0.38} color="#c6a97e" />
 
@@ -560,10 +551,6 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
               <path d="M 218 361 q 40 3 80 0" />
             </g>
             <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" strokeWidth="2" fill="none" opacity="0.5" />
-            <g>
-              <path d="M 330 348 q 26 -17 45 -4 q -15 22 -45 4 Z" fill="#5f9c4a" stroke="#3d6d2e" strokeWidth="1.4" strokeLinejoin="round" />
-              <path d="M 332 347 q 21 -4 41 -2" stroke="#8fd06e" strokeWidth="1.2" fill="none" opacity="0.8" />
-            </g>
           </g>
         )}
 

@@ -10,6 +10,22 @@ import { OwlSvg } from './OwlSvg.jsx';
 // Tree/sky/hollow/egg are still inline SVG; the owl itself is the rendered
 // PNG asset overlaid on top of the SVG, animated via CSS transforms.
 
+// Fixed so the swarm doesn't reshuffle on every render.
+const MOTES = [
+  { left: 14, top: 78, size: 3.5, dur: 7.5, delay: -1.2 },
+  { left: 24, top: 88, size: 2.5, dur: 9.0, delay: -4.0 },
+  { left: 33, top: 72, size: 4.0, dur: 6.4, delay: -6.1 },
+  { left: 41, top: 92, size: 2.8, dur: 8.2, delay: -2.6 },
+  { left: 52, top: 80, size: 3.2, dur: 7.0, delay: -7.4 },
+  { left: 60, top: 90, size: 2.4, dur: 9.6, delay: -0.5 },
+  { left: 68, top: 74, size: 3.8, dur: 6.8, delay: -3.3 },
+  { left: 77, top: 86, size: 3.0, dur: 8.6, delay: -5.7 },
+  { left: 86, top: 79, size: 2.6, dur: 7.8, delay: -1.9 },
+  { left: 8,  top: 84, size: 3.0, dur: 8.9, delay: -6.8 },
+  { left: 46, top: 70, size: 2.2, dur: 10.2, delay: -4.7 },
+  { left: 92, top: 90, size: 3.4, dur: 7.2, delay: -8.1 }
+];
+
 export function PetScene({ mode = 'owl', equipped = {} }) {
   return (
     <div className={`pet-scene pet-scene--${mode}`}>
@@ -222,9 +238,28 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
         </g>
       </svg>
 
+      {/* Fireflies drifting up through the hollow. Plain spans so each one
+          can carry its own duration/delay without a keyframe per particle. */}
+      <div className="pet-scene__motes" aria-hidden="true">
+        {MOTES.map((m, i) => (
+          <span
+            key={i}
+            className="pet-scene__mote"
+            style={{
+              left: `${m.left}%`,
+              top: `${m.top}%`,
+              width: `${m.size}px`,
+              height: `${m.size}px`,
+              animationDuration: `${m.dur}s`,
+              animationDelay: `${m.delay}s`
+            }}
+          />
+        ))}
+      </div>
+
       {/* Hand-drawn color owl SVG layered on top of the scene SVG.
           Visibility + animations driven by mode classes in PetScene CSS. */}
-      <OwlSvg className="pet-scene__owl-img" equipped={equipped} />
+      <OwlSvg className="pet-scene__owl-img" equipped={equipped} perch />
     </div>
   );
 }
