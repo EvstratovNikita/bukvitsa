@@ -38,8 +38,8 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
           data-tour="modes"
           onClick={onOpenModes}
           onMouseDown={(e) => e.preventDefault()}
-          aria-label="Доп. режимы"
-          title="Доп. режимы"
+          aria-label="Режимы игры"
+          title="Режимы игры"
         >
           <PlusIcon />
         </button>

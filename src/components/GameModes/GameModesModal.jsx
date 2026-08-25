@@ -19,7 +19,7 @@ const MODES = [
   }
 ];
 
-// "Доп. режимы" picker. Tap on a mode → useGame.setGameLength(N) which
+// "Режимы игры" picker. Tap on a mode → useGame.setGameLength(N) which
 // starts a fresh round at that length — no energy cost, no coin reward.
 // Each 5 plays in 4/6 modes refunds +1 energy to the canonical 5-letter
 // mode (capped at 3 per day).
@@ -32,7 +32,7 @@ export function GameModesModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Доп. режимы">
+    <Modal open={open} onClose={onClose} title="Режимы игры">
       <div className="modes">
         <p className="modes__hint">
           В дополнительных режимах <b>энергия не тратится</b>, а начисляется
