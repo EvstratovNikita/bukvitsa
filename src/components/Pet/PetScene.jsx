@@ -74,11 +74,27 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
             <stop offset="0%"   stopColor="var(--ps-leaf-1)" />
             <stop offset="100%" stopColor="var(--ps-leaf-2)" />
           </linearGradient>
-          <radialGradient id="ps-egg" cx="38%" cy="26%" r="82%">
-            <stop offset="0%"   stopColor="#fffdf6" />
-            <stop offset="55%"  stopColor="#f3e6cd" />
-            <stop offset="100%" stopColor="#dcc097" />
+          <radialGradient id="ps-egg" cx="36%" cy="24%" r="84%">
+            <stop offset="0%"   stopColor="var(--ps-egg-1)" />
+            <stop offset="42%"  stopColor="var(--ps-egg-2)" />
+            <stop offset="78%"  stopColor="var(--ps-egg-3)" />
+            <stop offset="100%" stopColor="var(--ps-egg-4)" />
           </radialGradient>
+          {/* Warm light bounced up from the hollow onto the shell */}
+          <radialGradient id="ps-egg-bounce" cx="50%" cy="92%" r="62%">
+            <stop offset="0%"   stopColor="var(--ps-hearth)" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="var(--ps-hearth)" stopOpacity="0" />
+          </radialGradient>
+          {/* Halo breathing around the egg while it waits */}
+          <radialGradient id="ps-egg-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stopColor="var(--ps-hearth)" stopOpacity="0.34" />
+            <stop offset="55%"  stopColor="var(--ps-hearth)" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="var(--ps-hearth)" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="ps-nest" x1="0" x2="0.3" y1="0" y2="1">
+            <stop offset="0%"   stopColor="var(--ps-nest-1)" />
+            <stop offset="100%" stopColor="var(--ps-nest-2)" />
+          </linearGradient>
 
           {/* Owl gradients */}
           <radialGradient id="ps-owl-body" cx="50%" cy="38%" r="65%">
@@ -241,14 +257,33 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
         />
 
         {/* Nest hay at hollow bottom */}
-        <g className="pet-scene__nest" stroke="#c89758" strokeWidth="1.6" strokeLinecap="round" fill="none">
-          <path d="M126 276 Q200 292 274 276" />
-          <path d="M135 282 L158 271" />
-          <path d="M166 286 L186 275" />
-          <path d="M214 286 L234 275" />
-          <path d="M242 280 L262 269" />
-          <path d="M198 292 L189 283" />
-          <path d="M222 292 L231 283" />
+        <g className="pet-scene__nest">
+          {/* Bedding: a shallow bowl of twigs rather than a handful of lines */}
+          <path
+            d="M120 282 C 132 258 168 250 200 250 C 232 250 268 258 280 282
+               C 262 298 232 304 200 304 C 168 304 138 298 120 282 Z"
+            fill="url(#ps-nest)"
+          />
+          <path
+            d="M120 282 C 132 258 168 250 200 250 C 232 250 268 258 280 282"
+            fill="none" stroke="var(--ps-nest-rim)" strokeWidth="2.4" strokeLinecap="round" opacity="0.7"
+          />
+          <g stroke="var(--ps-nest-twig)" strokeWidth="1.5" strokeLinecap="round" fill="none" opacity="0.85">
+            <path d="M128 280 Q160 266 196 262" />
+            <path d="M204 262 Q242 266 272 280" />
+            <path d="M134 290 Q172 280 200 278" />
+            <path d="M200 278 Q232 280 266 290" />
+            <path d="M146 272 L168 262" />
+            <path d="M232 262 L254 272" />
+            <path d="M186 296 L174 288" />
+            <path d="M214 296 L226 288" />
+          </g>
+          {/* A little moss tucked into the near rim */}
+          <g fill="var(--ps-moss)" opacity="0.8">
+            <ellipse cx="146" cy="292" rx="11" ry="5" />
+            <ellipse cx="252" cy="291" rx="9" ry="4.5" />
+            <ellipse cx="200" cy="300" rx="13" ry="5" />
+          </g>
         </g>
 
         {/* --- Egg group (egg + hatching modes) ---
@@ -258,6 +293,9 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
             gives one clean egg silhouette. Proportions are a natural egg
             (~1.45 tall:wide), not an elongated bean. */}
         <g className="pet-scene__egg">
+          {/* Breathing halo, and the shadow the egg drops into the nest */}
+          <circle className="pet-egg-halo" cx="200" cy="215" r="118" fill="url(#ps-egg-halo)" />
+          <ellipse className="pet-egg-shadow" cx="200" cy="298" rx="52" ry="11" fill="#000" opacity="0.35" />
           {/* Whole shell — ONE solid filled silhouette (no seam). Shown while
               the egg waits; hidden the instant hatching starts so the two
               halves below can take over and split apart. */}
@@ -292,8 +330,24 @@ export function PetScene({ mode = 'owl', equipped = {} }) {
               fill="url(#ps-egg)"
             />
           </g>
-          {/* Soft glossy highlight, upper-left */}
-          <ellipse cx="181" cy="180" rx="17" ry="27" fill="#ffffff" opacity="0.28" />
+          {/* Warm bounce from the hollow floor, then the glossy highlight */}
+          <path
+            className="pet-egg-shade"
+            d="M200 130
+               C 179 130, 148 168, 146 222
+               C 144 270, 170 300, 200 300
+               C 230 300, 256 270, 254 222
+               C 252 168, 221 130, 200 130 Z"
+            fill="url(#ps-egg-bounce)"
+          />
+          <ellipse cx="181" cy="178" rx="15" ry="26" fill="#ffffff" opacity="0.32" transform="rotate(-10 181 178)" />
+          <ellipse cx="188" cy="163" rx="5" ry="8" fill="#ffffff" opacity="0.55" transform="rotate(-16 188 163)" />
+          {/* Rim light picked up from the lit side of the trunk */}
+          <path
+            className="pet-egg-shade"
+            d="M166 152 C 152 176 147 202 147 226"
+            fill="none" stroke="var(--ps-egg-rim)" strokeWidth="3" strokeLinecap="round" opacity="0.75"
+          />
           {/* Speckles scattered over the lower two-thirds */}
           <g fill="#c2a06f" opacity="0.42" className="pet-egg-speckles">
             <ellipse cx="176" cy="212" rx="2.4" ry="1.5" />

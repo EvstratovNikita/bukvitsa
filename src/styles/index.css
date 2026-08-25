@@ -44,6 +44,16 @@
   --ps-leaf-line: #0e2415;
   --ps-leaf-vein: #4a6d51;
   --ps-grass: #0f2416;
+  --ps-egg-1: #fffdf6;
+  --ps-egg-2: #f6ecd6;
+  --ps-egg-3: #dcc59c;
+  --ps-egg-4: #a8895f;
+  --ps-egg-rim: rgba(214, 226, 255, 0.6);
+  --ps-nest-1: #6b4a24;
+  --ps-nest-2: #38240f;
+  --ps-nest-rim: #a67a3f;
+  --ps-nest-twig: #8a5f2c;
+  --ps-moss: #2c4a2a;
 
   /* Высота липкого баннера площадки; включается классом is-yandex. */
   --ad-safe: 0px;
@@ -100,6 +110,16 @@ html.is-yandex { --ad-safe: 60px; }
   --ps-leaf-line: #2c5628;
   --ps-leaf-vein: #cbe6b4;
   --ps-grass: #4a8446;
+  --ps-egg-1: #ffffff;
+  --ps-egg-2: #fbf3e2;
+  --ps-egg-3: #e6d2ac;
+  --ps-egg-4: #bb9c6f;
+  --ps-egg-rim: rgba(255, 250, 232, 0.85);
+  --ps-nest-1: #a97c40;
+  --ps-nest-2: #6a4720;
+  --ps-nest-rim: #d3a862;
+  --ps-nest-twig: #b98a45;
+  --ps-moss: #5d8f4a;
 }
 
 :root {
@@ -3285,6 +3305,19 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .pet-scene--hatching .pet-scene__owl-img { animation: pet-owl-pop 0.7s cubic-bezier(.2,1.4,.4,1) 1.9s forwards; }
 .pet-scene--hatching .pet-scene__sparks  { animation: pet-sparks 0.9s ease-out 1.8s forwards; transform-origin: 200px 180px; }
 
+.pet-egg-halo { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+.pet-scene--egg .pet-egg-halo { animation: pet-egg-glow 4.4s ease-in-out infinite; }
+@keyframes pet-egg-glow {
+  0%, 100% { opacity: 0.55; transform: scale(0.94); }
+  50%      { opacity: 1;    transform: scale(1.04); }
+}
+/* Once the shell splits, the halo and the drop shadow go with it. */
+.pet-scene--hatching .pet-egg-halo,
+.pet-scene--hatching .pet-egg-shadow,
+.pet-scene--hatching .pet-egg-shade { animation: pet-egg-fade 0.6s ease-out 1.5s forwards; }
+.pet-scene--owl .pet-egg-halo,
+.pet-scene--owl .pet-egg-shadow { opacity: 0; }
+
 @keyframes pet-egg-shake {
   0%, 100% { transform: translateX(0)    rotate(0); }
   25%      { transform: translateX(-5px) rotate(-3deg); }
@@ -3615,11 +3648,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Сцена растянута на всю ширину колонки, поэтому высоту кадра задаёт
-     именно она. Сужаем колонку на низких экранах, иначе дупло съедает
-     две трети высоты. Пропорцию кадра трогать нельзя: сова — отдельный
-     элемент в долях от него, и при леттербоксе она уедет с дупла. */
-  max-width: min(560px, calc(50vh * 400 / 360));
+  max-width: 560px;
   margin: 0 auto;
   width: 100%;
   min-height: 0;
@@ -3629,7 +3658,12 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
      wrapper only supplies the rounded clip. */
   display: block;
   flex-shrink: 0;
+  /* Высоту кадра задаёт его ширина — пропорцию менять нельзя: сова
+     отдельный элемент в долях от этого блока, при леттербоксе она уедет
+     с дупла. Поэтому ужимаем кадр целиком, по бюджету высоты экрана. */
   width: 100%;
+  max-width: min(100%, max(190px, 34vh * 400 / 360));
+  margin: 0 auto;
   overflow: hidden;
   background: var(--ps-sky-3);
   border-radius: 16px;
