@@ -3219,9 +3219,11 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- Pet scene + hatching animation ---------- */
 .pet-scene {
   position: relative;
-  width: 80%;
-  max-width: 256px;       /* tree+owl stay compact (-20% vs original 320) */
-  margin: 0 auto;
+  /* Fills the frame. The owl is a separate element sized as a share of this
+     box, so the box must keep the SVG's ratio — any letterboxing here would
+     slide the owl off the hollow. */
+  width: 100%;
+  margin: 0;
   /* Match the SVG viewBox so the owl isn't letterboxed/cropped. */
   aspect-ratio: 400 / 360;
   border-radius: 16px;
@@ -3613,24 +3615,27 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-width: 560px;
+  /* Сцена растянута на всю ширину колонки, поэтому высоту кадра задаёт
+     именно она. Сужаем колонку на низких экранах, иначе дупло съедает
+     две трети высоты. Пропорцию кадра трогать нельзя: сова — отдельный
+     элемент в долях от него, и при леттербоксе она уедет с дупла. */
+  max-width: min(560px, calc(50vh * 400 / 360));
   margin: 0 auto;
   width: 100%;
   min-height: 0;
 }
 .pet-screen__scene {
-  /* Full-width backdrop wrap — the sky gradient stretches across the body
-     while the actual tree/owl scene stays centred and compact. */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  /* The scene fills this frame edge to edge — it paints its own sky, so the
+     wrapper only supplies the rounded clip. */
+  display: block;
   flex-shrink: 0;
   width: 100%;
-  padding: 12px 0;
-  background: linear-gradient(180deg, #1a2138 0%, #0c1020 100%);
+  overflow: hidden;
+  background: var(--ps-sky-3);
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
+[data-theme="light"] .pet-screen__scene { border-color: rgba(0, 0, 0, 0.10); }
 .pet-screen__caption {
   text-align: center;
   font-size: 14px;
