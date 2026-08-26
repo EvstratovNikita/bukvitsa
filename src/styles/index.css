@@ -5679,10 +5679,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   background: linear-gradient(135deg, rgba(108, 140, 255, 0.34), rgba(255, 255, 255, 0.86));
   border-color: rgba(60, 90, 220, 0.5);
 }
-[data-theme="light"] body.has-bg .key--absent {
-  background: rgba(226, 228, 234, 0.86);
-  border-color: rgba(0, 0, 0, 0.24);
-}
 
 /* Тёмная тема: заливка всегда тёмная, рамки — заметно светлее, почти белые. */
 [data-theme="dark"] body.has-bg .cell--empty .cell__face--front {
@@ -5702,10 +5698,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 [data-theme="dark"] body.has-bg .key--back:not(.key--correct):not(.key--present):not(.key--absent) {
   background: linear-gradient(135deg, rgba(108, 140, 255, 0.30), rgba(10, 13, 21, 0.72));
   border-color: rgba(160, 185, 255, 0.62);
-}
-[data-theme="dark"] body.has-bg .key--absent {
-  background: rgba(8, 10, 16, 0.80);
-  border-color: rgba(255, 255, 255, 0.24);
 }
 
 /* ---------- Подсказанная буква (проекция) ----------
