@@ -5657,37 +5657,37 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 
 /* Светлая тема: молочная подложка, рамка заметно темнее фона. */
 [data-theme="light"] body.has-bg .cell--empty .cell__face--front {
-  background: rgba(255, 255, 255, 0.62);
+  background: #ffffff;
   border-color: rgba(0, 0, 0, 0.34);
 }
 [data-theme="light"] body.has-bg .key:not(.key--correct):not(.key--present):not(.key--absent) {
-  background: rgba(255, 255, 255, 0.80);
+  background: #ffffff;
   border-color: rgba(0, 0, 0, 0.30);
   color: #1a1d28;
 }
 [data-theme="light"] body.has-bg .key--enter:not(.key--correct):not(.key--present):not(.key--absent),
 [data-theme="light"] body.has-bg .key--back:not(.key--correct):not(.key--present):not(.key--absent) {
-  background: rgba(226, 233, 255, 0.92);
+  background: #e2e9ff;
   border-color: rgba(60, 90, 220, 0.5);
 }
 
 /* Тёмная тема: заливка всегда тёмная, рамки — заметно светлее, почти белые. */
 [data-theme="dark"] body.has-bg .cell--empty .cell__face--front {
-  background: rgba(9, 12, 19, 0.55);
+  background: #11151c;
   border-color: rgba(255, 255, 255, 0.42);
 }
 [data-theme="dark"] body.has-bg .cell--tbd .cell__face--front,
 [data-theme="dark"] body.has-bg .cell--flipping .cell__face--front {
-  background: rgba(12, 16, 26, 0.92);
+  background: #161b26;
   border-color: rgba(255, 255, 255, 0.58);
 }
 [data-theme="dark"] body.has-bg .key:not(.key--correct):not(.key--present):not(.key--absent) {
-  background: rgba(10, 13, 21, 0.66);
+  background: #1a2030;
   border-color: rgba(255, 255, 255, 0.38);
 }
 [data-theme="dark"] body.has-bg .key--enter:not(.key--correct):not(.key--present):not(.key--absent),
 [data-theme="dark"] body.has-bg .key--back:not(.key--correct):not(.key--present):not(.key--absent) {
-  background: rgba(28, 36, 66, 0.86);
+  background: #1c2442;
   border-color: rgba(160, 185, 255, 0.62);
 }
 
@@ -5712,11 +5712,11 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 body.has-bg .cell--hinted .cell__face--front,
 body.has-bg .cell--hinted .cell__face--back {
-  background: rgba(9, 12, 19, 0.5);
+  background: #11151c;
 }
 [data-theme="light"] body.has-bg .cell--hinted .cell__face--front,
 [data-theme="light"] body.has-bg .cell--hinted .cell__face--back {
-  background: rgba(255, 255, 255, 0.6);
+  background: #ffffff;
 }
 
 /* Кнопки «тема» и «+» в шапке. Раньше обе были серыми и терялись рядом с
@@ -5767,36 +5767,36 @@ body.has-bg .cell--hinted .cell__face--back {
    рамки почти не читались. Делаем фон плотным (0.88–0.94) и поднимаем
    контраст рамок — панель держится на любом фоне. */
 .coins {
-  background: rgba(52, 40, 12, 0.88);
-  border-color: rgba(247, 201, 72, 0.8);
+  background: #473715;
+  border-color: rgba(247, 201, 72, 0.85);
 }
 .energy {
-  background: rgba(24, 31, 58, 0.88);
-  border-color: rgba(130, 160, 255, 0.75);
+  background: #313d6e;
+  border-color: rgba(150, 175, 255, 0.85);
 }
 .energy--empty {
-  background: rgba(56, 24, 26, 0.88);
-  border-color: rgba(255, 140, 140, 0.8);
+  background: #632c34;
+  border-color: rgba(255, 150, 150, 0.85);
 }
 .hint-btn {
-  background: rgba(26, 30, 58, 0.88);
-  border-color: rgba(140, 160, 255, 0.72);
+  background: #303864;
+  border-color: rgba(150, 170, 255, 0.82);
 }
 
 [data-theme="light"] .coins {
-  background: rgba(255, 243, 208, 0.94);
+  background: #fff3d0;
   border-color: rgba(168, 118, 20, 0.85);
 }
 [data-theme="light"] .energy {
-  background: rgba(229, 236, 255, 0.94);
+  background: #e5ecff;
   border-color: rgba(52, 82, 210, 0.8);
 }
 [data-theme="light"] .energy--empty {
-  background: rgba(255, 228, 230, 0.94);
+  background: #ffe4e6;
   border-color: rgba(196, 44, 56, 0.8);
 }
 [data-theme="light"] .hint-btn {
-  background: rgba(233, 235, 255, 0.94);
+  background: #e9ebff;
   border-color: rgba(88, 96, 220, 0.8);
 }
 
