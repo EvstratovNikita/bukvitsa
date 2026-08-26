@@ -5838,3 +5838,66 @@ body.has-bg .cell--hinted .cell__face--back {
 @media (prefers-reduced-motion: reduce) {
   .hint-btn > svg { animation: none; }
 }
+
+/* ---------- Ровные заливки вместо градиентов ---------- */
+
+/* 1) Вкладки питомца: активная вкладка — ровный золотой тон. */
+.pet-tab--active {
+  background: #3d3316;
+}
+[data-theme="light"] .pet-tab--active {
+  background: #f7dd9c;
+}
+
+/* 2) Цены покупок — единый вид во всех местах: магазин, подсказки,
+   энергия, лакомства и украшения Букли. Ровная золотая плашка, а не
+   разные градиенты. */
+.hint-option__price,
+.pet-treat__price,
+[data-theme="light"] .hint-option__price,
+[data-theme="light"] .pet-treat__price,
+[data-theme="light"] .energy-option__price:not(.energy-option__price--ad) {
+  background: #473715;
+  border: 1px solid rgba(247, 201, 72, 0.55);
+  color: #ffd864;
+}
+[data-theme="light"] .hint-option__price,
+[data-theme="light"] .pet-treat__price,
+[data-theme="light"] .energy-option__price:not(.energy-option__price--ad) {
+  background: #fff3d0;
+  border-color: rgba(168, 118, 20, 0.7);
+  color: #6a3a04;
+}
+.hint-option__price svg,
+.pet-treat__price svg { color: #ffd864; }
+[data-theme="light"] .hint-option__price svg,
+[data-theme="light"] .pet-treat__price svg,
+[data-theme="light"] .energy-option__price:not(.energy-option__price--ad) svg { color: #8a5a10; }
+
+/* Кнопки-цены (магазин, украшения) — тот же ровный золотой тон, чтобы
+   цена везде читалась одинаково. */
+.shop-card__btn:not(.shop-card__btn--active),
+.pet-deco__btn--price {
+  background: #473715;
+  border: 1px solid rgba(247, 201, 72, 0.6);
+  color: #ffd864;
+}
+[data-theme="light"] .shop-card__btn:not(.shop-card__btn--active),
+[data-theme="light"] .pet-deco__btn--price {
+  background: #fff3d0;
+  border-color: rgba(168, 118, 20, 0.75);
+  color: #6a3a04;
+}
+.shop-card__btn:not(.shop-card__btn--active) svg,
+.pet-deco__btn--price svg { color: #ffd864; }
+[data-theme="light"] .shop-card__btn:not(.shop-card__btn--active) svg,
+[data-theme="light"] .pet-deco__btn--price svg { color: #8a5a10; }
+
+/* 3) Кнопки в шапке — непрозрачные заливки вместо полупрозрачных
+   градиентов: под обоями сквозь них проступал рисунок. */
+.iconbtn { background: var(--bg-2); }
+.iconbtn--theme { background: #3a2f12; }
+[data-theme="light"] .iconbtn--theme { background: #dde3ff; }
+.iconbtn--modes { background: #17331d; }
+[data-theme="light"] .iconbtn--modes { background: #d8f0dc; }
+.iconbtn--accent { background: var(--accent); color: #0b0d12; }
