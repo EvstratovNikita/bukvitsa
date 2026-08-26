@@ -23,7 +23,7 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
       <div className="header__lead">
         <button
           type="button"
-          className="iconbtn"
+          className="iconbtn iconbtn--theme"
           data-tour="theme"
           onClick={toggleTheme}
           onMouseDown={(e) => e.preventDefault()}

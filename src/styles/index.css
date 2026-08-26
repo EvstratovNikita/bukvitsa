@@ -288,16 +288,7 @@ button { font-family: inherit; }
 
 .header__actions { display: flex; gap: 8px; justify-content: flex-end; }
 .header__lead { display: flex; gap: 8px; align-items: center; }
-.iconbtn--modes {
-  background: linear-gradient(135deg, rgba(108, 200, 120, 0.30), rgba(108, 200, 120, 0.10));
-  border-color: rgba(108, 200, 120, 0.55);
-  color: #c4f0c8;
-}
-[data-theme="light"] .iconbtn--modes {
-  background: linear-gradient(135deg, rgba(40, 140, 60, 0.30), rgba(40, 140, 60, 0.14));
-  border-color: rgba(30, 110, 50, 0.65);
-  color: #154a23;
-}
+
 .iconbtn {
   width: clamp(28px, 4.75vh, 38px); height: clamp(28px, 4.75vh, 38px);
   display: inline-flex;
@@ -5726,4 +5717,35 @@ body.has-bg .cell--hinted .cell__face--back {
 [data-theme="light"] body.has-bg .cell--hinted .cell__face--front,
 [data-theme="light"] body.has-bg .cell--hinted .cell__face--back {
   background: rgba(255, 255, 255, 0.6);
+}
+
+/* Кнопки «тема» и «+» в шапке. Раньше обе были серыми и терялись рядом с
+   яркими бейджами монет и энергии — теперь у каждой свой цвет иконки,
+   контрастная рамка своего оттенка и мягкое свечение. */
+.iconbtn--modes {
+  background: linear-gradient(135deg, rgba(108, 200, 120, 0.42), rgba(108, 200, 120, 0.14));
+  border-color: rgba(126, 224, 140, 0.85);
+  color: #9df7ad;
+  box-shadow: 0 3px 12px rgba(80, 190, 110, 0.28);
+}
+[data-theme="light"] .iconbtn--modes {
+  background: linear-gradient(135deg, rgba(40, 160, 70, 0.38), rgba(40, 160, 70, 0.16));
+  border-color: rgba(22, 105, 46, 0.9);
+  color: #0d5b28;
+  box-shadow: 0 3px 12px rgba(30, 120, 60, 0.22);
+}
+
+/* Тёмная тема: на кнопке солнце (переключит на светлую) — тёплое золото. */
+.iconbtn--theme {
+  background: linear-gradient(135deg, rgba(247, 201, 72, 0.40), rgba(247, 201, 72, 0.12));
+  border-color: rgba(255, 216, 100, 0.85);
+  color: #ffd864;
+  box-shadow: 0 3px 12px rgba(247, 180, 40, 0.26);
+}
+/* Светлая тема: на кнопке месяц (переключит на тёмную) — холодный индиго. */
+[data-theme="light"] .iconbtn--theme {
+  background: linear-gradient(135deg, rgba(70, 100, 230, 0.30), rgba(70, 100, 230, 0.12));
+  border-color: rgba(45, 70, 190, 0.85);
+  color: #2b41b8;
+  box-shadow: 0 3px 12px rgba(60, 90, 220, 0.22);
 }
