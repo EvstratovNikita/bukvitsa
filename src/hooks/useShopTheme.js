@@ -26,6 +26,9 @@ export function useShopTheme() {
     const grad = resolveBackgroundGradient(activeBackground);
     document.body.style.backgroundImage = grad || '';
     document.body.style.backgroundColor = '';
+    // Под обоями клетки и клавиши получают собственную заливку и более
+    // контрастные рамки — иначе фон их «съедает» (см. body.has-bg в CSS).
+    document.body.classList.toggle('has-bg', Boolean(grad));
   }, [activeBackground]);
 
   // Cell style — toggle a single class on body so CSS handles the rest.

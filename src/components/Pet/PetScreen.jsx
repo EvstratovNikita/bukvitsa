@@ -40,7 +40,7 @@ export function PetScreen({ open, onClose }) {
     buyDecoration, equipDecoration, unequipDecorationSlot,
     showToast,
     petBond, petBondMax, petGiftReady, petGifts, claimPetGift,
-    setActiveBackground, setActiveCellStyle
+    setActiveBackground, setActiveCellStyle, setTheme
   } = useGameContext();
   // Rename intentionally disabled — pet is always "Букля" for now.
   const pet = stats.pet || {};
@@ -128,6 +128,9 @@ export function PetScreen({ open, onClose }) {
     if (g.type === 'background') {
       const isOn = stats.activeBackground === g.id;
       setActiveBackground?.(isOn ? null : g.id);
+      // Подарочные фоны нарисованы тёмными — включаем тёмную тему, иначе
+      // светлая палитра ляжет на тёмные обои (так же ведёт себя магазин).
+      if (!isOn) setTheme?.('dark');
       showToast?.(isOn ? 'Фон снят' : `Применён фон: ${g.name}`);
     } else {
       const isOn = stats.activeCellStyle === g.id;

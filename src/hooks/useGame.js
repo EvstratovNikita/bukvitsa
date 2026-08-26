@@ -642,6 +642,7 @@ export function useGame() {
     claimDailyReward: stats.claimDailyReward,
     buyItem: stats.buyItem,
     setActiveBackground: stats.setActiveBackground,
+    setTheme: stats.setTheme,
     setActiveCellStyle: stats.setActiveCellStyle,
     auth: stats.auth,
     addLetter,

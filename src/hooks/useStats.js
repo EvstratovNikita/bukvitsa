@@ -26,8 +26,25 @@ import { getItem } from '../data/shopItems.js';
 import { getDecoration, equippedDecorationsBonus, WING_KEYS } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
 import { reconcileBond, BOND_PER_GIFT } from '../utils/petBond.js';
-import { GIFT_IDS, nextUnclaimedGiftId } from '../data/petGifts.js';
+import { GIFT_IDS, nextUnclaimedGiftId, getGift } from '../data/petGifts.js';
 import { storage } from '../utils/storage.js';
+
+// К какой теме относится фон: у товаров магазина это поле theme, подарки
+// Букли нарисованы тёмными. Нужно, чтобы помнить выбор игрока отдельно
+// для светлого и тёмного режима.
+function backgroundTheme(id) {
+  if (!id) return null;
+  const shop = getItem(id);
+  if (shop?.category === 'background') return shop.theme || 'dark';
+  const gift = getGift(id);
+  if (gift?.type === 'background') return 'dark';
+  return null;
+}
+
+function ownsBackground(s, id) {
+  if (!id) return true;
+  return (s.inventory || []).includes(id) || (s.prefs?.petGifts || []).includes(id);
+}
 import { callRpc, serverPatch } from '../lib/economy.js';
 import { isYandex } from '../lib/yandex.js';
 import { useAuth } from './useAuth.js';
@@ -66,7 +83,8 @@ const DEFAULT_STATS = {
     enterOnLeft: false,     // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
     petBond: 0,             // привязанность к питомцу (0..BOND_PER_GIFT)
     petBondTickAt: null,    // ISO якоря последнего пересчёта bond
-    petGifts: []            // id уже полученных подарков (по порядку)
+    petGifts: [],           // id уже полученных подарков (по порядку)
+    bgByTheme: {}           // { dark: id|null, light: id|null } — последний фон в каждой теме
   },
   daily: {
     lastPlayedKey: null,    // 'YYYY-MM-DD' of the most recent daily attempt
@@ -729,8 +747,13 @@ export function useStats() {
         // theme it was designed for — switch the app theme to match so the
         // colours don't clash (same as onEquip in the shop).
         if (item.category === 'background') {
+          const slot = item.theme || 'dark';
           next.activeBackground = itemId;
-          next.prefs = { ...(s.prefs || DEFAULT_STATS.prefs), theme: item.theme || 'dark' };
+          next.prefs = {
+            ...(s.prefs || DEFAULT_STATS.prefs),
+            theme: slot,
+            bgByTheme: { ...((s.prefs?.bgByTheme) || {}), [slot]: itemId }
+          };
         }
         if (item.category === 'cells') next.activeCellStyle = itemId;
       }
@@ -741,7 +764,39 @@ export function useStats() {
   }, [stats.coins, stats.inventory, runEconomy]);
 
   const setActiveBackground = useCallback((itemId) => {
-    setStats((s) => ({ ...s, activeBackground: itemId || null }));
+    setStats((s) => {
+      const id = itemId || null;
+      // Запоминаем выбор для той темы, к которой фон относится (для снятия
+      // фона — для текущей). Тогда переключатель темы сможет вернуть игроку
+      // его же фон, а не оставить чужой поверх новой палитры.
+      const slot = backgroundTheme(id) || (s.prefs?.theme === 'light' ? 'light' : 'dark');
+      return {
+        ...s,
+        activeBackground: id,
+        prefs: {
+          ...(s.prefs || DEFAULT_STATS.prefs),
+          bgByTheme: { ...((s.prefs?.bgByTheme) || {}), [slot]: id }
+        }
+      };
+    });
+  }, []);
+
+  // Переключение темы из шапки. Фон нарисован под свою тему, поэтому просто
+  // сменить палитру мало — иначе тёмные обои остаются висеть над светлой
+  // темой и кажется, что тема не переключилась. Ставим фон, который игрок
+  // last выбирал в этой теме; если такого нет (или он больше не принадлежит
+  // игроку) — уходим на фон по умолчанию.
+  const setTheme = useCallback((next) => {
+    setStats((s) => {
+      const theme = next === 'light' ? 'light' : 'dark';
+      const remembered = s.prefs?.bgByTheme?.[theme] || null;
+      const bg = ownsBackground(s, remembered) ? remembered : null;
+      return {
+        ...s,
+        activeBackground: bg,
+        prefs: { ...(s.prefs || DEFAULT_STATS.prefs), theme }
+      };
+    });
   }, []);
 
   const setActiveCellStyle = useCallback((itemId) => {
@@ -971,6 +1026,7 @@ export function useStats() {
     buyItem,
     setActiveBackground,
     setActiveCellStyle,
+    setTheme,
     energy: effectiveEnergy,
     energyMax,
     petHunger: reconciled.hunger,

@@ -7,7 +7,7 @@ import { MenuButton } from '../Menu/Menu.jsx';
 export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
   // Stats moved into the side menu — the right slot now hosts Букля so the
   // pet is always one tap away without floating chrome over the board.
-  const { stats, petGiftReady, setPref } = useGameContext();
+  const { stats, petGiftReady, setTheme } = useGameContext();
   const hatched = Boolean(stats.pet?.hatched);
   // The egg is ready to hatch once the player has hit the unlock threshold but
   // hasn't opened the pet section yet — shout about it so they notice.
@@ -16,7 +16,7 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
   // Header now offers a one-tap theme switch (rules moved to the side menu).
   // Show the icon of the theme you'll switch TO: sun while dark, moon while light.
   const isLight = (stats.prefs?.theme || 'dark') === 'light';
-  const toggleTheme = () => setPref('theme', isLight ? 'dark' : 'light');
+  const toggleTheme = () => setTheme(isLight ? 'dark' : 'light');
 
   return (
     <header className="header">

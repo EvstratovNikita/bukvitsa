@@ -5656,3 +5656,54 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   .end-panel__title { font-size: 15.5px; }
   .end-panel__word { font-size: 12.5px; }
 }
+
+/* ---------- Купленный фон под интерфейсом (body.has-bg) ----------
+   Пустые клетки поля и клавиши по умолчанию почти прозрачные: на ровном
+   фоне это выглядит легко, но под обоями рисунок просвечивает сквозь них
+   и съедает буквы. Под обоями даём и клеткам, и клавишам собственную
+   полупрозрачную подложку и поднимаем контраст рамок. Правила в конце
+   файла — иначе их перебивают более поздние тематические блоки. */
+
+/* Светлая тема: молочная подложка, рамка заметно темнее фона. */
+[data-theme="light"] body.has-bg .cell--empty .cell__face--front {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(0, 0, 0, 0.34);
+}
+[data-theme="light"] body.has-bg .key {
+  background: rgba(255, 255, 255, 0.80);
+  border-color: rgba(0, 0, 0, 0.30);
+  color: #1a1d28;
+}
+[data-theme="light"] body.has-bg .key--enter,
+[data-theme="light"] body.has-bg .key--back {
+  background: linear-gradient(135deg, rgba(108, 140, 255, 0.34), rgba(255, 255, 255, 0.86));
+  border-color: rgba(60, 90, 220, 0.5);
+}
+[data-theme="light"] body.has-bg .key--absent {
+  background: rgba(226, 228, 234, 0.86);
+  border-color: rgba(0, 0, 0, 0.24);
+}
+
+/* Тёмная тема: заливка всегда тёмная, рамки — заметно светлее, почти белые. */
+[data-theme="dark"] body.has-bg .cell--empty .cell__face--front {
+  background: rgba(9, 12, 19, 0.55);
+  border-color: rgba(255, 255, 255, 0.42);
+}
+[data-theme="dark"] body.has-bg .cell--tbd .cell__face--front,
+[data-theme="dark"] body.has-bg .cell--flipping .cell__face--front {
+  background: rgba(12, 16, 26, 0.92);
+  border-color: rgba(255, 255, 255, 0.58);
+}
+[data-theme="dark"] body.has-bg .key {
+  background: rgba(10, 13, 21, 0.66);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+[data-theme="dark"] body.has-bg .key--enter,
+[data-theme="dark"] body.has-bg .key--back {
+  background: linear-gradient(135deg, rgba(108, 140, 255, 0.30), rgba(10, 13, 21, 0.72));
+  border-color: rgba(160, 185, 255, 0.62);
+}
+[data-theme="dark"] body.has-bg .key--absent {
+  background: rgba(8, 10, 16, 0.80);
+  border-color: rgba(255, 255, 255, 0.24);
+}
