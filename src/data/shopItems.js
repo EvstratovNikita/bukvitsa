@@ -95,66 +95,72 @@ const CLOUDS = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='
   </g>
 </svg>`);
 
-// Ягоды — крупные, редкие. Мелкий частый узор рябил в глазах, поэтому
-// на плитку 340x340 приходится всего три ягоды: объёмная заливка
-// градиентом, ободок, блик, лист с прожилкой и мягкая тень под ягодой.
-const BERRIES = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+// Ягоды — настоящие: малина и ежевика костяшками, черника с чашечкой,
+// вишня парой на черешке. Мельче прежних и разнесены по краям плитки:
+// крупные кружки в центре закрывались доской и рябили.
+const BERRIES = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'>
   <defs>
     <radialGradient id='braspberry' cx='34%' cy='28%' r='78%'>
-      <stop offset='0%' stop-color='#ff97a1'/>
-      <stop offset='45%' stop-color='#e03a4c'/>
-      <stop offset='100%' stop-color='#9c1026'/>
+      <stop offset='0%' stop-color='#ff9fae'/>
+      <stop offset='55%' stop-color='#e2455e'/>
+      <stop offset='100%' stop-color='#9d1030'/>
     </radialGradient>
-    <radialGradient id='bblue' cx='34%' cy='28%' r='78%'>
-      <stop offset='0%' stop-color='#9db0ff'/>
-      <stop offset='45%' stop-color='#4657d6'/>
-      <stop offset='100%' stop-color='#1f2782'/>
+    <radialGradient id='bblack' cx='34%' cy='28%' r='78%'>
+      <stop offset='0%' stop-color='#8d6ba8'/>
+      <stop offset='55%' stop-color='#432a63'/>
+      <stop offset='100%' stop-color='#1b0f2c'/>
     </radialGradient>
-    <radialGradient id='bplum' cx='34%' cy='28%' r='78%'>
-      <stop offset='0%' stop-color='#d59ae2'/>
-      <stop offset='45%' stop-color='#8b34a8'/>
-      <stop offset='100%' stop-color='#421358'/>
+    <radialGradient id='bblue' cx='34%' cy='26%' r='80%'>
+      <stop offset='0%' stop-color='#8fa6e8'/>
+      <stop offset='55%' stop-color='#3f56b4'/>
+      <stop offset='100%' stop-color='#141c56'/>
+    </radialGradient>
+    <radialGradient id='bcherry' cx='32%' cy='26%' r='78%'>
+      <stop offset='0%' stop-color='#ff8a86'/>
+      <stop offset='55%' stop-color='#d61f38'/>
+      <stop offset='100%' stop-color='#7c0716'/>
     </radialGradient>
     <linearGradient id='bleaf' x1='0' y1='0' x2='1' y2='1'>
-      <stop offset='0%' stop-color='#86cc82'/>
-      <stop offset='100%' stop-color='#2c7739'/>
+      <stop offset='0%' stop-color='#8ed489'/>
+      <stop offset='100%' stop-color='#2d7a3a'/>
     </linearGradient>
-    <radialGradient id='bshade'>
-      <stop offset='0%' stop-color='#9a5b3a' stop-opacity='0.26'/>
-      <stop offset='100%' stop-color='#9a5b3a' stop-opacity='0'/>
-    </radialGradient>
   </defs>
-  <g opacity='0.82'>
-  <g transform='translate(84 92) scale(0.82) rotate(-8)'>
-    <ellipse cx='0' cy='36' rx='30' ry='8' fill='url(%23bshade)'/>
-    <circle cx='0' cy='0' r='28' fill='url(%23braspberry)'/>
-    <circle cx='0' cy='0' r='27.4' fill='none' stroke='#7d0f22' stroke-opacity='0.38' stroke-width='1.4'/>
-    <path d='M0 -25 C -3 -38 -13 -47 -26 -47 C -24 -33 -13 -25 0 -25 Z' fill='url(%23bleaf)'/>
-    <path d='M-3 -28 C -9 -34 -17 -41 -24 -45' stroke='#1f5c2b' stroke-opacity='0.5' stroke-width='1.1' fill='none' stroke-linecap='round'/>
-    <path d='M0 -26 C 2 -34 5 -41 9 -45' stroke='#2f7a3c' stroke-width='2.6' stroke-linecap='round' fill='none'/>
-    <ellipse cx='-9' cy='-10' rx='8.5' ry='5.4' transform='rotate(-28 -9 -10)' fill='#ffffff' opacity='0.42'/>
-    <circle cx='8' cy='-14' r='2.4' fill='#ffffff' opacity='0.28'/>
-  </g>
-  <g transform='translate(246 176) scale(0.62) rotate(12)'>
-    <ellipse cx='0' cy='36' rx='30' ry='8' fill='url(%23bshade)'/>
-    <circle cx='0' cy='0' r='28' fill='url(%23bblue)'/>
-    <circle cx='0' cy='0' r='27.4' fill='none' stroke='#171d63' stroke-opacity='0.38' stroke-width='1.4'/>
-    <path d='M0 -25 C -3 -38 -13 -47 -26 -47 C -24 -33 -13 -25 0 -25 Z' fill='url(%23bleaf)'/>
-    <path d='M-3 -28 C -9 -34 -17 -41 -24 -45' stroke='#1f5c2b' stroke-opacity='0.5' stroke-width='1.1' fill='none' stroke-linecap='round'/>
-    <path d='M0 -26 C 2 -34 5 -41 9 -45' stroke='#2f7a3c' stroke-width='2.6' stroke-linecap='round' fill='none'/>
-    <ellipse cx='-9' cy='-10' rx='8.5' ry='5.4' transform='rotate(-28 -9 -10)' fill='#ffffff' opacity='0.42'/>
-    <circle cx='8' cy='-14' r='2.4' fill='#ffffff' opacity='0.28'/>
-  </g>
-  <g transform='translate(160 286) scale(0.72) rotate(-4)'>
-    <ellipse cx='0' cy='36' rx='30' ry='8' fill='url(%23bshade)'/>
-    <circle cx='0' cy='0' r='28' fill='url(%23bplum)'/>
-    <circle cx='0' cy='0' r='27.4' fill='none' stroke='#3a1050' stroke-opacity='0.38' stroke-width='1.4'/>
-    <path d='M0 -25 C -3 -38 -13 -47 -26 -47 C -24 -33 -13 -25 0 -25 Z' fill='url(%23bleaf)'/>
-    <path d='M-3 -28 C -9 -34 -17 -41 -24 -45' stroke='#1f5c2b' stroke-opacity='0.5' stroke-width='1.1' fill='none' stroke-linecap='round'/>
-    <path d='M0 -26 C 2 -34 5 -41 9 -45' stroke='#2f7a3c' stroke-width='2.6' stroke-linecap='round' fill='none'/>
-    <ellipse cx='-9' cy='-10' rx='8.5' ry='5.4' transform='rotate(-28 -9 -10)' fill='#ffffff' opacity='0.42'/>
-    <circle cx='8' cy='-14' r='2.4' fill='#ffffff' opacity='0.28'/>
-  </g>
+  <g opacity='0.85'>
+    <g transform='translate(26 44) scale(0.9) rotate(-6)'><g><path d='M0 -12 C -3 -20 -10 -25 -19 -25 C -18 -16 -10 -11 0 -12 Z' fill='url(%23bleaf)'/><path d='M-2 -13 C -7 -17 -13 -21 -18 -23' stroke='#1f5c2b' stroke-opacity='0.45' stroke-width='0.8' fill='none'/><circle cx='-9' cy='-3' r='4.6' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='0' cy='-5' r='4.8' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='9' cy='-3' r='4.6' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-13' cy='4' r='4.4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-4.5' cy='3' r='5' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='4.5' cy='3' r='5' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='13' cy='4' r='4.4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-8' cy='10' r='4.3' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='0' cy='11' r='4.6' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='8' cy='10' r='4.3' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-3' cy='17' r='4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='4' cy='17' r='4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><ellipse cx='-5' cy='-1' rx='5' ry='3' transform='rotate(-25 -5 -1)' fill='#ffffff' opacity='0.35'/></g></g>
+    <g transform='translate(232 28) scale(0.95) rotate(0)'><g>
+    <circle cx='0' cy='0' r='13' fill='url(%23bblue)'/>
+    <circle cx='0' cy='0' r='12.6' fill='none' stroke='#141a5e' stroke-opacity='0.4' stroke-width='0.9'/>
+    <path d='M0 -13 l3 4 4.5 -1.5 -2 4.3 3 3.6 -4.7 0.6 -1.6 4.5 -2.2 -4.2 -4.8 0 2.6 -4 -2.6 -4 4.8 0.3 Z' transform='translate(0 -1) scale(0.62)' fill='#2b3a86' opacity='0.75'/>
+    <ellipse cx='-4.5' cy='-5' rx='4.4' ry='2.8' transform='rotate(-28 -4.5 -5)' fill='#ffffff' opacity='0.34'/>
+    <ellipse cx='3' cy='6' rx='6' ry='3.4' fill='#ffffff' opacity='0.07'/>
+  </g></g>
+    <g transform='translate(206 120) scale(0.85) rotate(4)'><g>
+    <path d='M-7 -6 C -6 -16 2 -22 9 -24' stroke='#5c8a3a' stroke-width='1.6' fill='none' stroke-linecap='round'/>
+    <path d='M7 -5 C 8 -14 10 -20 10 -24' stroke='#5c8a3a' stroke-width='1.6' fill='none' stroke-linecap='round'/>
+    <path d='M9 -24 C 4 -30 -4 -31 -11 -28 C -6 -22 1 -21 9 -24 Z' fill='url(%23bleaf)'/>
+    <circle cx='-7' cy='2' r='9' fill='url(%23bcherry)'/>
+    <circle cx='8' cy='4' r='8' fill='url(%23bcherry)'/>
+    <ellipse cx='-10' cy='-1.5' rx='3.4' ry='2.2' transform='rotate(-30 -10 -1.5)' fill='#ffffff' opacity='0.4'/>
+    <ellipse cx='5.5' cy='1' rx='2.8' ry='1.8' transform='rotate(-30 5.5 1)' fill='#ffffff' opacity='0.34'/>
+  </g></g>
+    <g transform='translate(44 152) scale(0.85) rotate(8)'><g><path d='M0 -12 C -3 -20 -10 -25 -19 -25 C -18 -16 -10 -11 0 -12 Z' fill='url(%23bleaf)'/><path d='M-2 -13 C -7 -17 -13 -21 -18 -23' stroke='#1f5c2b' stroke-opacity='0.45' stroke-width='0.8' fill='none'/><circle cx='-9' cy='-3' r='4.6' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='0' cy='-5' r='4.8' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='9' cy='-3' r='4.6' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-13' cy='4' r='4.4' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-4.5' cy='3' r='5' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='4.5' cy='3' r='5' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='13' cy='4' r='4.4' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-8' cy='10' r='4.3' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='0' cy='11' r='4.6' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='8' cy='10' r='4.3' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-3' cy='17' r='4' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='4' cy='17' r='4' fill='url(%23bblack)' stroke='#1d0f28' stroke-opacity='0.35' stroke-width='0.5'/><ellipse cx='-5' cy='-1' rx='5' ry='3' transform='rotate(-25 -5 -1)' fill='#ffffff' opacity='0.26'/></g></g>
+    <g transform='translate(120 214) scale(0.8) rotate(0)'><g>
+    <circle cx='0' cy='0' r='13' fill='url(%23bblue)'/>
+    <circle cx='0' cy='0' r='12.6' fill='none' stroke='#141a5e' stroke-opacity='0.4' stroke-width='0.9'/>
+    <path d='M0 -13 l3 4 4.5 -1.5 -2 4.3 3 3.6 -4.7 0.6 -1.6 4.5 -2.2 -4.2 -4.8 0 2.6 -4 -2.6 -4 4.8 0.3 Z' transform='translate(0 -1) scale(0.62)' fill='#2b3a86' opacity='0.75'/>
+    <ellipse cx='-4.5' cy='-5' rx='4.4' ry='2.8' transform='rotate(-28 -4.5 -5)' fill='#ffffff' opacity='0.34'/>
+    <ellipse cx='3' cy='6' rx='6' ry='3.4' fill='#ffffff' opacity='0.07'/>
+  </g></g>
+    <g transform='translate(244 214) scale(0.75) rotate(10)'><g><path d='M0 -12 C -3 -20 -10 -25 -19 -25 C -18 -16 -10 -11 0 -12 Z' fill='url(%23bleaf)'/><path d='M-2 -13 C -7 -17 -13 -21 -18 -23' stroke='#1f5c2b' stroke-opacity='0.45' stroke-width='0.8' fill='none'/><circle cx='-9' cy='-3' r='4.6' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='0' cy='-5' r='4.8' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='9' cy='-3' r='4.6' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-13' cy='4' r='4.4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-4.5' cy='3' r='5' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='4.5' cy='3' r='5' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='13' cy='4' r='4.4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-8' cy='10' r='4.3' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='0' cy='11' r='4.6' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='8' cy='10' r='4.3' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='-3' cy='17' r='4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><circle cx='4' cy='17' r='4' fill='url(%23braspberry)' stroke='#7d0f22' stroke-opacity='0.35' stroke-width='0.5'/><ellipse cx='-5' cy='-1' rx='5' ry='3' transform='rotate(-25 -5 -1)' fill='#ffffff' opacity='0.35'/></g></g>
+    <g transform='translate(74 246) scale(0.7) rotate(-8)'><g>
+    <path d='M-7 -6 C -6 -16 2 -22 9 -24' stroke='#5c8a3a' stroke-width='1.6' fill='none' stroke-linecap='round'/>
+    <path d='M7 -5 C 8 -14 10 -20 10 -24' stroke='#5c8a3a' stroke-width='1.6' fill='none' stroke-linecap='round'/>
+    <path d='M9 -24 C 4 -30 -4 -31 -11 -28 C -6 -22 1 -21 9 -24 Z' fill='url(%23bleaf)'/>
+    <circle cx='-7' cy='2' r='9' fill='url(%23bcherry)'/>
+    <circle cx='8' cy='4' r='8' fill='url(%23bcherry)'/>
+    <ellipse cx='-10' cy='-1.5' rx='3.4' ry='2.2' transform='rotate(-30 -10 -1.5)' fill='#ffffff' opacity='0.4'/>
+    <ellipse cx='5.5' cy='1' rx='2.8' ry='1.8' transform='rotate(-30 5.5 1)' fill='#ffffff' opacity='0.34'/>
+  </g></g>
   </g>
 </svg>`);
 

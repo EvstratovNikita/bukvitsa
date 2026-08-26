@@ -5806,3 +5806,35 @@ body.has-bg .cell--hinted .cell__face--back {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border-color: transparent;
 }
+
+/* ---------- Кнопка подсказки: белая надпись, светящаяся лампочка ----------
+   На плотной синей подложке акцентный синий текст читался плохо. Текст
+   белый, лампочка — тёплое золото с мягкой пульсацией, будто светится. */
+.hint-btn { color: #ffffff; }
+.hint-btn > svg {
+  color: #ffd864;
+  filter: drop-shadow(0 0 3px rgba(247, 201, 72, 0.55));
+  animation: hint-bulb-glow 2.6s ease-in-out infinite;
+}
+@keyframes hint-bulb-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(247, 201, 72, 0.35)); opacity: 0.9; }
+  50%      { filter: drop-shadow(0 0 7px rgba(255, 216, 100, 0.9)); opacity: 1; }
+}
+/* Светлая тема: белым по светлой плашке не прочесть — тёмно-синий текст,
+   лампочка густо-янтарная. */
+[data-theme="light"] .hint-btn { color: #1f2a6b; }
+[data-theme="light"] .hint-btn > svg {
+  color: #b57d06;
+  filter: drop-shadow(0 0 3px rgba(200, 140, 10, 0.4));
+  animation-name: hint-bulb-glow-light;
+}
+@keyframes hint-bulb-glow-light {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(200, 140, 10, 0.30)); opacity: 0.9; }
+  50%      { filter: drop-shadow(0 0 6px rgba(230, 165, 20, 0.75)); opacity: 1; }
+}
+/* В режиме выбора буквы кнопка заливная акцентная — там свои цвета. */
+.hint-btn--active { color: #0b0d12; }
+.hint-btn--active > svg { color: #0b0d12; filter: none; animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hint-btn > svg { animation: none; }
+}
