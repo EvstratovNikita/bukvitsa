@@ -95,28 +95,66 @@ const CLOUDS = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='240' height='
   </g>
 </svg>`);
 
-// Berries — scattered red/blue dots with green leaves.
-const BERRIES = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
-  <g>
-    <circle cx='30'  cy='40' r='6' fill='#d62b3a'/>
-    <circle cx='38'  cy='38' r='4' fill='#ff5c6a' opacity='0.7'/>
-    <path d='M28 34 Q32 28 38 34' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
-
-    <circle cx='110' cy='60' r='6' fill='#3a4cd8'/>
-    <circle cx='118' cy='58' r='4' fill='#7a8cff' opacity='0.65'/>
-    <path d='M108 54 Q112 48 118 54' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
-
-    <circle cx='170' cy='110' r='6' fill='#d62b3a'/>
-    <circle cx='178' cy='108' r='4' fill='#ff5c6a' opacity='0.7'/>
-    <path d='M168 104 Q172 98 178 104' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
-
-    <circle cx='60'  cy='140' r='6' fill='#3a4cd8'/>
-    <circle cx='68'  cy='138' r='4' fill='#7a8cff' opacity='0.65'/>
-    <path d='M58 134 Q62 128 68 134' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
-
-    <circle cx='140' cy='170' r='6' fill='#d62b3a'/>
-    <circle cx='148' cy='168' r='4' fill='#ff5c6a' opacity='0.7'/>
-    <path d='M138 164 Q142 158 148 164' stroke='#3a8a3a' stroke-width='2' fill='none' stroke-linecap='round'/>
+// Ягоды — крупные, редкие. Мелкий частый узор рябил в глазах, поэтому
+// на плитку 340x340 приходится всего три ягоды: объёмная заливка
+// градиентом, ободок, блик, лист с прожилкой и мягкая тень под ягодой.
+const BERRIES = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+  <defs>
+    <radialGradient id='braspberry' cx='34%' cy='28%' r='78%'>
+      <stop offset='0%' stop-color='#ff97a1'/>
+      <stop offset='45%' stop-color='#e03a4c'/>
+      <stop offset='100%' stop-color='#9c1026'/>
+    </radialGradient>
+    <radialGradient id='bblue' cx='34%' cy='28%' r='78%'>
+      <stop offset='0%' stop-color='#9db0ff'/>
+      <stop offset='45%' stop-color='#4657d6'/>
+      <stop offset='100%' stop-color='#1f2782'/>
+    </radialGradient>
+    <radialGradient id='bplum' cx='34%' cy='28%' r='78%'>
+      <stop offset='0%' stop-color='#d59ae2'/>
+      <stop offset='45%' stop-color='#8b34a8'/>
+      <stop offset='100%' stop-color='#421358'/>
+    </radialGradient>
+    <linearGradient id='bleaf' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0%' stop-color='#86cc82'/>
+      <stop offset='100%' stop-color='#2c7739'/>
+    </linearGradient>
+    <radialGradient id='bshade'>
+      <stop offset='0%' stop-color='#9a5b3a' stop-opacity='0.26'/>
+      <stop offset='100%' stop-color='#9a5b3a' stop-opacity='0'/>
+    </radialGradient>
+  </defs>
+  <g opacity='0.82'>
+  <g transform='translate(84 92) scale(0.82) rotate(-8)'>
+    <ellipse cx='0' cy='36' rx='30' ry='8' fill='url(%23bshade)'/>
+    <circle cx='0' cy='0' r='28' fill='url(%23braspberry)'/>
+    <circle cx='0' cy='0' r='27.4' fill='none' stroke='#7d0f22' stroke-opacity='0.38' stroke-width='1.4'/>
+    <path d='M0 -25 C -3 -38 -13 -47 -26 -47 C -24 -33 -13 -25 0 -25 Z' fill='url(%23bleaf)'/>
+    <path d='M-3 -28 C -9 -34 -17 -41 -24 -45' stroke='#1f5c2b' stroke-opacity='0.5' stroke-width='1.1' fill='none' stroke-linecap='round'/>
+    <path d='M0 -26 C 2 -34 5 -41 9 -45' stroke='#2f7a3c' stroke-width='2.6' stroke-linecap='round' fill='none'/>
+    <ellipse cx='-9' cy='-10' rx='8.5' ry='5.4' transform='rotate(-28 -9 -10)' fill='#ffffff' opacity='0.42'/>
+    <circle cx='8' cy='-14' r='2.4' fill='#ffffff' opacity='0.28'/>
+  </g>
+  <g transform='translate(246 176) scale(0.62) rotate(12)'>
+    <ellipse cx='0' cy='36' rx='30' ry='8' fill='url(%23bshade)'/>
+    <circle cx='0' cy='0' r='28' fill='url(%23bblue)'/>
+    <circle cx='0' cy='0' r='27.4' fill='none' stroke='#171d63' stroke-opacity='0.38' stroke-width='1.4'/>
+    <path d='M0 -25 C -3 -38 -13 -47 -26 -47 C -24 -33 -13 -25 0 -25 Z' fill='url(%23bleaf)'/>
+    <path d='M-3 -28 C -9 -34 -17 -41 -24 -45' stroke='#1f5c2b' stroke-opacity='0.5' stroke-width='1.1' fill='none' stroke-linecap='round'/>
+    <path d='M0 -26 C 2 -34 5 -41 9 -45' stroke='#2f7a3c' stroke-width='2.6' stroke-linecap='round' fill='none'/>
+    <ellipse cx='-9' cy='-10' rx='8.5' ry='5.4' transform='rotate(-28 -9 -10)' fill='#ffffff' opacity='0.42'/>
+    <circle cx='8' cy='-14' r='2.4' fill='#ffffff' opacity='0.28'/>
+  </g>
+  <g transform='translate(160 286) scale(0.72) rotate(-4)'>
+    <ellipse cx='0' cy='36' rx='30' ry='8' fill='url(%23bshade)'/>
+    <circle cx='0' cy='0' r='28' fill='url(%23bplum)'/>
+    <circle cx='0' cy='0' r='27.4' fill='none' stroke='#3a1050' stroke-opacity='0.38' stroke-width='1.4'/>
+    <path d='M0 -25 C -3 -38 -13 -47 -26 -47 C -24 -33 -13 -25 0 -25 Z' fill='url(%23bleaf)'/>
+    <path d='M-3 -28 C -9 -34 -17 -41 -24 -45' stroke='#1f5c2b' stroke-opacity='0.5' stroke-width='1.1' fill='none' stroke-linecap='round'/>
+    <path d='M0 -26 C 2 -34 5 -41 9 -45' stroke='#2f7a3c' stroke-width='2.6' stroke-linecap='round' fill='none'/>
+    <ellipse cx='-9' cy='-10' rx='8.5' ry='5.4' transform='rotate(-28 -9 -10)' fill='#ffffff' opacity='0.42'/>
+    <circle cx='8' cy='-14' r='2.4' fill='#ffffff' opacity='0.28'/>
+  </g>
   </g>
 </svg>`);
 

@@ -21,6 +21,9 @@ export function Cell({
     'cell',
     `cell--${dataStatus}`,
     revealing && 'cell--flipping',
+    // Подсказка — только проекция буквы: её всё равно нужно набрать
+    // самому, поэтому выглядит она иначе, чем введённая буква.
+    showHint && 'cell--hinted',
     popOnInput && 'cell--pop',
     pickable && 'cell--pick'
   ].filter(Boolean).join(' ');

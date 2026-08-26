@@ -5669,13 +5669,13 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   background: rgba(255, 255, 255, 0.62);
   border-color: rgba(0, 0, 0, 0.34);
 }
-[data-theme="light"] body.has-bg .key {
+[data-theme="light"] body.has-bg .key:not(.key--correct):not(.key--present):not(.key--absent) {
   background: rgba(255, 255, 255, 0.80);
   border-color: rgba(0, 0, 0, 0.30);
   color: #1a1d28;
 }
-[data-theme="light"] body.has-bg .key--enter,
-[data-theme="light"] body.has-bg .key--back {
+[data-theme="light"] body.has-bg .key--enter:not(.key--correct):not(.key--present):not(.key--absent),
+[data-theme="light"] body.has-bg .key--back:not(.key--correct):not(.key--present):not(.key--absent) {
   background: linear-gradient(135deg, rgba(108, 140, 255, 0.34), rgba(255, 255, 255, 0.86));
   border-color: rgba(60, 90, 220, 0.5);
 }
@@ -5694,16 +5694,44 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   background: rgba(12, 16, 26, 0.92);
   border-color: rgba(255, 255, 255, 0.58);
 }
-[data-theme="dark"] body.has-bg .key {
+[data-theme="dark"] body.has-bg .key:not(.key--correct):not(.key--present):not(.key--absent) {
   background: rgba(10, 13, 21, 0.66);
   border-color: rgba(255, 255, 255, 0.38);
 }
-[data-theme="dark"] body.has-bg .key--enter,
-[data-theme="dark"] body.has-bg .key--back {
+[data-theme="dark"] body.has-bg .key--enter:not(.key--correct):not(.key--present):not(.key--absent),
+[data-theme="dark"] body.has-bg .key--back:not(.key--correct):not(.key--present):not(.key--absent) {
   background: linear-gradient(135deg, rgba(108, 140, 255, 0.30), rgba(10, 13, 21, 0.72));
   border-color: rgba(160, 185, 255, 0.62);
 }
 [data-theme="dark"] body.has-bg .key--absent {
   background: rgba(8, 10, 16, 0.80);
   border-color: rgba(255, 255, 255, 0.24);
+}
+
+/* ---------- Подсказанная буква (проекция) ----------
+   Открытая за монеты буква показывается бледной, курсивом и в пунктирной
+   рамке: сразу видно, что она ещё не введена и её нужно набрать. Как
+   только игрок наберёт букву сам, клетка становится обычной. */
+.cell--hinted .cell__face--front,
+.cell--hinted .cell__face--back {
+  border-style: dashed;
+  border-color: var(--accent);
+  background: transparent;
+  color: var(--accent-2);
+  opacity: 0.72;
+  font-style: italic;
+}
+[data-theme="light"] .cell--hinted .cell__face--front,
+[data-theme="light"] .cell--hinted .cell__face--back {
+  border-color: rgba(60, 90, 220, 0.75);
+  color: #2b41b8;
+  opacity: 0.8;
+}
+body.has-bg .cell--hinted .cell__face--front,
+body.has-bg .cell--hinted .cell__face--back {
+  background: rgba(9, 12, 19, 0.5);
+}
+[data-theme="light"] body.has-bg .cell--hinted .cell__face--front,
+[data-theme="light"] body.has-bg .cell--hinted .cell__face--back {
+  background: rgba(255, 255, 255, 0.6);
 }
