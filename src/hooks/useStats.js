@@ -129,21 +129,10 @@ const DEFAULT_STATS = {
   }
 };
 
-// TEMP-TESTCOINS — тестовая раздача монет всем игрокам. Откат: удалить всё,
-// что помечено TEMP-TESTCOINS (grep -rn "TEMP-TESTCOINS" src/).
-const TEST_COIN_GRANT = 10000;
-const TEST_GRANT_FLAG = 'testGrantV1';
-
-// Выдаём разово и помечаем флагом — иначе траты откатывались бы к 10000.
-function applyTestGrant(s) {
-  if (s[TEST_GRANT_FLAG]) return s;
-  return { ...s, coins: (s.coins || 0) + TEST_COIN_GRANT, [TEST_GRANT_FLAG]: true };
-}
-
 function load() {
   const raw = storage.get(STORAGE_KEYS.STATS, null);
-  if (!raw) return applyTestGrant(DEFAULT_STATS); // TEMP-TESTCOINS
-  return applyTestGrant({
+  if (!raw) return DEFAULT_STATS;
+  return {
     ...DEFAULT_STATS,
     ...raw,
     distribution: Array.isArray(raw.distribution) && raw.distribution.length === MAX_ATTEMPTS
@@ -159,7 +148,7 @@ function load() {
     // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
     // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
     lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
-  }); // TEMP-TESTCOINS: applyTestGrant(...)
+  };
 }
 
 function migratePet(rawPet) {
@@ -338,9 +327,6 @@ export function useStats() {
       // «развылупляется» посреди сессии, слетают надетые вещи и суточный
       // кулдаун мини-игр. Накладываем серверные поля поверх локальных.
       if (p.pet && s.pet) next.pet = { ...s.pet, ...p.pet };
-      // TEMP-TESTCOINS: сервер про тестовую выдачу не знает и вернул бы свой
-      // баланс — держим местный, если он выше.
-      next.coins = Math.max(next.coins || 0, s.coins || 0);
       // The server omits the answer word from daily.lastResult (it's only used
       // client-side for the share card) — keep the local copy if present.
       if (p.daily && p.daily.lastResult && !p.daily.lastResult.word && s.daily?.lastResult?.word) {
@@ -360,8 +346,7 @@ export function useStats() {
     if (recompute && r && r.ok !== false) {
       const a = await callRpc('recompute_achievements');
       if (a && a.ok !== false && typeof a.coins === 'number') {
-        // TEMP-TESTCOINS: не опускаем баланс ниже местного.
-        setStats((s) => ({ ...s, coins: Math.max(a.coins, s.coins || 0) }));
+        setStats((s) => ({ ...s, coins: a.coins }));
       }
     }
     return r;

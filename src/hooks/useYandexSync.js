@@ -23,9 +23,6 @@ export function useYandexSync({ stats, setStats, enabled }) {
       if (data && Object.keys(data).length > 0) {
         setStats((s) => {
           const next = { ...s, ...data };
-          // TEMP-TESTCOINS: облачный снимок про тестовую выдачу не знает —
-          // не опускаем баланс ниже местного.
-          next.coins = Math.max(next.coins || 0, s.coins || 0);
           const lp = s.prefs || {};
           const cp = data.prefs || {};
           const merged = mergeGiftProgress(lp.petGifts, lp.petBond, cp.petGifts, cp.petBond);
