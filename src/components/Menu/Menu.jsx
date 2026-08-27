@@ -125,7 +125,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         )}
 
         <nav className="menu__list">
-          {isYandex && <YandexAuthRow onClose={onClose} />}
+          {isYandex && <YandexAuthRow onClose={onClose} open={open} />}
           {/* У каждого пункта свой цвет плитки (tint) — иначе меню читается
               как один серый список, а «премиальным» в нём выглядит только
               магазин. Палитра — в index.css, .menu-item--*. */}
@@ -166,7 +166,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
 // rule). Authorized → cloud progress syncs across devices; guests still save
 // to their browser. Shows the account name once signed in.
 
-function YandexAuthRow({ onClose }) {
+function YandexAuthRow({ onClose, open }) {
   const { showToast, adoptYandexAccount } = useGameContext();
   const [info, setInfo] = useState(null);
 
@@ -175,11 +175,16 @@ function YandexAuthRow({ onClose }) {
   // требуют правила. Раньше вместо режима смотрели свой флаг в localStorage —
   // и тот, кто вошёл на самой площадке (кнопка «Войти» над «Играть») или на
   // другом устройстве, всё равно видел в меню предложение войти.
+  //
+  // Спрашиваем на КАЖДОМ открытии меню: на первой загрузке площадка успевает
+  // отдать гостя, аккаунт появляется через секунду-другую, и один запрос при
+  // монтировании оставлял в меню «Войдите» до перезагрузки страницы.
   useEffect(() => {
+    if (!open) return;
     let active = true;
-    getPlayerInfo().then((next) => { if (active) setInfo(next); });
+    getPlayerInfo().then((next) => { if (active && next) setInfo(next); });
     return () => { active = false; };
-  }, []);
+  }, [open]);
 
   const onLogin = async () => {
     const ok = await openAuth();

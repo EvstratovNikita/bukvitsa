@@ -94,6 +94,9 @@ function withTimeout(p, ms, label) {
 
 const SDK_TIMEOUT_MS = 12000;
 const CALL_TIMEOUT_MS = 8000;
+// Первый getPlayer в сессии бывает медленным (площадка поднимает игрока
+// параллельно с игрой), а вся загрузка и так спрятана за заставкой.
+const FIRST_PLAYER_TIMEOUT_MS = 20000;
 
 // Lazily loads the SDK script (once) and resolves the initialised ysdk. Rejects
 // off-platform so callers can fall back. Cached.
@@ -201,33 +204,42 @@ export async function requestReview() {
 // "lite"/guest mode too; migrates to the account on login → multidevice).
 
 let _playerPromise = null;
+let _playerResolvedOnce = false;
 export async function getPlayer() {
   if (!isYandex) return null;
   if (_playerPromise) return _playerPromise;
+  const first = !_playerResolvedOnce;
   _playerPromise = withTimeout(
     getYsdk().then((y) => y.getPlayer({ scopes: false })),
-    CALL_TIMEOUT_MS,
+    first ? FIRST_PLAYER_TIMEOUT_MS : CALL_TIMEOUT_MS,
     'getPlayer timeout'
-  ).catch((e) => { _playerPromise = null; throw e; });
+  )
+    .then((p) => { _playerResolvedOnce = true; return p; })
+    .catch((e) => { _playerPromise = null; throw e; });
   return _playerPromise;
 }
 
+// Возвращает { ok, data }. Разница между «прочитали, там пусто» и «прочитать
+// не смогли» — принципиальная: во втором случае писать НЕЛЬЗЯ. Наш снимок в
+// этот момент состоит из дефолтов (облако же не приехало), и запись поверх
+// стирает аккаунт начисто — ровно это и ловила диагностика строкой
+// «Чтение облака: ошибка: getPlayer timeout».
 export async function cloudLoad() {
-  if (!isYandex) return null;
+  if (!isYandex) return { ok: false, data: null };
   try {
     const player = await getPlayer();
     cloudStatus.mode = player.getMode?.() === 'lite' ? 'гость' : 'аккаунт';
     const data = await withTimeout(player.getData(), CALL_TIMEOUT_MS, 'getData timeout');
-    const ok = data && typeof data === 'object' && Object.keys(data).length > 0;
-    cloudStatus.load = ok ? `ок, полей: ${Object.keys(data).length}` : 'пусто';
-    cloudStatus.loaded = ok
+    const has = data && typeof data === 'object' && Object.keys(data).length > 0;
+    cloudStatus.load = has ? `ок, полей: ${Object.keys(data).length}` : 'ок, пусто';
+    cloudStatus.loaded = has
       ? `партий ${data.played || 0}, побед ${data.won || 0}, монет ${data.coins || 0}`
       : 'пусто';
-    return ok ? data : null;
+    return { ok: true, data: has ? data : null };
   } catch (e) {
     cloudStatus.load = 'ошибка: ' + (e?.message || e);
     console.warn('[yandex] getData failed', e);
-    return null;
+    return { ok: false, data: null };
   }
 }
 
@@ -276,10 +288,13 @@ export async function playerIdentity() {
   }
 }
 
+// Всегда спрашивает площадку заново. Из кэша можно получить гостя, которого
+// SDK отдал на старте, — и предложить вход уже вошедшему игроку (а по нажатию
+// он получал ошибку «уже авторизован»).
 export async function getPlayerInfo() {
   if (!isYandex) return null;
   try {
-    const p = await getPlayer();
+    const p = await refreshPlayer();
     const mode = p.getMode?.();
     return { authorized: mode !== 'lite', name: p.getName?.() || '' };
   } catch { return null; }

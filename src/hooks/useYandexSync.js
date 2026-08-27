@@ -27,8 +27,10 @@ export function useYandexSync({ stats, setStats, enabled }) {
   // неё. У гостя (режим lite) своё хранилище, у аккаунта своё; раньше мы
   // просто заливали в аккаунт текущий снимок, и его прогресс стирался.
   const adoptAccount = useCallback(async () => {
-    const cloud = await cloudLoad();
-    const merged = mergeProgress(statsRef.current, cloud);
+    const { ok, data } = await cloudLoad();
+    // Не прочитали — не пишем: снимок уехал бы поверх чужих данных.
+    if (!ok) return null;
+    const merged = mergeProgress(statsRef.current, data);
     if (!merged) return null;
     setStats(merged);
     await cloudSave(merged);
@@ -48,14 +50,33 @@ export function useYandexSync({ stats, setStats, enabled }) {
     // завершившаяся загрузка (syncedRef ниже).
     const uiUnblock = setTimeout(() => { if (active) setSynced(true); }, 14000);
     (async () => {
-      const data = await cloudLoad();
+      // Пробуем прочитать несколько раз: площадка иногда отвечает не с
+      // первого раза, а неудачное чтение НЕ должно включать сохранения —
+      // иначе снимок с дефолтами затрёт аккаунт (диагностика ловила это как
+      // «Чтение облака: ошибка», «Запись: ок» через секунду).
+      let res = { ok: false, data: null };
+      for (let attempt = 0; attempt < 3 && active; attempt++) {
+        res = await cloudLoad();
+        if (res.ok) break;
+        await new Promise((r) => setTimeout(r, 3000));
+      }
       if (!active) return;
       clearTimeout(uiUnblock);
-      if (data && Object.keys(data).length > 0) {
+
+      if (!res.ok) {
+        // Читать не смогли — играем на местном снимке, но в облако НИЧЕГО не
+        // пишем до конца сессии. Прогресс при этом жив в localStorage и
+        // уедет наверх при следующем удачном запуске.
+        cloudStatus.save = 'выключена: чтение не удалось';
+        setSynced(true);
+        return;
+      }
+
+      if (res.data) {
         // Раньше облако выигрывало по всем полям («…s, …data»), и партии,
         // сыгранные до того, как площадка отдала игрока, просто исчезали.
         // mergeProgress не теряет ни одну из сторон и ничего не задваивает.
-        setStats((s) => mergeProgress(s, data));
+        setStats((s) => mergeProgress(s, res.data));
       }
       identityRef.current = await playerIdentity();
       cloudStatus.readFrom = cloudStatus.identity;
