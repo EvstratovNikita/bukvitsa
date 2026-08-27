@@ -21,17 +21,9 @@ export const SHARE_BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SHARE_BASE_URL) ||
   'https://bukvitsa.vercel.app';
 
-// Append ?ref=<userId> to the base. Returns plain base when no userId
-// available (e.g. Supabase not configured / not yet authenticated).
-export function buildInviteUrl(userId) {
-  if (!userId) return SHARE_BASE_URL;
-  const u = new URL(SHARE_BASE_URL);
-  u.searchParams.set('ref', userId);
-  return u.toString();
-}
-
-export const DEFAULT_INVITE_TEXT =
-  'Играю в Буквицу — угадай русское слово из 5 букв за 6 попыток. Попробуй!';
+// Приглашения убраны (на Яндексе нет входа через Google/email, засчитать
+// приглашение нечем), поэтому ссылка больше не несёт ?ref — делимся
+// сеткой Слова дня на обычный канонический адрес.
 
 // Cheeky variety pack — randomised per share so the same message doesn't
 // flood feeds when many players share back to back.
@@ -64,11 +56,6 @@ export function buildWordleShareText(evaluations, attempts, max, dayN, inviteUrl
     : `Слово дня${dayLabel} в Буквице меня обыграло… а ты сможешь? ${face}`;
   const linkLine = inviteUrl ? `\n${inviteUrl}` : '';
   return `${intro}${linkLine}\n\n${grid}`;
-}
-
-export function buildAchievementText(ach) {
-  if (!ach) return DEFAULT_INVITE_TEXT;
-  return `${ach.icon} Открыл достижение «${ach.title}» в Буквице! Сыграй и догони:`;
 }
 
 async function shareTelegram(text, url) {

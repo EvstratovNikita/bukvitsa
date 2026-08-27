@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
-import { buildInviteUrl, buildWordleShareText, share } from '../../lib/share.js';
+import { SHARE_BASE_URL, buildWordleShareText, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
 
 const CONFETTI_PALETTE = ['#f7c948', '#ffd864', '#6c8cff', '#b388ff', '#e9ecf3'];
@@ -49,7 +49,7 @@ function Confetti({ count = 22 }) {
 export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, stats,
-    guesses, evaluations, auth, gameMode, exitDailyMode, reset,
+    guesses, evaluations, gameMode, exitDailyMode, reset,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength
   } = useGameContext();
   // В Слове дня «бонус» — это вторая половина удвоенной награды; в обычной
@@ -81,7 +81,7 @@ export function GameEnd() {
   const streakLabel = isDaily ? 'Серия Слова дня' : 'Серия побед';
 
   const onShare = async () => {
-    const url = buildInviteUrl(auth?.userId);
+    const url = SHARE_BASE_URL;
     const text = buildWordleShareText(
       evaluations || [],
       isWin ? attempts : 0,

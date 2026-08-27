@@ -8,7 +8,6 @@ import {
 } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
-import { ShareButton } from '../Share/ShareButton.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 
 export function AchievementsModal({ open, onClose }) {
@@ -99,7 +98,6 @@ function AchCard({ ach, stats, unlocked }) {
         {unlocked && (
           <div className="ach-card__status-row">
             <span className="ach-card__status">Получено</span>
-            <ShareButton kind="achievement" achievement={ach} variant="icon" label="Поделиться" />
           </div>
         )}
       </div>

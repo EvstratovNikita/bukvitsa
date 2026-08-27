@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 import { isYandex, openAuth, getPlayerInfo, cloudSave } from '../../lib/yandex.js';
+import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
   CloseIcon,
   CoinIcon,
-  GiftIcon,
   HelpIcon,
   LogoutIcon,
   MailIcon,
@@ -33,9 +33,13 @@ export function MenuButton({ onClick }) {
   );
 }
 
-export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenInvite, onOpenSettings, onOpenFeedback, onOpenLeaderboard }) {
+export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, onOpenAuth, onOpenAchievements, onOpenSettings, onOpenFeedback, onOpenLeaderboard }) {
   const { stats, auth } = useGameContext();
-  const unlockedCount = (stats.unlockedAchievements || []).length;
+  // Считаем только те id, что есть в каталоге: в сохранёнках могли остаться
+  // достижения удалённых категорий (например, «Друзья»), и бейдж показывал
+  // бы больше, чем видно в самом списке.
+  const unlockedCount = (stats.unlockedAchievements || [])
+    .filter((id) => ACHIEVEMENT_IDS.includes(id)).length;
 
   // Close with ESC, lock body scroll while open.
   useEffect(() => {
@@ -132,14 +136,6 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             onClick={handle(onOpenAchievements)}
           />
           <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} />
-          {!isYandex && (
-            <MenuItem
-              icon={<GiftIcon />}
-              label="Пригласить друга"
-              badge={(stats.referralsCount || 0) > 0 ? stats.referralsCount : undefined}
-              onClick={handle(onOpenInvite)}
-            />
-          )}
           <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} />
           <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
           <MenuItem icon={<MailIcon />} label="Обратная связь" onClick={handle(onOpenFeedback)} />

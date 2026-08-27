@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CoinIcon, PlayIcon, RefreshIcon, ShareIcon } from '../icons/Icon.jsx';
-import { buildInviteUrl, buildWordleShareText, share } from '../../lib/share.js';
+import { SHARE_BASE_URL, buildWordleShareText, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
 
 // Bottom panel that swaps in for the keyboard once a round ends. Vertical
@@ -14,7 +14,7 @@ export function EndPanel() {
     status, reset, solution, evaluations, guesses,
     lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft,
-    gameMode, exitDailyMode, auth, wordLength, stats
+    gameMode, exitDailyMode, wordLength, stats
   } = useGameContext();
   const [shareStatus, setShareStatus] = useState(null);
   if (status === GAME_STATUS.PLAYING) return null;
@@ -34,7 +34,7 @@ export function EndPanel() {
   const dayN = getDailyNumber();
 
   const onShare = async () => {
-    const url = buildInviteUrl(auth?.userId);
+    const url = SHARE_BASE_URL;
     const text = buildWordleShareText(
       evaluations || [],
       isWin ? (guesses?.length || 0) : 0,

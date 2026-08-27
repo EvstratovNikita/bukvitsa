@@ -52,8 +52,7 @@ const TOTAL_DECO = PET_DECORATIONS.length;
 export const ACHIEVEMENT_CATEGORIES = [
   { id: 'words',   label: 'Слова'    },
   { id: 'shop',    label: 'Покупки'  },
-  { id: 'pet',     label: 'Питомец'  },
-  { id: 'friends', label: 'Друзья'   }
+  { id: 'pet',     label: 'Питомец'  }
 ];
 
 export const ACHIEVEMENTS = [
@@ -261,23 +260,11 @@ export const ACHIEVEMENTS = [
     desc: 'Купи все украшения для Букли',
     check: (s) => ownedDecoCount(s) >= TOTAL_DECO,
     progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedDecoCount(s)), target: TOTAL_DECO })
-  },
-
-  // ============ ДРУЗЬЯ ============
-  {
-    id: 'invite_1', category: 'friends', tier: 'easy', icon: '🤝', reward: 30,
-    title: 'Сват',
-    desc: 'Пригласи друга — он должен войти через Google или email',
-    check: (s) => (s.referralsCount || 0) >= 1,
-    progress: (s) => ({ current: Math.min(1, s.referralsCount || 0), target: 1 })
-  },
-  {
-    id: 'invite_5', category: 'friends', tier: 'hard', icon: '🎤', reward: 200,
-    title: 'Гуру',
-    desc: 'Приведи 5 друзей, привязавших аккаунт',
-    check: (s) => (s.referralsCount || 0) >= 5,
-    progress: (s) => ({ current: Math.min(5, s.referralsCount || 0), target: 5 })
   }
+  // Достижения «Друзья» (invite_1, invite_5) убраны вместе с приглашениями:
+  // на Яндексе нет входа через Google/email, засчитать приглашение нечем —
+  // прогресс навсегда стоял бы на нуле. Уже открытые id в сохранёнках
+  // игроков остаются, getAchievement на них просто вернёт undefined.
 ];
 
 export const ACHIEVEMENT_IDS = ACHIEVEMENTS.map((a) => a.id);
