@@ -198,7 +198,13 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
 
   const previewStyle =
     item.category === 'background' && item.payload?.gradient
-      ? { backgroundImage: item.payload.gradient }
+      ? {
+          backgroundImage: item.payload.gradient,
+          // Рамочные иллюстрации показываем целиком в кадре карточки.
+          ...(item.payload.frame
+            ? { backgroundSize: '100% 100%, 100% 100%', backgroundRepeat: 'no-repeat' }
+            : null)
+        }
       : undefined;
 
   const previewClasses = ['shop-card__preview'];

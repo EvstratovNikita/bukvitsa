@@ -1,3 +1,6 @@
+import autumnLightUrl from '../assets/bg/autumn-light.svg';
+import autumn2LightUrl from '../assets/bg/autumn2-light.svg';
+
 // Catalog of in-game shop items.
 // Each item has:
 //   id        — stable identifier (saved to inventory)
@@ -370,6 +373,33 @@ export const SHOP_ITEMS = [
         'radial-gradient(800px 500px at 50% -10%, rgba(255, 245, 200, 0.45), transparent 70%)',
         'linear-gradient(180deg, #c8eaa2 0%, #9fd97d 55%, #84c860 100%)'
       ].join(', ')
+    }
+  },
+
+  {
+    id: 'bg-autumn-park',
+    category: 'background',
+    theme: 'light',
+    name: 'Осенний парк',
+    desc: 'Тёплый листопад в золотых аллеях',
+    price: 120,
+    payload: {
+      // Рамочная иллюстрация: декор по краям, центр пустой — тянем на весь
+      // экран, чтобы рамка обнимала кадр при любом соотношении сторон.
+      frame: true,
+      gradient: [`url(${autumnLightUrl})`, 'linear-gradient(180deg, #fef7ed, #fbe5c6)'].join(', ')
+    }
+  },
+  {
+    id: 'bg-autumn-grove',
+    category: 'background',
+    theme: 'light',
+    name: 'Золотая роща',
+    desc: 'Медные кроны и мягкий свет октября',
+    price: 120,
+    payload: {
+      frame: true,
+      gradient: [`url(${autumn2LightUrl})`, 'linear-gradient(180deg, #fcf6e9, #f3c682)'].join(', ')
     }
   },
 

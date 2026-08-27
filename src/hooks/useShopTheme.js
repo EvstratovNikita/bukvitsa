@@ -4,12 +4,12 @@ import { getGift, GIFT_CELL_IDS } from '../data/petGifts.js';
 import { useGameContext } from '../context/GameContext.jsx';
 
 // Resolve a cosmetic id from EITHER the shop catalog OR the pet-gift catalog.
-function resolveBackgroundGradient(id) {
+function resolveBackgroundPayload(id) {
   if (!id) return null;
   const shop = getItem(id);
-  if (shop?.payload?.gradient) return shop.payload.gradient;
+  if (shop?.payload?.gradient) return shop.payload;
   const gift = getGift(id);
-  if (gift?.type === 'background' && gift.payload?.gradient) return gift.payload.gradient;
+  if (gift?.type === 'background' && gift.payload?.gradient) return gift.payload;
   return null;
 }
 
@@ -23,9 +23,14 @@ export function useShopTheme() {
 
   // Background
   useEffect(() => {
-    const grad = resolveBackgroundGradient(activeBackground);
+    const payload = resolveBackgroundPayload(activeBackground);
+    const grad = payload?.gradient || null;
     document.body.style.backgroundImage = grad || '';
     document.body.style.backgroundColor = '';
+    // Рамочные иллюстрации тянем по кадру; тайлы остаются как были.
+    document.body.style.backgroundSize = payload?.frame ? '100% 100%, 100% 100%' : '';
+    document.body.style.backgroundRepeat = payload?.frame ? 'no-repeat' : '';
+    document.body.style.backgroundPosition = payload?.frame ? 'center center' : '';
     // Под обоями клетки и клавиши получают собственную заливку и более
     // контрастные рамки — иначе фон их «съедает» (см. body.has-bg в CSS).
     document.body.classList.toggle('has-bg', Boolean(grad));
