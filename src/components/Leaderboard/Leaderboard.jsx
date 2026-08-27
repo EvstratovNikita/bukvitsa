@@ -9,18 +9,6 @@ import { Modal } from '../Modal/Modal.jsx';
 // приходил ответ.
 let cached = null;
 
-// Цвет аватарки выводится из имени: у одного игрока он всегда один и тот же,
-// а таблица перестаёт быть одноцветной простынёй.
-const AVATAR_TINTS = [
-  '167 130 255', '240 190 70', '255 128 150', '74 200 190',
-  '96 165 250', '110 205 145', '255 154 74', '176 190 217'
-];
-
-function avatarTint(name) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 9973;
-  return AVATAR_TINTS[h % AVATAR_TINTS.length];
-}
 
 // Таблица лучших игроков (топ по числу отгаданных слов). Рисуется только на
 // площадке Яндекса. У вошедших видно имя, гости идут анонимно.
@@ -53,6 +41,16 @@ export function LeaderboardModal({ open, onClose }) {
   return (
     <Modal open={open} onClose={onClose} title="Лучшие игроки">
       <div className="lb">
+        {/* Подписи колонок: без них числа справа — просто числа. Словами, а
+            не «#», и обычным текстом, а не мелкими блёклыми капслоком. */}
+        {(loading || entries.length > 0) && (
+          <div className="lb__head">
+            <span className="lb__hcell lb__hcell--rank">Место</span>
+            <span className="lb__hcell">Игрок</span>
+            <span className="lb__hcell lb__hcell--num">Слов</span>
+          </div>
+        )}
+
         {loading && (
           <ol className="lb__list" aria-busy="true" aria-label="Загрузка таблицы">
             {Array.from({ length: 6 }, (_, i) => (
@@ -87,9 +85,6 @@ export function LeaderboardModal({ open, onClose }) {
               return (
                 <li key={e.rank} className={`lb__row${me ? ' lb__row--me' : ''}${medal}`}>
                   <span className="lb__rank">{e.rank}</span>
-                  <span className="lb__ava" style={{ '--ava': avatarTint(name) }} aria-hidden="true">
-                    {name.trim().charAt(0).toUpperCase() || '?'}
-                  </span>
                   <span className="lb__name" title={name}>
                     {name}
                     {me && <span className="lb__you">вы</span>}
@@ -110,5 +105,6 @@ export function LeaderboardModal({ open, onClose }) {
     </Modal>
   );
 }
+
 
 

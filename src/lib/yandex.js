@@ -62,6 +62,32 @@ function loadSdkScript() {
   });
 }
 
+// Состояние моста с площадкой. Читается экраном настроек: когда игрок
+// говорит «прогресс не сохраняется», по этим строчкам видно, на каком шаге
+// всё встало, — иначе диагностика возможна только вслепую.
+export const cloudStatus = {
+  platform: isYandex,
+  sdk: 'не запрашивался',
+  mode: '—',
+  load: 'не было',
+  save: 'не было'
+};
+
+// Промис с потолком по времени. Без него подвисший вызов площадки вешает всю
+// цепочку: getData никогда не отвечает → синк не считается завершённым →
+// сохранения выключены навсегда, и каждый запуск выглядит как первый
+// (снова ежедневная награда, снова обучение).
+function withTimeout(p, ms, label) {
+  let t;
+  return Promise.race([
+    p.finally(() => clearTimeout(t)),
+    new Promise((_, reject) => { t = setTimeout(() => reject(new Error(label)), ms); })
+  ]);
+}
+
+const SDK_TIMEOUT_MS = 12000;
+const CALL_TIMEOUT_MS = 8000;
+
 // Lazily loads the SDK script (once) and resolves the initialised ysdk. Rejects
 // off-platform so callers can fall back. Cached.
 export function getYsdk() {
@@ -70,9 +96,19 @@ export function getYsdk() {
     _ysdkPromise = Promise.reject(new Error('not Yandex Games'));
     return _ysdkPromise;
   }
-  _ysdkPromise = loadSdkScript()
-    .then(() => window.YaGames.init())
-    .then((y) => { _ysdk = y; return y; });
+  _ysdkPromise = withTimeout(
+    loadSdkScript().then(() => window.YaGames.init()),
+    SDK_TIMEOUT_MS,
+    'YaGames init timeout'
+  )
+    .then((y) => { _ysdk = y; cloudStatus.sdk = 'ок'; return y; })
+    .catch((e) => {
+      cloudStatus.sdk = 'ошибка: ' + e.message;
+      // Сбрасываем кэш: если SDK поднимется позже, следующий вызов
+      // (например, сохранение через минуту) сможет попробовать снова.
+      _ysdkPromise = null;
+      throw e;
+    });
   return _ysdkPromise;
 }
 
@@ -161,27 +197,41 @@ let _playerPromise = null;
 export async function getPlayer() {
   if (!isYandex) return null;
   if (_playerPromise) return _playerPromise;
-  _playerPromise = getYsdk()
-    .then((y) => y.getPlayer({ scopes: false }))
-    .catch((e) => { _playerPromise = null; throw e; });
+  _playerPromise = withTimeout(
+    getYsdk().then((y) => y.getPlayer({ scopes: false })),
+    CALL_TIMEOUT_MS,
+    'getPlayer timeout'
+  ).catch((e) => { _playerPromise = null; throw e; });
   return _playerPromise;
 }
 
 export async function cloudLoad() {
   if (!isYandex) return null;
   try {
-    const data = await (await getPlayer()).getData();
-    return data && typeof data === 'object' ? data : null;
+    const player = await getPlayer();
+    cloudStatus.mode = player.getMode?.() === 'lite' ? 'гость' : 'аккаунт';
+    const data = await withTimeout(player.getData(), CALL_TIMEOUT_MS, 'getData timeout');
+    const ok = data && typeof data === 'object' && Object.keys(data).length > 0;
+    cloudStatus.load = ok ? `ок, полей: ${Object.keys(data).length}` : 'пусто';
+    return ok ? data : null;
   } catch (e) {
+    cloudStatus.load = 'ошибка: ' + (e?.message || e);
     console.warn('[yandex] getData failed', e);
     return null;
   }
 }
 
 export async function cloudSave(obj) {
-  if (!isYandex || !obj) return;
-  try { await (await getPlayer()).setData(obj, true); }
-  catch (e) { console.warn('[yandex] setData failed', e); }
+  if (!isYandex || !obj) return false;
+  try {
+    await withTimeout((await getPlayer()).setData(obj, true), CALL_TIMEOUT_MS, 'setData timeout');
+    cloudStatus.save = 'ок, ' + new Date().toLocaleTimeString('ru-RU');
+    return true;
+  } catch (e) {
+    cloudStatus.save = 'ошибка: ' + (e?.message || e);
+    console.warn('[yandex] setData failed', e);
+    return false;
+  }
 }
 
 export async function getPlayerInfo() {

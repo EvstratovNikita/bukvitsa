@@ -42,7 +42,7 @@ function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, resetStats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref } = useGameContext();
+  const { stats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref } = useGameContext();
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also
@@ -181,7 +181,7 @@ function GameShell() {
       <EnergyModal />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
-        <Stats stats={stats} onReset={resetStats} />
+        <Stats stats={stats} />
       </Modal>
       <Modal open={helpOpen} onClose={closeHelp} title="Как играть">
         <HowToPlay />

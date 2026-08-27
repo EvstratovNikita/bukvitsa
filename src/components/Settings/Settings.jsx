@@ -1,4 +1,5 @@
 import { useGameContext } from '../../context/GameContext.jsx';
+import { cloudStatus, isYandex } from '../../lib/yandex.js';
 import { Modal } from '../Modal/Modal.jsx';
 
 // In-game settings. Preferences live under stats.prefs (jsonb-synced
@@ -22,8 +23,37 @@ export function SettingsModal({ open, onClose }) {
           value={Boolean(prefs.enterOnLeft)}
           onChange={(v) => setPref('enterOnLeft', v)}
         />
+        {isYandex && <CloudDiagnostics prefs={prefs} stats={stats} />}
       </div>
     </Modal>
+  );
+}
+
+// Состояние синхронизации с площадкой. Нужно, когда игрок сообщает «прогресс
+// не сохраняется»: по строчкам видно, на каком шаге всё встало — SDK, игрок,
+// чтение или запись, — и не приходится гадать по симптомам.
+function CloudDiagnostics({ prefs, stats }) {
+  const rows = [
+    ['SDK', cloudStatus.sdk],
+    ['Игрок', cloudStatus.mode],
+    ['Чтение облака', cloudStatus.load],
+    ['Запись в облако', cloudStatus.save],
+    ['Обучение пройдено', prefs.tourDone ? 'да' : 'нет'],
+    ['Последний вход', stats.lastVisitDate || '—']
+  ];
+  return (
+    <div className="diag">
+      <p className="diag__title">Синхронизация</p>
+      <dl className="diag__list">
+        {rows.map(([k, v]) => (
+          <div className="diag__row" key={k}>
+            <dt className="diag__key">{k}</dt>
+            <dd className="diag__val">{String(v)}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="diag__hint">Эти строки нужны для разбора проблем с сохранением.</p>
+    </div>
   );
 }
 

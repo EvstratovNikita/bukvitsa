@@ -51,9 +51,6 @@ export function Stats({ stats, onReset }) {
         })}
       </div>
 
-      <button className="btn btn--ghost stats__reset" onClick={onReset}>
-        Сбросить статистику
-      </button>
     </div>
   );
 }

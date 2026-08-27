@@ -22,9 +22,15 @@ export function useYandexSync({ stats, setStats, enabled }) {
   useEffect(() => {
     if (!enabled) { setSynced(true); return; }
     let active = true;
+    // Страховка ТОЛЬКО для интерфейса: если площадка молчит дольше 14 секунд,
+    // разблокируем игру, но сохранения не включаем — иначе снимок с дефолтами
+    // уехал бы поверх облачного прогресса. Сохранения включает лишь реально
+    // завершившаяся загрузка (syncedRef ниже).
+    const uiUnblock = setTimeout(() => { if (active) setSynced(true); }, 14000);
     (async () => {
       const data = await cloudLoad();
       if (!active) return;
+      clearTimeout(uiUnblock);
       if (data && Object.keys(data).length > 0) {
         // Раньше облако выигрывало по всем полям («…s, …data»), и партии,
         // сыгранные до того, как площадка отдала игрока, просто исчезали.
@@ -34,7 +40,7 @@ export function useYandexSync({ stats, setStats, enabled }) {
       syncedRef.current = true;
       setSynced(true);
     })();
-    return () => { active = false; };
+    return () => { active = false; clearTimeout(uiUnblock); };
   }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced save on every local change after the initial load.

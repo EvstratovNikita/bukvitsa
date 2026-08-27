@@ -4306,12 +4306,36 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .lb { display: flex; flex-direction: column; gap: 10px; }
 .lb__msg { text-align: center; color: var(--text-dim); padding: 18px 6px; font-size: 14px; }
 .lb__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 60vh; overflow-y: auto; }
-.lb__row {
+.lb__head {
   display: grid;
-  grid-template-columns: 22px 34px 1fr auto;
+  grid-template-columns: 46px 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px 8px 10px;
+  padding: 2px 12px 8px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+.lb__hcell--rank { text-align: center; }
+
+/* Диагностика синхронизации в настройках (только на Яндексе). */
+.diag { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.diag__title { margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--text); }
+.diag__list { margin: 0; }
+.diag__row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; font-size: 12px; }
+.diag__key { color: var(--text-dim); }
+.diag__val { margin: 0; color: var(--text); font-weight: 600; text-align: right; word-break: break-word; }
+.diag__hint { margin: 8px 0 0; font-size: 11px; color: var(--text-mute); }
+.lb__hcell--num { text-align: right; }
+
+.lb__row {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
@@ -4330,8 +4354,9 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  justify-self: center;
+  width: 26px;
+  height: 26px;
   border-radius: 999px;
   font-size: 13px;
   font-weight: 800;
@@ -4339,23 +4364,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   font-variant-numeric: tabular-nums;
 }
 
-/* Аватарка — буква имени в своём цвете (палитра в Leaderboard.jsx). Даёт
-   таблице лица и цвет, которых ей не хватало. */
-.lb__ava {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  background: rgb(var(--ava) / 0.16);
-  border: 1px solid rgb(var(--ava) / 0.34);
-  color: rgb(var(--ava));
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 19px;
-  font-weight: 700;
-  line-height: 1;
-}
 /* Тройка призёров: медаль вместо номера + подкрашенная строка. Цвет берётся
    из --lb-medal, поэтому строка, кружок и свечение всегда в одном тоне. */
 .lb__row--medal { border-color: rgb(var(--lb-medal) / 0.45); background: rgb(var(--lb-medal) / 0.08); }
@@ -4365,8 +4373,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   box-shadow: 0 2px 10px rgb(var(--lb-medal) / 0.40);
 }
 /* Первое место крупнее прочих — вершина таблицы должна читаться сразу. */
-.lb__row--medal1 { padding-top: 10px; padding-bottom: 10px; }
-.lb__row--medal1 .lb__ava { width: 38px; height: 38px; font-size: 21px; }
+.lb__row--medal1 { padding-top: 11px; padding-bottom: 11px; }
+.lb__row--medal1 .lb__rank { width: 30px; height: 30px; font-size: 14px; }
 .lb__row--medal1 .lb__name { font-size: 16px; }
 .lb__row--medal1 { --lb-medal: 247 201 72; }  /* золото */
 .lb__row--medal2 { --lb-medal: 203 213 225; } /* серебро */
@@ -4427,7 +4435,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   box-shadow: inset 0 0 0 1px rgba(191, 136, 0, 0.25);
 }
 [data-theme="light"] .lb__score { color: #9a5e00; background: rgba(247, 201, 72, 0.20); border-color: rgba(191, 136, 0, 0.35); }
-[data-theme="light"] .lb__ava { color: rgb(var(--ava)); color: color-mix(in srgb, rgb(var(--ava)) 68%, #0d1020); background: rgb(var(--ava) / 0.15); border-color: rgb(var(--ava) / 0.38); }
+
 [data-theme="light"] .lb__row--medal .lb__rank { color: #1a1300; }
 [data-theme="light"] .lb__you { color: #8a5a00; background: rgba(247, 201, 72, 0.30); border-color: rgba(191, 136, 0, 0.5); }
 [data-theme="light"] .lb__empty-icon { background: rgba(247, 201, 72, 0.22); border-color: rgba(191, 136, 0, 0.4); color: #9a5e00; }
@@ -6063,13 +6071,14 @@ body.has-bg .cell--hinted .cell__face--back {
 [data-theme="light"] .iconbtn--accent { background: var(--accent); color: #0b0d12; }
 /* Букля: неоновая рамка анимируется, а подложка должна быть плотной. Светлая
    подложка в обеих темах — на тёмной сова тонула в фоне кнопки.
-   Сова тёмная, ей светлый фон и нужен, а вот яйцо кремовое: на прежнем
-   почти белом #e9ecff оно сливалось. Поэтому у яйца своя, приглушённая
-   подложка — контраст есть, а кнопка остаётся светлым пятном в шапке. */
+   Сова тёмная — ей светлый фон и нужен. Яйцо кремовое, и любая светлая
+   подложка его съедает (пробовали #e9ecff и приглушённый #a8b0cd — сливается
+   и там, и там). Поэтому под яйцом тёмно-синий: кремовый овал на нём читается
+   с первого взгляда в обеих темах. */
 .pet-headerbtn,
 [data-theme="light"] .pet-headerbtn { background: #dfe4f7; }
 .pet-headerbtn--egg,
-[data-theme="light"] .pet-headerbtn--egg { background: #a8b0cd; }
+[data-theme="light"] .pet-headerbtn--egg { background: #232a44; }
 
 /* Плашка «Слово дня» — единственная в панели осталась на полупрозрачном
    градиенте и просвечивала обоями. */
