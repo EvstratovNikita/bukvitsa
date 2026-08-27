@@ -224,20 +224,37 @@ function getLb() {
   return _lbPromise;
 }
 
+// Запись счёта доступна только авторизованному игроку: у гостя (режим lite)
+// вызов всегда падает, а зовём мы его после каждой победы — поэтому сначала
+// спрашиваем режим, чтобы не сыпать ошибками в консоль всю сессию.
 export async function submitScore(score, board = LEADERBOARD) {
   if (!isYandex || !Number.isFinite(score)) return;
-  try { (await getLb()).setLeaderboardScore(board, Math.max(0, Math.round(score))); }
-  catch (e) { console.warn('[yandex] setLeaderboardScore failed', e); }
+  try {
+    const info = await getPlayerInfo();
+    if (!info?.authorized) return;
+    (await getLb()).setLeaderboardScore(board, Math.max(0, Math.round(score)));
+  } catch (e) { console.warn('[yandex] setLeaderboardScore failed', e); }
 }
 
+// Гость видит таблицу, просто без строки «я». includeUser требует
+// авторизации, и раньше единственная попытка с ним роняла весь запрос — в
+// модалке вместо топа было «Лидерборд пока недоступен». Теперь при неудаче
+// перечитываем чистый топ.
 export async function fetchLeaderboard(board = LEADERBOARD) {
   if (!isYandex) return null;
+  let lb;
+  try { lb = await getLb(); }
+  catch (e) { console.warn('[yandex] getLeaderboards failed', e); return null; }
+
   try {
-    const lb = await getLb();
     return await lb.getLeaderboardEntries(board, { includeUser: true, quantityTop: 20, quantityAround: 5 });
   } catch (e) {
-    console.warn('[yandex] getLeaderboardEntries failed', e);
-    return null;
+    try {
+      return await lb.getLeaderboardEntries(board, { quantityTop: 20 });
+    } catch (e2) {
+      console.warn('[yandex] getLeaderboardEntries failed', e2);
+      return null;
+    }
   }
 }
 
