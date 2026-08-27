@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { SHOP_CATEGORIES, SHOP_ITEMS, itemsByCategory } from '../../data/shopItems.js';
-import { doubleCoinsActive, energyCapFor, formatDuration } from '../../constants/game.js';
+import { boostRunning, formatDuration } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
@@ -12,15 +12,18 @@ const BOOST_EMOJI = {
 };
 
 // Human "still active" line for a timed/counted boost, or null when idle.
+// Признак «работает» берём из общего boostRunning — тем же им пользуется
+// buyItem, поэтому погашенная кнопка и отказ логики не расходятся.
 function boostStatus(item, stats) {
   const now = Date.now();
-  if (item.id === 'boost-double' && doubleCoinsActive(stats, now)) {
+  if (!boostRunning(item.id, stats, now)) return null;
+  if (item.id === 'boost-double') {
     return `Активно ещё ${formatDuration(new Date(stats.boostDoubleUntil).getTime() - now)}`;
   }
-  if (item.id === 'boost-energy-cap' && energyCapFor(stats, now) > 5) {
+  if (item.id === 'boost-energy-cap') {
     return `Активно ещё ${formatDuration(new Date(stats.energyCapUntil).getTime() - now)}`;
   }
-  if (item.id === 'boost-ad-coins' && (stats.adBonusLeft || 0) > 0) {
+  if (item.id === 'boost-ad-coins') {
     return `Осталось просмотров: ${stats.adBonusLeft}`;
   }
   return null;
@@ -65,6 +68,7 @@ const DEFAULT_BG_LIGHT = {
 const ERROR_LABEL = {
   not_enough_coins: 'Не хватает монет',
   already_owned: 'Уже куплено',
+  already_active: 'Бонус ещё работает',
   unknown_item: 'Товар не найден'
 };
 
@@ -175,8 +179,8 @@ export function Shop({ open, onClose }) {
           <p className="shop__hint">
             «Двойные монеты» удваивают монеты за победы на 1 день. «Щедрая
             реклама» добавляет +4 монеты к 10 следующим просмотрам. «Запас
-            энергии» поднимает лимит до 7 на 2 дня. Можно докупать — время и
-            просмотры складываются.
+            энергии» поднимает лимит до 7 на 2 дня. Пока бонус работает,
+            купить его второй раз нельзя — дождитесь окончания.
           </p>
         )}
       </div>
@@ -238,16 +242,24 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
         ) : item.consumable ? (
           <div className="shop-card__boost-cta">
             {boostActive && <span className="shop-card__boost-status">{boostActive}</span>}
-            <button
-              type="button"
-              className="btn btn--primary shop-card__btn"
-              onClick={onBuy}
-              onMouseDown={(e) => e.preventDefault()}
-              disabled={(stats.coins || 0) < item.price}
-            >
-              <CoinIcon />
-              <span>{item.price}</span>
-            </button>
+            {boostActive ? (
+              // Бонус уже работает — кнопку гасим, чтобы не купить второй раз
+              // по инерции. Докупить можно, когда текущий закончится.
+              <button type="button" className="btn shop-card__btn shop-card__btn--active" disabled>
+                Активно ✓
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--primary shop-card__btn"
+                onClick={onBuy}
+                onMouseDown={(e) => e.preventDefault()}
+                disabled={(stats.coins || 0) < item.price}
+              >
+                <CoinIcon />
+                <span>{item.price}</span>
+              </button>
+            )}
           </div>
         ) : active ? (
           <button

@@ -48,10 +48,12 @@ function Confetti({ count = 22 }) {
 
 export function GameEnd() {
   const {
-    status, solution, lastEarned, lastEarnedBase, stats,
+    status, solution, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, stats,
     guesses, evaluations, auth, gameMode, exitDailyMode, reset,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength
   } = useGameContext();
+  // В Слове дня «бонус» — это вторая половина удвоенной награды; в обычной
+  // игре раскладка приходит готовой, вычитать ничего не нужно.
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
   const isAlt = gameMode !== 'daily' && wordLength !== 5;
   const altPlays = (stats?.altMode?.plays || 0) % 5;
@@ -144,9 +146,11 @@ export function GameEnd() {
               <div className="gameend__bonus">
                 {lastEarnedBase} основная + {bonus} за Слово дня
               </div>
-            ) : bonus > 0 ? (
+            ) : (lastEarnedDeco > 0 || boostedLastWin) ? (
               <div className="gameend__bonus">
-                {lastEarnedBase} базовых + {bonus} от Букли
+                {lastEarnedBase} базовых
+                {lastEarnedDeco > 0 && <> + {lastEarnedDeco} от Букли</>}
+                {boostedLastWin && <>, всё ×2 по бонусу</>}
               </div>
             ) : null}
           </div>

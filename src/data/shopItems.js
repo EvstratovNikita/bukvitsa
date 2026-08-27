@@ -319,6 +319,23 @@ const AUTUMN_DARK = autumnTile({
 
 export const SHOP_ITEMS = [
   // ---------- Backgrounds ----------
+  // Порядок в каталоге = порядок карточек в магазине. Новые фоны добавляем
+  // В НАЧАЛО своей темы, чтобы свежее было видно сразу, без прокрутки.
+  {
+    id: 'bg-autumn-night',
+    category: 'background',
+    theme: 'dark',
+    name: 'Ночной листопад',
+    desc: 'Медная листва в тёплой темноте октября',
+    price: 120,
+    payload: {
+      gradient: [
+        AUTUMN_DARK,
+        'radial-gradient(900px 520px at 50% -10%, rgba(220, 140, 50, 0.22), transparent 70%)',
+        'linear-gradient(180deg, #17110b 0%, #241a11 60%, #1b130d 100%)'
+      ].join(', ')
+    }
+  },
   {
     id: 'bg-sunset',
     category: 'background',
@@ -429,23 +446,22 @@ export const SHOP_ITEMS = [
     }
   },
 
+  // ---------- Summer (light) backgrounds ----------
   {
-    id: 'bg-autumn-night',
+    id: 'bg-autumn-park',
     category: 'background',
-    theme: 'dark',
-    name: 'Ночной листопад',
-    desc: 'Медная листва в тёплой темноте октября',
+    theme: 'light',
+    name: 'Золотая осень',
+    desc: 'Кленовые листья, жёлуди и рябина в тёплом свете',
     price: 120,
     payload: {
       gradient: [
-        AUTUMN_DARK,
-        'radial-gradient(900px 520px at 50% -10%, rgba(220, 140, 50, 0.22), transparent 70%)',
-        'linear-gradient(180deg, #17110b 0%, #241a11 60%, #1b130d 100%)'
+        AUTUMN_LIGHT,
+        'radial-gradient(900px 520px at 50% -10%, rgba(255, 214, 150, 0.45), transparent 70%)',
+        'linear-gradient(180deg, #fdf3e2 0%, #f8e3c4 60%, #f0cfa4 100%)'
       ].join(', ')
     }
   },
-
-  // ---------- Summer (light) backgrounds ----------
   {
     id: 'bg-summer-sky',
     category: 'background',
@@ -488,22 +504,6 @@ export const SHOP_ITEMS = [
         MEADOW,
         'radial-gradient(800px 500px at 50% -10%, rgba(255, 245, 200, 0.45), transparent 70%)',
         'linear-gradient(180deg, #c8eaa2 0%, #9fd97d 55%, #84c860 100%)'
-      ].join(', ')
-    }
-  },
-
-  {
-    id: 'bg-autumn-park',
-    category: 'background',
-    theme: 'light',
-    name: 'Золотая осень',
-    desc: 'Кленовые листья, жёлуди и рябина в тёплом свете',
-    price: 120,
-    payload: {
-      gradient: [
-        AUTUMN_LIGHT,
-        'radial-gradient(900px 520px at 50% -10%, rgba(255, 214, 150, 0.45), transparent 70%)',
-        'linear-gradient(180deg, #fdf3e2 0%, #f8e3c4 60%, #f0cfa4 100%)'
       ].join(', ')
     }
   },

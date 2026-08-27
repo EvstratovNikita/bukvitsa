@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, doubleCoinsActive, petXpForWin, rewardFor } from '../constants/game.js';
-import { equippedDecorationsBonus } from '../data/petDecorations.js';
+import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial } from '../lib/ads.js';
 import { gameplayStart, gameplayStop, requestReview, submitScore } from '../lib/yandex.js';
@@ -92,6 +91,11 @@ export function useGame() {
   // a win still shows "+N монет", the breakdown, and the ad-double button.
   const [lastEarned, setLastEarned] = useState(() => savedGame?.lastEarned ?? 0);
   const [lastEarnedBase, setLastEarnedBase] = useState(() => savedGame?.lastEarnedBase ?? 0);
+  // Плоские монеты за наряды Букли и признак «сработал бонус ×2» — храним
+  // отдельно, чтобы в модалке показать честную раскладку, а не выводить
+  // бонус вычитанием (раньше он целиком приписывался Букле).
+  const [lastEarnedDeco, setLastEarnedDeco] = useState(() => savedGame?.lastEarnedDeco ?? 0);
+  const [boostedLastWin, setBoostedLastWin] = useState(() => savedGame?.boostedLastWin ?? false);
   const [doubledLastWin, setDoubledLastWin] = useState(() => savedGame?.doubledLastWin ?? false);
   const [doublingAd, setDoublingAd] = useState(false);
   const [hints, setHints] = useState(() => savedGame?.hints ?? Array((savedGame?.wordLength ?? 5)).fill(null));
@@ -171,9 +175,9 @@ export function useGame() {
     if (normalizeWord(solution).length !== wordLength) return;
     storage.set(STORAGE_KEYS.GAME_STATE, {
       solution, guesses, evaluations, status, hints, gameMode, wordLength,
-      lastEarned, lastEarnedBase, doubledLastWin
+      lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin
     });
-  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, doubledLastWin]);
+  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin]);
 
   // Watchdog: if the solution length ever drifts from the active wordLength
   // (caused by a stale persisted blob, a race between setWordLength and
@@ -310,14 +314,16 @@ export function useGame() {
             attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
           });
           setLastEarnedBase(base);
+          setLastEarnedDeco(0);
           setLastEarned(total);
           setDoubledLastWin(false);
+          setBoostedLastWin(false);
         } else {
           // 4 + 6-letter modes earn no coins (only XP, half) and feed into
           // an alt-mode tally that grants +1 energy every 5 plays (≤ 3/day).
           const isAlt = wordLength !== 5;
           const lengthMul = isAlt ? 0.5 : 1;
-          stats.recordWin(nextGuesses.length, elapsedMs, lengthMul, /* creditCoins */ !isAlt);
+          const award = stats.recordWin(nextGuesses.length, elapsedMs, lengthMul, /* creditCoins */ !isAlt);
           // Server records the win authoritatively (coins for 5-letter, half XP
           // for alt, distribution, streak, fastest) and reconciles back.
           stats.awardWinServer?.({
@@ -327,17 +333,19 @@ export function useGame() {
           if (isAlt) {
             setLastEarned(0);
             setLastEarnedBase(0);
+            setLastEarnedDeco(0);
+            setBoostedLastWin(false);
             const r = stats.recordAltModePlay?.();
             if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
           } else {
-            const base = rewardFor(nextGuesses.length);
-            const decoCoins = equippedDecorationsBonus(stats.stats.pet);
-            const boostMul = doubleCoinsActive(stats.stats) ? 2 : 1;
-            const total = Math.round((base + decoCoins) * boostMul);
-            setLastEarnedBase(base);
-            setLastEarned(total);
+            // Ничего не пересчитываем: показываем ровно ту раскладку, по
+            // которой монеты и начислены.
+            setLastEarnedBase(award.base);
+            setLastEarnedDeco(award.deco);
+            setLastEarned(award.total);
           }
           setDoubledLastWin(false);
+          setBoostedLastWin(Boolean(award.boosted) && award.total > 0);
           const petXp = Math.round(petXpForWin(nextGuesses.length) * lengthMul);
           const petResult = stats.recordPetXp(petXp);
           if (petResult.levelAfter > petResult.levelBefore) {
@@ -374,6 +382,8 @@ export function useGame() {
         }
         setLastEarned(0);
         setLastEarnedBase(0);
+        setLastEarnedDeco(0);
+        setBoostedLastWin(false);
       }
       isLocked.current = false;
     }, ANIM.REVEAL_TOTAL_MS + 60);
@@ -391,6 +401,8 @@ export function useGame() {
     setToast(null);
     setLastEarned(0);
     setLastEarnedBase(0);
+    setLastEarnedDeco(0);
+    setBoostedLastWin(false);
     setDoubledLastWin(false);
     setHints(Array(wordLength).fill(null));
     setHintPickMode(false);
@@ -467,6 +479,8 @@ export function useGame() {
     setHintPickMode(false);
     setLastEarned(0);
     setLastEarnedBase(0);
+    setLastEarnedDeco(0);
+    setBoostedLastWin(false);
     setDoubledLastWin(false);
     isLocked.current = false;
   }, [wordLength, solution, status, guesses.length, stats, gameMode]);
@@ -664,6 +678,8 @@ export function useGame() {
     toast,
     lastEarned,
     lastEarnedBase,
+    lastEarnedDeco,
+    boostedLastWin,
     doubledLastWin,
     doublingAd,
     doubleLastReward,

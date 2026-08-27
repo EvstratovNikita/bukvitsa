@@ -5907,8 +5907,9 @@ body.has-bg .cell--hinted .cell__face--back {
 [data-theme="light"] .iconbtn--modes { background: #d8f0dc; }
 .iconbtn--accent,
 [data-theme="light"] .iconbtn--accent { background: var(--accent); color: #0b0d12; }
-/* Букля: неоновая рамка анимируется, а подложка должна быть плотной. */
-.pet-headerbtn { background: #1a2030; }
+/* Букля: неоновая рамка анимируется, а подложка должна быть плотной. Светлая
+   подложка в обеих темах — на тёмной сова тонула в фоне кнопки. */
+.pet-headerbtn,
 [data-theme="light"] .pet-headerbtn { background: #e9ecff; }
 
 /* Плашка «Слово дня» — единственная в панели осталась на полупрозрачном

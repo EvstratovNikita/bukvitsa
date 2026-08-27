@@ -12,7 +12,7 @@ import { getDailyNumber } from '../../data/dailyWord.js';
 export function EndPanel() {
   const {
     status, reset, solution, evaluations, guesses,
-    lastEarned, lastEarnedBase,
+    lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft,
     gameMode, exitDailyMode, auth, wordLength, stats
   } = useGameContext();
@@ -68,9 +68,11 @@ export function EndPanel() {
                 <div className="end-panel__breakdown">
                   Основная {lastEarnedBase} + за Слово дня {bonus}
                 </div>
-              ) : bonus > 0 ? (
+              ) : (lastEarnedDeco > 0 || boostedLastWin) ? (
                 <div className="end-panel__breakdown">
-                  Базовая {lastEarnedBase} + от Букли {bonus}
+                  Базовая {lastEarnedBase}
+                  {lastEarnedDeco > 0 && <> + от Букли {lastEarnedDeco}</>}
+                  {boostedLastWin && <>, всё ×2 по бонусу</>}
                 </div>
               ) : null}
             </>

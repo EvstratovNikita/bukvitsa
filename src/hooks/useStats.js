@@ -12,6 +12,7 @@ import {
   HUNGER_MAX,
   MAX_ATTEMPTS,
   STORAGE_KEYS,
+  boostRunning,
   computeDailyReward,
   doubleCoinsActive,
   energyCapFor,
@@ -378,17 +379,19 @@ export function useStats() {
     const base = Math.round(rewardFor(attemptsUsed) * lengthMul);
     const decoCoins = equippedDecorationsBonus(stats.pet);
     // Double-coins is now a time-based boost (1 day) — never consumed on win.
-    const boostMul = doubleCoinsActive(stats) ? 2 : 1;
-    // Flat deco coins are added to base, then the whole total is doubled by
-    // the boost (so the boost is worth it for a decorated player).
-    const boosted = Math.round((base + decoCoins) * boostMul);
+    const boostOn = doubleCoinsActive(stats);
+    // Награда без бонуса: база + плоские монеты за наряды Букли. Бонус строго
+    // удваивает ИТОГ: получил бы n — с бонусом получит ровно 2n.
+    const plain = base + decoCoins;
+    const boosted = boostOn ? plain * 2 : plain;
+    // Считаем ОДИН раз и здесь же фиксируем: раньше апдейтер пересчитывал
+    // всё заново по своему снимку состояния, и начисленное расходилось с
+    // показанным в модалке — отсюда «то нет бонуса, то случайное число».
+    const earned = creditCoins ? boosted : 0;
     setStats((s) => {
       const dist = s.distribution.slice();
       dist[attemptsUsed - 1] = (dist[attemptsUsed - 1] || 0) + 1;
       const currentStreak = s.currentStreak + 1;
-      const dCoins = equippedDecorationsBonus(s.pet);
-      const bMul = doubleCoinsActive(s) ? 2 : 1;
-      const earned = creditCoins ? Math.round((base + dCoins) * bMul) : 0;
       const prevFast = s.fastestWinMs;
       const nextFast = (elapsedMs != null && elapsedMs > 0)
         ? (prevFast == null ? elapsedMs : Math.min(prevFast, elapsedMs))
@@ -409,7 +412,9 @@ export function useStats() {
         fastestWinMs: nextFast
       };
     });
-    return creditCoins ? boosted : 0;
+    // Возвращаем полную раскладку — вызывающий показывает ровно то, что
+    // начислено, и ничего не пересчитывает у себя.
+    return { base, deco: decoCoins, boosted: boostOn, total: earned };
   }, [stats.boostDoubleUntil, stats.pet?.equipped]);
 
   const recordLoss = useCallback(() => {
@@ -726,6 +731,7 @@ export function useStats() {
   // buyItem returns one of:
   //   'ok'              — purchase succeeded
   //   'already_owned'   — non-consumable item is already in inventory
+  //   'already_active'  — timed/counted boost is still running
   //   'not_enough_coins' — insufficient balance
   //   'unknown_item'    — id doesn't exist in catalog
   const buyItem = useCallback((itemId) => {
@@ -733,6 +739,9 @@ export function useStats() {
     if (!item) return 'unknown_item';
     const owns = (stats.inventory || []).includes(itemId);
     if (!item.consumable && owns) return 'already_owned';
+    // Работающий бонус нельзя купить второй раз — деньги ушли бы впустую, а
+    // игрок этого не ждёт. Кнопка в магазине погашена, это страховка логики.
+    if (item.consumable && boostRunning(item.id, stats)) return 'already_active';
     if ((stats.coins || 0) < item.price) return 'not_enough_coins';
 
     setStats((s) => {

@@ -87,6 +87,16 @@ export const doubleCoinsActive = (s, nowMs) => {
   return Boolean(s?.boostDoubleUntil) && now < new Date(s.boostDoubleUntil).getTime();
 };
 
+// Работает ли сейчас купленный бонус. Один источник правды на два места:
+// магазин гасит кнопку покупки, buyItem отказывает в повторной покупке.
+export const boostRunning = (id, s, nowMs) => {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  if (id === 'boost-double') return doubleCoinsActive(s, now);
+  if (id === 'boost-energy-cap') return energyCapFor(s, now) > ENERGY_MAX;
+  if (id === 'boost-ad-coins') return (s?.adBonusLeft || 0) > 0;
+  return false;
+};
+
 // Hunger drives the pet's bonus to energy regen speed:
 //   speedMultiplier = 1 + floor(hunger / 10) * 0.1
 //   hunger 0   → 1.0x (2h per unit)
