@@ -160,7 +160,10 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
               petBond: merged.petBond
             },
             activeBackground: s.activeBackground,
-            activeCellStyle: s.activeCellStyle
+            activeCellStyle: s.activeCellStyle,
+            // TEMP-TESTCOINS: серверная строка про тестовую выдачу не знает —
+            // не опускаем баланс ниже местного.
+            coins: Math.max(fromRow(data).coins || 0, s.coins || 0)
           };
         });
       } else if (hasLocalProgress(stats)) {
