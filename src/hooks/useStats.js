@@ -208,11 +208,20 @@ export function useStats() {
   // Yandex iframe, so userId never arrives and `synced` never flips), start on
   // local state anyway. Without this the first-puzzle pick stays gated forever
   // and the board is blank / unтypeable until a mode switch.
+  //
+  // На Яндексе ждём дольше. Там до данных три шага — загрузка SDK, getPlayer,
+  // getData, — и на телефоне это спокойно больше двух секунд. Стартовать на
+  // дефолтах здесь дороже, чем подождать: игрок с аккаунтом получал заново
+  // ежедневную награду и обучение, энергию 4/5 и таймеры с нуля, потому что
+  // облако приезжало уже после того, как игра всё это решила. Экран в это
+  // время закрыт нашей заставкой и лоадером площадки, так что пауза не
+  // выглядит зависанием, а сам SDK сдаётся по своему таймауту раньше.
+  const readyFallbackMs = isYandex ? 12000 : 2500;
   const [readyFallback, setReadyFallback] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setReadyFallback(true), 2500);
+    const t = setTimeout(() => setReadyFallback(true), readyFallbackMs);
     return () => clearTimeout(t);
-  }, []);
+  }, [readyFallbackMs]);
   // True once the active backend's initial load has settled (or the fallback
   // fired). The game waits for this before deciding whether to offer the daily
   // word / login reward, so it never acts on stale local state.

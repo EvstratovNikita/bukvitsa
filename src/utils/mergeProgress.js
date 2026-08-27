@@ -16,16 +16,14 @@
 const MAX_KEYS = [
   'played', 'won', 'lost', 'totalGuesses', 'maxStreak', 'currentStreak',
   'coins', 'coinsEarned', 'dailyStreak', 'hintsUsed', 'itemsBought',
-  'referralsCount', 'adBonusLeft', 'energy'
+  'referralsCount', 'adBonusLeft'
 ];
 // Меньше — лучше: рекорды.
 const MIN_KEYS = ['bestAttempts', 'fastestWinMs'];
 // Списки id: объединяем, порядок первого снимка сохраняем.
 const UNION_KEYS = ['inventory', 'unlockedAchievements'];
 // Моменты времени в ISO: берём поздний.
-const LATER_ISO_KEYS = [
-  'lastEnergyTickAt', 'boostDoubleUntil', 'energyCapUntil', 'lastVisitDate'
-];
+const LATER_ISO_KEYS = ['boostDoubleUntil', 'energyCapUntil', 'lastVisitDate'];
 
 const num = (v) => (Number.isFinite(v) ? v : null);
 
@@ -147,6 +145,21 @@ export function mergeProgress(a, b) {
   for (const k of LATER_ISO_KEYS) {
     const v = later(a[k], b[k]);
     if (v !== undefined) out[k] = v;
+  }
+
+  // Энергия и якорь её восстановления — одна пара, и берётся она по
+  // МЕНЬШЕМУ запасу. Максимум сделал бы вход бесплатной заправкой: у чистой
+  // установки энергия полная, и любой сброс данных с последующим входом
+  // возвращал бы 5/5. Потраченная на аккаунте энергия — настоящая, поэтому
+  // выигрывает она, а вместе с ней едет и её якорь: иначе счётчик «+1 через»
+  // отсчитывался бы от чужого момента и показывал полный час на ровном месте.
+  const ea = num(a.energy);
+  const eb = num(b.energy);
+  if (ea != null || eb != null) {
+    const takeA = eb == null || (ea != null && ea <= eb);
+    out.energy = takeA ? ea : eb;
+    out.lastEnergyTickAt = (takeA ? a.lastEnergyTickAt : b.lastEnergyTickAt)
+      || later(a.lastEnergyTickAt, b.lastEnergyTickAt);
   }
 
   // Распределение попыток — поклеточный максимум.
