@@ -4335,14 +4335,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 .end-panel__cost svg { width: 12px; height: 12px; }
 
-/* Диагностика синхронизации в настройках (только на Яндексе). */
-.diag { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
-.diag__title { margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--text); }
-.diag__list { margin: 0; }
-.diag__row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; font-size: 12px; }
-.diag__key { color: var(--text-dim); }
-.diag__val { margin: 0; color: var(--text); font-weight: 600; text-align: right; word-break: break-word; }
-.diag__hint { margin: 8px 0 0; font-size: 11px; color: var(--text-mute); }
 .lb__hcell--num { text-align: right; }
 
 .lb__row {
