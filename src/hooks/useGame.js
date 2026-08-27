@@ -695,6 +695,7 @@ export function useGame() {
     keyboardStatuses,
     stats: stats.stats,
     ready: stats.ready,
+    adoptYandexAccount: stats.adoptYandexAccount,
     resetStats: stats.reset,
     pendingDailyReward: stats.pendingDailyReward,
     claimDailyReward: stats.claimDailyReward,

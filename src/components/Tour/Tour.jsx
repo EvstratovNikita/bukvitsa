@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // First-run coachmarks: dim the screen, spotlight one UI element at a time and
-// describe it in a couple of words. Shown once per device (localStorage flag).
+// describe it in a couple of words. Показывается один раз на ИГРОКА: флаг
+// дублируется в prefs.tourDone и уезжает в облако, иначе после входа в
+// аккаунт (или на новом устройстве) обучение начиналось заново.
 // Targets are matched by [data-tour="..."] attributes on the live elements, so
 // steps whose target isn't on screen are skipped automatically.
 

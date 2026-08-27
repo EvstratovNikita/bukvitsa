@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
-import { isYandex, openAuth, getPlayerInfo, cloudSave } from '../../lib/yandex.js';
+import { isYandex, openAuth, getPlayerInfo } from '../../lib/yandex.js';
 import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
@@ -165,30 +165,32 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
 // Yandex-only login row. Login is optional and only via Yandex ID (platform
 // rule). Authorized → cloud progress syncs across devices; guests still save
 // to their browser. Shows the account name once signed in.
-const YA_CONSENT_KEY = 'wordle-ru:yandex-authed';
 
 function YandexAuthRow({ onClose }) {
-  const { stats, showToast } = useGameContext();
+  const { showToast, adoptYandexAccount } = useGameContext();
   const [info, setInfo] = useState(null);
 
-  // Yandex compliance: authorization must be voluntary — only after the user
-  // taps the login button. NEVER auto-authorize / auto-show the account. We
-  // fetch + display the account only once the user has explicitly consented
-  // (persisted flag from a prior login); otherwise we always show the button.
+  // Спрашиваем у площадки РЕЖИМ игрока (lite или аккаунт). Это чтение, а не
+  // авторизация: диалог входа по-прежнему открывается только по нажатию, как
+  // требуют правила. Раньше вместо режима смотрели свой флаг в localStorage —
+  // и тот, кто вошёл на самой площадке (кнопка «Войти» над «Играть») или на
+  // другом устройстве, всё равно видел в меню предложение войти.
   useEffect(() => {
-    let consented = false;
-    try { consented = Boolean(localStorage.getItem(YA_CONSENT_KEY)); } catch { /* noop */ }
-    if (consented) getPlayerInfo().then(setInfo);
+    let active = true;
+    getPlayerInfo().then((next) => { if (active) setInfo(next); });
+    return () => { active = false; };
   }, []);
 
   const onLogin = async () => {
     const ok = await openAuth();
     if (ok) {
-      try { localStorage.setItem(YA_CONSENT_KEY, '1'); } catch { /* noop */ }
-      await cloudSave(stats);
+      // Сливаем гостевой прогресс с тем, что уже лежит на аккаунте. Раньше
+      // здесь был cloudSave(stats) — он затирал аккаунт текущим снимком, и
+      // игрок, вошедший посреди партии, терял всё, что накопил раньше.
+      await adoptYandexAccount();
       const next = await getPlayerInfo();
       setInfo(next);
-      showToast?.('Вход выполнен — прогресс сохранён в аккаунте');
+      showToast?.('Вход выполнен — прогресс объединён с аккаунтом');
       onClose();
     } else {
       // Failed / declined. Most common in the device "draft preview" where the

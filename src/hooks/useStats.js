@@ -1082,6 +1082,8 @@ export function useStats() {
     redeemAdDoubleServer,
     achievementToasts,
     consumeAchievementToast,
-    auth
+    auth,
+    // Слияние гостевого прогресса с аккаунтом после входа на Яндексе.
+    adoptYandexAccount: yandex.adoptAccount
   };
 }

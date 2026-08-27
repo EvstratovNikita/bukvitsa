@@ -42,7 +42,7 @@ function GameShell() {
   useKeyboard(true);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, resetStats, auth, showToast, status, gameMode, ready, leaveDailyMode } = useGameContext();
+  const { stats, resetStats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref } = useGameContext();
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also
@@ -81,12 +81,20 @@ function GameShell() {
   const closeHelp = () => setHelpOpen(false);
 
   // First-run coachmarks: once the game is ready and the daily-reward (or any)
-  // modal is dismissed, start the tour. Shown once per device.
+  // modal is dismissed, start the tour. Один раз на игрока: флаг живёт и в
+  // prefs (уезжает в облако Яндекса / в Supabase), и в localStorage — иначе
+  // после входа в аккаунт обучение показывалось уже игравшему человеку.
   useEffect(() => {
     if (!ready) return;
+    if (stats.prefs?.tourDone) return;
     let skip = false;
     try { skip = Boolean(localStorage.getItem(TOUR_DONE_KEY)); } catch { /* noop */ }
-    if (skip) return;
+    if (skip) {
+      // Старое устройство: поднимаем локальный флаг в prefs, чтобы он уехал
+      // в облако и больше не зависел от чистки данных браузера.
+      setPref?.('tourDone', true);
+      return;
+    }
     let raf = 0;
     const tryStart = () => {
       if (document.querySelector('.modal-backdrop')) { raf = requestAnimationFrame(tryStart); return; }
@@ -116,7 +124,7 @@ function GameShell() {
       <Toast />
       <AchievementToast />
       <DailyReward />
-      {tourOn && <Tour onDone={() => setTourOn(false)} />}
+      {tourOn && <Tour onDone={() => { setTourOn(false); setPref?.('tourDone', true); }} />}
 
       <SideMenu
         open={menuOpen}
