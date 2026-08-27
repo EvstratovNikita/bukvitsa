@@ -36,6 +36,8 @@ function CloudDiagnostics({ prefs, stats }) {
   const rows = [
     ['SDK', cloudStatus.sdk],
     ['Игрок', cloudStatus.mode],
+    ['Кто сейчас', cloudStatus.identity],
+    ['Читали у', cloudStatus.readFrom],
     ['Чтение облака', cloudStatus.load],
     ['В облаке было', cloudStatus.loaded],
     ['Запись в облако', cloudStatus.save],

@@ -73,6 +73,10 @@ export const cloudStatus = {
   // Что именно лежало в облаке на момент загрузки — до слияния с местным
   // снимком. Отличает «данные не доехали» от «в аккаунте пусто».
   loaded: '—',
+  // Кто мы для площадки сейчас и у кого читали данные. Если эти двое
+  // разошлись — значит, игрок сменился посреди сессии.
+  identity: '—',
+  readFrom: '—',
   save: 'не было'
 };
 
@@ -240,18 +244,33 @@ export async function cloudSave(obj) {
   }
 }
 
-// Перечитать игрока у площадки, сбросив кэш. Нужно, когда вход произошёл
-// МИМО нашей кнопки — на странице игры до запуска или в соседней вкладке:
-// SDK в этот момент уже отдал нам lite-игрока, и до перезагрузки страницы мы
-// продолжали читать и писать его хранилище, а не аккаунт. Возвращает режим.
-export async function refreshPlayerMode() {
+// Свежий игрок у площадки, минуя кэш, — и кэш сразу подменяется им, чтобы
+// последующие чтение и запись шли ТОМУ ЖЕ игроку.
+async function refreshPlayer() {
+  const y = await getYsdk();
+  const p = await withTimeout(y.getPlayer({ scopes: false }), CALL_TIMEOUT_MS, 'getPlayer timeout');
+  _playerPromise = Promise.resolve(p);
+  return p;
+}
+
+// Кто мы для площадки ПРЯМО СЕЙЧАС: «режим:uid».
+//
+// Игрок может смениться посреди сессии, и мы об этом не узнаём: вход мимо
+// нашей кнопки (на странице игры до запуска, в соседней вкладке) переключает
+// игрока, а у нас в кэше остаётся прежний. Дальше выходит худшее из
+// возможного — читали у одного, пишем другому: гостевой снимок уезжает
+// поверх аккаунта и стирает его. Поэтому личность спрашивается перед каждой
+// записью и сравнивается с той, у которой читали.
+export async function playerIdentity() {
   if (!isYandex) return null;
-  _playerPromise = null;
   try {
-    const p = await getPlayer();
+    const p = await refreshPlayer();
     const mode = p.getMode?.() === 'lite' ? 'lite' : 'account';
+    let uid = '';
+    try { uid = p.getUniqueID?.() || ''; } catch { /* у гостя идентификатора может не быть */ }
     cloudStatus.mode = mode === 'lite' ? 'гость' : 'аккаунт';
-    return mode;
+    cloudStatus.identity = mode + (uid ? ':' + uid.slice(0, 6) : '');
+    return mode + ':' + uid;
   } catch {
     return null;
   }

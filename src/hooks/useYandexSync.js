@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { cloudLoad, cloudSave, refreshPlayerMode } from '../lib/yandex.js';
+import { cloudLoad, cloudSave, cloudStatus, playerIdentity } from '../lib/yandex.js';
 import { mergeProgress } from '../utils/mergeProgress.js';
 
 const DEBOUNCE_MS = 900;
@@ -17,6 +17,26 @@ export function useYandexSync({ stats, setStats, enabled }) {
   // дважды, и побочный эффект выполнился бы два раза.
   const statsRef = useRef(stats);
   statsRef.current = stats;
+  // Личность игрока, У КОТОРОГО читали данные. Запись разрешена только ему:
+  // если площадка успела подменить игрока, снимок сначала сливается с его
+  // данными, а не заливается поверх.
+  const identityRef = useRef(null);
+
+  // Читаем данные текущего игрока, сливаем с местным снимком и сохраняем
+  // объединённое. Вызывается после входа в аккаунт — своей кнопкой или мимо
+  // неё. У гостя (режим lite) своё хранилище, у аккаунта своё; раньше мы
+  // просто заливали в аккаунт текущий снимок, и его прогресс стирался.
+  const adoptAccount = useCallback(async () => {
+    const cloud = await cloudLoad();
+    const merged = mergeProgress(statsRef.current, cloud);
+    if (!merged) return null;
+    setStats(merged);
+    await cloudSave(merged);
+    // Теперь читали и писали одному и тому же игроку — фиксируем его.
+    identityRef.current = await playerIdentity();
+    cloudStatus.readFrom = cloudStatus.identity;
+    return merged;
+  }, [setStats]);
 
   // Initial load: pull the cloud snapshot once.
   useEffect(() => {
@@ -37,7 +57,8 @@ export function useYandexSync({ stats, setStats, enabled }) {
         // mergeProgress не теряет ни одну из сторон и ничего не задваивает.
         setStats((s) => mergeProgress(s, data));
       }
-      modeRef.current = await refreshPlayerMode();
+      identityRef.current = await playerIdentity();
+      cloudStatus.readFrom = cloudStatus.identity;
       syncedRef.current = true;
       setSynced(true);
     })();
@@ -45,53 +66,44 @@ export function useYandexSync({ stats, setStats, enabled }) {
   }, [enabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced save on every local change after the initial load.
+  //
+  // Перед записью спрашиваем у площадки, кто мы сейчас. Если игрок сменился
+  // с того момента, как мы читали (вход мимо нашей кнопки — на странице игры
+  // до запуска или в соседней вкладке), запись поверх стёрла бы его данные
+  // нашим снимком. В этом случае сначала читаем данные нового игрока и
+  // сливаем — и только потом сохраняем.
   useEffect(() => {
     if (!enabled || !syncedRef.current) return;
     clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { cloudSave(stats); }, DEBOUNCE_MS);
+    debounceRef.current = setTimeout(async () => {
+      const id = await playerIdentity();
+      if (id && identityRef.current && id !== identityRef.current) {
+        await adoptAccount();
+        return;
+      }
+      if (id) identityRef.current = id;
+      cloudSave(statsRef.current);
+    }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
-  }, [stats, enabled]);
+  }, [stats, enabled, adoptAccount]);
 
-  // Кто мы для площадки на момент загрузки: гость или аккаунт.
-  const modeRef = useRef(null);
-
-  // Вызывается сразу после входа в аккаунт Яндекса. У гостя (режим lite)
-  // своё хранилище, у аккаунта — своё; до этого мы просто заливали в аккаунт
-  // текущий снимок, и весь прогресс на аккаунте стирался начисто. Теперь
-  // читаем данные аккаунта, сливаем с тем, что наиграно здесь, и сохраняем
-  // объединённое — обе стороны остаются целы.
-  const adoptAccount = useCallback(async () => {
-    const cloud = await cloudLoad();
-    const merged = mergeProgress(statsRef.current, cloud);
-    if (!merged) return null;
-    setStats(merged);
-    await cloudSave(merged);
-    return merged;
-  }, [setStats]);
-
-  // Вход мимо нашей кнопки. Игрок может войти на странице игры (кнопка над
-  // «Играть») или в соседней вкладке — SDK к этому моменту уже отдал нам
-  // lite-игрока, и мы продолжали читать и писать ЕГО хранилище: аккаунт
-  // выглядел пустым, а прогресс гостя оставался в стороне. Поэтому
-  // переспрашиваем режим, когда вкладка снова становится активной, и на
-  // переходе гость → аккаунт сливаем оба хранилища.
+  // Та же проверка, но не дожидаясь ближайшего сохранения: вкладка снова
+  // активна (вернулись из окна входа) или прошло пять секунд после старта —
+  // площадка могла отдать аккаунт не сразу.
   useEffect(() => {
     if (!enabled) return;
     let active = true;
 
     const check = async () => {
       if (!active || !syncedRef.current || document.hidden) return;
-      const mode = await refreshPlayerMode();
-      if (!active || !mode) return;
-      const was = modeRef.current;
-      modeRef.current = mode;
-      if (was === 'lite' && mode === 'account') await adoptAccount();
+      const id = await playerIdentity();
+      if (!active || !id) return;
+      if (identityRef.current && id !== identityRef.current) await adoptAccount();
+      else identityRef.current = id;
     };
 
     document.addEventListener('visibilitychange', check);
     window.addEventListener('focus', check);
-    // Одна отложенная проверка на случай, когда площадка отдаёт аккаунт не
-    // сразу после старта, а через секунду-другую.
     const t = setTimeout(check, 5000);
 
     return () => {
@@ -104,3 +116,5 @@ export function useYandexSync({ stats, setStats, enabled }) {
 
   return { synced, adoptAccount };
 }
+
+
