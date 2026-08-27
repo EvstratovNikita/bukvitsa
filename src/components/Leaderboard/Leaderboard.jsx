@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchLeaderboard } from '../../lib/yandex.js';
+import { TrophyIcon } from '../icons/Icon.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 
 // Последний удачный ответ площадки. Живёт вне компонента, поэтому второе и
@@ -8,8 +9,8 @@ import { Modal } from '../Modal/Modal.jsx';
 // приходил ответ.
 let cached = null;
 
-// Yandex leaderboard viewer (top by total wins). Shown only on the Yandex
-// platform. Authorized players appear with their name; guests are anonymous.
+// Таблица лучших игроков (топ по числу отгаданных слов). Рисуется только на
+// площадке Яндекса. У вошедших видно имя, гости идут анонимно.
 export function LeaderboardModal({ open, onClose }) {
   const [res, setRes] = useState(cached);
   const [failed, setFailed] = useState(false);
@@ -37,8 +38,16 @@ export function LeaderboardModal({ open, onClose }) {
   const loading = !res && !failed;
 
   return (
-    <Modal open={open} onClose={onClose} title="Лидерборд">
+    <Modal open={open} onClose={onClose} title="Лучшие игроки">
       <div className="lb">
+        {(loading || entries.length > 0) && (
+          <div className="lb__head">
+            <span className="lb__hcell">#</span>
+            <span className="lb__hcell">Игрок</span>
+            <span className="lb__hcell lb__hcell--num">Слов</span>
+          </div>
+        )}
+
         {loading && (
           <ol className="lb__list" aria-busy="true" aria-label="Загрузка таблицы">
             {Array.from({ length: 6 }, (_, i) => (
@@ -46,31 +55,51 @@ export function LeaderboardModal({ open, onClose }) {
             ))}
           </ol>
         )}
-        {failed && <div className="lb__msg">Лидерборд пока недоступен.</div>}
-        {!loading && !failed && entries.length === 0 && (
-          <div className="lb__msg">Пока нет результатов — стань первым!</div>
+
+        {failed && (
+          <div className="lb__empty">
+            <span className="lb__empty-icon"><TrophyIcon /></span>
+            <p className="lb__empty-title">Таблица недоступна</p>
+            <p className="lb__empty-text">Попробуй заглянуть чуть позже.</p>
+          </div>
         )}
+
+        {!loading && !failed && entries.length === 0 && (
+          <div className="lb__empty">
+            <span className="lb__empty-icon"><TrophyIcon /></span>
+            <p className="lb__empty-title">Здесь пока пусто</p>
+            <p className="lb__empty-text">Отгадай слово — и займёшь первое место.</p>
+          </div>
+        )}
+
         {entries.length > 0 && (
           <ol className="lb__list">
             {entries.map((e) => {
               const me = userRank != null && e.rank === userRank;
               const name = e.player?.publicName || 'Игрок';
+              // Тройке призёров — свои цвета медалей, остальным обычный номер.
+              const medal = e.rank <= 3 ? ` lb__row--medal lb__row--medal${e.rank}` : '';
               return (
-                <li key={e.rank} className={`lb__row${me ? ' lb__row--me' : ''}`}>
+                <li key={e.rank} className={`lb__row${me ? ' lb__row--me' : ''}${medal}`}>
                   <span className="lb__rank">{e.rank}</span>
-                  <span className="lb__name" title={name}>{name}</span>
+                  <span className="lb__name" title={name}>
+                    {name}
+                    {me && <span className="lb__you">вы</span>}
+                  </span>
                   <span className="lb__score">{e.formattedScore ?? e.score}</span>
                 </li>
               );
             })}
           </ol>
         )}
+
         <p className="lb__hint">
-          Рейтинг по числу побед.
+          Место — по числу отгаданных слов.
           {/* Гостю объясняем, почему его нет в таблице; вошедшему это не нужно. */}
-          {!failed && userRank == null && ' Войди в аккаунт, чтобы попасть в топ под своим именем.'}
+          {!failed && userRank == null && ' Войди в аккаунт, чтобы попасть в таблицу под своим именем.'}
         </p>
       </div>
     </Modal>
   );
 }
+

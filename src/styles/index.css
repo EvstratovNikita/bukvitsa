@@ -528,28 +528,24 @@ button { font-family: inherit; }
 }
 .menu-item__login-sub {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-dim);
   line-height: 1.2;
 }
-/* Login = a glowing call-to-action: filled accent gradient + pulsing halo so
-   it clearly invites the player to sign in (matters for save + gameplay). */
+/* «Войти» зовёт нажать себя свечением, а не заливкой: сплошной градиент
+   поперёк строки выглядел тяжело и спорил с цветными плитками соседей.
+   Осталась еле заметная подложка, рамка в цвет акцента и мягкий пульс. */
 .menu-item--login {
   position: relative;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  border-color: transparent;
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(108, 140, 255, 0.4);
-  animation: login-glow 2.4s ease-in-out infinite;
+  background: rgba(108, 140, 255, 0.08);
+  border: 1px solid rgba(108, 140, 255, 0.30);
+  color: var(--text);
+  --mi: 108 140 255;
+  animation: login-glow 2.8s ease-in-out infinite;
 }
-.menu-item--login .menu-item__label { color: #fff; font-weight: 800; }
-.menu-item--login .menu-item__icon {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-  border-color: transparent;
-}
+.menu-item--login .menu-item__label { color: var(--text); font-weight: 800; }
 @keyframes login-glow {
-  0%, 100% { box-shadow: 0 6px 18px rgba(108, 140, 255, 0.35); }
-  50%      { box-shadow: 0 6px 26px rgba(179, 136, 255, 0.6), 0 0 0 1px rgba(179, 136, 255, 0.35); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(108, 140, 255, 0); }
+  50%      { box-shadow: 0 0 18px 2px rgba(108, 140, 255, 0.28); }
 }
 @media (prefers-reduced-motion: reduce) {
   .menu-item--login { animation: none; }
@@ -4328,7 +4324,80 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   background: rgba(247, 201, 72, 0.10);
   box-shadow: inset 0 0 0 1px rgba(247, 201, 72, 0.25);
 }
-.lb__rank { font-weight: 800; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+/* Шапка таблицы — те же колонки, что и у строк. */
+.lb__head {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.lb__hcell--num { text-align: right; }
+
+.lb__rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  font-weight: 800;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+/* Тройка призёров: медаль вместо номера + подкрашенная строка. Цвет берётся
+   из --lb-medal, поэтому строка, кружок и свечение всегда в одном тоне. */
+.lb__row--medal { border-color: rgb(var(--lb-medal) / 0.45); background: rgb(var(--lb-medal) / 0.08); }
+.lb__row--medal .lb__rank {
+  background: rgb(var(--lb-medal) / 0.9);
+  color: #1a1300;
+  box-shadow: 0 2px 8px rgb(var(--lb-medal) / 0.35);
+}
+.lb__row--medal1 { --lb-medal: 247 201 72; }  /* золото */
+.lb__row--medal2 { --lb-medal: 203 213 225; } /* серебро */
+.lb__row--medal3 { --lb-medal: 208 139 82; }  /* бронза */
+/* Своя строка среди призёров: подсветка «вы» важнее цвета медали,
+   иначе игрок теряет себя в таблице. */
+.lb__row--medal.lb__row--me { border-color: rgba(247, 201, 72, 0.75); background: rgba(247, 201, 72, 0.16); }
+
+/* Отметка «вы» — чтобы своя строка читалась и без цвета (дальтонизм, блики
+   на телефоне под солнцем). */
+.lb__you {
+  margin-left: 7px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(247, 201, 72, 0.22);
+  border: 1px solid rgba(247, 201, 72, 0.45);
+  color: #f7c948;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* Пустая таблица и недоступная — не голая строчка текста, а карточка. */
+.lb__empty { text-align: center; padding: 22px 10px 8px; }
+.lb__empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  background: rgba(247, 201, 72, 0.12);
+  border: 1px solid rgba(247, 201, 72, 0.28);
+  color: #f7c948;
+}
+.lb__empty-icon svg { width: 26px; height: 26px; }
+.lb__empty-title { margin: 0 0 4px; font-size: 15px; font-weight: 800; color: var(--text); }
+.lb__empty-text { margin: 0; font-size: 13px; color: var(--text-dim); }
 .lb__name { font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb__score { font-weight: 800; color: #f7c948; font-variant-numeric: tabular-nums; }
 .lb__hint { margin: 4px 0 0; font-size: 12px; color: var(--text-mute); text-align: center; line-height: 1.4; }
@@ -4339,6 +4408,10 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   box-shadow: inset 0 0 0 1px rgba(191, 136, 0, 0.25);
 }
 [data-theme="light"] .lb__score { color: #9a5e00; }
+[data-theme="light"] .lb__row--medal .lb__rank { color: #1a1300; }
+[data-theme="light"] .lb__you { color: #8a5a00; background: rgba(247, 201, 72, 0.30); border-color: rgba(191, 136, 0, 0.5); }
+[data-theme="light"] .lb__empty-icon { background: rgba(247, 201, 72, 0.22); border-color: rgba(191, 136, 0, 0.4); color: #9a5e00; }
+[data-theme="light"] .menu-item--login { background: rgba(108, 140, 255, 0.10); border-color: rgba(108, 140, 255, 0.35); }
 
 /* Скелет на первую загрузку: окно сразу открывается нужной высоты, поэтому
    таблица не «моргает» — раньше на её месте была строка «Загрузка…», и на

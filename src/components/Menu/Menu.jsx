@@ -131,7 +131,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
               магазин. Палитра — в index.css, .menu-item--*. */}
           <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} tint="shop" />
           {isYandex && (
-            <MenuItem icon={<TrophyIcon />} label="Лидерборд" onClick={handle(onOpenLeaderboard)} tint="rating" />
+            <MenuItem icon={<TrophyIcon />} label="Лучшие игроки" onClick={handle(onOpenLeaderboard)} tint="rating" />
           )}
           <MenuItem
             icon={<AwardIcon />}
