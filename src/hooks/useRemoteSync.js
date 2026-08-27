@@ -1,22 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase.js';
+import { callRpc } from '../lib/economy.js';
 import { mergeGiftProgress } from '../utils/petBond.js';
 
 const DEBOUNCE_MS = 700;
 
-// Anti-cheat cutover: the client may only write COSMETIC columns directly.
-// Every reward/economy column (coins, won, energy, inventory, pet rewards,
-// achievements, boosts, daily, …) is owned by the SECURITY DEFINER RPCs and
-// reconciled into local state from their results — so the debounced upsert can
-// no longer clobber a server-authoritative value. `fromRow` below still reads
-// the full row, so reloads pull the server's truth back in. (Phase 1 will
-// additionally REVOKE UPDATE on the locked columns at the DB level.)
-const toRow = (stats, userId) => ({
-  user_id: userId,
-  active_background: stats.activeBackground || null,
-  active_cell_style: stats.activeCellStyle || null,
-  prefs: stats.prefs || null
+// Anti-cheat cutover: every reward/economy column (coins, won, energy,
+// inventory, pet rewards, achievements, boosts, daily, …) is owned by the
+// SECURITY DEFINER RPCs and reconciled into local state from their results.
+// `fromRow` below still reads the full row, so reloads pull the server's
+// truth back in.
+//
+// Косметика — фон, стиль клеток и prefs (тема, обои по темам, коллекция
+// подарков) — остаётся клиент-авторитетной, но и её писать напрямую нельзя:
+// REVOKE лёг на всю таблицу, и upsert возвращал 42501 permission denied. Из-за
+// этого выбранный фон и тема вообще не доезжали до сервера и терялись на новом
+// устройстве. Идём тем же путём, что и экономика, — через функцию, которая
+// трогает ровно эти три колонки. SQL: supabase/save_cosmetics.sql.
+const cosmeticsArgs = (stats) => ({
+  p_active_background: stats.activeBackground || null,
+  p_active_cell_style: stats.activeCellStyle || null,
+  p_prefs: stats.prefs || null
 });
+
+// Ключ для сравнения: сохраняем, только когда изменилась сама косметика, а не
+// любой чих в статистике (раньше запрос уходил на каждую мутацию).
+const cosmeticsKey = (stats) => JSON.stringify(cosmeticsArgs(stats));
 
 const fromRow = (row) => clean({
   played: row.played || 0,
@@ -92,6 +101,8 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
   const syncedRef = useRef(false);
   const errorRef = useRef(null);
   const debounceRef = useRef(null);
+  // Последняя косметика, доехавшая до сервера.
+  const lastSavedRef = useRef(null);
   // Stateful mirror of syncedRef so consumers re-render once the initial
   // server reconcile lands. The game uses this to avoid acting on stale local
   // state (e.g. re-offering the daily / login reward) before the server's
@@ -122,14 +133,10 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
       }
 
       if (!data) {
-        // Row absent — trigger usually creates one. Insert manually.
-        const row = toRow(stats, userId);
-        const { error: insErr } = await supabase
-          .from('user_stats')
-          .upsert(row, { onConflict: 'user_id' });
-        if (insErr) {
-          console.warn('[remote-sync] insert failed', insErr.message);
-        }
+        // Row absent — trigger usually creates one. Заводим через функцию:
+        // она делает upsert по своему user_id.
+        await callRpc('save_cosmetics', cosmeticsArgs(stats));
+        lastSavedRef.current = cosmeticsKey(stats);
         markSynced();
         return;
       }
@@ -140,8 +147,8 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
         // active cell style) are CLIENT-authoritative — anonymous auth can hand
         // us `userId` only after the user has already toggled the theme, and a
         // blind pull would clobber that local choice with a stale server value
-        // (then the debounced upsert would persist the stale one). Keep local
-        // for these three; the upsert below pushes them back up to the server.
+        // (then the debounced save would persist the stale one). Keep local
+        // for these three; the save below pushes them back up to the server.
         setStats((s) => {
           const serverPrefs = (data.prefs && typeof data.prefs === 'object') ? data.prefs : {};
           const merged = mergeGiftProgress(
@@ -164,16 +171,15 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
           };
         });
       } else if (hasLocalProgress(stats)) {
-        // Migrate local → server (first time the user authenticates).
-        const row = toRow(stats, userId);
-        const { error: upErr } = await supabase
-          .from('user_stats')
-          .upsert(row, { onConflict: 'user_id' });
-        if (upErr) {
-          console.warn('[remote-sync] migrate failed', upErr.message);
-        }
+        // Первый вход в аккаунт при пустой серверной строке: переносим наверх
+        // косметику. Экономику клиент перенести не может и не должен — она
+        // набирается заново через серверные RPC.
+        await callRpc('save_cosmetics', cosmeticsArgs(stats));
       }
 
+      // Пометка «уже сохранено»: иначе дебаунс ниже сразу отправил бы то же
+      // самое ещё раз, только что подтянутое с сервера.
+      lastSavedRef.current = cosmeticsKey(stats);
       markSynced();
     })();
 
@@ -183,18 +189,17 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, enabled]);
 
-  // Debounced upsert on local mutations after initial sync.
+  // Debounced cosmetics save on local mutations after initial sync.
   useEffect(() => {
     if (!enabled || !isSupabaseConfigured || !userId || !syncedRef.current) return;
+    const key = cosmeticsKey(stats);
+    if (key === lastSavedRef.current) return;
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      const { error } = await supabase
-        .from('user_stats')
-        .upsert(toRow(stats, userId), { onConflict: 'user_id' });
-      if (error) {
-        console.warn('[remote-sync] upsert failed', error.message);
-        errorRef.current = error;
-      }
+      const r = await callRpc('save_cosmetics', cosmeticsArgs(stats));
+      // callRpc гасит ошибку в null и уже пишет её в консоль. Помечаем
+      // сохранённым только при успехе, иначе следующая правка попробует снова.
+      if (r && r.ok !== false) lastSavedRef.current = key;
     }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
   }, [stats, userId, enabled]);
