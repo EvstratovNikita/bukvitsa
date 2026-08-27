@@ -4,6 +4,7 @@ import { isYandex, openAuth, getPlayerInfo, cloudSave } from '../../lib/yandex.j
 import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
+  AwardIcon,
   CloseIcon,
   CoinIcon,
   HelpIcon,
@@ -125,20 +126,24 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
 
         <nav className="menu__list">
           {isYandex && <YandexAuthRow onClose={onClose} />}
-          <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} accent />
+          {/* У каждого пункта свой цвет плитки (tint) — иначе меню читается
+              как один серый список, а «премиальным» в нём выглядит только
+              магазин. Палитра — в index.css, .menu-item--*. */}
+          <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} tint="shop" />
           {isYandex && (
-            <MenuItem icon={<TrophyIcon />} label="Лидерборд" onClick={handle(onOpenLeaderboard)} />
+            <MenuItem icon={<TrophyIcon />} label="Лидерборд" onClick={handle(onOpenLeaderboard)} tint="rating" />
           )}
           <MenuItem
-            icon={<TrophyIcon />}
+            icon={<AwardIcon />}
             label="Достижения"
             badge={unlockedCount > 0 ? unlockedCount : undefined}
             onClick={handle(onOpenAchievements)}
+            tint="awards"
           />
-          <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} />
-          <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} />
-          <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} />
-          <MenuItem icon={<MailIcon />} label="Обратная связь" onClick={handle(onOpenFeedback)} />
+          <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} tint="stats" />
+          <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} tint="settings" />
+          <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} tint="help" />
+          <MenuItem icon={<MailIcon />} label="Обратная связь" onClick={handle(onOpenFeedback)} tint="mail" />
           {isLinked && (
             <MenuItem
               icon={<LogoutIcon />}
@@ -218,11 +223,12 @@ function YandexAuthRow({ onClose }) {
   );
 }
 
-function MenuItem({ icon, label, onClick, accent, danger, badge }) {
+function MenuItem({ icon, label, onClick, accent, danger, badge, tint }) {
   const classes = [
     'menu-item',
     accent && 'menu-item--accent',
-    danger && 'menu-item--danger'
+    danger && 'menu-item--danger',
+    tint && `menu-item--${tint}`
   ].filter(Boolean).join(' ');
   return (
     <button

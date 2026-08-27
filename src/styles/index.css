@@ -482,25 +482,43 @@ button { font-family: inherit; }
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
+/* Плитка значка красится в свой цвет пункта: --mi это ТРОЙКА каналов
+   («167 130 255»), из неё же берутся фон, рамка и подсветка. Раньше цветным
+   был только магазин — залитый градиентом, из-за чего остальные семь пунктов
+   выглядели отключёнными. Теперь заливка плоская, а различает пункты цвет. */
+.menu-item { --mi: 150 162 196; }
+.menu-item--shop     { --mi: 167 130 255; } /* аметист */
+.menu-item--rating   { --mi: 240 190  70; } /* золото */
+.menu-item--awards   { --mi: 255 128 150; } /* рубин */
+.menu-item--stats    { --mi:  74 200 190; } /* бирюза */
+.menu-item--settings { --mi: 142 164 204; } /* сталь */
+.menu-item--help     { --mi:  96 165 250; } /* небо */
+.menu-item--mail     { --mi: 110 205 145; } /* мята */
+
 .menu-item__icon {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: var(--bg-2);
+  background: rgb(var(--mi) / 0.14);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-dim);
-  border: 1px solid var(--line);
+  color: rgb(var(--mi));
+  border: 1px solid rgb(var(--mi) / 0.30);
+  box-shadow: 0 2px 10px rgb(var(--mi) / 0.16);
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
-.menu-item--accent .menu-item__icon {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #0b0d12;
-  border-color: transparent;
-  box-shadow: 0 4px 14px rgba(108, 140, 255, 0.3);
+.menu-item:hover .menu-item__icon,
+.menu-item:focus-visible .menu-item__icon {
+  background: rgb(var(--mi) / 0.22);
+  border-color: rgb(var(--mi) / 0.45);
+  transform: translateY(-1px);
 }
-.menu-item--danger { color: #ff8a8a; }
-.menu-item--danger .menu-item__icon { color: #ff8a8a; }
+@media (prefers-reduced-motion: reduce) {
+  .menu-item__icon { transition: none; }
+  .menu-item:hover .menu-item__icon { transform: none; }
+}
+.menu-item--danger { color: #ff8a8a; --mi: 255 138 138; }
 .menu-item__login-body {
   display: flex;
   flex-direction: column;
@@ -4302,13 +4320,47 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
 }
-.lb__row--me { border-color: rgba(247, 201, 72, 0.6); background: rgba(247, 201, 72, 0.10); }
+/* Своя строка. Правило темы ниже перебивало эту подсветку (специфичность
+   выше), из-за чего на светлой теме игрок себя в таблице не находил —
+   поэтому парная строка для light идёт следом. */
+.lb__row--me {
+  border-color: rgba(247, 201, 72, 0.6);
+  background: rgba(247, 201, 72, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(247, 201, 72, 0.25);
+}
 .lb__rank { font-weight: 800; color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .lb__name { font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb__score { font-weight: 800; color: #f7c948; font-variant-numeric: tabular-nums; }
 .lb__hint { margin: 4px 0 0; font-size: 12px; color: var(--text-mute); text-align: center; line-height: 1.4; }
 [data-theme="light"] .lb__row { background: rgba(20, 28, 46, 0.04); border-color: rgba(40, 50, 80, 0.16); }
+[data-theme="light"] .lb__row--me {
+  background: rgba(247, 201, 72, 0.22);
+  border-color: rgba(191, 136, 0, 0.65);
+  box-shadow: inset 0 0 0 1px rgba(191, 136, 0, 0.25);
+}
 [data-theme="light"] .lb__score { color: #9a5e00; }
+
+/* Скелет на первую загрузку: окно сразу открывается нужной высоты, поэтому
+   таблица не «моргает» — раньше на её месте была строка «Загрузка…», и на
+   ответ площадки модалка прыгала. */
+.lb__row--skeleton {
+  height: 40px;
+  background: rgba(255, 255, 255, 0.04);
+  animation: lb-pulse 1.2s ease-in-out infinite;
+}
+.lb__row--skeleton:nth-child(2) { animation-delay: 0.08s; }
+.lb__row--skeleton:nth-child(3) { animation-delay: 0.16s; }
+.lb__row--skeleton:nth-child(4) { animation-delay: 0.24s; }
+.lb__row--skeleton:nth-child(5) { animation-delay: 0.32s; }
+.lb__row--skeleton:nth-child(6) { animation-delay: 0.40s; }
+[data-theme="light"] .lb__row--skeleton { background: rgba(20, 28, 46, 0.05); }
+@keyframes lb-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lb__row--skeleton { animation: none; }
+}
 
 /* ---------- Settings modal ---------- */
 .settings { display: flex; flex-direction: column; gap: 12px; }
@@ -4704,9 +4756,18 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 
 /* ---------- Side menu ---------- */
 [data-theme="light"] .menu-item__icon {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.12);
-  color: rgba(26, 29, 40, 0.75);
+  background: rgb(var(--mi) / 0.13);
+  border-color: rgb(var(--mi) / 0.34);
+  /* На белом чистый оттенок «выцветает» — притемняем его к чернильному.
+     Строка выше остаётся фолбэком там, где color-mix не поддержан. */
+  color: rgb(var(--mi));
+  color: color-mix(in srgb, rgb(var(--mi)) 70%, #0d1020);
+  box-shadow: 0 2px 10px rgb(var(--mi) / 0.14);
+}
+[data-theme="light"] .menu-item:hover .menu-item__icon,
+[data-theme="light"] .menu-item:focus-visible .menu-item__icon {
+  background: rgb(var(--mi) / 0.20);
+  border-color: rgb(var(--mi) / 0.48);
 }
 [data-theme="light"] .menu__user {
   background: rgba(0, 0, 0, 0.04);
