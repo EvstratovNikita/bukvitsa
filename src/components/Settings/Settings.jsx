@@ -37,6 +37,7 @@ function CloudDiagnostics({ prefs, stats }) {
     ['SDK', cloudStatus.sdk],
     ['Игрок', cloudStatus.mode],
     ['Чтение облака', cloudStatus.load],
+    ['В облаке было', cloudStatus.loaded],
     ['Запись в облако', cloudStatus.save],
     ['Обучение пройдено', prefs.tourDone ? 'да' : 'нет'],
     ['Последний вход', stats.lastVisitDate || '—']

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { cloudLoad, cloudSave } from '../lib/yandex.js';
+import { cloudLoad, cloudSave, refreshPlayerMode } from '../lib/yandex.js';
 import { mergeProgress } from '../utils/mergeProgress.js';
 
 const DEBOUNCE_MS = 900;
@@ -37,6 +37,7 @@ export function useYandexSync({ stats, setStats, enabled }) {
         // mergeProgress не теряет ни одну из сторон и ничего не задваивает.
         setStats((s) => mergeProgress(s, data));
       }
+      modeRef.current = await refreshPlayerMode();
       syncedRef.current = true;
       setSynced(true);
     })();
@@ -51,6 +52,9 @@ export function useYandexSync({ stats, setStats, enabled }) {
     return () => clearTimeout(debounceRef.current);
   }, [stats, enabled]);
 
+  // Кто мы для площадки на момент загрузки: гость или аккаунт.
+  const modeRef = useRef(null);
+
   // Вызывается сразу после входа в аккаунт Яндекса. У гостя (режим lite)
   // своё хранилище, у аккаунта — своё; до этого мы просто заливали в аккаунт
   // текущий снимок, и весь прогресс на аккаунте стирался начисто. Теперь
@@ -64,6 +68,39 @@ export function useYandexSync({ stats, setStats, enabled }) {
     await cloudSave(merged);
     return merged;
   }, [setStats]);
+
+  // Вход мимо нашей кнопки. Игрок может войти на странице игры (кнопка над
+  // «Играть») или в соседней вкладке — SDK к этому моменту уже отдал нам
+  // lite-игрока, и мы продолжали читать и писать ЕГО хранилище: аккаунт
+  // выглядел пустым, а прогресс гостя оставался в стороне. Поэтому
+  // переспрашиваем режим, когда вкладка снова становится активной, и на
+  // переходе гость → аккаунт сливаем оба хранилища.
+  useEffect(() => {
+    if (!enabled) return;
+    let active = true;
+
+    const check = async () => {
+      if (!active || !syncedRef.current || document.hidden) return;
+      const mode = await refreshPlayerMode();
+      if (!active || !mode) return;
+      const was = modeRef.current;
+      modeRef.current = mode;
+      if (was === 'lite' && mode === 'account') await adoptAccount();
+    };
+
+    document.addEventListener('visibilitychange', check);
+    window.addEventListener('focus', check);
+    // Одна отложенная проверка на случай, когда площадка отдаёт аккаунт не
+    // сразу после старта, а через секунду-другую.
+    const t = setTimeout(check, 5000);
+
+    return () => {
+      active = false;
+      clearTimeout(t);
+      document.removeEventListener('visibilitychange', check);
+      window.removeEventListener('focus', check);
+    };
+  }, [enabled, adoptAccount]);
 
   return { synced, adoptAccount };
 }

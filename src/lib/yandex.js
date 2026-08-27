@@ -70,6 +70,9 @@ export const cloudStatus = {
   sdk: 'не запрашивался',
   mode: '—',
   load: 'не было',
+  // Что именно лежало в облаке на момент загрузки — до слияния с местным
+  // снимком. Отличает «данные не доехали» от «в аккаунте пусто».
+  loaded: '—',
   save: 'не было'
 };
 
@@ -213,6 +216,9 @@ export async function cloudLoad() {
     const data = await withTimeout(player.getData(), CALL_TIMEOUT_MS, 'getData timeout');
     const ok = data && typeof data === 'object' && Object.keys(data).length > 0;
     cloudStatus.load = ok ? `ок, полей: ${Object.keys(data).length}` : 'пусто';
+    cloudStatus.loaded = ok
+      ? `партий ${data.played || 0}, побед ${data.won || 0}, монет ${data.coins || 0}`
+      : 'пусто';
     return ok ? data : null;
   } catch (e) {
     cloudStatus.load = 'ошибка: ' + (e?.message || e);
@@ -231,6 +237,23 @@ export async function cloudSave(obj) {
     cloudStatus.save = 'ошибка: ' + (e?.message || e);
     console.warn('[yandex] setData failed', e);
     return false;
+  }
+}
+
+// Перечитать игрока у площадки, сбросив кэш. Нужно, когда вход произошёл
+// МИМО нашей кнопки — на странице игры до запуска или в соседней вкладке:
+// SDK в этот момент уже отдал нам lite-игрока, и до перезагрузки страницы мы
+// продолжали читать и писать его хранилище, а не аккаунт. Возвращает режим.
+export async function refreshPlayerMode() {
+  if (!isYandex) return null;
+  _playerPromise = null;
+  try {
+    const p = await getPlayer();
+    const mode = p.getMode?.() === 'lite' ? 'lite' : 'account';
+    cloudStatus.mode = mode === 'lite' ? 'гость' : 'аккаунт';
+    return mode;
+  } catch {
+    return null;
   }
 }
 
