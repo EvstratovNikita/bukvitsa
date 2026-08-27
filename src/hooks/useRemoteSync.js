@@ -27,6 +27,15 @@ const cosmeticsArgs = (stats) => ({
 // любой чих в статистике (раньше запрос уходил на каждую мутацию).
 const cosmeticsKey = (stats) => JSON.stringify(cosmeticsArgs(stats));
 
+// Та же косметика, но как она сейчас лежит на сервере. Дебаунс сравнивается
+// именно с ней, поэтому местный выбор, отличный от серверного, уезжает наверх
+// сам — а совпадающий не порождает лишнего запроса.
+const rowCosmeticsKey = (row) => cosmeticsKey({
+  activeBackground: row.active_background || null,
+  activeCellStyle: row.active_cell_style || null,
+  prefs: (row.prefs && typeof row.prefs === 'object') ? row.prefs : null
+});
+
 const fromRow = (row) => clean({
   played: row.played || 0,
   won: row.won || 0,
@@ -92,12 +101,14 @@ const hasServerProgress = (row) =>
  *
  * - On userId ready: fetches server row. If server is fresh and local has
  *   progress, pushes local up. Otherwise overwrites local with server.
- * - On subsequent local changes: debounced upsert to server.
+ * - `hasLocalSnapshot` tells the hook whether this device already had saved
+ *   stats when the session started; it decides who owns the cosmetics.
+ * - On subsequent local changes: debounced save_cosmetics push.
  *
  * Returns { synced, error }. The hook is a no-op when Supabase isn't
  * configured (offline-only mode) — local state remains source of truth.
  */
-export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
+export function useRemoteSync({ stats, setStats, userId, enabled = true, hasLocalSnapshot = true }) {
   const syncedRef = useRef(false);
   const errorRef = useRef(null);
   const debounceRef = useRef(null);
@@ -149,6 +160,13 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
         // blind pull would clobber that local choice with a stale server value
         // (then the debounced save would persist the stale one). Keep local
         // for these three; the save below pushes them back up to the server.
+        //
+        // Исключение — чистая установка (нового устройства или после очистки
+        // localStorage): местной косметики просто нет, есть только дефолты, и
+        // «клиент главнее» означало бы потерю купленного фона и темы, а следом
+        // и затирание их на сервере пустыми значениями. Здесь забираем
+        // серверные — ровно ради этого косметика и синкается.
+        const adoptServer = !hasLocalSnapshot;
         setStats((s) => {
           const serverPrefs = (data.prefs && typeof data.prefs === 'object') ? data.prefs : {};
           const merged = mergeGiftProgress(
@@ -162,15 +180,27 @@ export function useRemoteSync({ stats, setStats, userId, enabled = true }) {
             // коллекция подарков и bond мёржатся, чтобы не теряться на новом
             // устройстве / после очистки localStorage.
             prefs: {
+              // На чистой установке серверные настройки ложатся поверх
+              // дефолтов, а не вместо них: в старых строках prefs может не
+              // быть темы или bgByTheme, и тогда дефолт остаётся на месте.
               ...(s.prefs || {}),
+              ...(adoptServer ? serverPrefs : {}),
               petGifts: merged.petGifts,
               petBond: merged.petBond
             },
-            activeBackground: s.activeBackground,
-            activeCellStyle: s.activeCellStyle
+            activeBackground: adoptServer ? (data.active_background || null) : s.activeBackground,
+            activeCellStyle: adoptServer ? (data.active_cell_style || null) : s.activeCellStyle
           };
         });
-      } else if (hasLocalProgress(stats)) {
+        // Считаем сохранённым то, что реально лежит на сервере: если местная
+        // косметика от неё отличается (вернувшееся устройство), дебаунс ниже
+        // сам её отправит.
+        lastSavedRef.current = rowCosmeticsKey(data);
+        markSynced();
+        return;
+      }
+
+      if (hasLocalProgress(stats)) {
         // Первый вход в аккаунт при пустой серверной строке: переносим наверх
         // косметику. Экономику клиент перенести не может и не должен — она
         // набирается заново через серверные RPC.

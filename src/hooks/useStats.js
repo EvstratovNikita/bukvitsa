@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AD_COIN_BONUS,
   AD_COIN_BONUS_USES,
@@ -182,6 +182,12 @@ export function useStats() {
   const [stats, setStats] = useState(load);
   const [achievementToasts, setAchievementToasts] = useState([]);
   const auth = useAuth();
+  // Был ли на устройстве сохранённый прогресс в момент запуска. Синк решает по
+  // этому флагу, чья косметика главнее: на чистой установке — серверная (иначе
+  // дефолты затрут выбранный фон и тему), на вернувшемся устройстве — местная.
+  // Ref инициализируется в первом рендере, до эффекта ниже, который сразу
+  // же записывает localStorage и стёр бы разницу.
+  const hadLocalSnapshot = useRef(storage.get(STORAGE_KEYS.STATS, null) != null);
 
   useEffect(() => {
     storage.set(STORAGE_KEYS.STATS, stats);
@@ -189,7 +195,13 @@ export function useStats() {
 
   // Persistence backend depends on platform: Supabase on the web, the Yandex
   // player cloud (multidevice) inside Yandex Games. Only one is active.
-  const remote = useRemoteSync({ stats, setStats, userId: auth.userId, enabled: !isYandex });
+  const remote = useRemoteSync({
+    stats,
+    setStats,
+    userId: auth.userId,
+    enabled: !isYandex,
+    hasLocalSnapshot: hadLocalSnapshot.current
+  });
   const yandex = useYandexSync({ stats, setStats, enabled: isYandex });
   // Fallback so the game ALWAYS becomes playable: if the server reconcile
   // doesn't settle quickly (e.g. anonymous sign-in is blocked/slow inside the

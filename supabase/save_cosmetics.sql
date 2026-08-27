@@ -9,6 +9,11 @@
 -- Функция трогает ровно три колонки. Экономику (монеты, энергию, инвентарь,
 -- достижения, бусты, Слово дня) она не видит — расширить её случайно нельзя.
 --
+-- Владение фоном здесь не проверяется: подделать можно только внешний вид, а
+-- не баланс. Единственная зацепка — достижение «сменил фон»: если
+-- recompute_achievements смотрит на active_background, а не на inventory,
+-- стоит переключить его на inventory.
+--
 -- Как применить: Supabase → SQL Editor → вставить и выполнить. Идемпотентно,
 -- можно запускать повторно.
 
@@ -34,7 +39,10 @@ begin
   on conflict (user_id) do update
      set active_background = excluded.active_background,
          active_cell_style = excluded.active_cell_style,
-         prefs             = excluded.prefs
+         -- prefs целиком клиент-авторитетны, но null означает «клиент не
+         -- прислал», а не «очисти» — иначе сорванный вызов стёр бы тему и
+         -- коллекцию подарков.
+         prefs             = coalesce(excluded.prefs, u.prefs)
    where u.user_id = v_uid;
 
   return jsonb_build_object(
