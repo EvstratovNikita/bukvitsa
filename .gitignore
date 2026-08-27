@@ -27,6 +27,8 @@ pnpm-debug.log*
 .env
 .env.*
 !.env.example
+# сборочный профиль для Игр — секретов не содержит, наоборот, гасит их
+!.env.yandex
 
 # vercel
 .vercel

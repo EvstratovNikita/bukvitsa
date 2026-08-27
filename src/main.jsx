@@ -2,6 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { isYandex } from './lib/yandex.js';
+// Шрифты — до index.css, чтобы @font-face объявились раньше правил, которые
+// на них ссылаются. Лежат в архиве, а не на Google Fonts (см. fonts.css).
+import './styles/fonts.css';
 import './styles/index.css';
 
 // Метка платформы в DOM — удобна для отладки и ручных проверок.

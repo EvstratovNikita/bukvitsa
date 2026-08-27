@@ -13,9 +13,11 @@
          (iframe/referrer based) already accounts for.
          Docs: https://yandex.ru/dev/games/doc/ru/sdk/sdk-about#install -->
     <script src="/sdk.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet" />
+    <!-- Шрифты не с CDN, а из бандла: src/styles/fonts.css. Игры Яндекса
+         запускают игру из архива, и запрос к fonts.googleapis.com оттуда —
+         и повод для придирки модерации, и риск (у части игроков CDN не
+         отвечает). Заставку ниже это не тормозит: она рисуется системным
+         шрифтом до загрузки бандла и так было и раньше. -->
 
     <!-- Boot splash. Lives in index.html so it paints on the very first frame,
          before the JS bundle loads/executes — no white flash, no layout blink.
