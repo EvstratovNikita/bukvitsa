@@ -4320,6 +4320,21 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 .lb__hcell--rank { text-align: center; }
 
+/* Цена новой партии на кнопке конца раунда. */
+.end-panel__cost {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.end-panel__cost svg { width: 12px; height: 12px; }
+
 /* Диагностика синхронизации в настройках (только на Яндексе). */
 .diag { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
 .diag__title { margin: 0 0 8px; font-size: 13px; font-weight: 800; color: var(--text); }

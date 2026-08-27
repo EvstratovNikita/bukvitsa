@@ -1,3 +1,5 @@
+import { energyCapFor, reconcilePetTimers } from '../constants/game.js';
+
 // Слияние двух снимков прогресса — местного и облачного.
 //
 // Зачем. На Играх Яндекса у гостя (режим lite) своё хранилище, а у аккаунта —
@@ -61,6 +63,19 @@ const earlier = (x, y) => {
 };
 
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
+
+// Энергия снимка, доведённая до текущего момента (с учётом восстановления).
+function effectiveEnergy(s, nowMs) {
+  if (!Number.isFinite(s?.energy)) return null;
+  const r = reconcilePetTimers({
+    energy: s.energy,
+    lastEnergyTickAt: s.lastEnergyTickAt,
+    hatched: false,
+    nowMs,
+    maxEnergy: energyCapFor(s, nowMs)
+  });
+  return { energy: r.energy, anchor: r.lastEnergyTickAt };
+}
 
 // Суточные счётчики-ограничители (реклама, режимы). Свежий день побеждает —
 // иначе вчерашний лимит остался бы висеть на сегодня. В один и тот же день
@@ -138,6 +153,7 @@ function mergeDaily(a, b) {
 export function mergeProgress(a, b) {
   if (!isObj(a)) return isObj(b) ? { ...b } : null;
   if (!isObj(b)) return { ...a };
+  const nowMs = Date.now();
 
   const out = { ...b, ...a };
 
@@ -161,13 +177,17 @@ export function mergeProgress(a, b) {
   // возвращал бы 5/5. Потраченная на аккаунте энергия — настоящая, поэтому
   // выигрывает она, а вместе с ней едет и её якорь: иначе счётчик «+1 через»
   // отсчитывался бы от чужого момента и показывал полный час на ровном месте.
-  const ea = num(a.energy);
-  const eb = num(b.energy);
-  if (ea != null || eb != null) {
-    const takeA = eb == null || (ea != null && ea <= eb);
-    out.energy = takeA ? ea : eb;
-    out.lastEnergyTickAt = (takeA ? a.lastEnergyTickAt : b.lastEnergyTickAt)
-      || later(a.lastEnergyTickAt, b.lastEnergyTickAt);
+  // Сравниваем не сырые числа, а восстановленные «на сейчас»: у снимка со
+  // старым якорем энергия давно натикала обратно, и сырое сравнение отнимало
+  // у игрока единицу просто за вход. Якорь берём от той стороны, чьё значение
+  // выиграло, чтобы отсчёт «+1 через» шёл от правды.
+  const ea = effectiveEnergy(a, nowMs);
+  const eb = effectiveEnergy(b, nowMs);
+  if (ea || eb) {
+    const takeA = !eb || (ea && ea.energy <= eb.energy);
+    const win = takeA ? ea : eb;
+    out.energy = win.energy;
+    out.lastEnergyTickAt = win.anchor || later(a.lastEnergyTickAt, b.lastEnergyTickAt);
   }
 
   // Распределение попыток — поклеточный максимум.

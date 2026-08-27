@@ -7,8 +7,10 @@ import { getDailyNumber } from '../../data/dailyWord.js';
 
 // Bottom panel that swaps in for the keyboard once a round ends. Vertical
 // stack on the left (title + word + reward lines); action buttons on the
-// right. Daily mode adds a share-grid button and swaps the CTA to "К играм"
-// (which leaves daily and starts a regular energy-gated round).
+// right. Daily mode adds a share-grid button; его кнопка тоже начинает
+// обычную партию, поэтому и подписана одинаково — «Новая игра» с ценой.
+// Раньше там было «К играм»: игрок читал это как «выйти», а с него молча
+// списывалась энергия за новую партию.
 export function EndPanel() {
   const {
     status, reset, solution, evaluations, guesses,
@@ -142,7 +144,12 @@ export function EndPanel() {
             onMouseDown={(e) => e.preventDefault()}
           >
             <RefreshIcon />
-            <span>{isDaily ? 'К играм' : 'Новая игра'}</span>
+            <span>Новая игра</span>
+            {/* Цена партии прямо на кнопке: 5 букв стоят энергию, 4 и 6 — нет.
+                Без неё списание выглядело как «энергия ушла сама». */}
+            {wordLength === 5 && (
+              <span className="end-panel__cost"><BoltIcon />1</span>
+            )}
           </button>
         </div>
       </div>
