@@ -27,10 +27,6 @@ export function useShopTheme() {
     const grad = payload?.gradient || null;
     document.body.style.backgroundImage = grad || '';
     document.body.style.backgroundColor = '';
-    // Рамочные иллюстрации тянем по кадру; тайлы остаются как были.
-    document.body.style.backgroundSize = payload?.frame ? '100% 100%, 100% 100%' : '';
-    document.body.style.backgroundRepeat = payload?.frame ? 'no-repeat' : '';
-    document.body.style.backgroundPosition = payload?.frame ? 'center center' : '';
     // Под обоями клетки и клавиши получают собственную заливку и более
     // контрастные рамки — иначе фон их «съедает» (см. body.has-bg в CSS).
     document.body.classList.toggle('has-bg', Boolean(grad));

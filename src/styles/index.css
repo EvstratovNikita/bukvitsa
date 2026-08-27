@@ -5894,10 +5894,40 @@ body.has-bg .cell--hinted .cell__face--back {
 [data-theme="light"] .pet-deco__btn--price svg { color: #8a5a10; }
 
 /* 3) Кнопки в шапке — непрозрачные заливки вместо полупрозрачных
-   градиентов: под обоями сквозь них проступал рисунок. */
+   градиентов: под обоями сквозь них проступал рисунок.
+
+   Порядок внутри блока важен: базовое правило для светлой темы бьёт
+   модификаторы по весу ([data-theme] + класс против одного класса), поэтому
+   оно идёт ПЕРВЫМ, а каждый модификатор ниже имеет светлую пару. */
 .iconbtn { background: var(--bg-2); }
+[data-theme="light"] .iconbtn { background: var(--bg-2); }
 .iconbtn--theme { background: #3a2f12; }
 [data-theme="light"] .iconbtn--theme { background: #dde3ff; }
 .iconbtn--modes { background: #17331d; }
 [data-theme="light"] .iconbtn--modes { background: #d8f0dc; }
-.iconbtn--accent { background: var(--accent); color: #0b0d12; }
+.iconbtn--accent,
+[data-theme="light"] .iconbtn--accent { background: var(--accent); color: #0b0d12; }
+/* Букля: неоновая рамка анимируется, а подложка должна быть плотной. */
+.pet-headerbtn { background: #1a2030; }
+[data-theme="light"] .pet-headerbtn { background: #e9ecff; }
+
+/* Плашка «Слово дня» — единственная в панели осталась на полупрозрачном
+   градиенте и просвечивала обоями. */
+.daily-badge {
+  background: #17331d;
+  border-color: rgba(90, 210, 120, 0.85);
+}
+[data-theme="light"] .daily-badge {
+  background: #d8f0dc;
+  border-color: rgba(30, 110, 50, 0.8);
+}
+
+/* «Подсказка» в Слове дня отключена, и opacity гасила плашку целиком —
+   фон просвечивал насквозь. Гасим только содержимое, подложка остаётся. */
+.hint-btn:disabled {
+  opacity: 1;
+  color: var(--text-mute);
+  border-color: rgba(150, 170, 255, 0.35);
+}
+[data-theme="light"] .hint-btn:disabled { border-color: rgba(88, 96, 220, 0.35); }
+.hint-btn:disabled > svg { color: var(--text-mute); filter: none; animation: none; }

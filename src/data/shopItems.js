@@ -1,6 +1,3 @@
-import autumnLightUrl from '../assets/bg/autumn-light.svg';
-import autumn2LightUrl from '../assets/bg/autumn2-light.svg';
-
 // Catalog of in-game shop items.
 // Each item has:
 //   id        — stable identifier (saved to inventory)
@@ -217,6 +214,109 @@ const MEADOW = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='220' height='
   </g>
 </svg>`);
 
+// Клён обведён своим же цветом со скруглением стыков (stroke на <use> —
+// оттуда же и заливка): острые лучи контура превращаются в мягкие лопасти,
+// силуэт читается листом, а не звездой.
+//
+// Комментарии внутри самого SVG не пишем: enc() склеивает строки в одну, и
+// разметка ломается — заметки только здесь, снаружи шаблона.
+//
+// Осенний листопад. Один набор форм (клён, дуб, жёлудь, гроздь рябины) на два
+// фона: светлый «золотая осень» и тёмный «ночной листопад» — отличаются только
+// палитрой. Формы лежат в defs и раскладываются через <use>, поэтому тайл
+// остаётся компактным. Элементы, выходящие за край, продублированы на
+// противоположной стороне — так плитка стыкуется без видимого шва.
+const autumnTile = (c) => enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+  <defs>
+    <linearGradient id='amaple' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='${c.maple0}'/><stop offset='1' stop-color='${c.maple1}'/>
+    </linearGradient>
+    <linearGradient id='aoak' x1='0' y1='0' x2='1' y2='1'>
+      <stop offset='0' stop-color='${c.oak0}'/><stop offset='1' stop-color='${c.oak1}'/>
+    </linearGradient>
+    <linearGradient id='agold' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='${c.gold0}'/><stop offset='1' stop-color='${c.gold1}'/>
+    </linearGradient>
+    <linearGradient id='anut' x1='0' y1='0' x2='0' y2='1'>
+      <stop offset='0' stop-color='${c.nut0}'/><stop offset='1' stop-color='${c.nut1}'/>
+    </linearGradient>
+    <g id='maple'>
+      <path stroke-width='3' stroke-linejoin='round' d='M0 -32 L5 -20 L9 -23 L7 -15 L10 -12 L20 -19 L26 -16 L21 -7 L13 -2 L24 4 L30 10 L20 11 L10 12 L7 19 L2 22 L-2 22 L-7 19 L-10 12 L-20 11 L-30 10 L-24 4 L-13 -2 L-21 -7 L-26 -16 L-20 -19 L-10 -12 L-7 -15 L-9 -23 L-5 -20 Z'/>
+      <g stroke='${c.vein}' stroke-width='0.8' fill='none' opacity='0.5' stroke-linecap='round'>
+        <path d='M0 20 L0 -28'/><path d='M0 2 L23 -14'/><path d='M0 2 L-23 -14'/>
+        <path d='M0 11 L26 9'/><path d='M0 11 L-26 9'/>
+      </g>
+      <path d='M0 22 L0 32' stroke='${c.stem}' stroke-width='2' stroke-linecap='round'/>
+    </g>
+    <g id='oak'>
+      <path d='M0 -26 C6 -22 8 -18 6 -14 C12 -14 16 -11 14 -6 C20 -5 22 -1 18 3 C23 6 22 11 16 12 C18 18 14 22 8 20 C8 26 3 29 0 30 C-3 29 -8 26 -8 20 C-14 22 -18 18 -16 12 C-22 11 -23 6 -18 3 C-22 -1 -20 -5 -14 -6 C-16 -11 -12 -14 -6 -14 C-8 -18 -6 -22 0 -26 Z'/>
+      <g stroke='${c.vein}' stroke-width='0.7' fill='none' opacity='0.5'>
+        <path d='M0 28 L0 -22'/><path d='M0 -6 L10 -10'/><path d='M0 -6 L-10 -10'/>
+        <path d='M0 6 L13 2'/><path d='M0 6 L-13 2'/><path d='M0 17 L9 15'/><path d='M0 17 L-9 15'/>
+      </g>
+      <path d='M0 28 L0 34' stroke='${c.stem}' stroke-width='2' stroke-linecap='round'/>
+    </g>
+    <g id='acorn'>
+      <path d='M-9 -2 C-9 10 -5 18 0 18 C5 18 9 10 9 -2 Z' fill='url(#anut)'/>
+      <path d='M-11 -3 C-11 -10 -6 -14 0 -14 C6 -14 11 -10 11 -3 Z' fill='${c.cap}'/>
+      <g stroke='${c.capLine}' stroke-width='0.8' opacity='0.7'>
+        <path d='M-8 -4 L-6 -12'/><path d='M-3 -4 L-2 -13'/><path d='M3 -4 L2 -13'/><path d='M8 -4 L6 -12'/>
+      </g>
+      <path d='M0 -14 L0 -20' stroke='${c.stem}' stroke-width='2' stroke-linecap='round'/>
+      <ellipse cx='-3' cy='6' rx='2' ry='5' fill='#ffffff' opacity='0.16'/>
+    </g>
+    <g id='rowan'>
+      <g stroke='${c.stem}' stroke-width='1.2' fill='none' opacity='0.8'>
+        <path d='M0 -14 L-8 -2'/><path d='M0 -14 L0 -3'/><path d='M0 -14 L8 -2'/>
+        <path d='M0 -14 L-5 6'/><path d='M0 -14 L5 6'/>
+      </g>
+      <g fill='${c.berry}'>
+        <circle cx='-8' cy='2' r='4'/><circle cx='0' cy='1' r='4.5'/><circle cx='8' cy='2' r='4'/>
+        <circle cx='-5' cy='10' r='4'/><circle cx='5' cy='10' r='4'/>
+      </g>
+      <g fill='#ffffff' opacity='0.35'>
+        <circle cx='-9' cy='1' r='1.1'/><circle cx='-1' cy='-0.4' r='1.3'/><circle cx='7' cy='1' r='1.1'/>
+        <circle cx='-6' cy='9' r='1.1'/><circle cx='4' cy='9' r='1.1'/>
+      </g>
+    </g>
+  </defs>
+  <g opacity='${c.alpha}'>
+    <use href='#maple' fill='url(#amaple)' stroke='url(#amaple)' transform='translate(58,62) rotate(-18) scale(1.15)'/>
+    <use href='#oak'   fill='url(#aoak)'   transform='translate(236,48) rotate(24) scale(1.05)'/>
+    <use href='#acorn'                     transform='translate(150,132) rotate(-10) scale(1.1)'/>
+    <use href='#maple' fill='url(#agold)' stroke='url(#agold)'  transform='translate(286,168) rotate(35) scale(0.85)'/>
+    <use href='#rowan'                     transform='translate(52,186) rotate(8) scale(1.05)'/>
+    <use href='#oak'   fill='url(#agold)'  transform='translate(160,252) rotate(-32) scale(0.9)'/>
+    <use href='#maple' fill='url(#amaple)' stroke='url(#amaple)' transform='translate(292,296) rotate(12) scale(0.95)'/>
+    <use href='#acorn'                     transform='translate(214,196) rotate(28) scale(0.75)'/>
+    <use href='#oak'   fill='url(#aoak)'   transform='translate(36,300) rotate(18) scale(0.8)'/>
+    <use href='#maple' fill='url(#agold)' stroke='url(#agold)'  transform='translate(120,20) rotate(-46) scale(0.6)'/>
+    <use href='#maple' fill='url(#agold)' stroke='url(#agold)'  transform='translate(120,360) rotate(-46) scale(0.6)'/>
+    <use href='#oak'   fill='url(#aoak)'   transform='translate(-6,140) rotate(-8) scale(0.8)'/>
+    <use href='#oak'   fill='url(#aoak)'   transform='translate(334,140) rotate(-8) scale(0.8)'/>
+  </g>
+</svg>`);
+
+const AUTUMN_LIGHT = autumnTile({
+  maple0: '#e2622c', maple1: '#b8341f',
+  oak0: '#d99039', oak1: '#a9631a',
+  gold0: '#f2b731', gold1: '#cf8c14',
+  nut0: '#c08a52', nut1: '#8d5a2b',
+  cap: '#7a4b26', capLine: '#5d381b',
+  berry: '#cf3a2f', stem: '#7d4f24', vein: '#7a3a18',
+  alpha: '0.5'
+});
+
+const AUTUMN_DARK = autumnTile({
+  maple0: '#b8482a', maple1: '#7d2a19',
+  oak0: '#a86f26', oak1: '#6f4413',
+  gold0: '#c9922e', gold1: '#8a6014',
+  nut0: '#8a6039', nut1: '#5a3a1c',
+  cap: '#4e3018', capLine: '#3a2210',
+  berry: '#a02a24', stem: '#5c3a1a', vein: '#4a2410',
+  alpha: '0.62'
+});
+
 export const SHOP_ITEMS = [
   // ---------- Backgrounds ----------
   {
@@ -329,6 +429,22 @@ export const SHOP_ITEMS = [
     }
   },
 
+  {
+    id: 'bg-autumn-night',
+    category: 'background',
+    theme: 'dark',
+    name: 'Ночной листопад',
+    desc: 'Медная листва в тёплой темноте октября',
+    price: 120,
+    payload: {
+      gradient: [
+        AUTUMN_DARK,
+        'radial-gradient(900px 520px at 50% -10%, rgba(220, 140, 50, 0.22), transparent 70%)',
+        'linear-gradient(180deg, #17110b 0%, #241a11 60%, #1b130d 100%)'
+      ].join(', ')
+    }
+  },
+
   // ---------- Summer (light) backgrounds ----------
   {
     id: 'bg-summer-sky',
@@ -380,26 +496,15 @@ export const SHOP_ITEMS = [
     id: 'bg-autumn-park',
     category: 'background',
     theme: 'light',
-    name: 'Осенний парк',
-    desc: 'Тёплый листопад в золотых аллеях',
+    name: 'Золотая осень',
+    desc: 'Кленовые листья, жёлуди и рябина в тёплом свете',
     price: 120,
     payload: {
-      // Рамочная иллюстрация: декор по краям, центр пустой — тянем на весь
-      // экран, чтобы рамка обнимала кадр при любом соотношении сторон.
-      frame: true,
-      gradient: [`url(${autumnLightUrl})`, 'linear-gradient(180deg, #fef7ed, #fbe5c6)'].join(', ')
-    }
-  },
-  {
-    id: 'bg-autumn-grove',
-    category: 'background',
-    theme: 'light',
-    name: 'Золотая роща',
-    desc: 'Медные кроны и мягкий свет октября',
-    price: 120,
-    payload: {
-      frame: true,
-      gradient: [`url(${autumn2LightUrl})`, 'linear-gradient(180deg, #fcf6e9, #f3c682)'].join(', ')
+      gradient: [
+        AUTUMN_LIGHT,
+        'radial-gradient(900px 520px at 50% -10%, rgba(255, 214, 150, 0.45), transparent 70%)',
+        'linear-gradient(180deg, #fdf3e2 0%, #f8e3c4 60%, #f0cfa4 100%)'
+      ].join(', ')
     }
   },
 
