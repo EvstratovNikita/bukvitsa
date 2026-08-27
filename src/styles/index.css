@@ -6062,9 +6062,14 @@ body.has-bg .cell--hinted .cell__face--back {
 .iconbtn--accent,
 [data-theme="light"] .iconbtn--accent { background: var(--accent); color: #0b0d12; }
 /* Букля: неоновая рамка анимируется, а подложка должна быть плотной. Светлая
-   подложка в обеих темах — на тёмной сова тонула в фоне кнопки. */
+   подложка в обеих темах — на тёмной сова тонула в фоне кнопки.
+   Сова тёмная, ей светлый фон и нужен, а вот яйцо кремовое: на прежнем
+   почти белом #e9ecff оно сливалось. Поэтому у яйца своя, приглушённая
+   подложка — контраст есть, а кнопка остаётся светлым пятном в шапке. */
 .pet-headerbtn,
-[data-theme="light"] .pet-headerbtn { background: #e9ecff; }
+[data-theme="light"] .pet-headerbtn { background: #dfe4f7; }
+.pet-headerbtn--egg,
+[data-theme="light"] .pet-headerbtn--egg { background: #a8b0cd; }
 
 /* Плашка «Слово дня» — единственная в панели осталась на полупрозрачном
    градиенте и просвечивала обоями. */

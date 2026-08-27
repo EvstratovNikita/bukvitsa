@@ -54,6 +54,12 @@ const later = (x, y) => {
   return x >= y ? x : y;
 };
 
+const earlier = (x, y) => {
+  if (!x) return y || undefined;
+  if (!y) return x;
+  return x <= y ? x : y;
+};
+
 const isObj = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 
 // Суточные счётчики-ограничители (реклама, режимы). Свежий день побеждает —
@@ -84,7 +90,9 @@ function mergePet(a, b) {
     ...lead,
     // Вылупившегося питомца обратно в яйцо не возвращаем.
     hatched: Boolean(a.hatched || b.hatched),
-    bornAt: later(a.bornAt, b.bornAt) === a.bornAt ? (a.bornAt || b.bornAt) : (b.bornAt || a.bornAt),
+    // Питомец родился один раз — берём раннюю дату, иначе возраст Букли
+    // обнулялся бы при каждом входе с нового устройства.
+    bornAt: earlier(a.bornAt, b.bornAt),
     xp: maxNum(a.xp, b.xp) ?? 0,
     level: maxNum(a.level, b.level) ?? 1,
     ownedDecorations: union(a.ownedDecorations, b.ownedDecorations),
@@ -178,15 +186,4 @@ export function mergeProgress(a, b) {
   out.adEnergy = mergeDayCounter(a.adEnergy, b.adEnergy, 'dayKey', ['count']);
 
   return out;
-}
-
-/** Есть ли в снимке хоть какой-то прогресс (для решений «сливать или нет»). */
-export function hasProgress(s) {
-  if (!isObj(s)) return false;
-  return (s.played || 0) > 0 ||
-    (s.coinsEarned || 0) > 0 ||
-    (s.dailyStreak || 0) > 0 ||
-    (Array.isArray(s.inventory) && s.inventory.length > 0) ||
-    (Array.isArray(s.unlockedAchievements) && s.unlockedAchievements.length > 0) ||
-    Boolean(s.pet?.hatched);
 }
