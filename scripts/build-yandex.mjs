@@ -41,6 +41,10 @@ const TEXT = /\.(html|js|css|json|svg)$/i;
 const FORBIDDEN = [
   [/fonts\.googleapis\.com|fonts\.gstatic\.com/, 'запрос к Google Fonts (шрифты должны быть в архиве)'],
   [/[a-z0-9]+\.supabase\.co/, 'адрес Supabase (на площадке он не нужен, ключи в архив не кладём)'],
+  // Клиент Supabase на площадке не используется и подменён заглушкой
+  // (алиас в vite.config.js). Если его классы снова оказались в архиве —
+  // алиас потеряли, и в сборку вернулись лишние 245 КБ.
+  [/GoTrueClient|RealtimeClient/, 'клиент Supabase в архиве (потерян алиас на заглушку в vite.config.js)'],
   [/https:\/\/yandex\.ru\/games\/sdk/, 'SDK по абсолютному URL вместо /sdk.js (req 1.19.1)']
 ];
 // Комментарии выкидываем: объяснение «почему тут НЕ должно быть CDN» само
