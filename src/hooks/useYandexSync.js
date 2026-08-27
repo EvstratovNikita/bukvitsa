@@ -1,8 +1,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { STORAGE_KEYS } from '../constants/game.js';
 import { cloudLoad, cloudSave, cloudStatus, playerIdentity } from '../lib/yandex.js';
 import { mergeProgress } from '../utils/mergeProgress.js';
+import { storage } from '../utils/storage.js';
 
 const DEBOUNCE_MS = 900;
+
+// Начатая партия ездит в облако вместе со статистикой, отдельным ключом.
+// Внутри площадки localStorage переживает не каждый запуск, и без этого игрок
+// каждый раз получал пустое поле — а новая партия списывает энергию, поэтому
+// «просто так» уходило по единице за заход.
+const withBoard = (stats) => {
+  const board = storage.get(STORAGE_KEYS.GAME_STATE, null);
+  return board ? { ...stats, __board: board } : stats;
+};
+
+// Доска в снимке НЕ должна попадать в состояние игры: иначе она осядет в
+// localStorage внутри статистики и на следующем запуске победит свежую.
+const takeBoard = (data) => {
+  if (!data || !data.__board) return { board: null, stats: data };
+  const { __board, ...stats } = data;
+  return { board: __board, stats };
+};
 
 // Persists the stats blob to the Yandex player's cloud (getData/setData).
 // Mirrors useRemoteSync's shape ({ synced }) so useStats can swap it in on the
@@ -33,7 +52,7 @@ export function useYandexSync({ stats, setStats, enabled }) {
     const merged = mergeProgress(statsRef.current, data);
     if (!merged) return null;
     setStats(merged);
-    await cloudSave(merged);
+    await cloudSave(withBoard(merged));
     // Теперь читали и писали одному и тому же игроку — фиксируем его.
     identityRef.current = await playerIdentity();
     cloudStatus.readFrom = cloudStatus.identity;
@@ -65,18 +84,24 @@ export function useYandexSync({ stats, setStats, enabled }) {
 
       if (!res.ok) {
         // Читать не смогли — играем на местном снимке, но в облако НИЧЕГО не
-        // пишем до конца сессии. Прогресс при этом жив в localStorage и
-        // уедет наверх при следующем удачном запуске.
-        cloudStatus.save = 'выключена: чтение не удалось';
+        // пишем: снимок из дефолтов затёр бы аккаунт. Прогресс жив в
+        // localStorage, а проверка ниже продолжит стучаться в облако — как
+        // только чтение пройдёт, данные сольются и запись включится.
+        cloudStatus.save = 'ждём успешного чтения';
         setSynced(true);
         return;
       }
 
       if (res.data) {
+        const { board, stats: cloudStats } = takeBoard(res.data);
+        // Начатая партия из облака — только когда своей нет: местная свежее.
+        if (board && !storage.get(STORAGE_KEYS.GAME_STATE, null)) {
+          storage.set(STORAGE_KEYS.GAME_STATE, board);
+        }
         // Раньше облако выигрывало по всем полям («…s, …data»), и партии,
         // сыгранные до того, как площадка отдала игрока, просто исчезали.
         // mergeProgress не теряет ни одну из сторон и ничего не задваивает.
-        setStats((s) => mergeProgress(s, res.data));
+        setStats((s) => mergeProgress(s, cloudStats));
       }
       identityRef.current = await playerIdentity();
       cloudStatus.readFrom = cloudStatus.identity;
@@ -103,7 +128,7 @@ export function useYandexSync({ stats, setStats, enabled }) {
         return;
       }
       if (id) identityRef.current = id;
-      cloudSave(statsRef.current);
+      cloudSave(withBoard(statsRef.current));
     }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
   }, [stats, enabled, adoptAccount]);
@@ -116,7 +141,26 @@ export function useYandexSync({ stats, setStats, enabled }) {
     let active = true;
 
     const check = async () => {
-      if (!active || !syncedRef.current || document.hidden) return;
+      if (!active || document.hidden) return;
+
+      // Чтение на старте не прошло — сохранения выключены. Пробуем снова:
+      // площадка часто отвечает со второго раза, и как только данные пришли,
+      // они сливаются с местными, а запись включается.
+      if (!syncedRef.current) {
+        const res = await cloudLoad();
+        if (!active || !res.ok) return;
+        const { board, stats: cloudStats } = takeBoard(res.data);
+        if (board && !storage.get(STORAGE_KEYS.GAME_STATE, null)) {
+          storage.set(STORAGE_KEYS.GAME_STATE, board);
+        }
+        if (cloudStats) setStats((s) => mergeProgress(s, cloudStats));
+        identityRef.current = await playerIdentity();
+        cloudStatus.readFrom = cloudStatus.identity;
+        syncedRef.current = true;
+        cloudStatus.save = 'включена после повторного чтения';
+        return;
+      }
+
       const id = await playerIdentity();
       if (!active || !id) return;
       if (identityRef.current && id !== identityRef.current) await adoptAccount();
@@ -126,10 +170,13 @@ export function useYandexSync({ stats, setStats, enabled }) {
     document.addEventListener('visibilitychange', check);
     window.addEventListener('focus', check);
     const t = setTimeout(check, 5000);
+    // Пока чтение не удалось, продолжаем стучаться — раз в 20 секунд.
+    const iv = setInterval(() => { if (!syncedRef.current) check(); }, 20000);
 
     return () => {
       active = false;
       clearTimeout(t);
+      clearInterval(iv);
       document.removeEventListener('visibilitychange', check);
       window.removeEventListener('focus', check);
     };
@@ -137,5 +184,6 @@ export function useYandexSync({ stats, setStats, enabled }) {
 
   return { synced, adoptAccount };
 }
+
 
 

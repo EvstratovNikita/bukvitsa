@@ -139,6 +139,24 @@ export function useGame() {
       setGameMode('daily');
       return;
     }
+    // Партия могла приехать из облака уже после монтирования (внутри
+    // площадки localStorage переживает не каждый запуск). Читаем ключ заново
+    // — иначе игра начнёт новую партию и спишет энергию поверх недоигранной.
+    const fromCloud = storage.get(STORAGE_KEYS.GAME_STATE, null);
+    if (fromCloud?.solution && fromCloud.status === GAME_STATUS.PLAYING
+        && (fromCloud.gameMode !== 'daily' || isTodaysDaily(fromCloud))) {
+      const len = (fromCloud.wordLength === 4 || fromCloud.wordLength === 6) ? fromCloud.wordLength : 5;
+      gameStartRef.current = Date.now();
+      setWordLength(len);
+      setSolution(fromCloud.solution);
+      setGuesses(fromCloud.guesses || []);
+      setEvaluations(fromCloud.evaluations || []);
+      setStatus(fromCloud.status);
+      setHints(fromCloud.hints || Array(len).fill(null));
+      setGameMode(fromCloud.gameMode === 'daily' ? 'daily' : 'normal');
+      return;
+    }
+
     // Слово дня на сегодня уже сыграно (или пропущено). Если с прошлого раза
     // на полке лежит недоигранная обычная партия — возвращаем её, а не берём
     // новое слово за энергию.
@@ -233,18 +251,30 @@ export function useGame() {
     return () => document.removeEventListener('visibilitychange', onVis);
   }, [status, solution]);
 
+  // Поле без слова — это не «сломалось», а «партия не начата»: обычно потому,
+  // что не хватило энергии на старте. Молчаливый отказ выглядел как зависшая
+  // игра (лечилось переключением режима), поэтому объясняем, что произошло.
+  const explainEmptyBoard = useCallback(() => {
+    if (solution || !stats.ready) return false;
+    setEnergyModalOpen(true);
+    return true;
+  }, [solution, stats.ready]);
+
   const addLetter = useCallback((letter) => {
+    if (explainEmptyBoard()) return;
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (!isCyrillicLetter(letter)) return;
     setCurrent((c) => (c.length >= wordLength ? c : c + letter.toLowerCase()));
-  }, [status, solution]);
+  }, [status, solution, explainEmptyBoard]);
 
   const removeLetter = useCallback(() => {
+    if (explainEmptyBoard()) return;
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     setCurrent((c) => c.slice(0, -1));
-  }, [status, solution]);
+  }, [status, solution, explainEmptyBoard]);
 
   const submit = useCallback(() => {
+    if (explainEmptyBoard()) return;
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (current.length !== wordLength) {
       setShakeRow(true);
@@ -387,7 +417,7 @@ export function useGame() {
       }
       isLocked.current = false;
     }, ANIM.REVEAL_TOTAL_MS + 60);
-  }, [current, guesses, evaluations, solution, status, stats, showToast, gameMode]);
+  }, [current, guesses, evaluations, solution, status, stats, showToast, gameMode, explainEmptyBoard]);
 
   const performReset = useCallback(() => {
     gameStartRef.current = Date.now();
@@ -747,3 +777,4 @@ export function useGame() {
     startAfterRefuel
   };
 }
+
