@@ -19,6 +19,25 @@ function dailySkipped() {
   return storage.get(STORAGE_KEYS.DAILY_SKIPPED, null) === getDailyKey();
 }
 
+// Сохранённая партия «Слова дня» действительна только в свой день. Игрок
+// заходит назавтра — и без этой проверки его встречает вчерашняя доска
+// (иногда ещё и не на 5 букв, если формат сбился в старой версии). Днём
+// партии считаем само загаданное слово: оно детерминировано по дате, так
+// что старые сейвы без отдельного ключа проверяются тем же способом.
+function isTodaysDaily(raw) {
+  if (raw.wordLength && raw.wordLength !== 5) return false;
+  return normalizeWord(raw.solution || '') === normalizeWord(getDailyWord());
+}
+
+// Снимаем с полки отложенную обычную партию, если она ещё не доиграна.
+// Доигранная — мусор: вернётся как чужая заполненная доска.
+function takeNormalBackup() {
+  const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
+  storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
+  if (backup?.solution && backup.status === GAME_STATUS.PLAYING) return backup;
+  return null;
+}
+
 export function useGame() {
   // Lazy-init from any persisted game so a page refresh resumes the same
   // puzzle without spending energy a second time.
@@ -34,6 +53,14 @@ export function useGame() {
     if (!raw || !raw.solution) return raw;
     const persisted = storage.get(STORAGE_KEYS.STATS, null);
     const dailyDone = persisted?.daily?.lastPlayedKey === getDailyKey() || dailySkipped();
+    // Протухшее «Слово дня» (вчерашнее или с битым форматом) выбрасываем
+    // целиком: эффект на маунте поставит чистое поле — сегодняшнее Слово
+    // дня, а если оно уже сыграно, обычную партию. Отложенная обычная
+    // партия при этом остаётся на полке и вернётся после Слова дня.
+    if (raw.gameMode === 'daily' && !isTodaysDaily(raw)) {
+      storage.remove(STORAGE_KEYS.GAME_STATE);
+      return null;
+    }
     if (raw.gameMode !== 'daily' && !dailyDone) {
       // Only stash an IN-PROGRESS normal game to resume after the daily. A
       // finished one (WON/LOST) must NOT be restored later — it would reappear
@@ -106,6 +133,21 @@ export function useGame() {
       setHints(Array(5).fill(null));
       setSolution(getDailyWord());
       setGameMode('daily');
+      return;
+    }
+    // Слово дня на сегодня уже сыграно (или пропущено). Если с прошлого раза
+    // на полке лежит недоигранная обычная партия — возвращаем её, а не берём
+    // новое слово за энергию.
+    const backup = takeNormalBackup();
+    if (backup) {
+      const restoreLen = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
+      gameStartRef.current = Date.now();
+      setWordLength(restoreLen);
+      setSolution(backup.solution);
+      setGuesses(backup.guesses || []);
+      setEvaluations(backup.evaluations || []);
+      setStatus(backup.status || GAME_STATUS.PLAYING);
+      setHints(backup.hints || Array(restoreLen).fill(null));
       return;
     }
     if (stats.consumeEnergy()) {
@@ -405,6 +447,10 @@ export function useGame() {
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
     if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
+    // Смена формата — это выход из Слова дня по определению: оно всегда на
+    // 5 букв. Без этого в сейве оставалась связка «режим Слово дня + 4/6
+    // букв», и назавтра игрок получал её обратно.
+    if (gameMode === 'daily') setGameMode('normal');
     // Switching modes is FREE — the first round in any mode starts without
     // touching energy. "Новая игра" (reset) afterwards still costs 1 in
     // 5-letter mode and is free in 4/6, as configured below.
@@ -423,7 +469,7 @@ export function useGame() {
     setLastEarnedBase(0);
     setDoubledLastWin(false);
     isLocked.current = false;
-  }, [wordLength, solution, status, guesses.length, stats]);
+  }, [wordLength, solution, status, guesses.length, stats, gameMode]);
 
   // Leave daily mode → restore a stashed normal puzzle if present, else
   // spend 1 energy and start a fresh normal round. If energy is empty,
@@ -432,14 +478,13 @@ export function useGame() {
     if (gameMode !== 'daily') return;
     setGameMode('normal');
     maybeInterstitial();
-    const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
+    // Снимаем с полки сразу: недоигранную вернём, доигранную helper выбросит.
+    const backup = takeNormalBackup();
 
     // The board is full of the daily result — play the flip-close animation
     // before swapping in the next puzzle, mirroring the "Новая игра" reset.
     const applyNext = () => {
-      // Resume the stashed normal game ONLY if it was still in progress.
-      // A finished backup is stale — drop it and start a fresh round instead.
-      if (backup?.solution && backup.status === GAME_STATUS.PLAYING) {
+      if (backup) {
         const restoreLen = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
         setWordLength(restoreLen);
         setSolution(backup.solution);
@@ -450,12 +495,9 @@ export function useGame() {
         setCurrent('');
         setRevealRow(-1);
         isLocked.current = false;
-        storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
         gameStartRef.current = Date.now();
         return;
       }
-      // Drop any stale (finished) backup so it can't resurface later.
-      storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
       if (stats.consumeEnergy()) {
         gameStartRef.current = Date.now();
         setSolution(pickRandomWord(Math.random, wordLength));
