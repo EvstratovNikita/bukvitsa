@@ -565,33 +565,27 @@ button { font-family: inherit; }
 
 /* ---------- Shop ---------- */
 .shop { padding-bottom: 4px; }
+/* Живёт в шапке модалки (headerRight), поэтому компактно: иконка + число. */
 .shop__balance {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
+  gap: 5px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(247, 201, 72, 0.30), rgba(247, 201, 72, 0.10));
   border: 1px solid rgba(247, 201, 72, 0.6);
   color: #ffe9b0;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  font-size: 16px;
-  box-shadow: 0 4px 16px rgba(247, 201, 72, 0.18);
+  font-size: 14px;
+  white-space: nowrap;
 }
-.shop__balance svg { width: 18px; height: 18px; }
-.shop__balance-label {
-  font-weight: 600;
-  font-size: 12px;
-  /* On the gold balance pill --text-dim only reached 3.3:1. */
-  color: rgba(255, 240, 200, 0.92);
-  margin-left: 2px;
-}
+.shop__balance svg { width: 15px; height: 15px; }
 
 .shop__tabs {
   display: flex;
   gap: 6px;
-  margin: 16px 0 12px;
+  margin: 0 0 12px;
   border-bottom: 1px solid var(--line);
 }
 .shop__tab {
@@ -2578,6 +2572,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 .modal__header {
   display: flex; align-items: center; justify-content: space-between;
+  gap: 10px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--line);
   /* Sticky so the close button stays reachable on long modals. */
@@ -2587,7 +2582,9 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   background: var(--bg-1);
   backdrop-filter: blur(8px);
 }
-.modal__title { margin: 0; font-size: 18px; }
+/* Заголовок растягивается — всё остальное (слот и крестик) прижато вправо. */
+.modal__title { margin: 0; font-size: 18px; flex: 1 1 auto; min-width: 0; }
+.modal__header-extra { display: flex; align-items: center; flex: 0 0 auto; }
 .modal__close {
   background: transparent; border: 0;
   color: var(--text-dim);
@@ -2692,11 +2689,15 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .swatch--absent  { background: var(--absent); }
 
 /* ---------- Help: tabbed reference ---------- */
-/* Segmented control — sticky so switching topics never scrolls it away. */
+/* Segmented control — sticky so switching topics never scrolls it away.
+   Липнет НЕ к нулю: скроллится вся модалка, и у неё своя липкая шапка
+   (.modal__header, ~61px). При top:0 вкладки уезжали на самый верх и
+   накрывали заголовок «Как играть». Прижимаем под шапку и уводим ниже
+   неё по z-index. */
 .help-tabs {
   position: sticky;
-  top: 0;
-  z-index: 2;
+  top: 60px;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
@@ -4908,7 +4909,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   border-color: rgba(150, 95, 10, 0.7);
   color: #6a3a04;
 }
-[data-theme="light"] .shop__balance-label { color: rgba(60, 40, 0, 0.85); }
 [data-theme="light"] .shop__tab           { color: rgba(26, 29, 40, 0.65); }
 [data-theme="light"] .shop__tab--active   { color: #1a1d28; }
 

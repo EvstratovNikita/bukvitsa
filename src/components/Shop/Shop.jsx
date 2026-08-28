@@ -121,14 +121,20 @@ export function Shop({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Магазин">
-      <div className="shop">
-        <div className="shop__balance">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Магазин"
+      // Баланс — компактной плашкой в шапке рядом с заголовком: в теле окна
+      // он занимал целую строку ради одной цифры.
+      headerRight={(
+        <div className="shop__balance" title="Монет на счету">
           <CoinIcon />
           <span>{stats.coins || 0}</span>
-          <span className="shop__balance-label">монет на счету</span>
         </div>
-
+      )}
+    >
+      <div className="shop">
         <div className="shop__tabs" role="tablist">
           {SHOP_CATEGORIES.map((c) => (
             <button
