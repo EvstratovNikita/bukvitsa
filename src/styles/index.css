@@ -2689,20 +2689,27 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .swatch--absent  { background: var(--absent); }
 
 /* ---------- Help: tabbed reference ---------- */
-/* Segmented control — sticky so switching topics never scrolls it away.
-   Липнет НЕ к нулю: скроллится вся модалка, и у неё своя липкая шапка
-   (.modal__header, ~61px). При top:0 вкладки уезжали на самый верх и
-   накрывали заголовок «Как играть». Прижимаем под шапку и уводим ниже
-   неё по z-index. */
-.help-tabs {
+/* Липнет обёртка, а не сам переключатель.
+   Скроллится вся модалка, и у неё своя липкая шапка (.modal__header, 61px):
+   при top:0 вкладки уезжали на самый верх и накрывали заголовок. Прижимаем
+   под шапку и уводим ниже неё по z-index.
+   Полоса непрозрачная и во всю ширину тела модалки (отрицательные поля
+   съедают его padding) — иначе текст просвечивал сквозь полупрозрачный фон
+   переключателя в светлой теме и проглядывал в его скруглениях. */
+.help-tabsbar {
   position: sticky;
   top: 60px;
   z-index: 1;
+  margin: 0 -16px 14px;
+  padding: 6px 16px 8px;
+  background: var(--bg-1);
+}
+/* Segmented control. */
+.help-tabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 4px;
   padding: 4px;
-  margin: 0 0 14px;
   background: var(--bg-2);
   border: 1px solid var(--line);
   border-radius: 12px;

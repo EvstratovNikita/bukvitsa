@@ -122,21 +122,26 @@ export function HowToPlay() {
   const [tab, setTab] = useState('game');
   return (
     <div className="help">
-      <div className="help-tabs" role="tablist" aria-label="Разделы помощи">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            className={`help-tab${tab === t.id ? ' help-tab--active' : ''}`}
-            onClick={() => setTab(t.id)}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <span className="help-tab__icon" aria-hidden="true">{t.icon}</span>
-            <span>{t.label}</span>
-          </button>
-        ))}
+      {/* Липнет именно полоса-обёртка: она непрозрачная и во всю ширину тела
+          модалки, поэтому текст не просвечивает ни сквозь переключатель, ни
+          по бокам от него. */}
+      <div className="help-tabsbar">
+        <div className="help-tabs" role="tablist" aria-label="Разделы помощи">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={`help-tab${tab === t.id ? ' help-tab--active' : ''}`}
+              onClick={() => setTab(t.id)}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              <span className="help-tab__icon" aria-hidden="true">{t.icon}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {tab === 'game' && <GameHelp />}
