@@ -102,6 +102,10 @@ export function useGame() {
   const [hintPickMode, setHintPickMode] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [energyModalOpen, setEnergyModalOpen] = useState(false);
+  // Формат, в который игрок шёл, когда упёрся в пустую энергию. Состояние, а
+  // не ref: модалка энергии должна его видеть, чтобы после пополнения увести
+  // именно туда, а не перезапустить текущий формат.
+  const [pendingLength, setPendingLength] = useState(null);
   // 'normal' = freeform play (energy-gated); 'daily' = one-shot daily word.
   const [gameMode, setGameMode] = useState(() => savedGame?.gameMode || 'normal');
   const isLocked = useRef(false);
@@ -439,10 +443,33 @@ export function useGame() {
     isLocked.current = false;
   }, [wordLength]);
 
+  // Ставит партию в выбранном формате. Энергию НЕ трогает — гейт живёт в
+  // setGameLength, а сюда возвращаются ещё и после дозаправки.
+  const applyGameLength = useCallback((length) => {
+    setWordLength(length);
+    gameStartRef.current = Date.now();
+    setSolution(pickRandomWord(Math.random, length));
+    setGuesses([]);
+    setEvaluations([]);
+    setCurrent('');
+    setStatus(GAME_STATUS.PLAYING);
+    setShakeRow(false);
+    setRevealRow(-1);
+    setHints(Array(length).fill(null));
+    setHintPickMode(false);
+    setLastEarned(0);
+    setLastEarnedBase(0);
+    setLastEarnedDeco(0);
+    setBoostedLastWin(false);
+    setDoubledLastWin(false);
+    isLocked.current = false;
+  }, []);
+
   const reset = useCallback(() => {
     // Energy gate — only the canonical 5-letter mode costs energy.
     if (wordLength === 5) {
       if (!stats.consumeEnergy()) {
+        setPendingLength(null); // здесь формат не меняется
         setEnergyModalOpen(true);
         return;
       }
@@ -468,6 +495,13 @@ export function useGame() {
   const startAfterRefuel = useCallback(() => {
     if (!stats.consumeEnergy()) return false;
     setEnergyModalOpen(false);
+    // Дозаправка после отказа на переходе в режим 5 букв — ведём туда, куда
+    // игрок и шёл, а не перезапускаем формат, в котором он застрял.
+    if (pendingLength) {
+      setPendingLength(null);
+      applyGameLength(pendingLength);
+      return true;
+    }
     if (solution) {
       setIsClearing(true);
       setTimeout(() => {
@@ -478,42 +512,40 @@ export function useGame() {
       performReset();
     }
     return true;
-  }, [stats, solution, performReset]);
+  }, [stats, solution, performReset, applyGameLength, pendingLength]);
 
-  const closeEnergyModal = useCallback(() => setEnergyModalOpen(false), []);
+  // Закрыл модалку, не пополнив, — намерение сгорает: иначе следующая
+  // дозаправка (из «Новой игры») утащила бы в режим 5 букв.
+  const closeEnergyModal = useCallback(() => {
+    setPendingLength(null);
+    setEnergyModalOpen(false);
+  }, []);
 
-  // Switch the active word-length mode (4 | 5 | 6) and start a fresh
-  // puzzle in that mode. Energy gated like a normal reset. If the
-  // requested length matches the current one and a game is already in
-  // progress, this is a no-op (call reset() instead for a re-roll).
+  // Switch the active word-length mode (4 | 5 | 6) and start a fresh puzzle
+  // in that mode. If the requested length matches the current one and a game
+  // is already in progress, this is a no-op (call reset() for a re-roll).
+  //
+  // Энергия. Режимы 4/6 бесплатны намеренно: монет они не приносят, только
+  // опыт, и служат выходом для игрока с пустой шкалой. Но переход в основной
+  // режим на 5 букв — это начало платной партии, и раньше он был бесплатным:
+  // с нулевой энергией хватало уйти на 4 буквы и вернуться, чтобы получить
+  // партию за монеты даром, и так сколько угодно раз.
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
     if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
+    if (length === 5 && !stats.consumeEnergy()) {
+      // Запоминаем, куда игрок собирался: после дозаправки вернём именно
+      // в режим на 5 букв, а не перезапустим текущий.
+      setPendingLength(5);
+      setEnergyModalOpen(true);
+      return;
+    }
     // Смена формата — это выход из Слова дня по определению: оно всегда на
     // 5 букв. Без этого в сейве оставалась связка «режим Слово дня + 4/6
     // букв», и назавтра игрок получал её обратно.
     if (gameMode === 'daily') setGameMode('normal');
-    // Switching modes is FREE — the first round in any mode starts without
-    // touching energy. "Новая игра" (reset) afterwards still costs 1 in
-    // 5-letter mode and is free in 4/6, as configured below.
-    setWordLength(length);
-    gameStartRef.current = Date.now();
-    setSolution(pickRandomWord(Math.random, length));
-    setGuesses([]);
-    setEvaluations([]);
-    setCurrent('');
-    setStatus(GAME_STATUS.PLAYING);
-    setShakeRow(false);
-    setRevealRow(-1);
-    setHints(Array(length).fill(null));
-    setHintPickMode(false);
-    setLastEarned(0);
-    setLastEarnedBase(0);
-    setLastEarnedDeco(0);
-    setBoostedLastWin(false);
-    setDoubledLastWin(false);
-    isLocked.current = false;
-  }, [wordLength, solution, status, guesses.length, stats, gameMode]);
+    applyGameLength(length);
+  }, [wordLength, solution, status, guesses.length, stats, gameMode, applyGameLength]);
 
   // Leave daily mode → restore a stashed normal puzzle if present, else
   // spend 1 energy and start a fresh normal round. If energy is empty,
@@ -768,6 +800,7 @@ export function useGame() {
     energy: stats.energy,
     energyMax: stats.energyMax,
     energyModalOpen,
+    pendingLength,
     openEnergyModal: () => setEnergyModalOpen(true),
     closeEnergyModal,
     buyEnergy: stats.buyEnergy,

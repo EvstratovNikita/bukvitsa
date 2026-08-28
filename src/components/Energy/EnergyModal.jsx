@@ -20,6 +20,7 @@ export function EnergyModal() {
     lastEnergyTickAt,
     petHunger,
     energyModalOpen,
+    pendingLength,
     closeEnergyModal,
     buyEnergy,
     grantAdEnergy,
@@ -39,12 +40,24 @@ export function EnergyModal() {
   }, [energyModalOpen, energy, cap]);
   const [feedback, setFeedback] = useState(null);  // { type, text }
   const [adRunning, setAdRunning] = useState(false);
+  // Пополнили и тут же стартуем — но начисление ещё не доехало до состояния,
+  // и consumeEnergy внутри startAfterRefuel видел старый ноль и отказывал:
+  // энергия прибавлялась, а партия не начиналась. Ставим намерение и ждём
+  // эффектом, пока единица появится.
+  const [wantStart, setWantStart] = useState(false);
+  useEffect(() => {
+    if (!wantStart || energy < 1) return;
+    setWantStart(false);
+    startAfterRefuel();
+  }, [wantStart, energy, startAfterRefuel]);
 
   if (!energyModalOpen) return null;
 
   // "Cold start" = no current puzzle (energy ran out before mount) OR the
   // round is finished and the user is trying to start a new one.
-  const needsStart = !solution || status !== 'playing';
+  // Плюс случай, когда партия идёт, но игрок упёрся в энергию на переходе в
+  // режим 5 букв: после пополнения ведём туда, куда он и шёл.
+  const needsStart = !solution || status !== 'playing' || Boolean(pendingLength);
 
   const flash = (type, text) => {
     setFeedback({ type, text });
@@ -55,7 +68,7 @@ export function EnergyModal() {
     const r = buyEnergy();
     if (r === 'ok') {
       flash('ok', `+1 энергия (−${ENERGY_REFILL_COST})`);
-      if (needsStart) startAfterRefuel();
+      if (needsStart) setWantStart(true);
     } else if (r === 'full') {
       flash('err', 'Энергия уже полная');
     } else {
@@ -75,7 +88,7 @@ export function EnergyModal() {
       if (!grantAdEnergy()) { flash('err', 'Лимит рекламы на сегодня исчерпан'); return; }
       const adBonus = recordAdWatched?.() || 0;
       flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} ${pluralCoins(adBonus)}` : `+${ENERGY_AD_REWARD} энергия`);
-      if (needsStart) startAfterRefuel();
+      if (needsStart) setWantStart(true);
     } else if (result === 'closed') {
       flash('err', 'Реклама закрыта раньше');
     } else {
