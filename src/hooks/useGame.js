@@ -28,6 +28,38 @@ function isTodaysDaily(raw) {
   return normalizeWord(raw.solution || '') === normalizeWord(getDailyWord());
 }
 
+// Полка партий по форматам: { "4": {...}, "5": {...}, "6": {...} }.
+// Уходя из режима, партию откладываем, возвращаясь — достаём. Благодаря
+// этому переключение туда-обратно не стоит ничего: энергия платится за НОВОЕ
+// слово, а не за сам переход, и вернуться к своей недоигранной партии можно
+// сколько угодно раз. Лежит в localStorage, чтобы переживать перезагрузку.
+const ROUNDS_KEY = STORAGE_KEYS.GAME_STATE + ':rounds';
+
+const readRounds = () => {
+  const raw = storage.get(ROUNDS_KEY, null);
+  return (raw && typeof raw === 'object') ? raw : {};
+};
+
+// Кладём на полку только живую партию: доигранная вернулась бы чужой
+// заполненной доской, как это уже было с Словом дня.
+function stashRound(length, round) {
+  const rounds = readRounds();
+  if (round?.solution && round.status === GAME_STATUS.PLAYING) rounds[length] = round;
+  else delete rounds[length];
+  storage.set(ROUNDS_KEY, rounds);
+}
+
+function takeRound(length) {
+  const rounds = readRounds();
+  const round = rounds[length];
+  if (!round) return null;
+  delete rounds[length];
+  storage.set(ROUNDS_KEY, rounds);
+  if (round.solution && round.status === GAME_STATUS.PLAYING
+      && normalizeWord(round.solution).length === length) return round;
+  return null;
+}
+
 // Снимаем с полки отложенную обычную партию, если она ещё не доиграна.
 // Доигранная — мусор: вернётся как чужая заполненная доска.
 function takeNormalBackup() {
@@ -443,19 +475,29 @@ export function useGame() {
     isLocked.current = false;
   }, [wordLength]);
 
-  // Ставит партию в выбранном формате. Энергию НЕ трогает — гейт живёт в
-  // setGameLength, а сюда возвращаются ещё и после дозаправки.
-  const applyGameLength = useCallback((length) => {
+  // Откладывает текущую партию на полку своего формата, чтобы вернуться к ней
+  // потом бесплатно. Слово дня не откладываем: у него своя логика, и уход из
+  // него означает, что сегодня к нему уже не вернуться.
+  const stashCurrentRound = useCallback(() => {
+    if (gameMode !== 'normal' || !solution || status !== GAME_STATUS.PLAYING) return;
+    stashRound(wordLength, { solution, guesses, evaluations, hints, status, wordLength });
+  }, [gameMode, solution, status, wordLength, guesses, evaluations, hints]);
+
+  // Ставит партию в выбранном формате: возвращает отложенную, если она есть,
+  // иначе берёт новое слово. Энергию НЕ трогает — гейт живёт в setGameLength,
+  // а сюда возвращаются ещё и после дозаправки.
+  const applyGameLength = useCallback((length, saved = null) => {
+    const round = saved || takeRound(length);
     setWordLength(length);
     gameStartRef.current = Date.now();
-    setSolution(pickRandomWord(Math.random, length));
-    setGuesses([]);
-    setEvaluations([]);
+    setSolution(round ? round.solution : pickRandomWord(Math.random, length));
+    setGuesses(round?.guesses || []);
+    setEvaluations(round?.evaluations || []);
     setCurrent('');
     setStatus(GAME_STATUS.PLAYING);
     setShakeRow(false);
     setRevealRow(-1);
-    setHints(Array(length).fill(null));
+    setHints(round?.hints || Array(length).fill(null));
     setHintPickMode(false);
     setLastEarned(0);
     setLastEarnedBase(0);
@@ -499,6 +541,9 @@ export function useGame() {
     // игрок и шёл, а не перезапускаем формат, в котором он застрял.
     if (pendingLength) {
       setPendingLength(null);
+      // Партию, из которой игрок уходил, тоже кладём на полку — иначе она
+      // потерялась бы при дозаправке.
+      stashCurrentRound();
       applyGameLength(pendingLength);
       return true;
     }
@@ -512,7 +557,7 @@ export function useGame() {
       performReset();
     }
     return true;
-  }, [stats, solution, performReset, applyGameLength, pendingLength]);
+  }, [stats, solution, performReset, applyGameLength, pendingLength, stashCurrentRound]);
 
   // Закрыл модалку, не пополнив, — намерение сгорает: иначе следующая
   // дозаправка (из «Новой игры») утащила бы в режим 5 букв.
@@ -521,31 +566,38 @@ export function useGame() {
     setEnergyModalOpen(false);
   }, []);
 
-  // Switch the active word-length mode (4 | 5 | 6) and start a fresh puzzle
-  // in that mode. If the requested length matches the current one and a game
-  // is already in progress, this is a no-op (call reset() for a re-roll).
+  // Switch the active word-length mode (4 | 5 | 6). If the requested length
+  // matches the current one and a game is already in progress, this is a no-op
+  // (call reset() for a re-roll).
   //
-  // Энергия. Режимы 4/6 бесплатны намеренно: монет они не приносят, только
-  // опыт, и служат выходом для игрока с пустой шкалой. Но переход в основной
-  // режим на 5 букв — это начало платной партии, и раньше он был бесплатным:
-  // с нулевой энергией хватало уйти на 4 буквы и вернуться, чтобы получить
-  // партию за монеты даром, и так сколько угодно раз.
+  // Энергия платится за НОВОЕ слово, а не за переход. Уходя, откладываем
+  // текущую партию на полку; возвращаясь, достаём её обратно — бесплатно и
+  // с теми же ходами, сколько бы раз игрок ни переключался. Списываем только
+  // тогда, когда для режима на 5 букв приходится брать новое слово.
+  //
+  // Режимы 4/6 бесплатны намеренно: монет они не приносят, только опыт, и
+  // служат выходом для игрока с пустой шкалой.
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
     if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
-    if (length === 5 && !stats.consumeEnergy()) {
+
+    const saved = takeRound(length);
+    // Новое слово в основном режиме — платное. Возврат к отложенной партии
+    // уже оплачен при её создании.
+    if (length === 5 && !saved && !stats.consumeEnergy()) {
       // Запоминаем, куда игрок собирался: после дозаправки вернём именно
       // в режим на 5 букв, а не перезапустим текущий.
       setPendingLength(5);
       setEnergyModalOpen(true);
       return;
     }
+    stashCurrentRound();
     // Смена формата — это выход из Слова дня по определению: оно всегда на
     // 5 букв. Без этого в сейве оставалась связка «режим Слово дня + 4/6
     // букв», и назавтра игрок получал её обратно.
     if (gameMode === 'daily') setGameMode('normal');
-    applyGameLength(length);
-  }, [wordLength, solution, status, guesses.length, stats, gameMode, applyGameLength]);
+    applyGameLength(length, saved);
+  }, [wordLength, solution, status, guesses.length, stats, gameMode, applyGameLength, stashCurrentRound]);
 
   // Leave daily mode → restore a stashed normal puzzle if present, else
   // spend 1 energy and start a fresh normal round. If energy is empty,
