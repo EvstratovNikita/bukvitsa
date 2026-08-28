@@ -251,6 +251,11 @@ export function useStats() {
     nowMs
   }), [stats.energy, stats.lastEnergyTickAt, stats.pet?.hunger, stats.pet?.lastHungerTickAt, stats.pet?.hatched, energyMax, nowMs]);
 
+  // Актуальная энергия для мгновенного резерва в consumeEnergy (см. там).
+  // Пересинхронизируется на каждый пересчёт, включая восстановление по времени.
+  const energyRef = useRef(reconciled.energy);
+  useEffect(() => { energyRef.current = reconciled.energy; }, [reconciled.energy]);
+
   // Persist when integer energy crosses a unit boundary. This keeps the
   // displayed value durable across reloads and avoids divergence between
   // the reconciled snapshot (used for display) and the stored snapshot
@@ -434,11 +439,30 @@ export function useStats() {
 
   const reset = useCallback(() => setStats(DEFAULT_STATS), []);
 
+  // Единая касса. Проверять баланс по снимку рендера нельзя: два нажатия в
+  // одном такте видят одно и то же «до», оба проходят проверку, а вычитание
+  // упирается в пол 0 — и вторая покупка достаётся даром. Проверено: 15 монет,
+  // две подсказки по 15 — обе открылись.
+  //
+  // coinsRef держит актуальный баланс и уменьшается СРАЗУ, поэтому второе
+  // нажатие в том же такте видит уже зарезервированную сумму. После коммита
+  // эффект ниже пересинхронизирует ref с состоянием (там же приезжают
+  // начисления с сервера и за достижения).
+  const coinsRef = useRef(stats.coins || 0);
+  useEffect(() => { coinsRef.current = stats.coins || 0; }, [stats.coins]);
+
+  const debit = useCallback((amount) => {
+    if (!Number.isFinite(amount) || amount <= 0) return true;
+    if (coinsRef.current < amount) return false;
+    coinsRef.current -= amount;
+    return true;
+  }, []);
+
   const spendCoins = useCallback((amount) => {
-    if ((stats.coins || 0) < amount) return false;
+    if (!debit(amount)) return false;
     setStats((s) => ({ ...s, coins: Math.max(0, (s.coins || 0) - amount) }));
     return true;
-  }, [stats.coins]);
+  }, [debit]);
 
   const pendingDailyReward = useMemo(
     () => computeDailyReward(stats.lastVisitDate, stats.dailyStreak || 0),
@@ -578,7 +602,7 @@ export function useStats() {
     if (!treat) return 'unknown_treat';
     if (!stats.pet?.hatched) return 'not_hatched';
     if ((reconciled.hunger ?? 0) >= HUNGER_MAX - 0.5) return 'full';
-    if ((stats.coins || 0) < treat.price) return 'not_enough_coins';
+    if (!debit(treat.price)) return 'not_enough_coins';
     setStats((s) => {
       // Apply pending hunger decay first so the gain is honest.
       const r = reconcilePetTimers({
@@ -638,7 +662,7 @@ export function useStats() {
     if (owned.includes(decoId)) return 'already_owned';
     const petLevel = stats.pet?.level || 1;
     if (d.minLevel && petLevel < d.minLevel) return 'locked';
-    if ((stats.coins || 0) < d.price) return 'not_enough_coins';
+    if (!debit(d.price)) return 'not_enough_coins';
     setStats((s) => {
       const eq = { ...(s.pet?.equipped || {}) };
       if (d.slot === 'wing') {
@@ -748,7 +772,7 @@ export function useStats() {
     // Работающий бонус нельзя купить второй раз — деньги ушли бы впустую, а
     // игрок этого не ждёт. Кнопка в магазине погашена, это страховка логики.
     if (item.consumable && boostRunning(item.id, stats)) return 'already_active';
-    if ((stats.coins || 0) < item.price) return 'not_enough_coins';
+    if (!debit(item.price)) return 'not_enough_coins';
 
     setStats((s) => {
       const next = {
@@ -903,18 +927,22 @@ export function useStats() {
     return { grantedEnergy: shouldGrant };
   }, [stats.altMode, mutateEnergy, runEconomy]);
 
+  // Та же оговорка, что и с монетами, только промах здесь не в пользу игрока:
+  // два нажатия «Новой игры» в одном такте оба видели «энергия есть» и
+  // списывали по единице за одну партию. Резервируем через ref.
   const consumeEnergy = useCallback(() => {
-    if (reconciled.energy < 1) return false;
+    if (energyRef.current < 1) return false;
+    energyRef.current -= 1;
     mutateEnergy(-1);
     // Energy is spent server-side at the start of a normal round (award_win no
     // longer decrements it). No achievements depend on energy → skip recompute.
     runEconomy('spend_energy', {}, { recompute: false });
     return true;
-  }, [reconciled.energy, mutateEnergy, runEconomy]);
+  }, [mutateEnergy, runEconomy]);
 
   const buyEnergy = useCallback(() => {
     if (reconciled.energy >= energyMax) return 'full';
-    if ((stats.coins || 0) < ENERGY_REFILL_COST) return 'not_enough_coins';
+    if (!debit(ENERGY_REFILL_COST)) return 'not_enough_coins';
     setStats((s) => ({ ...s, coins: Math.max(0, (s.coins || 0) - ENERGY_REFILL_COST) }));
     mutateEnergy(+1);
     runEconomy('buy_energy', {}, { recompute: false });

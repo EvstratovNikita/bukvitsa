@@ -141,6 +141,11 @@ export function useGame() {
   // 'normal' = freeform play (energy-gated); 'daily' = one-shot daily word.
   const [gameMode, setGameMode] = useState(() => savedGame?.gameMode || 'normal');
   const isLocked = useRef(false);
+  // Партия уже запускается — второй вызов в том же такте игнорируем, иначе
+  // двойной тап списывает энергию дважды за один раунд.
+  const startingRef = useRef(false);
+  // То же для рекламного удвоения: один просмотр — одно начисление.
+  const adBusyRef = useRef(false);
   // Wall-clock at which the active puzzle started — used for the "win in N
   // seconds" achievements. Resets every time a fresh solution is set.
   const gameStartRef = useRef(Date.now());
@@ -508,6 +513,10 @@ export function useGame() {
   }, []);
 
   const reset = useCallback(() => {
+    // Одна партия — одно списание. Двойной тап по «Новой игре» успевал пройти
+    // проверку дважды до перерисовки: энергия уходила за две партии, а игрок
+    // получал одну. Флаг снимаем, когда новая доска уже на месте.
+    if (startingRef.current) return;
     // Energy gate — only the canonical 5-letter mode costs energy.
     if (wordLength === 5) {
       if (!stats.consumeEnergy()) {
@@ -516,18 +525,21 @@ export function useGame() {
         return;
       }
     }
+    startingRef.current = true;
     // A real new game is starting → count it toward the interstitial throttle.
     maybeInterstitial();
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
       gameStartRef.current = Date.now();
       setSolution(pickRandomWord(Math.random, wordLength));
+      setTimeout(() => { startingRef.current = false; }, 0);
       return;
     }
     setIsClearing(true);
     setTimeout(() => {
       performReset();
       setIsClearing(false);
+      startingRef.current = false;
     }, ANIM.CLEAR_TOTAL_MS);
   }, [guesses.length, current.length, hints, performReset, stats, wordLength, maybeInterstitial]);
 
@@ -580,6 +592,9 @@ export function useGame() {
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
     if (length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
+    // Как и в reset: двойной тап по кнопке режима успевал списать дважды —
+    // wordLength в том же такте ещё старый, и проверка выше не срабатывала.
+    if (startingRef.current) return;
 
     const saved = takeRound(length);
     // Новое слово в основном режиме — платное. Возврат к отложенной партии
@@ -596,7 +611,9 @@ export function useGame() {
     // 5 букв. Без этого в сейве оставалась связка «режим Слово дня + 4/6
     // букв», и назавтра игрок получал её обратно.
     if (gameMode === 'daily') setGameMode('normal');
+    startingRef.current = true;
     applyGameLength(length, saved);
+    setTimeout(() => { startingRef.current = false; }, 0);
   }, [wordLength, solution, status, guesses.length, stats, gameMode, applyGameLength, stashCurrentRound]);
 
   // Leave daily mode → restore a stashed normal puzzle if present, else
@@ -677,33 +694,42 @@ export function useGame() {
   // round; further presses are ignored until the next puzzle starts.
   const doubleLastReward = useCallback(async () => {
     if (status !== GAME_STATUS.WON) return 'wrong_state';
+    // doublingAd — состояние, и два вызова в одном такте оба видели бы false:
+    // один просмотр рекламы засчитался бы дважды. Ref закрывается сразу, а
+    // снимается в finally, иначе ранний выход заклинил бы кнопку навсегда.
+    if (adBusyRef.current) return 'busy';
     if (doubledLastWin || doublingAd) return 'busy';
-    if (!lastEarned || lastEarned <= 0) return 'nothing';
-    // Soft daily cap on ad-doubling — protects the coin economy.
-    if ((stats.adsDoubleLeft ?? 0) <= 0) {
-      showToast('Лимит удвоений за рекламу на сегодня исчерпан');
-      return 'limit';
+    adBusyRef.current = true;
+    try {
+      if (!lastEarned || lastEarned <= 0) return 'nothing';
+      // Soft daily cap on ad-doubling — protects the coin economy.
+      if ((stats.adsDoubleLeft ?? 0) <= 0) {
+        showToast('Лимит удвоений за рекламу на сегодня исчерпан');
+        return 'limit';
+      }
+      setDoublingAd(true);
+      const r = await showRewardedAd();
+      setDoublingAd(false);
+      if (r !== 'rewarded') {
+        showToast(r === 'closed' ? 'Реклама закрыта раньше' : 'Реклама недоступна');
+        return r;
+      }
+      // Re-check + tally against the cap (guards against races / stale closure).
+      if (!stats.recordAdDouble?.()) {
+        showToast('Лимит удвоений за рекламу на сегодня исчерпан');
+        return 'limit';
+      }
+      stats.addCoins(lastEarned);
+      // Server re-credits the stored last-win reward + tallies the daily cap.
+      // (The "Щедрая реклама" +N ad-coin boost applies to energy ads only, not
+      // to reward-doubling — otherwise doubling pays twice.)
+      stats.redeemAdDoubleServer?.();
+      setDoubledLastWin(true);
+      showToast(`+${lastEarned} ${pluralCoins(lastEarned)} за просмотр!`);
+      return 'ok';
+    } finally {
+      adBusyRef.current = false;
     }
-    setDoublingAd(true);
-    const r = await showRewardedAd();
-    setDoublingAd(false);
-    if (r !== 'rewarded') {
-      showToast(r === 'closed' ? 'Реклама закрыта раньше' : 'Реклама недоступна');
-      return r;
-    }
-    // Re-check + tally against the cap (guards against races / stale closure).
-    if (!stats.recordAdDouble?.()) {
-      showToast('Лимит удвоений за рекламу на сегодня исчерпан');
-      return 'limit';
-    }
-    stats.addCoins(lastEarned);
-    // Server re-credits the stored last-win reward + tallies the daily cap.
-    // (The "Щедрая реклама" +N ad-coin boost applies to energy ads only, not
-    // to reward-doubling — otherwise doubling pays twice.)
-    stats.redeemAdDoubleServer?.();
-    setDoubledLastWin(true);
-    showToast(`+${lastEarned} ${pluralCoins(lastEarned)} за просмотр!`);
-    return 'ok';
   }, [status, doubledLastWin, doublingAd, lastEarned, stats, showToast]);
 
   // Positions that have been correctly guessed in past attempts — no point
