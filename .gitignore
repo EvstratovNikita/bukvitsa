@@ -35,3 +35,6 @@ pnpm-debug.log*
 
 # claude code preview launch config (machine-local)
 .claude
+
+# промо-ролик для Игр Яндекса (пересобирается, в репозитории не нужен)
+bukvitsa-gameplay.mp4
