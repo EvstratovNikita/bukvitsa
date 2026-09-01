@@ -198,6 +198,26 @@ export async function getPlayerInfo() {
   }
 }
 
+// ---------- Таблица лидеров ----------
+//
+// У VK она нативная: площадка сама рисует окно и сравнивает игрока с его
+// друзьями, которые тоже играют. Результат передаётся прямо в вызове, поэтому
+// отдельной отправки счёта (как submitScore у Яндекса) здесь не нужно.
+//
+// 'ok' — окно показали, 'closed' — игрок закрыл его сам, 'failed' — вызвать не
+// удалось (метод недоступен в этой версии клиента).
+export async function showLeaderboard(score) {
+  if (!isVk) return 'failed';
+  try {
+    await vkInit();
+    const r = await send('VKWebAppShowLeaderBoardBox', { user_result: Math.max(0, Math.round(score) || 0) });
+    return r?.success ? 'ok' : 'closed';
+  } catch (e) {
+    console.warn('[vk] ShowLeaderBoardBox failed', e);
+    return 'failed';
+  }
+}
+
 // ---------- Реклама ----------
 //
 // Показ разрешён только после того, как VK одобрит монетизацию приложения;

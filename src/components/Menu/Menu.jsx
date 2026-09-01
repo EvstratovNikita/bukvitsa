@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 import { isYandex, openAuth, getPlayerInfo } from '../../lib/yandex.js';
-import { isEmbedded } from '../../lib/platform.js';
+import { isEmbedded, isVk } from '../../lib/platform.js';
 import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
@@ -131,7 +131,10 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
               как один серый список, а «премиальным» в нём выглядит только
               магазин. Палитра — в index.css, .menu-item--*. */}
           <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} tint="shop" />
-          {isYandex && (
+          {/* Таблица лидеров есть на обеих площадках, но разная: у Яндекса мы
+              рисуем её сами, у VK открывается нативное окно. Какую именно
+              открыть — решает обработчик в App.jsx. */}
+          {(isYandex || isVk) && (
             <MenuItem icon={<TrophyIcon />} label="Лучшие игроки" onClick={handle(onOpenLeaderboard)} tint="rating" />
           )}
           <MenuItem
