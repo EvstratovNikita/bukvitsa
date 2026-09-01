@@ -1,0 +1,9 @@
+{
+  "static_path": "dist",
+  "app_id": "ЗАПОЛНИТЬ_ID_ПРИЛОЖЕНИЯ",
+  "endpoints": {
+    "mobile": "index.html",
+    "mvk": "index.html",
+    "web": "index.html"
+  }
+}
