@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase.js';
-import { isYandex } from './yandex.js';
+import { isEmbedded } from './platform.js';
 
 // Translate a server RPC jsonb result into a partial client-stats patch.
 // Only keys present in the result are mapped, so each RPC reconciles exactly
@@ -34,9 +34,9 @@ export function serverPatch(result) {
 // null when Supabase isn't configured / the call failed (offline → the local
 // optimistic state stands until the next session reconcile).
 export async function callRpc(name, args) {
-  // On Yandex the economy is local + Yandex-cloud (player.setData); the
-  // server-authoritative Supabase path is off. Skip all RPCs there.
-  if (isYandex || !isSupabaseConfigured || !supabase) return null;
+  // Внутри площадки (Яндекс, VK) экономика считается локально, а прогресс
+  // живёт в её облаке; серверный путь через Supabase выключен, RPC не шлём.
+  if (isEmbedded || !isSupabaseConfigured || !supabase) return null;
   try {
     const { data, error } = await supabase.rpc(name, args || {});
     if (error) {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { STORAGE_KEYS } from '../constants/game.js';
-import { cloudLoad, cloudSave, cloudStatus, playerIdentity } from '../lib/yandex.js';
+import { cloud } from '../lib/cloud.js';
 import { mergeProgress } from '../utils/mergeProgress.js';
 import { storage } from '../utils/storage.js';
 
@@ -23,11 +23,15 @@ const takeBoard = (data) => {
   return { board: __board, stats };
 };
 
-// Persists the stats blob to the Yandex player's cloud (getData/setData).
-// Mirrors useRemoteSync's shape ({ synced }) so useStats can swap it in on the
-// Yandex platform. The full stats object is JSON-serialisable, so we save it
-// wholesale and merge cloud → local on load.
-export function useYandexSync({ stats, setStats, enabled }) {
+// Сохраняет снимок в облако площадки: у Яндекса это player.setData, у VK —
+// VKWebAppStorageSet с разбивкой на части. Конкретика спрятана за адаптером
+// (lib/cloud.js), здесь только логика синхронизации — и она одна на все
+// площадки, потому что все её тонкие места (см. комментарии ниже) вылечены
+// дорого и второй копии не переживут.
+//
+// Возвращает { synced } той же формы, что useRemoteSync, чтобы useStats мог
+// подставлять любой из двух бэкендов.
+export function useCloudSync({ stats, setStats, enabled }) {
   const [synced, setSynced] = useState(!enabled);
   const syncedRef = useRef(false);
   const debounceRef = useRef(null);
@@ -46,16 +50,16 @@ export function useYandexSync({ stats, setStats, enabled }) {
   // неё. У гостя (режим lite) своё хранилище, у аккаунта своё; раньше мы
   // просто заливали в аккаунт текущий снимок, и его прогресс стирался.
   const adoptAccount = useCallback(async () => {
-    const { ok, data } = await cloudLoad();
+    const { ok, data } = await cloud.load();
     // Не прочитали — не пишем: снимок уехал бы поверх чужих данных.
     if (!ok) return null;
     const merged = mergeProgress(statsRef.current, data);
     if (!merged) return null;
     setStats(merged);
-    await cloudSave(withBoard(merged));
+    await cloud.save(withBoard(merged));
     // Теперь читали и писали одному и тому же игроку — фиксируем его.
-    identityRef.current = await playerIdentity();
-    cloudStatus.readFrom = cloudStatus.identity;
+    identityRef.current = await cloud.identity();
+    cloud.status.readFrom = cloud.status.identity;
     return merged;
   }, [setStats]);
 
@@ -75,7 +79,7 @@ export function useYandexSync({ stats, setStats, enabled }) {
       // «Чтение облака: ошибка», «Запись: ок» через секунду).
       let res = { ok: false, data: null };
       for (let attempt = 0; attempt < 3 && active; attempt++) {
-        res = await cloudLoad();
+        res = await cloud.load();
         if (res.ok) break;
         await new Promise((r) => setTimeout(r, 3000));
       }
@@ -87,7 +91,7 @@ export function useYandexSync({ stats, setStats, enabled }) {
         // пишем: снимок из дефолтов затёр бы аккаунт. Прогресс жив в
         // localStorage, а проверка ниже продолжит стучаться в облако — как
         // только чтение пройдёт, данные сольются и запись включится.
-        cloudStatus.save = 'ждём успешного чтения';
+        cloud.status.save = 'ждём успешного чтения';
         setSynced(true);
         return;
       }
@@ -103,8 +107,8 @@ export function useYandexSync({ stats, setStats, enabled }) {
         // mergeProgress не теряет ни одну из сторон и ничего не задваивает.
         setStats((s) => mergeProgress(s, cloudStats));
       }
-      identityRef.current = await playerIdentity();
-      cloudStatus.readFrom = cloudStatus.identity;
+      identityRef.current = await cloud.identity();
+      cloud.status.readFrom = cloud.status.identity;
       syncedRef.current = true;
       setSynced(true);
     })();
@@ -122,13 +126,13 @@ export function useYandexSync({ stats, setStats, enabled }) {
     if (!enabled || !syncedRef.current) return;
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      const id = await playerIdentity();
+      const id = await cloud.identity();
       if (id && identityRef.current && id !== identityRef.current) {
         await adoptAccount();
         return;
       }
       if (id) identityRef.current = id;
-      cloudSave(withBoard(statsRef.current));
+      cloud.save(withBoard(statsRef.current));
     }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
   }, [stats, enabled, adoptAccount]);
@@ -147,21 +151,21 @@ export function useYandexSync({ stats, setStats, enabled }) {
       // площадка часто отвечает со второго раза, и как только данные пришли,
       // они сливаются с местными, а запись включается.
       if (!syncedRef.current) {
-        const res = await cloudLoad();
+        const res = await cloud.load();
         if (!active || !res.ok) return;
         const { board, stats: cloudStats } = takeBoard(res.data);
         if (board && !storage.get(STORAGE_KEYS.GAME_STATE, null)) {
           storage.set(STORAGE_KEYS.GAME_STATE, board);
         }
         if (cloudStats) setStats((s) => mergeProgress(s, cloudStats));
-        identityRef.current = await playerIdentity();
-        cloudStatus.readFrom = cloudStatus.identity;
+        identityRef.current = await cloud.identity();
+        cloud.status.readFrom = cloud.status.identity;
         syncedRef.current = true;
-        cloudStatus.save = 'включена после повторного чтения';
+        cloud.status.save = 'включена после повторного чтения';
         return;
       }
 
-      const id = await playerIdentity();
+      const id = await cloud.identity();
       if (!active || !id) return;
       if (identityRef.current && id !== identityRef.current) await adoptAccount();
       else identityRef.current = id;
@@ -184,6 +188,3 @@ export function useYandexSync({ stats, setStats, enabled }) {
 
   return { synced, adoptAccount };
 }
-
-
-

@@ -11,6 +11,7 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
+import { vkInit } from './lib/vk.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -43,6 +44,11 @@ function GameShell() {
   useAuthRedirectFallback();
   useShopTheme();
   const { stats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref } = useGameContext();
+
+  // VK ждёт VKWebAppInit сразу после загрузки: без него площадка считает, что
+  // приложение не стартовало, и не убирает свой лоадер. Вызов идемпотентный и
+  // вне VK — no-op.
+  useEffect(() => { vkInit(); }, []);
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also

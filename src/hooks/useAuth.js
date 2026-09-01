@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../lib/supabase.js';
-import { isYandex } from '../lib/yandex.js';
+import { isEmbedded } from '../lib/platform.js';
 
-// На Играх Яндекса Supabase не используется вообще: прогресс живёт в облаке
-// игрока (useYandexSync), экономические RPC отключены в economy.js, синк — в
-// App.jsx. Анонимный вход при этом раньше всё равно уходил на supabase.co:
-// лишний внешний запрос на старте (модерация к таким придирается) и
-// анонимный пользователь в базе на КАЖДОГО игрока площадки.
-const useRemote = isSupabaseConfigured && !isYandex;
+// Внутри площадки (Игры Яндекса, VK Mini Apps) Supabase не используется
+// вообще: прогресс живёт в облаке площадки (useCloudSync), экономические RPC
+// отключены в economy.js. Анонимный вход при этом раньше всё равно уходил на
+// supabase.co: лишний внешний запрос на старте (модерация к таким придирается)
+// и анонимный пользователь в базе на КАЖДОГО игрока площадки.
+const useRemote = isSupabaseConfigured && !isEmbedded;
 
 // Anonymous sign-in on first load; returns a stable user object across reloads.
 // If Supabase isn't configured (missing env vars) — or we're on Yandex —

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 import { isYandex, openAuth, getPlayerInfo } from '../../lib/yandex.js';
+import { isEmbedded } from '../../lib/platform.js';
 import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
@@ -99,10 +100,10 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
 
         {/* Account / Auth section — whole row opens the auth modal so the
             user has one obvious place to log in / see their account.
-            Hidden on Yandex Games: the platform forbids third-party login
-            (Google/email) — only Yandex ID is allowed (deferred to a later
-            bridge), so we show no login UI there. */}
-        {!isYandex && (
+            Скрыто внутри площадок: Яндекс запрещает сторонний вход
+            (Google/почта) — там своя строка ниже; в VK игрок уже под своим
+            аккаунтом, и предлагать ему второй вход незачем. */}
+        {!isEmbedded && (
         <button
           type="button"
           className="menu__user menu__user--btn"

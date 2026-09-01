@@ -13,6 +13,7 @@
 //   Clipboard fallback →  copy "text\nurl" to clipboard
 
 import { isTelegram, isVk } from './platform.js';
+import { vkBridge } from './vk.js';
 
 // When we publish to Yandex Games / TG / VK the share URL should keep
 // pointing to a stable canonical landing — easier marketing tracking.
@@ -75,9 +76,10 @@ async function shareTelegram(text, url) {
 
 async function shareVk(text, url) {
   try {
-    const bridge = window.vkBridge;
-    if (bridge?.send) {
-      await bridge.send('VKWebAppShare', { link: url });
+    // Мост берём из пакета, а не из window.vkBridge: при сборке из npm такого
+    // глобала не существует, и эта ветка не срабатывала бы никогда.
+    if (isVk) {
+      await vkBridge.send('VKWebAppShare', { link: url });
       return 'shared';
     }
     const u = `https://vk.com/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`;

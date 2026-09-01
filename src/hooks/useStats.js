@@ -47,10 +47,10 @@ function ownsBackground(s, id) {
   return (s.inventory || []).includes(id) || (s.prefs?.petGifts || []).includes(id);
 }
 import { callRpc, serverPatch } from '../lib/economy.js';
-import { isYandex } from '../lib/yandex.js';
+import { isEmbedded } from '../lib/platform.js';
 import { useAuth } from './useAuth.js';
 import { useRemoteSync } from './useRemoteSync.js';
-import { useYandexSync } from './useYandexSync.js';
+import { useCloudSync } from './useCloudSync.js';
 
 const DEFAULT_STATS = {
   played: 0,
@@ -193,30 +193,32 @@ export function useStats() {
     storage.set(STORAGE_KEYS.STATS, stats);
   }, [stats]);
 
-  // Persistence backend depends on platform: Supabase on the web, the Yandex
-  // player cloud (multidevice) inside Yandex Games. Only one is active.
+  // Persistence backend depends on platform: Supabase on the web, the
+  // platform's own cloud (multidevice) inside Yandex Games and VK Mini Apps.
+  // Only one is active.
   const remote = useRemoteSync({
     stats,
     setStats,
     userId: auth.userId,
-    enabled: !isYandex,
+    enabled: !isEmbedded,
     hasLocalSnapshot: hadLocalSnapshot.current
   });
-  const yandex = useYandexSync({ stats, setStats, enabled: isYandex });
+  const cloudSync = useCloudSync({ stats, setStats, enabled: isEmbedded });
   // Fallback so the game ALWAYS becomes playable: if the server reconcile
   // doesn't settle quickly (e.g. anonymous sign-in is blocked/slow inside the
   // Yandex iframe, so userId never arrives and `synced` never flips), start on
   // local state anyway. Without this the first-puzzle pick stays gated forever
   // and the board is blank / unтypeable until a mode switch.
   //
-  // На Яндексе ждём дольше. Там до данных три шага — загрузка SDK, getPlayer,
-  // getData, — и на телефоне это спокойно больше двух секунд. Стартовать на
-  // дефолтах здесь дороже, чем подождать: игрок с аккаунтом получал заново
-  // ежедневную награду и обучение, энергию 4/5 и таймеры с нуля, потому что
-  // облако приезжало уже после того, как игра всё это решила. Экран в это
-  // время закрыт нашей заставкой и лоадером площадки, так что пауза не
-  // выглядит зависанием, а сам SDK сдаётся по своему таймауту раньше.
-  const readyFallbackMs = isYandex ? 12000 : 2500;
+  // Внутри площадки ждём дольше. У Яндекса до данных три шага — загрузка SDK,
+  // getPlayer, getData, — и на телефоне это спокойно больше двух секунд; у VK
+  // это вызовы моста, тоже не мгновенные. Стартовать на дефолтах здесь дороже,
+  // чем подождать: игрок с аккаунтом получал заново ежедневную награду и
+  // обучение, энергию 4/5 и таймеры с нуля, потому что облако приезжало уже
+  // после того, как игра всё это решила. Экран в это время закрыт нашей
+  // заставкой и лоадером площадки, так что пауза не выглядит зависанием, а сам
+  // мост сдаётся по своему таймауту раньше.
+  const readyFallbackMs = isEmbedded ? 12000 : 2500;
   const [readyFallback, setReadyFallback] = useState(false);
   useEffect(() => {
     const t = setTimeout(() => setReadyFallback(true), readyFallbackMs);
@@ -225,7 +227,7 @@ export function useStats() {
   // True once the active backend's initial load has settled (or the fallback
   // fired). The game waits for this before deciding whether to offer the daily
   // word / login reward, so it never acts on stale local state.
-  const ready = (isYandex ? yandex.synced : remote.synced) || readyFallback;
+  const ready = (isEmbedded ? cloudSync.synced : remote.synced) || readyFallback;
 
   // Wall-clock tick used to drive countdowns. Bumped every ~30s so the
   // EnergyBadge "+1 через M:SS" reads as continuous without flooding state.
@@ -1121,6 +1123,6 @@ export function useStats() {
     consumeAchievementToast,
     auth,
     // Слияние гостевого прогресса с аккаунтом после входа на Яндексе.
-    adoptYandexAccount: yandex.adoptAccount
+    adoptYandexAccount: cloudSync.adoptAccount
   };
 }

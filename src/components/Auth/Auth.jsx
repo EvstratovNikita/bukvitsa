@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase.js';
-import { isYandex } from '../../lib/yandex.js';
+import { isEmbedded } from '../../lib/platform.js';
 import { translateAuthError } from '../../lib/authErrors.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
@@ -11,8 +11,9 @@ export function AuthButton() {
   const [open, setOpen] = useState(false);
 
   // Hide when Supabase isn't configured — no point offering sign-in
-  // if the backend isn't wired up. Also hidden on Yandex (no third-party auth).
-  if (!isSupabaseConfigured || isYandex) return null;
+  // if the backend isn't wired up. Скрыто и внутри площадок: у Яндекса вход
+  // третьей стороной запрещён, а в VK игрок уже вошёл под своим аккаунтом.
+  if (!isSupabaseConfigured || isEmbedded) return null;
 
   const isLinked = auth?.user && auth.isAnonymous === false;
   const label = isLinked ? 'Аккаунт' : 'Войти';
@@ -38,9 +39,9 @@ export function AuthModal({ open, onClose }) {
   const { auth } = useGameContext();
   const isLinked = auth?.user && auth.isAnonymous === false;
 
-  // Yandex Games forbids third-party sign-in (Google/email) — only Yandex ID
-  // is permitted. We show no login UI there, so never render this modal.
-  if (isYandex) return null;
+  // Внутри площадки окна входа нет вовсе: Яндекс запрещает сторонний вход
+  // (только Yandex ID), а в VK игрок и так под своим аккаунтом.
+  if (isEmbedded) return null;
 
   return (
     <Modal open={open} onClose={onClose} title={isLinked ? 'Аккаунт' : 'Сохранить прогресс'}>

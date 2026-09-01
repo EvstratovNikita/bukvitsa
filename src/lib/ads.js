@@ -10,6 +10,7 @@
 
 import { platform, PLATFORMS } from './platform.js';
 import { getYsdk, showFullscreenAdv } from './yandex.js';
+import { showRewardedVk, showInterstitialVk } from './vk.js';
 
 // --- Stub adapter: used on plain web + dev. Fakes a 3s rewarded video so
 //     the energy flow stays testable without a live SDK.
@@ -40,20 +41,27 @@ const yandexAdapter = {
       console.warn('[ads] yandex showRewarded failed', err);
       return 'failed';
     }
-  }
+  },
+  showInterstitial: showFullscreenAdv
 };
 
-// --- Placeholder slots for future platforms. Kept here so the next time we
-//     add Telegram (Adsgram) or VK Mini App ads, we just fill in showRewarded.
-//     Currently they fall through to stub.
+// --- VK Mini Apps. Мост отвечает { result: true } только за успешный показ,
+//     а закрытие и отсутствие рекламы приходят ошибкой — разбор в lib/vk.js.
+//     Показы начнутся после того, как VK одобрит монетизацию приложения; до
+//     этого вызов честно возвращает 'failed', и награда не начисляется.
+const vkAdapter = {
+  showRewarded: showRewardedVk,
+  showInterstitial: showInterstitialVk
+};
+
+// --- Placeholder slot for Telegram (Adsgram). Пока падает в заглушку.
 // const telegramAdapter = { async showRewarded() { /* Adsgram.init({blockId}).show() ... */ } };
-// const vkAdapter       = { async showRewarded() { /* bridge.send('VKWebAppShowNativeAds', ...) */ } };
 
 function pickAdapter() {
   switch (platform) {
     case PLATFORMS.YANDEX:   return yandexAdapter;
+    case PLATFORMS.VK:       return vkAdapter;
     // case PLATFORMS.TELEGRAM: return telegramAdapter;
-    // case PLATFORMS.VK:       return vkAdapter;
     default:                 return stubAdapter;
   }
 }
@@ -65,9 +73,9 @@ export async function showRewardedAd() {
 }
 
 // Fullscreen (interstitial) advert, shown at natural breaks (between games).
-// No-op off Yandex; resolves true only if an ad was actually displayed.
+// Resolves true only if an ad was actually displayed; вне площадок — no-op.
 export async function showInterstitial() {
-  return showFullscreenAdv();
+  return adapter.showInterstitial ? adapter.showInterstitial() : false;
 }
 
 // Useful for UI copy ("Реклама ~3 сек" vs platform's real average).
