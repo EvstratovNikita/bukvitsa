@@ -14,6 +14,7 @@
 
 import { isTelegram, isVk } from './platform.js';
 import { vkBridge } from './vk.js';
+import { copyText } from '../utils/clipboard.js';
 
 // When we publish to Yandex Games / TG / VK the share URL should keep
 // pointing to a stable canonical landing — easier marketing tracking.
@@ -102,14 +103,9 @@ async function shareNative(title, text, url) {
 }
 
 async function copyToClipboard(text, url) {
-  try {
-    // Skip appending url when caller embedded it inline already (daily share).
-    const payload = url && !text.includes(url) ? `${text}\n${url}` : text;
-    await navigator.clipboard.writeText(payload);
-    return 'copied';
-  } catch {
-    return 'failed';
-  }
+  // Skip appending url when caller embedded it inline already (daily share).
+  const payload = url && !text.includes(url) ? `${text}\n${url}` : text;
+  return (await copyText(payload)) ? 'copied' : 'failed';
 }
 
 export async function share({ title = 'Буквица', text, url }) {

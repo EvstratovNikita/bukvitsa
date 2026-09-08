@@ -2536,7 +2536,11 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   font-weight: 600;
   font-size: 14px;
   line-height: 1.4;
-  z-index: 50;
+  /* Выше всех слоёв интерфейса: модалка и её подложка идут на 100, меню на
+     120. На 50 любое оповещение, поднятое из открытой модалки (обратная
+     связь), уезжало ПОД неё — затемнённое и размытое. Тост живёт секунду и
+     перекрывать его нечему. */
+  z-index: 200;
   width: max-content;
   max-width: min(360px, calc(100vw - 32px));
   text-align: center;

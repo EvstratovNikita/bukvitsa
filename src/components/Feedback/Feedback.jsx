@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { callRpc } from '../../lib/economy.js';
 import { isEmbedded } from '../../lib/platform.js';
+import { copyText } from '../../utils/clipboard.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { MailIcon } from '../icons/Icon.jsx';
@@ -66,11 +67,11 @@ export function FeedbackModal({ open, onClose }) {
   };
 
   const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(DEV_EMAIL);
+    if (await copyText(DEV_EMAIL)) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    } catch {
+    } else {
+      // Совсем не вышло — показываем адрес, чтобы его можно было переписать.
       showToast?.(DEV_EMAIL);
     }
   };
