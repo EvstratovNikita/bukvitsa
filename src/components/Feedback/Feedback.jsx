@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { callRpc } from '../../lib/economy.js';
+import { isEmbedded } from '../../lib/platform.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { MailIcon } from '../icons/Icon.jsx';
@@ -146,7 +147,15 @@ export function FeedbackModal({ open, onClose }) {
 
             <div className="feedback__direct">
               <MailIcon className="feedback__direct-icon" />
-              <a className="feedback__email" href={mailtoHref}>{DEV_EMAIL}</a>
+              {/* Внутри площадки адрес — ТЕКСТ, а не ссылка. Клик по
+                  <a href="mailto:…"> уводит сам iframe, а он у площадки под
+                  CSP: игра мгновенно заменяется страницей «Сайт заблокирован»
+                  и больше ни на что не реагирует. Именно это модерация Яндекса
+                  и записала как зависание (п. 1.14). Действие никуда не
+                  делось — рядом стоит кнопка «Копировать». */}
+              {isEmbedded
+                ? <span className="feedback__email">{DEV_EMAIL}</span>
+                : <a className="feedback__email" href={mailtoHref}>{DEV_EMAIL}</a>}
               <button
                 type="button"
                 className="btn btn--ghost feedback__copy"
