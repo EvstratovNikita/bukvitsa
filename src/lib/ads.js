@@ -72,10 +72,31 @@ export async function showRewardedAd() {
   return adapter.showRewarded();
 }
 
+// Минимальный промежуток между межстраничными показами. Правила размещения
+// VK (п. 5.1.5.1г) запрещают показывать их чаще одного раза в 30 секунд.
+// Счётчик переходов в useGame такой гарантии не даёт: игрок, который быстро
+// сдаётся и начинает заново, успевает сделать два перехода и за десять
+// секунд. У Яндекса свой частотный колпак, но собственный предохранитель
+// нужен и там — он же бережёт игрока от рекламы в упор.
+const INTERSTITIAL_GAP_MS = 30000;
+let lastInterstitialAt = 0;
+
 // Fullscreen (interstitial) advert, shown at natural breaks (between games).
 // Resolves true only if an ad was actually displayed; вне площадок — no-op.
 export async function showInterstitial() {
-  return adapter.showInterstitial ? adapter.showInterstitial() : false;
+  if (!adapter.showInterstitial) return false;
+
+  const now = Date.now();
+  if (now - lastInterstitialAt < INTERSTITIAL_GAP_MS) return false;
+  // Отметку ставим ДО показа: пока крутится ролик, второй вызов не должен
+  // проскочить — переходы бывают быстрее, чем площадка отвечает.
+  lastInterstitialAt = now;
+
+  const shown = await adapter.showInterstitial();
+  // Не показали (нет заполнения, свой колпак площадки) — окно не занимаем,
+  // пусть следующий переход попробует снова.
+  if (!shown) lastInterstitialAt = 0;
+  return shown;
 }
 
 // Useful for UI copy ("Реклама ~3 сек" vs platform's real average).

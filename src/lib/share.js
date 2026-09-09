@@ -13,15 +13,31 @@
 //   Clipboard fallback →  copy "text\nurl" to clipboard
 
 import { isTelegram, isVk } from './platform.js';
-import { vkBridge } from './vk.js';
+import { vkBridge, launchParams } from './vk.js';
 import { copyText } from '../utils/clipboard.js';
 
-// When we publish to Yandex Games / TG / VK the share URL should keep
-// pointing to a stable canonical landing — easier marketing tracking.
-// Override via env if you ever need a different domain.
-export const SHARE_BASE_URL =
+// Канонический адрес, которым делимся.
+//
+// Внутри VK это ссылка на САМО мини-приложение, а не на наш сайт: правила
+// размещения (п. 4.1.8) прямо запрещают уводить аудиторию с платформы
+// ссылками внутри игры, а «поделиться» отправляло её именно на bukvitsa.
+// Номер приложения приходит в launch-параметрах — отдельной настройки не
+// нужно, и он же участвует в определении платформы, так что на VK он есть
+// всегда. Вне VK остаётся прежний канонический адрес (удобно для метрик),
+// переопределяется через VITE_SHARE_BASE_URL.
+const WEB_SHARE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SHARE_BASE_URL) ||
   'https://bukvitsa.vercel.app';
+
+function canonicalShareUrl() {
+  if (!isVk) return WEB_SHARE_URL;
+  const appId = launchParams().vk_app_id;
+  // Без номера ссылку не строим вовсе: пустая строка означает «поделиться
+  // без ссылки», и текст, и мост это переживают (см. buildWordleShareText).
+  return appId ? `https://vk.com/app${appId}` : '';
+}
+
+export const SHARE_BASE_URL = canonicalShareUrl();
 
 // Приглашения убраны (на Яндексе нет входа через Google/email, засчитать
 // приглашение нечем), поэтому ссылка больше не несёт ?ref — делимся
@@ -80,6 +96,9 @@ async function shareVk(text, url) {
     // Мост берём из пакета, а не из window.vkBridge: при сборке из npm такого
     // глобала не существует, и эта ветка не срабатывала бы никогда.
     if (isVk) {
+      // Ссылки нет — делиться нечем, кроме текста: отдаём его в буфер, а не
+      // зовём мост с пустым link (он ответит ошибкой).
+      if (!url) return copyToClipboard(text);
       await vkBridge.send('VKWebAppShare', { link: url });
       return 'shared';
     }
