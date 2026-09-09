@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { fetchLeaderboard } from '../../lib/yandex.js';
+import { fetchLeaderboard, hasFriendsBoard, showFriendsBoard } from '../../lib/leaderboard.js';
+import { isYandexGames } from '../../lib/platform.js';
 import { TrophyIcon } from '../icons/Icon.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 
@@ -10,9 +11,11 @@ import { Modal } from '../Modal/Modal.jsx';
 let cached = null;
 
 
-// Таблица лучших игроков (топ по числу отгаданных слов). Рисуется только на
-// площадке Яндекса. У вошедших видно имя, гости идут анонимно.
-export function LeaderboardModal({ open, onClose }) {
+// Таблица лучших игроков (топ по числу отгаданных слов). Данные приходят от
+// площадки (Яндекс) или с нашего сервера (VK) — см. lib/leaderboard.js.
+// У Яндекса имя видно только у вошедших, гости идут анонимно; в VK игрок
+// всегда под своим аккаунтом.
+export function LeaderboardModal({ open, onClose, score = 0, showToast }) {
   const [res, setRes] = useState(cached);
   const [failed, setFailed] = useState(false);
 
@@ -98,9 +101,27 @@ export function LeaderboardModal({ open, onClose }) {
 
         <p className="lb__hint">
           Место — по числу отгаданных слов.
-          {/* Гостю объясняем, почему его нет в таблице; вошедшему это не нужно. */}
-          {!failed && userRank == null && ' Войди в аккаунт, чтобы попасть в таблицу под своим именем.'}
+          {/* У Яндекса гостю объясняем, почему его нет в таблице; вошедшему это
+              не нужно. В VK вход не при чём: строки нет, пока нет побед. */}
+          {!failed && userRank == null && isYandexGames && ' Войди в аккаунт, чтобы попасть в таблицу под своим именем.'}
+          {!failed && userRank == null && !isYandexGames && ' Отгадай слово — и появишься в списке.'}
         </p>
+
+        {/* В VK поверх общей таблицы есть нативное окно: там площадка
+            показывает только друзей игрока, которые тоже играют. Полезно, но
+            это другой список, поэтому отдельной кнопкой, а не вместо. */}
+        {hasFriendsBoard && (
+          <button
+            type="button"
+            className="lb__friends"
+            onClick={async () => {
+              const r = await showFriendsBoard(score);
+              if (r === 'failed') showToast?.('Список друзей сейчас недоступен');
+            }}
+          >
+            Среди друзей
+          </button>
+        )}
       </div>
     </Modal>
   );

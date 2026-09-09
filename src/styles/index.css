@@ -4447,6 +4447,33 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   font-variant-numeric: tabular-nums;
 }
 .lb__hint { margin: 4px 0 0; font-size: 12px; color: var(--text-mute); text-align: center; line-height: 1.4; }
+
+/* «Среди друзей» — вход в нативное окно VK. Второстепенное действие рядом с
+   общей таблицей, поэтому контурная кнопка, а не заливка. Границы — теми же
+   полупрозрачными белилами, что и строки таблицы, со светлым переопределением
+   ниже: сплошной токен здесь дал бы почти чёрную рамку на белом. */
+.lb__friends {
+  display: block;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lb__friends:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--accent); }
+.lb__friends:active { transform: translateY(1px); }
+[data-theme="light"] .lb__friends {
+  background: rgba(20, 28, 46, 0.04);
+  border-color: rgba(40, 50, 80, 0.16);
+}
+[data-theme="light"] .lb__friends:hover { background: rgba(20, 28, 46, 0.08); border-color: var(--accent); }
 [data-theme="light"] .lb__row { background: rgba(20, 28, 46, 0.04); border-color: rgba(40, 50, 80, 0.16); }
 [data-theme="light"] .lb__row--me {
   background: rgba(247, 201, 72, 0.22);

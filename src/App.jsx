@@ -11,8 +11,7 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
-import { vkInit, showLeaderboard } from './lib/vk.js';
-import { isVk } from './lib/platform.js';
+import { vkInit } from './lib/vk.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -87,15 +86,11 @@ function GameShell() {
   const [lbOpen, setLbOpen] = useState(false);
   const closeHelp = () => setHelpOpen(false);
 
-  // У Яндекса таблицу лидеров рисуем сами (данные приходят из его API), у VK
-  // площадка показывает своё окно и сама сравнивает игрока с друзьями —
-  // результат передаётся прямо в вызове. Метрика одна и та же, что и в
-  // яндексовой таблице: сколько слов отгадано.
-  const openLeaderboard = async () => {
-    if (!isVk) { setLbOpen(true); return; }
-    const r = await showLeaderboard(stats.won || 0);
-    if (r === 'failed') showToast('Таблица лидеров сейчас недоступна');
-  };
+  // Таблицу лидеров рисуем сами на обеих площадках: у Яндекса данные даёт его
+  // API, у VK — наш сервер, потому что общего рейтинга площадка не даёт вовсе
+  // (нативное окно сравнивает только с друзьями, оно осталось кнопкой внутри
+  // модалки). Метрика одна: сколько слов отгадано.
+  const openLeaderboard = () => setLbOpen(true);
 
   // First-run coachmarks: once the game is ready and the daily-reward (or any)
   // modal is dismissed, start the tour. Один раз на игрока: флаг живёт и в
@@ -162,7 +157,7 @@ function GameShell() {
       <PetScreen open={petOpen} onClose={() => setPetOpen(false)} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
-      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} />
+      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} score={stats.won || 0} showToast={showToast} />
       <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} />
 
       <Modal

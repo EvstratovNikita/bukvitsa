@@ -33,6 +33,19 @@ export function launchParams() {
   return out;
 }
 
+// Строка запуска ровно в том виде, в каком её отдал VK, без разбора и
+// перекодировки. Нужна для проверки подписи на сервере: подпись считается по
+// исходному написанию параметров, и пересобранная из URLSearchParams строка
+// может отличаться на один процент-код — этого достаточно, чтобы не сойтись.
+export function rawLaunchQuery() {
+  if (typeof window === 'undefined') return '';
+  const has = (s) => /(^|&)vk_app_id=/.test(s);
+  const search = window.location.search.replace(/^\?/, '');
+  if (has(search)) return search;
+  const hash = window.location.hash.replace(/^#/, '');
+  return has(hash) ? hash : search;
+}
+
 // Диагностика моста — той же формы, что у Яндекса (см. lib/yandex.js).
 // Читается из консоли как window.__buklitsaCloud, отдельная сборка не нужна.
 export const cloudStatus = {

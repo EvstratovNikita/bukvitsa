@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial } from '../lib/ads.js';
-import { gameplayStart, gameplayStop, requestReview, submitScore } from '../lib/yandex.js';
+import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
+import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
 import { pluralCoins } from '../utils/plural.js';
@@ -277,8 +278,9 @@ export function useGame() {
     else gameplayStop();
   }, [status, solution]);
 
-  // Push total wins to the Yandex leaderboard whenever it changes. No-op off
-  // Yandex; the platform throttles/dedupes submissions.
+  // Счёт таблицы лидеров — число отгаданных слов; шлём при каждом изменении.
+  // Куда именно (SDK Яндекса или наш сервер для VK) решает lib/leaderboard.js,
+  // вне площадок вызов ничего не делает.
   useEffect(() => {
     submitScore(stats.stats.won || 0);
   }, [stats.stats.won]);
