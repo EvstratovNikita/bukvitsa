@@ -10,7 +10,8 @@
     "build:yandex": "node scripts/build-yandex.mjs",
     "build:vk": "node scripts/build-vk.mjs",
     "deploy:vk": "npm run build:vk && vk-miniapps-deploy",
-    "fonts": "node scripts/fetch-fonts.mjs"
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "deploy:vk:auto": "npm run build:vk && node scripts/deploy-vk-auto.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
