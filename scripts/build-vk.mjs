@@ -1,10 +1,12 @@
 // Сборка для VK Mini Apps: npm run build:vk
 //
 // Отличия от обычной сборки (--mode vk, см. .env.vk):
-//   • Supabase-переменные пустые → isSupabaseConfigured=false; клиент к тому
-//     же подменён заглушкой алиасом в vite.config.js, так что ни его кода, ни
-//     адреса проекта в сборке нет. Прогресс живёт в облаке VK, экономика
-//     считается локально (isEmbedded, см. lib/economy.js).
+//   • Supabase-переменные пустые → isSupabaseConfigured=false, а сам клиент
+//     подменён заглушкой алиасом в vite.config.js: ни входа по почте, ни его
+//     кода в архиве нет. Прогресс живёт в облаке VK, экономика считается
+//     локально (isEmbedded, см. lib/economy.js). Исключение одно — общая
+//     таблица лидеров: она ходит на PostgREST голым fetch (lib/scores.js),
+//     поэтому адрес проекта и ПУБЛИКУЕМЫЙ ключ в сборке есть по делу.
 //   • Из index.html вырезан <script src="/sdk.js"> — это SDK Игр Яндекса, на
 //     хостинге VK такого файла нет и запрос уходил бы в 404.
 //
@@ -24,8 +26,11 @@ const files = collectFiles(DIST);
 
 const problems = auditFiles(files, [
   [/fonts\.googleapis\.com|fonts\.gstatic\.com/, 'запрос к Google Fonts (шрифты должны быть в сборке)'],
-  [/[a-z0-9]+\.supabase\.co/, 'адрес Supabase (в VK-сборке его быть не должно)'],
+  // Адрес проекта в сборке теперь по делу: общая таблица лидеров ходит на
+  // PostgREST голым fetch (VITE_SCORES_URL, см. lib/scores.js). Стеречь надо
+  // не адрес, а клиент Supabase и служебные ключи — их в архиве быть не может.
   [/GoTrueClient|RealtimeClient/, 'клиент Supabase в сборке (потерян алиас на заглушку в vite.config.js)'],
+  [/service_role|sb_secret_/, 'служебный ключ Supabase (в сборку попадает только публикуемый)'],
   // Тег вырезает плагин drop-yandex-sdk. Если он остался — значит плагин
   // отвалился, и на хостинге VK каждый запуск начинается с 404. Ищем только
   // в index.html: в бандле та же строка стоит по делу — это запасной
@@ -43,4 +48,5 @@ writeZip(files, OUT);
 
 console.log(`\n✓ dist/ готова к deploy:vk, ${OUT} — ${kb(statSync(OUT).size)}`);
 for (const f of files) console.log(`   ${f.name.padEnd(34)} ${kb(f.data.length)}`);
-console.log('\n   проверено: index.html в корне, нет Google Fonts, нет Supabase, нет SDK Яндекса');
+console.log('\n   проверено: index.html в корне, нет Google Fonts, нет клиента Supabase,');
+console.log('   нет служебных ключей, нет SDK Яндекса');
