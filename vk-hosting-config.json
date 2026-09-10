@@ -1,6 +1,6 @@
 {
   "static_path": "dist",
-  "app_id": "ЗАПОЛНИТЬ_ID_ПРИЛОЖЕНИЯ",
+  "app_id": "54762016",
   "endpoints": {
     "mobile": "index.html",
     "mvk": "index.html",
