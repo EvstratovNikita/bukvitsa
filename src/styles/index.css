@@ -3389,6 +3389,12 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* Idle bob and the tap jump live on .owl-hop, which holds the bird and its
    feet — the perch and the contact shadow stay outside it, so the branch no
    longer leaps along with the owl. */
+/* SVG по умолчанию обрезает всё, что выходит за его viewBox. В верхней точке
+   прыжка (translateY −52 плюс вытягивание scale 1.10 от лап) кончики ушей
+   уходят примерно на y=−50 при верхе рисунка в 0 — уши срезались. Рамка
+   сцены при этом выше (≈ −63 в тех же единицах), так что достаточно
+   разрешить сове рисоваться за пределами собственного поля. */
+.owl-svg { overflow: visible; }
 .owl-svg .owl-hop { transform-box: fill-box; transform-origin: 50% 100%; }
 .pet-scene--owl .owl-svg .owl-hop { animation: owl-bob 3.6s ease-in-out infinite; }
 @keyframes owl-bob {
@@ -3401,7 +3407,10 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 @keyframes owl-hop-jump {
   0%   { transform: translateY(0)     scale(1, 1); }
   15%  { transform: translateY(7px)   scale(1.08, 0.88); }
-  45%  { transform: translateY(-52px) scale(0.95, 1.10) rotate(-4deg); }
+  /* −42, а не −52: с вытягиванием и наклоном кончики ушей при −52 касались
+     верхней рамки сцены (зазор 0 px, замерено на 390×844). Пропорции сцены
+     и совы от экрана не зависят, так что запас ≈6 px одинаков везде. */
+  45%  { transform: translateY(-42px) scale(0.95, 1.10) rotate(-4deg); }
   70%  { transform: translateY(6px)   scale(1.05, 0.95) rotate(3deg); }
   85%  { transform: translateY(-3px)  scale(0.98, 1.02); }
   100% { transform: translateY(0)     scale(1, 1); }

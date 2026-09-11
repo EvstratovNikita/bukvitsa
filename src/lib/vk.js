@@ -90,6 +90,41 @@ export function vkInit() {
   return _initPromise;
 }
 
+// ---------- Размер фрейма на vk.ru ----------
+//
+// В широкоформатном режиме фрейм игры бывает выше видимой части окна: игра
+// честно заполняет свой фрейм, а нижний ряд клавиатуры уходит под край
+// экрана. VK сообщает видимую высоту окна (viewport_height — это
+// window.innerHeight родительской страницы) и умеет менять размер фрейма
+// (VKWebAppResizeWindow). Подгоняем высоту под окно при старте и при каждом
+// изменении размера окна. Работает только на полной версии сайта: в мобильном
+// приложении и на m.vk.ru окном управляет площадка.
+//
+// 48 — высота шапки VK над фреймом (vkuiFixedLayout, замерено на vk.ru).
+// Пределы 600…4050 — ограничения VK на высоту фрейма.
+const VK_WEB_HEADER = 48;
+
+export function fitFrameToViewport() {
+  if (!isVk || launchParams().vk_platform !== 'desktop_web') return;
+  const apply = (cfg) => {
+    const vh = Number(cfg?.viewport_height);
+    if (!vh) return;
+    const height = Math.max(600, Math.min(4050, Math.round(vh - VK_WEB_HEADER)));
+    // Уже подходит — не дёргаем площадку, иначе UpdateConfig может зациклить.
+    if (Math.abs(height - window.innerHeight) <= 2) return;
+    const width = Math.round(document.documentElement.clientWidth || window.innerWidth);
+    send('VKWebAppResizeWindow', { width, height })
+      .catch((e) => console.warn('[vk] ResizeWindow failed', e?.error_data || e));
+  };
+  vkInit().then((ok) => {
+    if (!ok) return;
+    send('VKWebAppGetConfig', {}).then(apply).catch(() => { /* нет конфига — оставляем как есть */ });
+  });
+  bridge.subscribe((e) => {
+    if (e?.detail?.type === 'VKWebAppUpdateConfig') apply(e.detail.data);
+  });
+}
+
 // ---------- Хранилище ----------
 //
 // VK Storage режет значение ключа примерно на 4 КБ, а для сериализованного
