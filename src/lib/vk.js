@@ -235,14 +235,38 @@ export async function showLeaderboard(score) {
 //
 // Показ разрешён только после того, как VK одобрит монетизацию приложения;
 // до этого вызовы отвечают отказом, и мы просто не рисуем кнопку.
+//
+// Показ длится столько, сколько смотрит игрок: ролик за награду идёт 15–30
+// секунд. Общий тайм-аут моста (8 с) обрывал его на середине — промис падал,
+// награда не начислялась, а игрок видел «Реклама недоступна», хотя реклама
+// в это время ещё крутилась. Межстраничную это не задевало только потому,
+// что её закрывают быстрее. Здесь тайм-аут лишь страховочный — на случай,
+// если мост так и не ответит, чтобы кнопка не заклинила навсегда.
+const AD_TIMEOUT_MS = 120000;
+const sendAd = (method, params) =>
+  withTimeout(bridge.send(method, params), AD_TIMEOUT_MS, method + ' timeout');
+
+// Водопад (use_waterfall) подключает дополнительные рекламные сети, когда у
+// основной нет ролика, — для наград это заметно поднимает заполняемость.
+const adParams = (format) => (format === 'reward' ? { ad_format: format, use_waterfall: true } : { ad_format: format });
+
+// Проверка заодно предзагружает ролик: так рекомендует VK, и без неё первый
+// показ за награду часто отвечает «рекламы нет».
 export async function checkNativeAds(format = 'reward') {
   if (!isVk) return false;
   try {
-    const r = await send('VKWebAppCheckNativeAds', { ad_format: format });
+    const r = await send('VKWebAppCheckNativeAds', adParams(format));
     return Boolean(r?.result);
   } catch {
     return false;
   }
+}
+
+// Готовим следующий ролик заранее, чтобы нажатие на кнопку не ждало загрузки.
+// Ответ не важен: если рекламы нет, это выяснится при показе.
+export function preloadRewardedVk() {
+  if (!isVk) return;
+  vkInit().then((ok) => { if (ok) checkNativeAds('reward'); });
 }
 
 // 'rewarded' — досмотрел, 'closed' — закрыл раньше, 'failed' — не показалась.
@@ -252,13 +276,16 @@ export async function showRewardedVk() {
   if (!isVk) return 'failed';
   try {
     await vkInit();
-    const r = await send('VKWebAppShowNativeAds', { ad_format: 'reward' });
+    if (!(await checkNativeAds('reward'))) return 'failed';
+    const r = await sendAd('VKWebAppShowNativeAds', adParams('reward'));
     return r?.result ? 'rewarded' : 'closed';
   } catch (e) {
     const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || e?.message || '');
     if (/close|dismiss|cancel/i.test(reason)) return 'closed';
     console.warn('[vk] ShowNativeAds failed', e);
     return 'failed';
+  } finally {
+    preloadRewardedVk();
   }
 }
 
@@ -266,7 +293,7 @@ export async function showInterstitialVk() {
   if (!isVk) return false;
   try {
     await vkInit();
-    const r = await send('VKWebAppShowNativeAds', { ad_format: 'interstitial' });
+    const r = await sendAd('VKWebAppShowNativeAds', adParams('interstitial'));
     return Boolean(r?.result);
   } catch {
     return false;
