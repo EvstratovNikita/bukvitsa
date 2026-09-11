@@ -1682,10 +1682,12 @@ button { font-family: inherit; }
     /* Fill the available height and grow the cells with the viewport, capped
        at a comfortable size. The old fixed 64px cell / 408px caps pinned the
        board to ~320px on desktop, leaving big gaps above and below it. */
-    max-height: min(100%, calc(104px * 6));
-    max-width: min(100%, calc(104px * var(--wl)));
+    /* Потолок клетки 80 px, а не 104: на больших экранах поле раздувалось до
+       88–98 px на клетку, а клавиатура оставалась прежней — поле подавляло её.
+       Клавиши растут ниже, в правиле после общего .key. */
+    max-height: min(100%, calc(80px * 6));
+    max-width: min(100%, calc(80px * var(--wl)));
   }
-  .key { height: clamp(46px, 7vh, 60px); font-size: 16px; }
   .keyboard { gap: 7px; padding-top: 6px; }
 }
 .row--shake { animation: shake 420ms cubic-bezier(.36,.07,.19,.97); }
@@ -2064,14 +2066,17 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   min-width: 0;
   padding: 0 2px;
   /* Scale with viewport height so short screens (Yandex phone frame) shrink
-     the keyboard instead of starving the board. */
-  height: clamp(30px, 7vh, 52px);
+     the keyboard instead of starving the board. Потолок 60, а не 52: на
+     высоких телефонах клавиша упиралась в 52, и лишняя высота уходила в
+     пустую полосу между полем и клавиатурой. Поле там всё равно ограничено
+     шириной (5 клеток), так что высоту честнее отдать клавишам. */
+  height: clamp(30px, 7vh, 60px);
   border-radius: 8px;
   border: 1px solid var(--line);
   background: var(--bg-2);
   color: var(--text);
   font-weight: 700;
-  font-size: clamp(12px, 2.3vh, 17px);
+  font-size: clamp(12px, 2.3vh, 19px);
   text-transform: uppercase;
   cursor: pointer;
   transition: transform var(--t-fast), background var(--t-fast), color var(--t-fast), border-color var(--t-med);
@@ -2080,6 +2085,15 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
    label keeps a margin from the edges instead of running edge-to-edge. */
 .key--wide  { flex: 1.6 1 0; font-size: clamp(11px, 1.7vh, 12px); letter-spacing: 0.01em; padding: 0 8px; }
 .key--wide  svg { width: 22px; height: 22px; }
+
+/* Мышь и тачпад: клавиши крупнее и растут вместе с экраном. Правило обязано
+   стоять ПОСЛЕ общего .key: раньше оно жило в блоке «Desktop layout» выше по
+   файлу, при равном весе проигрывало и было мёртвым — на компьютере клавиши
+   застревали на телефонном потолке 52 px, пока поле росло до 100 px. */
+@media (hover: hover) and (pointer: fine) {
+  .key { height: clamp(46px, 7.2vh, 64px); font-size: clamp(16px, 2.3vh, 20px); }
+  .key--wide { font-size: clamp(12px, 1.7vh, 14px); }
+}
 
 /* Ввод / Удалить get the same tinted-pill treatment as the coins & energy
    badges (gradient fill + accent border + soft glow) so the two action keys
