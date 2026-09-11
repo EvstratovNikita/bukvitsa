@@ -30,6 +30,9 @@ import { reconcileBond, BOND_PER_GIFT } from '../utils/petBond.js';
 import { GIFT_IDS, nextUnclaimedGiftId, getGift } from '../data/petGifts.js';
 import { storage } from '../utils/storage.js';
 
+// Настройки-оформление: их смена ставит отметку cosmeticAt (см. mergeProgress).
+const COSMETIC_PREF_KEYS = ['theme', 'enterOnLeft', 'bgByTheme'];
+
 // К какой теме относится фон: у товаров магазина это поле theme, подарки
 // Букли нарисованы тёмными. Нужно, чтобы помнить выбор игрока отдельно
 // для светлого и тёмного режима.
@@ -79,6 +82,7 @@ const DEFAULT_STATS = {
   fastestWinMs: null,      // lowest elapsed time across won games
   unlockedAchievements: [], // ids of unlocked achievements
   referralsCount: 0,        // verified (non-anon) invitees credited to this user
+  cosmeticAt: null,        // ISO последнего выбора оформления игроком (см. mergeProgress)
   prefs: {
     theme: 'dark',          // 'dark' | 'light' — dark is the default
     enterOnLeft: false,     // false = [BACK,...,ENTER]; true = [ENTER,...,BACK]
@@ -542,6 +546,9 @@ export function useStats() {
   const setPref = useCallback((key, value) => {
     setStats((s) => ({
       ...s,
+      // Выбор игрока в оформлении помечаем временем — по нему mergeProgress
+      // решает, чьё оформление свежее: местное или облачное.
+      ...(COSMETIC_PREF_KEYS.includes(key) ? { cosmeticAt: new Date().toISOString() } : null),
       prefs: { ...(s.prefs || DEFAULT_STATS.prefs), [key]: value }
     }));
   }, []);
@@ -799,12 +806,14 @@ export function useStats() {
         }
       } else {
         next.inventory = [...(s.inventory || []), itemId];
+        if (item.category === 'cells') next.cosmeticAt = new Date().toISOString();
         // Auto-equip cosmetic items on first purchase. A background carries the
         // theme it was designed for — switch the app theme to match so the
         // colours don't clash (same as onEquip in the shop).
         if (item.category === 'background') {
           const slot = item.theme || 'dark';
           next.activeBackground = itemId;
+          next.cosmeticAt = new Date().toISOString();
           next.prefs = {
             ...(s.prefs || DEFAULT_STATS.prefs),
             theme: slot,
@@ -829,6 +838,7 @@ export function useStats() {
       return {
         ...s,
         activeBackground: id,
+        cosmeticAt: new Date().toISOString(),
         prefs: {
           ...(s.prefs || DEFAULT_STATS.prefs),
           bgByTheme: { ...((s.prefs?.bgByTheme) || {}), [slot]: id }
@@ -850,13 +860,14 @@ export function useStats() {
       return {
         ...s,
         activeBackground: bg,
+        cosmeticAt: new Date().toISOString(),
         prefs: { ...(s.prefs || DEFAULT_STATS.prefs), theme }
       };
     });
   }, []);
 
   const setActiveCellStyle = useCallback((itemId) => {
-    setStats((s) => ({ ...s, activeCellStyle: itemId || null }));
+    setStats((s) => ({ ...s, activeCellStyle: itemId || null, cosmeticAt: new Date().toISOString() }));
   }, []);
 
   // ---------- Energy ----------

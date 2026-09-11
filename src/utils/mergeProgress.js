@@ -11,8 +11,14 @@ import { energyCapFor, reconcilePetTimers } from '../constants/game.js';
 // Поэтому: НИЧЕГО НЕ ТЕРЯЕМ И НИЧЕГО НЕ ДУБЛИРУЕМ. Счётчики берём по
 // максимуму (не суммируем — иначе после каждого входа монеты бы удваивались),
 // рекорды — по минимуму, коллекции — объединением. Функция симметрична:
-// mergeProgress(a, b) и mergeProgress(b, a) дают одно и то же, кроме
-// косметики, которая по правилам проекта клиент-авторитетна и берётся из `a`.
+// mergeProgress(a, b) и mergeProgress(b, a) дают одно и то же.
+//
+// Оформление (тема, фон, клетки, раскладка) берём целиком у той стороны, где
+// игрок выбирал его позже — по отметке cosmeticAt, которую ставят сеттеры в
+// useStats. Раньше оно всегда бралось из местного снимка, и на чистом
+// устройстве (новый адрес сборки, очищенный браузер) тема и фон по умолчанию
+// перетирали выбранные игроком в облаке. Нет отметки ни у кого — старые
+// снимки — верим облаку: местные значения там скорее всего дефолтные.
 
 // Больше — лучше: накопительные счётчики и балансы.
 const MAX_KEYS = [
@@ -26,6 +32,10 @@ const MIN_KEYS = ['bestAttempts', 'fastestWinMs'];
 const UNION_KEYS = ['inventory', 'unlockedAchievements'];
 // Моменты времени в ISO: берём поздний.
 const LATER_ISO_KEYS = ['boostDoubleUntil', 'energyCapUntil', 'lastVisitDate'];
+
+// Оформление: едет одним блоком от стороны с поздней отметкой cosmeticAt.
+const COSMETIC_KEYS = ['activeBackground', 'activeCellStyle'];
+const COSMETIC_PREFS = ['theme', 'enterOnLeft', 'bgByTheme'];
 
 const num = (v) => (Number.isFinite(v) ? v : null);
 
@@ -115,14 +125,22 @@ function mergePet(a, b) {
   };
 }
 
-function mergePrefs(a, b) {
+// Значение оформления от ведущей стороны; нет его там — от другой.
+const pick = (lead, other, k) => (lead && lead[k] !== undefined ? lead[k] : other?.[k]);
+
+function mergePrefs(a, b, cosmeticFromA) {
   const pa = isObj(a) ? a : {};
   const pb = isObj(b) ? b : {};
+  const [lead, other] = cosmeticFromA ? [pa, pb] : [pb, pa];
+  const cosmetic = {};
+  for (const k of COSMETIC_PREFS) {
+    const v = pick(lead, other, k);
+    if (v !== undefined) cosmetic[k] = v;
+  }
   return {
-    // Косметика (тема, обои по темам, раскладка) — клиент-авторитетна:
-    // ключи `a` перекрывают облачные, но недостающие берём оттуда.
     ...pb,
     ...pa,
+    ...cosmetic,
     petGifts: union(pa.petGifts, pb.petGifts),
     petBond: maxNum(pa.petBond, pb.petBond) ?? 0,
     petBondTickAt: later(pa.petBondTickAt, pb.petBondTickAt),
@@ -147,8 +165,8 @@ function mergeDaily(a, b) {
 }
 
 /**
- * Сливает два снимка статистики. `a` — местный (его косметика главнее),
- * `b` — облачный. Любой из них может быть null/пустым.
+ * Сливает два снимка статистики. `a` — местный, `b` — облачный. Любой из них
+ * может быть null/пустым.
  */
 export function mergeProgress(a, b) {
   if (!isObj(a)) return isObj(b) ? { ...b } : null;
@@ -198,7 +216,18 @@ export function mergeProgress(a, b) {
     out.distribution = Array.from({ length: len }, (_, i) => maxNum(da[i], db[i]) ?? 0);
   }
 
-  out.prefs = mergePrefs(a.prefs, b.prefs);
+  // Чьё оформление свежее. Без отметок с обеих сторон — облачное.
+  const cosmeticFromA = Boolean(a.cosmeticAt || b.cosmeticAt)
+    && (a.cosmeticAt || '') >= (b.cosmeticAt || '');
+  const [lead, other] = cosmeticFromA ? [a, b] : [b, a];
+  for (const k of COSMETIC_KEYS) {
+    const v = pick(lead, other, k);
+    if (v !== undefined) out[k] = v;
+  }
+  const cosmeticAt = later(a.cosmeticAt, b.cosmeticAt);
+  if (cosmeticAt) out.cosmeticAt = cosmeticAt;
+
+  out.prefs = mergePrefs(a.prefs, b.prefs, cosmeticFromA);
   out.pet = mergePet(a.pet, b.pet);
   out.daily = mergeDaily(a.daily, b.daily);
   out.altMode = mergeDayCounter(a.altMode, b.altMode, 'dayKey', ['plays', 'energyGranted']);
