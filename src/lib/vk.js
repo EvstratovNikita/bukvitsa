@@ -269,20 +269,33 @@ export function preloadRewardedVk() {
   vkInit().then((ok) => { if (ok) checkNativeAds('reward'); });
 }
 
+// Последняя попытка показа — для диагностики из консоли:
+// window.__buklitsaCloud.ads. Отказ площадки иначе виден игроку только как
+// «Реклама недоступна», без причины.
+function noteAd(entry) {
+  cloudStatus.ads = { ...entry, at: new Date().toLocaleTimeString('ru-RU') };
+}
+
 // 'rewarded' — досмотрел, 'closed' — закрыл раньше, 'failed' — не показалась.
 // Площадка отвечает { result: true } только за успешный показ, а на закрытие
 // и на отсутствие рекламы — ошибкой; различаем их по причине.
+//
+// Показ НЕ ставится в зависимость от VKWebAppCheckNativeAds: у VK известный
+// баг — проверка формата 'reward' отвечает false, хотя сам показ работает
+// (github.com/VKCOM/vk-bridge/issues/243). Проверка остаётся только фоновой
+// предзагрузкой, а нет ли ролика на самом деле — скажет сам показ.
 export async function showRewardedVk() {
   if (!isVk) return 'failed';
   try {
     await vkInit();
-    if (!(await checkNativeAds('reward'))) return 'failed';
     const r = await sendAd('VKWebAppShowNativeAds', adParams('reward'));
+    noteAd({ format: 'reward', result: r?.result ?? null });
     return r?.result ? 'rewarded' : 'closed';
   } catch (e) {
     const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || e?.message || '');
+    noteAd({ format: 'reward', error_type: e?.error_type || null, error_data: e?.error_data || null, message: e?.message || null });
     if (/close|dismiss|cancel/i.test(reason)) return 'closed';
-    console.warn('[vk] ShowNativeAds failed', e);
+    console.warn('[vk] ShowNativeAds(reward) failed', e?.error_type, e?.error_data || e);
     return 'failed';
   } finally {
     preloadRewardedVk();
