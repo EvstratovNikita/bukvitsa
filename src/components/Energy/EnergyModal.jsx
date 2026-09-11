@@ -9,8 +9,6 @@ import {
 } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { showRewardedAd } from '../../lib/ads.js';
-import { isVk } from '../../lib/platform.js';
-import { lastRewardedFailure } from '../../lib/vk.js';
 import { pluralCoins } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
@@ -42,9 +40,6 @@ export function EnergyModal() {
   }, [energyModalOpen, energy, cap]);
   const [feedback, setFeedback] = useState(null);  // { type, text }
   const [adRunning, setAdRunning] = useState(false);
-  // Временно, на время поиска причины: что именно ответил VK на последнюю
-  // попытку. Сообщение об ошибке живёт 1,6 с — прочитать его не успеть.
-  const [adWhy, setAdWhy] = useState('');
   // Пополнили и тут же стартуем — но начисление ещё не доехало до состояния,
   // и consumeEnergy внутри startAfterRefuel видел старый ноль и отказывал:
   // энергия прибавлялась, а партия не начиналась. Ставим намерение и ждём
@@ -85,7 +80,6 @@ export function EnergyModal() {
     if (adRunning) return;
     if (adsEnergyLeft <= 0) { flash('err', 'Лимит рекламы на сегодня исчерпан'); return; }
     setAdRunning(true);
-    setAdWhy('');
     flash('info', 'Реклама…');
     const result = await showRewardedAd();
     setAdRunning(false);
@@ -98,8 +92,7 @@ export function EnergyModal() {
     } else if (result === 'closed') {
       flash('err', 'Реклама закрыта раньше');
     } else {
-      flash('err', 'Реклама недоступна');
-      if (isVk) setAdWhy(lastRewardedFailure() || 'без подробностей');
+      flash('err', result === 'nofill' ? 'Сейчас нет рекламы — попробуйте позже' : 'Реклама недоступна');
     }
   };
 
@@ -170,8 +163,6 @@ export function EnergyModal() {
             </span>
           </button>
         </div>
-
-        {adWhy && <div className="energy-modal__why">VK ответил: {adWhy}</div>}
 
         {feedback && (
           <div className={`energy-modal__feedback energy-modal__feedback--${feedback.type}`}>

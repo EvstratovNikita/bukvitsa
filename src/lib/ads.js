@@ -3,7 +3,8 @@
 // Call `showRewardedAd()` from UI code. It returns one of:
 //   'rewarded' — user watched the full ad, grant the reward
 //   'closed'   — user dismissed early, do NOT reward
-//   'failed'   — SDK error / no fill / timeout, do NOT reward
+//   'nofill'   — platform has no ad to show right now (VK: No ads), do NOT reward
+//   'failed'   — SDK error / timeout, do NOT reward
 //
 // Adapters live in this file (keep it flat until we have 3+). When you publish
 // to a new platform, add an adapter and extend `pickAdapter()`.

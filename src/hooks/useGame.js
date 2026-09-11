@@ -713,7 +713,11 @@ export function useGame() {
       const r = await showRewardedAd();
       setDoublingAd(false);
       if (r !== 'rewarded') {
-        showToast(r === 'closed' ? 'Реклама закрыта раньше' : 'Реклама недоступна');
+        showToast(
+          r === 'closed' ? 'Реклама закрыта раньше'
+            : r === 'nofill' ? 'Сейчас нет рекламы — попробуйте позже'
+              : 'Реклама недоступна'
+        );
         return r;
       }
       // Re-check + tally against the cap (guards against races / stale closure).

@@ -276,18 +276,6 @@ function noteAd(entry) {
   cloudStatus.ads = { ...entry, at: new Date().toLocaleTimeString('ru-RU') };
 }
 
-// Короткая строка о том, почему VK отказал в последнем ролике за награду:
-// тип ошибки, код и причина. Пустая, если последняя попытка прошла. Причина
-// у VK бывает и строкой, и объектом — второй сворачиваем в JSON.
-export function lastRewardedFailure() {
-  const a = cloudStatus.ads;
-  if (!a || a.format !== 'reward' || a.result) return '';
-  const d = a.error_data || {};
-  const code = d.error_code ?? d.code ?? '';
-  let why = d.error_reason ?? d.error_msg ?? d.error_description ?? a.message ?? '';
-  if (why && typeof why === 'object') why = JSON.stringify(why);
-  return [a.error_type, code, String(why).slice(0, 140)].filter((x) => x !== '' && x != null).join(' · ');
-}
 
 // 'rewarded' — досмотрел, 'closed' — закрыл раньше, 'failed' — не показалась.
 // Площадка отвечает { result: true } только за успешный показ, а на закрытие
@@ -308,6 +296,11 @@ export async function showRewardedVk() {
     const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || e?.message || '');
     noteAd({ format: 'reward', error_type: e?.error_type || null, error_data: e?.error_data || null, message: e?.message || null });
     if (/close|dismiss|cancel/i.test(reason)) return 'closed';
+    // «Роликов нет» — не поломка, а пустой склад рекламы у VK: так площадка
+    // ответила на живом аккаунте (client_error · 20 · No ads), пока для
+    // формата за награду нет заполнения. Игроку честнее сказать «попробуйте
+    // позже», чем «недоступна».
+    if (/no ads|no fill/i.test(reason)) return 'nofill';
     console.warn('[vk] ShowNativeAds(reward) failed', e?.error_type, e?.error_data || e);
     return 'failed';
   } finally {
