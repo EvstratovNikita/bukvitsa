@@ -92,29 +92,27 @@ export function vkInit() {
 
 // ---------- Размер фрейма на vk.ru ----------
 //
-// В широкоформатном режиме фрейм игры бывает выше видимой части окна: игра
-// честно заполняет свой фрейм, а нижний ряд клавиатуры уходит под край
-// экрана. VK сообщает видимую высоту окна (viewport_height — это
-// window.innerHeight родительской страницы) и умеет менять размер фрейма
-// (VKWebAppResizeWindow). Подгоняем высоту под окно при старте и при каждом
-// изменении размера окна. Работает только на полной версии сайта: в мобильном
-// приложении и на m.vk.ru окном управляет площадка.
+// В широкоформатном режиме фрейм игры не бывает ниже 700 px, а на ноутбуке
+// под шапкой VK видно меньше: нижний ряд клавиатуры уходит под край экрана.
+// Менять размер фрейма бесполезно — VKWebAppResizeWindow с меньшей высотой
+// лишь центрирует фрейм в тех же 700 px, а ширину сужает (замерено на vk.ru).
+// Поэтому фрейм не трогаем, а укладываем игру в его видимую часть:
+// viewport_height — это window.innerHeight родительской страницы, минус шапка.
+// Результат — переменная --app-h, её читают .app и модалки. Только полная
+// версия сайта: в мобильном приложении и на m.vk.ru окном управляет площадка.
 //
 // 48 — высота шапки VK над фреймом (vkuiFixedLayout, замерено на vk.ru).
-// Пределы 600…4050 — ограничения VK на высоту фрейма.
 const VK_WEB_HEADER = 48;
 
-export function fitFrameToViewport() {
+export function fitToVisibleFrame() {
   if (!isVk || launchParams().vk_platform !== 'desktop_web') return;
   const apply = (cfg) => {
     const vh = Number(cfg?.viewport_height);
     if (!vh) return;
-    const height = Math.max(600, Math.min(4050, Math.round(vh - VK_WEB_HEADER)));
-    // Уже подходит — не дёргаем площадку, иначе UpdateConfig может зациклить.
-    if (Math.abs(height - window.innerHeight) <= 2) return;
-    const width = Math.round(document.documentElement.clientWidth || window.innerWidth);
-    send('VKWebAppResizeWindow', { width, height })
-      .catch((e) => console.warn('[vk] ResizeWindow failed', e?.error_data || e));
+    const visible = Math.round(vh - VK_WEB_HEADER);
+    const root = document.documentElement.style;
+    if (visible > 0 && visible < window.innerHeight - 2) root.setProperty('--app-h', `${visible}px`);
+    else root.removeProperty('--app-h');
   };
   vkInit().then((ok) => {
     if (!ok) return;

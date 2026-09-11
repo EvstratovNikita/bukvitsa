@@ -11,7 +11,7 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
-import { vkInit, preloadRewardedVk, fitFrameToViewport } from './lib/vk.js';
+import { vkInit, preloadRewardedVk, fitToVisibleFrame } from './lib/vk.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -49,9 +49,9 @@ function GameShell() {
   // приложение не стартовало, и не убирает свой лоадер. Вызов идемпотентный и
   // вне VK — no-op. Сразу же просим площадку подгрузить ролик за награду,
   // чтобы первое нажатие «Смотреть рекламу» не ждало загрузки.
-  // На vk.ru ещё и подгоняем высоту фрейма под видимую часть окна — в
-  // широкоформатном режиме он бывает выше экрана (см. lib/vk.js).
-  useEffect(() => { vkInit(); preloadRewardedVk(); fitFrameToViewport(); }, []);
+  // На vk.ru ещё и укладываем игру в видимую часть фрейма — в
+  // широкоформатном режиме он выше экрана (см. lib/vk.js).
+  useEffect(() => { vkInit(); preloadRewardedVk(); fitToVisibleFrame(); }, []);
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also
