@@ -276,6 +276,19 @@ function noteAd(entry) {
   cloudStatus.ads = { ...entry, at: new Date().toLocaleTimeString('ru-RU') };
 }
 
+// Короткая строка о том, почему VK отказал в последнем ролике за награду:
+// тип ошибки, код и причина. Пустая, если последняя попытка прошла. Причина
+// у VK бывает и строкой, и объектом — второй сворачиваем в JSON.
+export function lastRewardedFailure() {
+  const a = cloudStatus.ads;
+  if (!a || a.format !== 'reward' || a.result) return '';
+  const d = a.error_data || {};
+  const code = d.error_code ?? d.code ?? '';
+  let why = d.error_reason ?? d.error_msg ?? d.error_description ?? a.message ?? '';
+  if (why && typeof why === 'object') why = JSON.stringify(why);
+  return [a.error_type, code, String(why).slice(0, 140)].filter((x) => x !== '' && x != null).join(' · ');
+}
+
 // 'rewarded' — досмотрел, 'closed' — закрыл раньше, 'failed' — не показалась.
 // Площадка отвечает { result: true } только за успешный показ, а на закрытие
 // и на отсутствие рекламы — ошибкой; различаем их по причине.
