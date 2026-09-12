@@ -34,8 +34,8 @@ export function FeedbackModal({ open, onClose }) {
 
   const mailtoHref = useMemo(() => {
     const cat = CATEGORIES.find((c) => c.id === category);
-    const subject = `Буквица — ${cat?.subject || 'Сообщение'}`;
-    const body = trimmed ? `${trimmed}\n\n—\nОтправлено из игры «Буквица»` : '';
+    const subject = `Буклица — ${cat?.subject || 'Сообщение'}`;
+    const body = trimmed ? `${trimmed}\n\n—\nОтправлено из игры «Буклица»` : '';
     return `mailto:${DEV_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }, [category, trimmed]);
 

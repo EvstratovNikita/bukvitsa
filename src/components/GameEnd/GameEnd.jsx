@@ -89,7 +89,7 @@ export function GameEnd() {
       isDaily ? getDailyNumber() : null,
       url
     );
-    const r = await share({ title: 'Буквица — Слово дня', text, url });
+    const r = await share({ title: 'Буклица — Слово дня', text, url });
     setShareStatus(r);
     setTimeout(() => setShareStatus(null), 1600);
   };

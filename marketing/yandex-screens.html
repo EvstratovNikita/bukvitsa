@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Буквица — скриншоты для Яндекс.Игр (9:16)</title>
+<title>Буклица — скриншоты для Яндекс.Игр (9:16)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -107,7 +107,7 @@
 </style>
 </head>
 <body>
-  <h1>Буквица — скриншоты для Яндекс.Игр · 9:16 (1080×1920)</h1>
+  <h1>Буклица — скриншоты для Яндекс.Игр · 9:16 (1080×1920)</h1>
   <p class="hint">
     Перетащи свой игровой скриншот в рамку каждой карточки (или кликни по ней и выбери файл).
     Подпись можно отредактировать в поле под карточкой. Игровой контент занимает ~75% площади.
@@ -167,7 +167,7 @@ function bokeh(){
   return `<div class="bokeh">${out.join('')}</div>`;
 }
 function brandTiles(){
-  const letters=['Б','У','К','В','И','Ц','А'];
+  const letters=['Б','У','К','Л','И','Ц','А'];
   return `<div class="brandtiles">`+letters.map((l,i)=>
     `<span style="background:${TILE_COLORS[i]};color:${TILE_INK[i]}">${l}</span>`).join('')+`</div>`;
 }
@@ -246,7 +246,7 @@ async function exportCard(id){
   const node=document.getElementById('card-'+id);
   const dataUrl=await htmlToImage.toPng(node,{width:1080,height:1920,pixelRatio:1,cacheBust:true});
   const a=document.createElement('a');
-  a.download=`bukvitsa-${id}-1080x1920.png`; a.href=dataUrl; a.click();
+  a.download=`buklitsa-${id}-1080x1920.png`; a.href=dataUrl; a.click();
 }
 
 document.querySelectorAll('button[data-id]').forEach(b=>{

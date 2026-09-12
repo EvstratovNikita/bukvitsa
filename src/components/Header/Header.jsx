@@ -47,7 +47,7 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
 
       <div className="brand">
         <span className="brand__mark" aria-hidden="true">Б</span>
-        <h1 className="brand__title">Буквица</h1>
+        <h1 className="brand__title">Буклица</h1>
       </div>
 
       <div className="header__actions">

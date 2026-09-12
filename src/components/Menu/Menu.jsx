@@ -160,7 +160,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         </nav>
 
         <footer className="menu__foot">
-          <span className="menu__brand">Буквица</span>
+          <span className="menu__brand">Буклица</span>
         </footer>
       </aside>
     </>

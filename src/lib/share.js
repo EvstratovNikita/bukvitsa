@@ -70,8 +70,8 @@ export function buildWordleShareText(evaluations, attempts, max, dayN, inviteUrl
   const face = SLY_FACES[Math.floor(Math.random() * SLY_FACES.length)];
   const dayLabel = dayN != null ? ` #${dayN}` : '';
   const intro = attempts > 0 && attempts <= max
-    ? `Смотри, слово дня${dayLabel} в Буквице отгадано с ${ordinal(attempts)} попытки! Попробуй так же ${face}`
-    : `Слово дня${dayLabel} в Буквице меня обыграло… а ты сможешь? ${face}`;
+    ? `Смотри, слово дня${dayLabel} в Буклице отгадано с ${ordinal(attempts)} попытки! Попробуй так же ${face}`
+    : `Слово дня${dayLabel} в Буклице меня обыграло… а ты сможешь? ${face}`;
   const linkLine = inviteUrl ? `\n${inviteUrl}` : '';
   return `${intro}${linkLine}\n\n${grid}`;
 }
@@ -127,7 +127,7 @@ async function copyToClipboard(text, url) {
   return (await copyText(payload)) ? 'copied' : 'failed';
 }
 
-export async function share({ title = 'Буквица', text, url }) {
+export async function share({ title = 'Буклица', text, url }) {
   if (isTelegram) return shareTelegram(text, url);
   if (isVk)       return shareVk(text, url);
   if (typeof navigator !== 'undefined' && navigator.share) {
