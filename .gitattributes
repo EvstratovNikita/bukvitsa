@@ -1,0 +1,4 @@
+# Скрипты промо запускаются в Linux-песочнице: CRLF ломает bash
+scripts/promo/*.sh text eol=lf
+scripts/promo/*.py text eol=lf
+scripts/promo/*.js text eol=lf
