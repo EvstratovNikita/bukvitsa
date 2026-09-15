@@ -2,3 +2,7 @@
 scripts/promo/*.sh text eol=lf
 scripts/promo/*.py text eol=lf
 scripts/promo/*.js text eol=lf
+scripts/promo-premium/*.sh text eol=lf
+scripts/promo-premium/*.js text eol=lf
+scripts/promo-premium/*.py text eol=lf
+scripts/promo-premium/*.html text eol=lf
