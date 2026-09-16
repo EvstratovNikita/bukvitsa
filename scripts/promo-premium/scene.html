@@ -34,6 +34,9 @@
   .gloss { box-shadow: inset 0 6px 0 rgba(255,255,255,.36), inset 0 -10px 0 rgba(0,0,0,.20),
     0 22px 40px rgba(3,8,44,.48), 0 4px 10px rgba(3,8,44,.35); }
   .glyph { color: #fff; text-shadow: 0 4px 0 rgba(0,0,0,.20), 0 0 2px rgba(0,0,0,.35); line-height: 1; }
+  .face:has(.sheen) { overflow: hidden; }
+  .sheen { position: absolute; top: -20%; left: 0; width: 55%; height: 140%; pointer-events: none;
+    background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.62) 50%, rgba(255,255,255,0)); transform: translateX(-140%); }
 
   /* ---------- text ---------- */
   .mask { position: absolute; overflow: hidden; }
@@ -42,7 +45,9 @@
     text-shadow: 0 8px 40px rgba(0,0,30,.45); }
   .gold { background: linear-gradient(180deg, #ffe690 0%, #f9bb2a 55%, #e38f0c 100%); -webkit-background-clip: text; background-clip: text;
     color: transparent; text-shadow: none; filter: drop-shadow(0 6px 24px rgba(60,30,0,.35)); }
-  .tagline { font-size: 30px; font-weight: 700; letter-spacing: .52em; color: rgba(226,236,255,.86); padding: 4px 0 10px; }
+  /* padding-left гасит хвостовой letter-spacing последней буквы — иначе строка уезжает влево */
+  .tagline { font-size: 34px; font-weight: 800; letter-spacing: .48em; color: rgba(236,242,255,.94); padding: 4px 0 10px .48em;
+    text-shadow: 0 4px 22px rgba(0,0,30,.6); }
   .tagline b { color: #f7c948; font-weight: 800; }
 
   .cap { position: absolute; width: 780px; }
@@ -85,12 +90,12 @@
   .halo { position: absolute; left: 0; top: 0; width: 900px; height: 900px; border-radius: 50%;
     background: radial-gradient(circle, rgba(255,216,130,.46) 0%, rgba(130,180,255,.20) 42%, rgba(130,180,255,0) 70%); }
 
-  .cta { position: absolute; left: 0; top: 0; height: 108px; padding: 0 66px; border-radius: 999px; display: flex; align-items: center; justify-content: center; overflow: hidden;
+  .cta { position: absolute; left: 0; top: 0; height: 108px; padding: 0 66px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; overflow: hidden;
     background: linear-gradient(180deg, #ffe07a 0%, #f7b51e 55%, #e0900c 100%); color: #2a1a00; font-size: 46px; font-weight: 800; letter-spacing: -.01em;
     box-shadow: inset 0 5px 0 rgba(255,255,255,.45), inset 0 -8px 0 rgba(120,60,0,.25), 0 24px 60px rgba(247,181,30,.35), 0 10px 26px rgba(0,0,0,.35); white-space: nowrap; }
   .cta .shine { position: absolute; top: -20%; left: 0; width: 120px; height: 140%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.75), transparent); }
-  .fsub { font-family: 'C', serif; font-style: italic; font-weight: 600; font-size: 60px; color: #f3ecff; letter-spacing: .005em; padding: 0 0 .12em;
-    text-shadow: 0 6px 30px rgba(0,0,30,.5); }
+  .fsub { font-family: 'C', serif; font-style: italic; font-weight: 700; font-size: 70px; color: #fff6e0; letter-spacing: .005em; padding: 0 0 .12em;
+    text-shadow: 0 2px 0 rgba(0,0,30,.35), 0 6px 30px rgba(0,0,30,.75); }
 </style>
 </head>
 <body>

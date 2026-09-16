@@ -25,15 +25,27 @@ const FPS = 60;
     await page.screenshot({ path, type: 'jpeg', quality: q });
   };
 
+  // Таймлайн и звуковые события — для music.py (звук строится по тем же меткам, что и кадр).
+  fs.writeFileSync('timeline.json', JSON.stringify(await page.evaluate(() => ({ TL: window.TIMELINE, D: window.DURATION, SFX: window.SFX })), null, 1));
+  if (mode === 'timeline') { await b.close(); return; }
+
   if (mode === 'stills') {
-    const times = [0.6, 1.75, 2.55, TL.logo + 0.45, TL.logo + 2.2, TL.game - 0.02, TL.game + 1.4, TL.win + 0.35,
-      TL.shop - 0.05, TL.warm + 1.2, TL.pet + 1.2, TL.jump + 0.4, TL.fin + 0.9, TL.fin + 2.6, D - 0.05];
+    const times = [0, 1.0, 2.5, TL.logo + 0.45, TL.logo + 1.3, TL.logo + 2.4, TL.game - 0.1, TL.game + 0.14,
+      TL.game + 1.5, TL.win - 1.9, TL.win + 0.05, TL.win + 0.9, TL.shop - 0.05, TL.warm + 0.35, TL.warm + 1.4,
+      TL.pet - 0.1, TL.pet + 0.5, TL.jump + 0.3, TL.jump2 + 0.45, TL.fin - 0.08, TL.fin + 0.6, TL.fin + 1.4, TL.fin + 2.6, D - 0.02];
     const labels = [];
     for (const [i, t] of times.entries()) {
       await shot(t, `out/still-${String(i).padStart(2, '0')}.jpg`, 90);
       labels.push(t.toFixed(2));
     }
     fs.writeFileSync('out/stills.json', JSON.stringify(labels));
+    // Числовая проверка центровки финала и слогана: центр по X должен быть 960.
+    await page.evaluate((tt) => window.renderAt(tt), TL.fin + 3);
+    const centers = await page.evaluate(() => [...document.querySelectorAll('.cta, .fsub, .tagline, .hl')].map((e) => {
+      const r = document.createRange(); r.selectNodeContents(e); const b = e.classList.contains('cta') ? e.getBoundingClientRect() : r.getBoundingClientRect();
+      return `${e.className.trim()}: centerX ${((b.left + b.right) / 2).toFixed(1)} width ${b.width.toFixed(0)}`;
+    }));
+    console.log('layout', JSON.stringify(centers));
   } else {
     const N = Math.round(D * FPS);
     const t0 = Date.now();

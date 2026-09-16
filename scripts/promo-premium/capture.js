@@ -57,16 +57,19 @@ const DONE = ['first_win','first_try','streak_3','play_5','won_10','daily_2','fi
   await sleep(600);
 
   const now = () => Date.now() / 1000;
-  const tapKey = (label) => page.locator(`.key[aria-label="${label}"]`).first().tap();
 
+  // Каждое нажатие пишем в taps: [время в клипе, вид] — по ним звук клавиш и кнопок.
   async function clip(name, fn) {
     const t0 = now();
     frames = last ? [{ t: t0, data: last.data }] : [];
     rec = true;
     const M = {};
+    const taps = [];
     const mark = (k) => { M[k] = +(now() - t0).toFixed(3); };
+    const tap = async (loc, kind) => { await loc.tap(); taps.push([+(now() - t0).toFixed(3), kind]); };
+    const tapKey = (label) => tap(page.locator(`.key[aria-label="${label}"]`).first(), label === 'Ввод' ? 'enter' : 'key');
     await sleep(200);
-    await fn(mark);
+    await fn(mark, tap, tapKey);
     rec = false;
     const dur = now() - t0;
     const fr = frames.slice().sort((a, b) => a.t - b.t);
@@ -78,36 +81,37 @@ const DONE = ['first_win','first_try','streak_3','play_5','won_10','daily_2','fi
       while (j + 1 < fr.length && fr[j + 1].t <= tt) j++;
       fs.writeFileSync(`clips/${name}/${String(k).padStart(5, '0')}.jpg`, Buffer.from(fr[j].data, 'base64'));
     }
-    console.log(`clip ${name}: ${n} frames @60, source ${fr.length}, ${dur.toFixed(2)}s`, JSON.stringify(M));
-    return { n, marks: M };
+    console.log(`clip ${name}: ${n} frames @60, source ${fr.length}, ${dur.toFixed(2)}s`, JSON.stringify(M), JSON.stringify(taps));
+    return { n, marks: M, taps };
   }
 
-  const A = await clip('A', async (mark) => {
+  // Метки ставим после нажатия: от них считаются переворот плиток и звук.
+  const A = await clip('A', async (mark, tap, tapKey) => {
     mark('start');
     for (const ch of 'КОШКА') { await tapKey(ch); await sleep(100); }
-    mark('enter1'); await tapKey('Ввод'); await sleep(1850);
+    await tapKey('Ввод'); mark('enter1'); await sleep(1850);
     for (const ch of 'ЗАМОК') { await tapKey(ch); await sleep(100); }
-    mark('enter2'); await tapKey('Ввод'); await sleep(1650);
+    await tapKey('Ввод'); mark('enter2'); await sleep(1650);
     mark('win'); await sleep(1500);
   });
 
   await page.locator('.gameend__close').first().tap().catch(() => {});
   await sleep(800);
 
-  const B = await clip('B', async (mark) => {
+  const B = await clip('B', async (mark, tap) => {
     mark('start');
-    await page.locator('[data-tour="menu"]').first().tap(); await sleep(550); mark('menu');
-    await page.locator('.menu button', { hasText: 'Магазин' }).first().tap(); await sleep(900); mark('shop');
-    await page.locator('.shop__subtab', { hasText: 'Светлые' }).first().tap(); await sleep(750); mark('light');
-    await page.locator('.shop-card', { hasText: 'Золотая осень' }).locator('button').first().tap(); mark('applied'); await sleep(1000);
-    await page.locator('.modal__close').first().tap(); mark('closed'); await sleep(1100);
+    await tap(page.locator('[data-tour="menu"]').first(), 'ui'); await sleep(550); mark('menu');
+    await tap(page.locator('.menu button', { hasText: 'Магазин' }).first(), 'ui'); await sleep(900); mark('shop');
+    await tap(page.locator('.shop__subtab', { hasText: 'Светлые' }).first(), 'ui'); await sleep(750); mark('light');
+    await tap(page.locator('.shop-card', { hasText: 'Золотая осень' }).locator('button').first(), 'apply'); mark('applied'); await sleep(1000);
+    await tap(page.locator('.modal__close').first(), 'ui'); mark('closed'); await sleep(1100);
   });
 
-  const C = await clip('C', async (mark) => {
+  const C = await clip('C', async (mark, tap) => {
     mark('start');
-    await page.locator('.pet-headerbtn').first().tap(); await sleep(1150); mark('open');
-    await page.locator('.owl-svg').first().tap(); mark('jump'); await sleep(1250);
-    await page.locator('.owl-svg').first().tap(); mark('jump2'); await sleep(1300);
+    await tap(page.locator('.pet-headerbtn').first(), 'ui'); await sleep(1150); mark('open');
+    await tap(page.locator('.owl-svg').first(), 'owl'); mark('jump'); await sleep(1250);
+    await tap(page.locator('.owl-svg').first(), 'owl'); mark('jump2'); await sleep(1300);
   });
 
   await cdp.send('Page.stopScreencast');

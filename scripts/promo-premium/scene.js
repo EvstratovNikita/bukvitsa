@@ -21,22 +21,27 @@
   const mixc = (a, b, k) => a.map((v, i) => Math.round(lerp(v, b[i], k)));
   const rgba = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-  // ---------------- timeline (from gameplay marks) ----------------
+  // ---------------- timeline (from gameplay marks, on the music grid) ----------------
+  // Музыка 120 BPM: доля 0,5 с, такты с нечётных секунд. Ключевые события ставим на доли,
+  // а клип сдвигаем так, чтобы момент из записи (победа, смена фона, прыжок) попал на долю.
+  const BEAT = 0.5;
+  const onBeat = (x) => Math.round(x / BEAT) * BEAT;
+  const FLIP = { stagger: 0.28, mid: 0.25 }; // переворот клеток в игре: FLIP_STAGGER_MS, половина FLIP_MS
   const A = CLIPS.A, B = CLIPS.B, C = CLIPS.C;
   const TL = {};
   TL.logo = 3.0;
-  TL.game = 5.9;
+  TL.game = 6.0;
   TL.playA = TL.game + 0.5;
-  TL.win = TL.playA + (A.marks.win - A.marks.start) - 0.35;
-  TL.shop = TL.win + 1.35;
+  { const w = TL.playA + (A.marks.enter2 - A.marks.start) + 4 * FLIP.stagger + FLIP.mid; TL.win = onBeat(w); TL.playA += TL.win - w; }
+  TL.shop = onBeat(TL.win + 2.0);
   TL.playB = TL.shop + 0.2;
-  TL.warm = TL.playB + (B.marks.applied - B.marks.start) + 0.15;
-  TL.pet = TL.playB + (B.marks.closed - B.marks.start) + 0.75;
+  { const w = TL.playB + (B.marks.applied - B.marks.start) + 0.15; TL.warm = onBeat(w); TL.playB += TL.warm - w; }
+  TL.pet = onBeat(TL.playB + (B.marks.closed - B.marks.start) + 0.6);
   TL.playC = TL.pet + 0.2;
-  TL.jump = TL.playC + (C.marks.jump - C.marks.start);
+  { const w = TL.playC + (C.marks.jump - C.marks.start); TL.jump = onBeat(w); TL.playC += TL.jump - w; }
   TL.jump2 = TL.playC + (C.marks.jump2 - C.marks.start);
-  TL.fin = TL.jump2 + 1.05;
-  TL.end = TL.fin + 4.4;
+  TL.fin = onBeat(TL.jump2 + 1.1);
+  TL.end = TL.fin + 5.0;
   window.DURATION = TL.end;
   window.TIMELINE = TL;
 
@@ -67,10 +72,10 @@
     const root = $('div', 'tile', parent);
     root.style.width = root.style.height = px(size);
     const inn = $('div', 'in', root);
-    const face = $('div', `face ${cls} gloss`, inn, `<span class="glyph">${letter}</span>`);
+    const face = $('div', `face ${cls} gloss`, inn, `<span class="glyph">${letter}</span><i class="sheen"></i>`);
     face.style.borderRadius = px(radius);
     face.style.fontSize = px(Math.round(size * 0.58));
-    return { root, inn, size };
+    return { root, inn, size, sheen: face.querySelector('.sheen') };
   }
   function line(parent, html, cls, x, y, w, align) {
     const m = $('div', 'mask', parent);
@@ -158,7 +163,11 @@
   const NIGHT = { a: [7, 12, 52], b: [22, 46, 150], c: [84, 42, 172], g1: [70, 168, 255], g2: [172, 104, 255] };
   const WARM = { a: [40, 14, 6], b: [124, 50, 16], c: [210, 124, 40], g1: [255, 192, 106], g2: [255, 116, 58] };
 
-  function drawBg(t, warm, camX, bokehA) {
+  // Фон рисуем в любой контекст: ночной — в #bg, тёплый — в отдельный холст, который
+  // потом проявляется маской (волна от телефона / шторка), без грязного смешения цветов.
+  const warmCanvas = sprite(W, H, () => {});
+  const bgW = warmCanvas.getContext('2d');
+  function drawBg(bg, t, warm, camX, bokehA) {
     const P = (k) => mixc(NIGHT[k], WARM[k], warm);
     const lg = bg.createLinearGradient(0, 0, W, H);
     lg.addColorStop(0, rgba(P('a'))); lg.addColorStop(0.55, rgba(P('b'))); lg.addColorStop(1, rgba(P('c')));
@@ -197,11 +206,13 @@
 
   // ---------------- HOOK ----------------
   const hook = $('div', 'layer');
-  const HS = 176, HG = 26, HX = (W - (5 * HS + 4 * HG)) / 2, HY = 258;
+  const HS = 176, HG = 26, HX = (W - (5 * HS + 4 * HG)) / 2, HY = 282;
   const HOOK = [['С', 'g-gray'], ['Л', 'g-green'], ['О', 'g-gold'], ['В', 'g-gray'], ['О', 'g-green']];
   const hookTiles = HOOK.map(([l, c], i) => { const tl = flipTile(hook, HS, l, c, 28); place(tl.root, HX + i * (HS + HG), HY); return tl; });
-  const hookL1 = line(hook, 'Одно слово.', 'hl', 0, 500, W, 'center');
-  const hookL2 = line(hook, 'Шесть попыток.', 'hl gold', 0, 618, W, 'center');
+  const hookL1 = line(hook, 'Одно слово.', 'hl', 0, 524, W, 'center');
+  const hookL2 = line(hook, 'Шесть попыток.', 'hl gold', 0, 642, W, 'center');
+  // Середина переворота плитки хука — на восьмых долях (0,75; 1,0; …), под звук.
+  const HOOK_FLIP = (i) => 0.53 + i * 0.25;
 
   function renderHook(t) {
     const on = t < TL.logo + 0.35;
@@ -211,18 +222,20 @@
     const cam = 1.07 - 0.07 * eOut(seg(t, 0, 3.2));
     hook.style.transform = `scale(${cam}) translateY(${-eIn(out) * 90}px)`;
     hook.style.opacity = String(1 - eIn(out));
+    // Первый кадр не пустой: плитки уже на месте (обложка ролика), дальше лишь «дышат».
     hookTiles.forEach((tl, i) => {
-      const a = seg(t, 0.25 + i * 0.07, 0.25 + i * 0.07 + 0.55);
-      const fl = seg(t, 1.0 + i * 0.16, 1.0 + i * 0.16 + 0.44);
-      const pop = 1 + 0.09 * bump(t, 1.0 + i * 0.16 + 0.3, 1.0 + i * 0.16 + 0.62);
-      const s = eBack(a) * pop;
+      const a = seg(t, i * 0.04, i * 0.04 + 0.4);
+      const f0 = HOOK_FLIP(i);
+      const fl = seg(t, f0, f0 + 0.44);
+      const pop = 1 + 0.09 * bump(t, f0 + 0.3, f0 + 0.62);
+      const s = lerp(0.9, 1, eBack(a)) * pop;
       const fly = eIn(seg(t, TL.logo - 0.3 + i * 0.03, TL.logo + 0.2 + i * 0.03));
-      tl.root.style.opacity = String(clamp(a * 3) * (1 - fly));
+      tl.root.style.opacity = String(lerp(0.78, 1, clamp(a * 2)) * (1 - fly));
       tl.root.style.transform = `translateY(${-fly * 260}px) rotate(${(i - 2) * fly * 9}deg) scale(${s * (1 - 0.3 * fly)})`;
       tl.inn.style.transform = `rotateX(${eIO(fl) * 180}deg)`;
     });
-    reveal(hookL1, seg(t, 1.55, 2.2), seg(t, TL.logo - 0.4, TL.logo));
-    reveal(hookL2, seg(t, 1.95, 2.6), seg(t, TL.logo - 0.35, TL.logo + 0.05));
+    reveal(hookL1, seg(t, 1.3, 1.95), seg(t, TL.logo - 0.35, TL.logo));
+    reveal(hookL2, seg(t, 1.6, 2.25), seg(t, TL.logo - 0.3, TL.logo + 0.05));
   }
 
   // ---------------- LOGO ----------------
@@ -235,6 +248,10 @@
   const logoTiles = LOGO.map(([l, c]) => solidTile(logo, LS, l, c, 26));
   const tag = line(logo, '<b>✦</b>&nbsp;&nbsp;ИГРА В СЛОВА&nbsp;&nbsp;<b>✦</b>', 'tagline', 0, 962, W, 'center');
   const arc = (i, cx, cy, step, curve, tilt) => { const k = i - 3; return { x: cx + k * step - LS / 2, y: cy + k * k * curve - LS / 2, r: k * tilt }; };
+  // Когда пружина впервые доходит до места (cos = 0): под этот момент ставим удары звука.
+  const SPRING_HIT = (w) => Math.PI / (2 * w);
+  const LOGO_LAND = (i) => TL.logo + i * 0.125; // плитки логотипа приземляются шестнадцатыми
+  const OWL_LAND = (t0) => t0 + 1.0;           // сова — на следующей доле такта
 
   function owlBlink(root, t, times) {
     let k = 0;
@@ -250,22 +267,24 @@
     logo.style.transform = `scale(${cam})`;
     logoTiles.forEach((tl, i) => {
       const p = arc(i, 960, 250, 142, 11, 4.5);
-      const tau = t - (TL.logo + 0.05 + i * 0.075);
+      const tau = t - LOGO_LAND(i) + SPRING_HIT(12);
       const s = spring(tau, 12, 6);
       place(tl.root, p.x, p.y);
       tl.root.style.opacity = String(clamp(tau * 8));
       tl.root.style.transform = `translateY(${-(1 - s) * 720}px) rotate(${p.r + (1 - s) * (i - 3) * -9}deg)`;
+      // блик пробегает по плиткам слева направо, когда слово собралось
+      tl.sheen.style.transform = `translateX(${lerp(-140, 260, eIO(seg(t, TL.logo + 1.1 + i * 0.06, TL.logo + 1.5 + i * 0.06)))}%) skewX(-12deg)`;
     });
-    const ot = t - (TL.logo + 0.85);
+    const ot = t - OWL_LAND(TL.logo) + SPRING_HIT(10);
     const os = spring(ot, 10, 5.5);
     logoOwl.style.opacity = String(clamp(ot * 5));
     logoOwl.style.transform = `translateY(${(1 - os) * 300}px) scale(${0.7 + 0.3 * os})`;
-    owlBlink(logoOwl, t, [TL.logo + 2.2]);
-    const lightA = eOut(seg(t, TL.logo + 0.8, TL.logo + 1.6));
+    owlBlink(logoOwl, t, [TL.logo + 2.3]);
+    const lightA = eOut(seg(t, TL.logo + 0.85, TL.logo + 1.65));
     halo.style.opacity = String(lightA * (0.85 + 0.15 * Math.sin(t * 2)));
     rays.style.opacity = String(lightA * 0.8);
     rays.style.transform = `rotate(${t * 9}deg)`;
-    reveal(tag, seg(t, TL.logo + 1.45, TL.logo + 2.1));
+    reveal(tag, seg(t, TL.logo + 1.5, TL.logo + 2.15));
   }
 
   // ---------------- PHONE + CAPTIONS ----------------
@@ -304,12 +323,18 @@
     if (m1 > 0) st.ry = lerp(-10, lerp(13, 8, seg(t, TL.shop, TL.pet)), m1);
     if (m2 > 0) st.ry = lerp(st.ry, lerp(-13, -9, seg(t, TL.pet, TL.fin)), m2);
     st.s = 1 - 0.05 * Math.sin(Math.PI * m1) - 0.05 * Math.sin(Math.PI * m2);
+    // Наезд камеры: крупнее доска на второй попытке и победе, крупнее сова на прыжках.
+    st.zA = eIO(seg(t, TL.win - 2.5, TL.win - 1.6)) * (1 - eIO(seg(t, TL.shop - 0.8, TL.shop - 0.05)));
+    st.zC = eIO(seg(t, TL.jump - 0.95, TL.jump - 0.2)) * (1 - eIO(seg(t, TL.fin - 1.05, TL.fin - 0.35)));
+    st.s *= 1 + 0.26 * st.zA + 0.3 * st.zC;
+    st.y += 60 * st.zA + 190 * st.zC;
     const ex = eIn(seg(t, TL.fin - 0.7, TL.fin));
     st.y += ex * 120; st.s *= 1 - 0.08 * ex;
     st.y += Math.sin(t * 1.25) * 7;
     st.ry += Math.sin(t * 0.7) * 1.3;
     return st;
   }
+  const OWL_ON_SCREEN = -210; // центр совы на экране питомца относительно центра телефона, px
 
   async function setShot(img, clip, ct) {
     const n = CLIPS[clip].n;
@@ -325,7 +350,7 @@
     phone.style.opacity = String(st.op);
     device.style.transform = `rotateY(${st.ry}deg) rotateX(${st.rx}deg) scale(${st.s})`;
     place(pshadow, st.x - 310 + st.ry * 3, 540 + 430);
-    pshadow.style.opacity = String(0.9 * st.op);
+    pshadow.style.opacity = String(0.9 * st.op * (1 - Math.max(st.zA, st.zC))); // при наезде низ телефона за кадром
 
     const ctA = t - TL.playA + A.marks.start;
     const ctB = t - TL.playB + B.marks.start;
@@ -352,8 +377,8 @@
   }
 
   function renderPill(t) {
-    const pk = seg(t, TL.win + 0.15, TL.win + 0.6);
-    const pout = seg(t, TL.shop - 0.75, TL.shop - 0.35);
+    const pk = seg(t, TL.win + 0.2, TL.win + 0.65);
+    const pout = seg(t, TL.shop - 0.55, TL.shop - 0.2);
     const pv = pk > 0 && pout < 1;
     show(pill, pv);
     if (!pv) return;
@@ -379,96 +404,123 @@
     show(fin, on);
     if (!on) return;
     const f = t - TL.fin;
-    fin.style.transform = `scale(${1.04 - 0.04 * eOut(seg(f, 0, 4.4))})`;
+    fin.style.transform = `scale(${1.04 - 0.04 * eOut(seg(f, 0, 5.0))})`;
     finTiles.forEach((tl, i) => {
       const k = i - 3;
-      const x = 960 + k * 132 - FS / 2, y = 196 + k * k * 10 - FS / 2;
+      const x = 960 + k * 132 - FS / 2, y = 178 + k * k * 10 - FS / 2;
       place(tl.root, x, y);
       const a = seg(f, 0.15 + i * 0.07, 0.15 + i * 0.07 + 0.35);
-      const fl = seg(f, 0.3 + i * 0.09, 0.3 + i * 0.09 + 0.5);
+      const fl = seg(f, FIN_FLIP(i) - 0.25, FIN_FLIP(i) + 0.25);
       tl.root.style.opacity = String(clamp(a * 2));
       tl.root.style.transform = `rotate(${k * 4.2}deg) scale(${eBack(a)})`;
       tl.inn.style.transform = `rotateX(${eIO(fl) * 180}deg)`;
     });
-    const os = spring(f - 0.75, 10, 5.5);
-    fOwl.style.opacity = String(clamp((f - 0.75) * 5));
+    const ot = f - 1.0 + SPRING_HIT(10);
+    const os = spring(ot, 10, 5.5);
+    fOwl.style.opacity = String(clamp(ot * 5));
     fOwl.style.transform = `translateY(${(1 - os) * 260}px) scale(${0.72 + 0.28 * os})`;
-    owlBlink(fOwl, t, [TL.fin + 2.6]);
-    const lightA = eOut(seg(f, 0.7, 1.5));
+    owlBlink(fOwl, t, [TL.fin + 2.8]);
+    const lightA = eOut(seg(f, 0.8, 1.6));
     fhalo.style.opacity = String(lightA);
     frays.style.opacity = String(lightA * 0.75);
     frays.style.transform = `rotate(${t * 9}deg)`;
-    reveal(fsub, seg(f, 1.35, 2.0));
-    const ck = seg(f, 1.75, 2.3);
+    reveal(fsub, seg(f, 1.2, 1.85));
+    const ck = seg(f, 1.55, 2.05); // кнопка «встаёт» на долю fin + 2
     const cw = 590;
     place(cta, 960 - cw / 2, 902, cw);
     cta.style.opacity = String(clamp(ck * 3));
     cta.style.transform = `scale(${eBack(ck, 2)})`;
-    const sh = Math.max(seg(f, 2.5, 3.2), seg(f, 3.6, 4.3) > 0 ? seg(f, 3.6, 4.3) : 0);
+    const sh = Math.max(seg(f, 2.5, 3.2), seg(f, 4.0, 4.7));
     shine.style.transform = `translateX(${lerp(-160, cw + 60, sh)}px) skewX(-18deg)`;
   }
 
   // ---------------- FX ----------------
-  function drawCoins(fx, t, cx, cy) {
+  const FIN_FLIP = (i) => 0.5 + i * 0.125; // середина переворота плиток финала: шестнадцатые от fin + 0,5
+  // Зоны подписей: частицы у текста гаснут, чтобы не ложиться на буквы.
+  const CAP_L = { x0: 120, y0: 330, x1: 960, y1: 900 };
+  const CAP_R = { x0: 1020, y0: 330, x1: 1880, y1: 790 };
+  function clearOf(x, y, r, pad = 110) {
+    const dx = Math.max(r.x0 - x, 0, x - r.x1), dy = Math.max(r.y0 - y, 0, y - r.y1);
+    return 0.08 + 0.92 * clamp(Math.hypot(dx, dy) / pad);
+  }
+  function drawCoins(ctx, t, cx, cy) {
     const tau0 = t - TL.win;
     if (tau0 < 0 || tau0 > 2.4) return;
     const k = seg(tau0, 0, 0.7);
-    const g = fx.createRadialGradient(cx, cy, 0, cx, cy, 460 * eOut(k) + 1);
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 460 * eOut(k) + 1);
     g.addColorStop(0, `rgba(255,226,140,${0.75 * (1 - k)})`); g.addColorStop(1, 'rgba(255,226,140,0)');
-    fx.fillStyle = g; fx.fillRect(0, 0, W, H);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     for (const c of COINS) {
       const tau = tau0 - c.delay;
       if (tau < 0) continue;
       const x = cx + Math.cos(c.ang) * c.sp * tau * 0.85;
       const y = cy + Math.sin(c.ang) * c.sp * tau + 0.5 * 1500 * tau * tau;
-      const a = 1 - seg(tau, 1.2, 1.75);
-      if (a <= 0) continue;
+      const a = (1 - seg(tau, 1.2, 1.75)) * clearOf(x, y, CAP_L);
+      if (a <= 0.01) continue;
       const sx = Math.max(0.12, Math.abs(Math.cos(c.ph + c.spin * tau)));
-      fx.save(); fx.globalAlpha = a; fx.translate(x, y); fx.scale(sx, 1);
-      fx.drawImage(COIN, -c.size / 2, -c.size / 2, c.size, c.size); fx.restore();
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.scale(sx, 1);
+      ctx.drawImage(COIN, -c.size / 2, -c.size / 2, c.size, c.size); ctx.restore();
     }
   }
-  function drawLeaves(fx, t, warm) {
-    if (warm <= 0.01) return;
+  function drawLeaves(ctx, t) {
     for (const l of LEAVES) {
       const y = ((((l.y + l.v * t) % (H + 200)) + H + 200) % (H + 200)) - 100;
       const x = l.x + Math.sin(t * 1.1 + l.ph) * l.sw;
-      fx.save(); fx.globalAlpha = warm * 0.9; fx.translate(x, y); fx.rotate(l.ph + l.rs * t); fx.scale(l.s, l.s * Math.abs(Math.cos(t * 1.4 + l.ph)) + 0.25);
-      fx.drawImage(LEAF[l.k], -42, -42); fx.restore();
+      ctx.save(); ctx.globalAlpha = 0.9 * clearOf(x, y, CAP_R); ctx.translate(x, y); ctx.rotate(l.ph + l.rs * t); ctx.scale(l.s, l.s * Math.abs(Math.cos(t * 1.4 + l.ph)) + 0.25);
+      ctx.drawImage(LEAF[l.k], -42, -42); ctx.restore();
     }
   }
   function drawPet(t, st) {
     const vis = seg(t, TL.pet + 0.2, TL.pet + 0.8) * (1 - seg(t, TL.fin - 0.7, TL.fin - 0.1));
     if (vis <= 0) return;
+    const oy = st.y + OWL_ON_SCREEN * st.s;
     for (const p of PET_P) {
       const lt = ((t - TL.pet + p.off) % p.life) / p.life;
-      const x = st.x + p.dx + Math.sin(t * 1.6 + p.ph) * p.sway;
+      // всегда снаружи телефона: слева узкая полоса (там подпись), справа шире
+      const side = p.dx < 0 ? -(360 + Math.abs(p.dx) * 0.26) : 360 + p.dx * 0.55;
+      const x = st.x + side + Math.sin(t * 1.6 + p.ph) * p.sway;
       const y = st.y + 380 - lt * 620;
-      const a = Math.sin(Math.PI * lt) * vis;
-      if (Math.abs(p.dx) < 280 && lt > 0.1 && lt < 0.9) continue; // не поверх экрана
+      const a = Math.sin(Math.PI * lt) * vis * clearOf(x, y, CAP_L);
       if (p.heart) { fx.save(); fx.globalAlpha = a * 0.9; fx.translate(x, y); fx.scale(p.s, p.s); fx.drawImage(HEART, -40, -40); fx.restore(); }
       else drawSpark(fx, x, y, 10 + p.s * 12, a, '255,226,150');
     }
     for (const jt of [TL.jump, TL.jump2]) {
-      const k = seg(t, jt + 0.1, jt + 0.9);
+      const k = seg(t, jt + 0.05, jt + 0.85);
       if (k <= 0 || k >= 1) continue;
       for (let i = 0; i < 10; i++) {
         const ang = (i / 10) * 6.283 + jt;
-        const r = 120 + eOut(k) * 230;
-        drawSpark(fx, st.x + Math.cos(ang) * r, st.y - 170 + Math.sin(ang) * r * 0.7, 14, (1 - k) * 0.95, '255,226,150');
+        const r = (120 + eOut(k) * 230) * st.s * 0.9;
+        drawSpark(fx, st.x + Math.cos(ang) * r, oy + Math.sin(ang) * r * 0.7, 14, (1 - k) * 0.95, '255,226,150');
       }
     }
   }
-  function drawStreak(t) {
-    const k = bump(t, TL.logo + 0.45, TL.logo + 1.25);
-    if (k <= 0) return;
-    const y = 262;
-    const g = fx.createLinearGradient(0, 0, W, 0);
-    g.addColorStop(0, 'rgba(255,220,120,0)'); g.addColorStop(0.5, `rgba(255,236,170,${0.9 * k})`); g.addColorStop(1, 'rgba(255,220,120,0)');
-    fx.fillStyle = g; fx.fillRect(0, y - 3, W, 6);
-    const g2 = fx.createRadialGradient(960, y, 0, 960, y, 520);
-    g2.addColorStop(0, `rgba(255,230,160,${0.35 * k})`); g2.addColorStop(1, 'rgba(255,230,160,0)');
-    fx.fillStyle = g2; fx.fillRect(0, y - 520, W, 1040);
+  // Волна-переход: глянцевые плитки в цветах игры, на акцентных — буквы.
+  let WIPE_TILES = null;
+  function buildWipeTiles() {
+    const S = 120, P = 5;
+    const COLS = [['#2c3c9e', '#151e60'], ['#24318c', '#101851'], ['#ffd766', '#dc860b'], ['#93d655', '#3b771a'], ['#858b9a', '#444856']];
+    const LETTERS = 'БУКЛИЦАСЛОВО';
+    const WR = rng(404);
+    const mk = (c, letter) => sprite(S, S, (ctx) => {
+      const g = ctx.createLinearGradient(0, P, 0, S - P); g.addColorStop(0, c[0]); g.addColorStop(1, c[1]);
+      rrect(ctx, P, P, S - 2 * P, S - 2 * P, 18); ctx.fillStyle = g; ctx.fill();
+      ctx.save(); ctx.clip();
+      ctx.fillStyle = 'rgba(255,255,255,.26)'; ctx.fillRect(0, P, S, 6);
+      ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0, S - P - 9, S, 9);
+      ctx.restore();
+      rrect(ctx, P + 1, P + 1, S - 2 * P - 2, S - 2 * P - 2, 17); ctx.strokeStyle = 'rgba(255,255,255,.14)'; ctx.lineWidth = 2; ctx.stroke();
+      if (letter) {
+        ctx.font = '800 64px M'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.fillText(letter, S / 2, S / 2 + 7);
+        ctx.fillStyle = '#fff'; ctx.fillText(letter, S / 2, S / 2 + 3);
+      }
+    });
+    WIPE_TILES = [];
+    for (let r = 0; r < 9; r++) for (let c = 0; c < 16; c++) {
+      const u = WR();
+      const kind = u < 0.1 ? 2 : u < 0.18 ? 3 : u < 0.24 ? 4 : (r + c) % 2;
+      WIPE_TILES.push(mk(COLS[kind], kind >= 2 && WR() < 0.75 ? LETTERS[Math.floor(WR() * LETTERS.length)] : ''));
+    }
   }
   function drawWipe(t, t0) {
     const cols = 16, rows = 9, cw = W / cols, ch = H / rows;
@@ -478,45 +530,110 @@
       const rev = eIO(seg(t, t0 + d, t0 + d + 0.16));
       const k = cover * (1 - rev);
       if (k <= 0.001) continue;
-      const x = c * cw + 3, y = r * ch + ch / 2, w = cw - 6, h = (ch - 6) * k;
-      wp.fillStyle = `rgba(8,11,40,${k})`; wp.fillRect(c * cw, y - (ch * k) / 2, cw, ch * k);
-      wp.fillStyle = (r + c) % 2 ? '#131c5a' : '#1a2570';
-      rrect(wp, x, y - h / 2, w, h, 14); wp.fill();
-      wp.fillStyle = `rgba(247,201,72,${0.22 * k})`;
-      rrect(wp, x, y - h / 2, w, Math.min(4, h), 2); wp.fill();
+      const y = r * ch + ch / 2, h = ch * k;
+      wp.fillStyle = `rgba(6,9,34,${k})`; wp.fillRect(c * cw, y - h / 2, cw, h);
+      wp.drawImage(WIPE_TILES[r * cols + c], c * cw, y - h / 2, cw, h);
     }
   }
 
   // ---------------- frame ----------------
+  // Тёплый фон — отдельный слой поверх ночного: приходит волной от телефона в момент
+  // смены фона в игре, уходит шторкой вслед за телефоном. Цвета не смешиваются в бурый.
+  function paintBg(t, st, camX, bokehA) {
+    drawBg(bg, t, 0, camX, bokehA);
+    const wIn = seg(t, TL.warm, TL.warm + 0.95);
+    const wOut = seg(t, TL.pet - 0.5, TL.pet + 0.5);
+    if (wIn <= 0 || wOut >= 1) return;
+    const r = 60 + eOut(wIn) * 2400;
+    drawBg(bgW, t, 1, camX, bokehA);
+    drawLeaves(bgW, t);
+    bgW.save();
+    bgW.globalCompositeOperation = 'destination-in';
+    if (wIn < 1) {
+      const g = bgW.createRadialGradient(st.x, st.y, 0, st.x, st.y, r);
+      g.addColorStop(0, '#000'); g.addColorStop(Math.max(0, r - 300) / r, '#000'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      bgW.fillStyle = g;
+    } else {
+      const e = lerp(-420, W + 420, eIO(wOut));
+      const g = bgW.createLinearGradient(e - 260, 0, e + 260, 0);
+      g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, '#000');
+      bgW.fillStyle = g;
+    }
+    bgW.fillRect(0, 0, W, H);
+    bgW.restore();
+    bg.drawImage(warmCanvas, 0, 0);
+    if (wIn < 1 && wIn > 0) { // золотой гребень волны
+      bg.save(); bg.globalCompositeOperation = 'lighter';
+      bg.strokeStyle = `rgba(255,206,120,${0.45 * (1 - wIn)})`; bg.lineWidth = 26;
+      bg.beginPath(); bg.arc(st.x, st.y, Math.max(1, r - 150), 0, 6.283); bg.stroke(); bg.restore();
+    }
+  }
+
   window.renderAt = async function renderAt(t) {
-    const warm = eIO(seg(t, TL.warm, TL.warm + 1.1)) * (1 - eIO(seg(t, TL.pet - 0.6, TL.pet + 0.5)));
     const st = phoneState(t);
     const camX = st.vis ? (st.x - 960) * 0.8 : 0;
     const bokehA = Math.max(seg(t, TL.game - 0.2, TL.game + 0.8), 0);
-    drawBg(t, warm, camX, bokehA);
-    drawLeaves(bg, t, warm);
+    paintBg(t, st, camX, bokehA);
     if (st.vis) drawCoins(bg, t, st.x, st.y - 40);
     renderHook(t);
     renderLogo(t);
     await renderPhone(t, st);
     renderPill(t);
-    renderCaption(capGame, t, TL.game + 0.55, TL.shop - 0.7);
-    renderCaption(capShop, t, TL.shop + 0.35, TL.pet - 0.7);
-    renderCaption(capPet, t, TL.pet + 0.35, TL.fin - 0.75);
+    renderCaption(capGame, t, TL.game + 0.55, TL.shop - 0.55);
+    renderCaption(capShop, t, TL.shop + 0.35, TL.pet - 0.75);
+    renderCaption(capPet, t, TL.pet + 0.2, TL.fin - 0.75);
     renderFinale(t);
 
     fx.clearRect(0, 0, W, H);
-    drawStreak(t);
     if (st.vis) drawPet(t, st);
-    const fade = 1 - eOut(seg(t, 0, 0.8));
-    if (fade > 0) { fx.fillStyle = `rgba(0,0,6,${fade})`; fx.fillRect(0, 0, W, H); }
     wp.clearRect(0, 0, W, H);
     drawWipe(t, TL.game);
     drawWipe(t, TL.fin);
   };
 
-  await document.fonts.load('800 100px M', 'АБВЁ'); await document.fonts.load('600 60px C', 'Новое');
+  await document.fonts.load('800 100px M', 'АБВЁ'); await document.fonts.load('800 64px M', 'БУКЛИЦА');
+  await document.fonts.load('700 70px C', 'Новое');
   await document.fonts.ready;
+  buildWipeTiles();
+
+  // ---------------- события для звука ----------------
+  // Музыка и эффекты строятся по этим же числам, поэтому звук попадает в кадр.
+  const SFX = [];
+  const add = (tt, kind, v = 0) => { if (tt >= 0 && tt <= TL.end) SFX.push([+tt.toFixed(3), kind, v]); };
+  const HOOK_TONE = (c) => (c === 'g-gold' ? 2 : c === 'g-green' ? 1 : 0);
+  HOOK.forEach(([, c], i) => add(HOOK_FLIP(i) + 0.22, 'flip', HOOK_TONE(c)));
+  add(TL.logo - 1.0, 'riser', 1.0);
+  add(TL.logo, 'impact', 0);
+  LOGO.forEach((_, i) => add(LOGO_LAND(i), 'tile', i));
+  add(OWL_LAND(TL.logo), 'owl');
+  add(TL.logo + 1.5, 'sparkle');
+  add(TL.game - 1.0, 'riser', 1.0);
+  add(TL.game - 0.45, 'whoosh');
+  add(TL.game, 'impact', 1);
+  const CLIP_T = { A: TL.playA, B: TL.playB, C: TL.playC };
+  const TAP_KIND = { key: 'key', enter: 'enter', ui: 'ui', apply: 'apply', owl: 'pet' };
+  for (const [name, cl] of Object.entries({ A, B, C })) {
+    for (const [ct, kind] of cl.taps || []) add(CLIP_T[name] + ct - cl.marks.start, TAP_KIND[kind] || 'ui');
+  }
+  // перевороты клеток в игре: КОШКА (жёлтая, жёлтая, серая, серая, жёлтая) и победная ЗАМОК
+  [['enter1', ['y', 'y', 'x', 'x', 'y']], ['enter2', ['g', 'g', 'g', 'g', 'g']]].forEach(([mk, cols]) => {
+    cols.forEach((c, i) => add(TL.playA + (A.marks[mk] - A.marks.start) + i * FLIP.stagger + FLIP.mid, 'rev-' + c, i));
+  });
+  add(TL.win, 'coins');
+  add(TL.win + 0.2, 'pill');
+  add(TL.shop, 'swish');
+  add(TL.warm, 'magic');
+  add(TL.pet, 'swish');
+  add(TL.jump, 'boing', 0); add(TL.jump2, 'boing', 1);
+  add(TL.fin - 1.0, 'riser', 1.0);
+  add(TL.fin - 0.45, 'whoosh'); add(TL.fin, 'impact', 1);
+  LOGO.forEach((_, i) => add(TL.fin + FIN_FLIP(i), 'flip', 2));
+  add(TL.fin + 1.0, 'owl');
+  add(TL.fin + 2.0, 'cta');
+  add(TL.fin + 2.5, 'glint'); add(TL.fin + 4.0, 'glint');
+  SFX.sort((a, b) => a[0] - b[0]);
+  window.SFX = SFX;
+
   await window.renderAt(0);
   window.READY = true;
 })().catch((e) => { document.title = 'ERROR ' + e.message; console.error(e); window.READY_ERROR = String(e && e.stack || e); });
