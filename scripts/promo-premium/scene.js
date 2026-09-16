@@ -627,7 +627,7 @@
   add(TL.jump, 'boing', 0); add(TL.jump2, 'boing', 1);
   add(TL.fin - 1.0, 'riser', 1.0);
   add(TL.fin - 0.45, 'whoosh'); add(TL.fin, 'impact', 1);
-  LOGO.forEach((_, i) => add(TL.fin + FIN_FLIP(i), 'flip', 2));
+  LOGO.forEach((_, i) => add(TL.fin + FIN_FLIP(i), 'fintile', i));
   add(TL.fin + 1.0, 'owl');
   add(TL.fin + 2.0, 'cta');
   add(TL.fin + 2.5, 'glint'); add(TL.fin + 4.0, 'glint');

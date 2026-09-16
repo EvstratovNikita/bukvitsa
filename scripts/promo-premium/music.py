@@ -101,22 +101,30 @@ def pluck(f, dur, amp=0.4, damp=0.996, tone=0.5):
     y = lfilter([1.0], a, exc)
     return amp * y * env(dur, 0.001, curve=3.2)
 
-def saw(f, dur, detune=0.0):
-    x = tt(dur)
-    ph = (f * (1 + detune) * x) % 1.0
-    return 2 * ph - 1
-
 def pad(notes, dur, amp=0.22, cut=1700, attack=0.5):
-    """Тёплый пад: по три расстроенных пилы на ноту, мягкий низкочастотный фильтр."""
-    y = np.zeros(max(1, int(dur * SR)))
+    """Тёплый пад: гармоники складываем до частоты среза, а не режем готовую пилу.
+    Наложения частот (aliasing) нет, поэтому в верхах не звенит металлом."""
+    x = tt(dur)
+    y = np.zeros(len(x))
     for m in notes:
         f = midi(m)
-        for dt in (-0.004, 0.0, 0.005):
-            y += saw(f, dur, dt)
-    y = lp(y / (len(notes) * 3), cut, 3)
+        for dt, w in ((-0.004, 0.75), (0.0, 1.0), (0.005, 0.75)):
+            fd = f * (1 + dt)
+            for h in range(1, max(1, min(20, int(cut / fd))) + 1):
+                y += (w / h) * np.sin(2 * np.pi * fd * h * x + h * 0.7)
+    y /= (len(notes) * 3 * 1.6)
     e = env(dur, attack, curve=1.4)
     e *= np.linspace(1, 0.55, len(e))
-    return amp * y * e
+    return amp * np.tanh(y) * e
+
+def chime(f, dur, amp=0.4, bright=1.0):
+    """Мягкий колокольчик: синус и две быстро гаснущие гармоники.
+    В отличие от ЧМ-колокола не даёт металлического призвука."""
+    x = tt(dur)
+    y = np.sin(2 * np.pi * f * x)
+    y += 0.34 * bright * np.sin(2 * np.pi * 2 * f * x) * np.exp(-3.0 * x)
+    y += 0.13 * bright * np.sin(2 * np.pi * 3 * f * x) * np.exp(-6.0 * x)
+    return amp * y * env(dur, 0.014, curve=3.0)
 
 def subbass(m, dur, amp=0.5):
     x = tt(dur)
@@ -160,12 +168,16 @@ def whoosh(dur=0.75, amp=0.5, down=False):
     y *= np.sin(np.pi * np.clip(k if not down else 1 - k, 0, 1)) ** 0.7
     return amp * y / 2.0
 
-def riser(dur=1.0, amp=0.42):
+def riser(dur=1.0, amp=0.42, soft=False):
+    """Подъём перед переходом. soft — мягкий вариант для финала: тише, без
+    щелчков и без верхов, чтобы не царапал перед последним аккордом."""
     x = tt(dur)
     k = x / dur
-    y = bp(noise(dur), 400, 9000) * (k ** 2)
-    f = 220 * 2 ** (2.4 * k)
+    y = bp(noise(dur), 300, 3500 if soft else 9000) * (k ** 2)
+    f = 220 * 2 ** ((1.6 if soft else 2.4) * k)
     y += 0.5 * np.sin(2 * np.pi * np.cumsum(f) / SR) * (k ** 3)
+    if soft:
+        return amp * y / 1.6
     # ускоряющиеся щелчки — «отсчёт» перед ударом
     ticks = np.zeros(len(x))
     p = 0.0
@@ -286,18 +298,17 @@ put('mus', TL['win'], subbass(38, 1.2, 0.4), 0, 1.0, 0.05)
 # Смена фона: восходящая арфа.
 put('mus', TL['warm'], gliss(74, [0, 2, 4, 7, 9, 12, 14, 16], 0.55, 0.16), 0.15, 1.0, 0.6)
 
-# Пауза перед финалом и финальный аккорд.
-put('mus', FIN, impact(0.85), 0, 1.0, 0.45)
-put('mus', FIN, pad([62, 66, 69, 74], 2.3, amp=0.22, cut=2300, attack=0.04), 0, 1.0, 0.35)
-put('mus', FIN, subbass(38, 2.0, 0.5), 0, 1.0, 0.05)
-put('mus', FIN + 2.0, pad([57, 61, 64, 69], 1.1, amp=0.2, cut=2200, attack=0.03), 0, 1.0, 0.35)
-put('mus', FIN + 2.0, subbass(33, 1.0, 0.44), 0, 1.0, 0.05)
-put('mus', FIN + 3.0, pad([62, 66, 69, 74, 81], 2.6, amp=0.24, cut=2600, attack=0.03), 0, 1.0, 0.4)
-put('mus', FIN + 3.0, subbass(38, 2.4, 0.5), 0, 1.0, 0.05)
-for b in (0.0, 1.0, 2.0, 3.0):
-    put('mus', FIN + b, kick(0.5), 0, 1.0, 0.02)
-for i, m in enumerate([81, 85, 88, 93]):
-    put('mus', FIN + 3.0 + i * 0.04, bell(midi(m), 3.0, 0.16, ratio=2.0, index=1.4, curve=2.6), (i - 1.5) * 0.2, 1.0, 0.7)
+# Финал: ровный тёплый аккорд D — A — D, без ударных и звонких колокольчиков.
+# Ничего не бьёт по ушам: только пад, мягкий бас и два тихих обертона в конце.
+put('mus', FIN, impact(0.4, big=False), 0, 1.0, 0.22)
+put('mus', FIN, pad([50, 57, 62, 66, 69], 3.3, amp=0.26, cut=1500, attack=0.14), 0, 1.0, 0.24)
+put('mus', FIN, subbass(38, 2.8, 0.34), 0, 1.0, 0.03)
+put('mus', FIN + 2.0, pad([52, 57, 61, 64, 69], 1.7, amp=0.22, cut=1400, attack=0.26), 0, 1.0, 0.24)
+put('mus', FIN + 2.0, subbass(33, 1.7, 0.3), 0, 1.0, 0.03)
+put('mus', FIN + 3.0, pad([50, 57, 62, 66, 69, 74], 3.8, amp=0.27, cut=1600, attack=0.3), 0, 1.0, 0.28)
+put('mus', FIN + 3.0, subbass(38, 3.6, 0.34), 0, 1.0, 0.03)
+put('mus', FIN + 3.0, chime(midi(74), 3.4, 0.13), -0.12, 1.0, 0.35)
+put('mus', FIN + 3.15, chime(midi(81), 3.0, 0.09, bright=0.6), 0.16, 1.0, 0.35)
 
 # ---------------------------------------------------------------- события сцены
 TONE = [0, 4, 7]            # серая, жёлтая, золотая плитка хука
@@ -307,16 +318,26 @@ for t, kind, v in SFX:
     elif kind == 'tile':
         put('sfx', t, marimba(midi(ROOT + SCALE[int(v) % 5] + 12 * (int(v) // 5)), 0.85, 0.3), (int(v) - 3) * 0.12, 1.0, 0.45)
     elif kind == 'owl':
-        put('sfx', t, bell(midi(86), 1.8, 0.2, ratio=2.0, index=1.2, curve=3.0), 0, 1.0, 0.7)
-        put('sfx', t, gliss(81, [0, 4, 7, 12], 0.22, 0.08), 0.2, 1.0, 0.6)
+        if t >= FIN:                                   # в финале — тёплый обертон, без звона
+            put('sfx', t, chime(midi(81), 2.6, 0.12), 0, 1.0, 0.4)
+        else:
+            put('sfx', t, bell(midi(86), 1.8, 0.2, ratio=2.0, index=1.2, curve=3.0), 0, 1.0, 0.7)
+            put('sfx', t, gliss(81, [0, 4, 7, 12], 0.22, 0.08), 0.2, 1.0, 0.6)
+    elif kind == 'fintile':                            # плитки финала: тихая восходящая пентатоника
+        put('sfx', t, chime(midi(62 + SCALE[int(v) % 5] + 12 * (int(v) // 5)), 1.8, 0.10, bright=0.7),
+            (int(v) - 3) * 0.12, 1.0, 0.35)
     elif kind == 'sparkle' or kind == 'glint':
-        put('sfx', t, bell(midi(93), 1.1, 0.12, ratio=2.5, index=1.0, curve=5.0), 0.3, 1.0, 0.6)
+        if t >= FIN:
+            put('sfx', t, chime(midi(86), 1.6, 0.05, bright=0.5), 0.3, 1.0, 0.3)
+        else:
+            put('sfx', t, bell(midi(93), 1.1, 0.12, ratio=2.5, index=1.0, curve=5.0), 0.3, 1.0, 0.6)
     elif kind == 'riser':
-        put('sfx', t, riser(float(v), 0.34), 0, 1.0, 0.25)
+        soft = t > FIN - 1.6
+        put('sfx', t, riser(float(v), 0.17 if soft else 0.34, soft=soft), 0, 1.0, 0.2)
     elif kind == 'impact':
-        put('sfx', t, impact(0.8 if v == 0 else 0.6), 0, 1.0, 0.4)
+        put('sfx', t, impact(0.8 if v == 0 else 0.45, big=(v == 0)), 0, 1.0, 0.35)
     elif kind == 'whoosh':
-        put('sfx', t, whoosh(0.8, 0.42), -0.2, 1.0, 0.3)
+        put('sfx', t, whoosh(0.8, 0.28 if t > FIN - 1.2 else 0.42), -0.2, 1.0, 0.28)
     elif kind == 'swish':
         put('sfx', t - 0.25, whoosh(0.55, 0.26), 0.25, 1.0, 0.25)
     elif kind == 'key':
@@ -350,7 +371,8 @@ for t, kind, v in SFX:
         put('sfx', t, boing(v == 0, 0.34), 0.2, 1.0, 0.3)
         put('sfx', t + 0.05, bell(midi(93), 0.7, 0.09, ratio=2.5, index=1.0, curve=6), 0.3, 1.0, 0.5)
     elif kind == 'cta':
-        put('sfx', t, bell(midi(86), 2.0, 0.2, ratio=2.0, index=1.3, curve=3.0), 0, 1.0, 0.6)
+        put('sfx', t, chime(midi(74), 2.8, 0.15), 0, 1.0, 0.4)
+        put('sfx', t, pluck(midi(62), 1.6, 0.11, 0.995, 0.3), 0.1, 1.0, 0.28)
 
 # ---------------------------------------------------------------- сведение
 def reverb_ir(dur=1.9, dark=5200):
