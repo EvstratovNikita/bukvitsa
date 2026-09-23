@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS, PET_UNLOCK_GAMES, ENERGY_MAX } from '../../constants/game.js';
 import { unclaimedAchievementIds } from '../../data/achievements.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
-import { getPlayerInfo, inviteFriends, addToFavorites, vkSupports } from '../../lib/vk.js';
+import { getPlayerInfo, inviteFriends, addToFavorites, vkSupports, launchParams } from '../../lib/vk.js';
 import { share, SHARE_BASE_URL } from '../../lib/share.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { OwlSvg } from '../Pet/OwlSvg.jsx';
 import {
   AwardIcon, BoltIcon, CoinIcon, HelpIcon, MailIcon, MoonIcon, OwlIcon,
-  PlayIcon, SettingsIcon, ShareIcon, ShopIcon, StarIcon, StatsIcon, SunIcon,
+  PlayIcon, PlusIcon, SettingsIcon, ShareIcon, ShopIcon, StarIcon, StatsIcon, SunIcon,
   TrophyIcon, UsersIcon
 } from '../icons/Icon.jsx';
 
@@ -33,11 +33,16 @@ export function StartMenu({
 }) {
   const {
     stats, status, guesses, gameMode, wordLength, energy, energyMax,
-    petGiftReady, setTheme, showToast
+    petGiftReady, setTheme, showToast, openEnergyModal
   } = useGameContext();
   const playRef = useRef(null);
+  const noSteal = (e) => e.preventDefault();
   const [player, setPlayer] = useState(null);
   const [social, setSocial] = useState({ invite: false, favorites: false, share: false });
+  // Уже в избранном? VK сообщает это при запуске (vk_is_favorite=1), а после
+  // успешного добавления помним до конца сессии. Убрать из избранного мост VK
+  // не умеет, поэтому повторное нажатие только напоминает, что всё уже сделано.
+  const [favorite, setFavorite] = useState(() => launchParams().vk_is_favorite === '1');
 
   // Имя и аватар игрока, и какие нативные окна VK есть в этом клиенте:
   // кнопку показываем, только если она правда сработает.
@@ -89,8 +94,9 @@ export function StartMenu({
     else if (r === 'failed') showToast?.('Не получилось открыть приглашения');
   };
   const onFavorites = async () => {
+    if (favorite) { showToast?.('Буклица уже в избранном'); return; }
     const r = await addToFavorites();
-    if (r === 'ok') showToast?.('Буклица в избранном');
+    if (r === 'ok') { setFavorite(true); showToast?.('Буклица в избранном'); }
     else if (r === 'failed') showToast?.('Не получилось добавить в избранное');
   };
   const onShare = async () => {
@@ -98,8 +104,6 @@ export function StartMenu({
     if (r === 'copied') showToast?.('Ссылка скопирована');
     else if (r === 'failed') showToast?.('Не получилось поделиться');
   };
-
-  const noSteal = (e) => e.preventDefault();
 
   return (
     <div className="home" role="dialog" aria-modal="true" aria-label="Главное меню">
@@ -120,9 +124,31 @@ export function StartMenu({
               <b className="home__hello-name">{firstName || 'игрок'}</b>
             </span>
           </div>
+          {/* Ресурсы — кнопки, как в играх: монета ведёт в магазин, энергия
+              открывает окно энергии (пополнить, таймер до следующей). */}
           <div className="home__chips">
-            <span className="home__chip home__chip--coin" title="Монеты"><CoinIcon />{stats.coins || 0}</span>
-            <span className="home__chip home__chip--bolt" title="Энергия"><BoltIcon />{energy}/{cap}</span>
+            <button
+              type="button"
+              className="home-res home-res--coin"
+              onClick={onOpenShop}
+              onMouseDown={noSteal}
+              aria-label={`Монеты: ${stats.coins || 0}. Открыть магазин`}
+            >
+              <span className="home-res__ic"><CoinIcon /></span>
+              <span className="home-res__val">{stats.coins || 0}</span>
+              <span className="home-res__plus" aria-hidden="true"><PlusIcon /></span>
+            </button>
+            <button
+              type="button"
+              className={`home-res home-res--bolt${energy <= 0 ? ' home-res--empty' : ''}`}
+              onClick={openEnergyModal}
+              onMouseDown={noSteal}
+              aria-label={`Энергия ${energy} из ${cap}`}
+            >
+              <span className="home-res__ic"><BoltIcon /></span>
+              <span className="home-res__val">{energy}<small>/{cap}</small></span>
+              <span className="home-res__plus" aria-hidden="true"><PlusIcon /></span>
+            </button>
           </div>
         </header>
 
@@ -177,7 +203,16 @@ export function StartMenu({
           <div className="home__social" style={{ '--d': 6 }}>
             {social.invite && <Pill icon={<UsersIcon />} label="Пригласить друзей" onClick={onInvite} strong />}
             {social.share && <Pill icon={<ShareIcon />} label="Поделиться" onClick={onShare} iconOnly={social.invite} tint="share" />}
-            {social.favorites && <Pill icon={<StarIcon />} label="В избранное" onClick={onFavorites} iconOnly={social.invite} tint="fav" />}
+            {social.favorites && (
+              <Pill
+                icon={<StarIcon fill={favorite ? 'currentColor' : 'none'} />}
+                label={favorite ? 'В избранном' : 'В избранное'}
+                onClick={onFavorites}
+                iconOnly={social.invite}
+                tint="fav"
+                on={favorite}
+              />
+            )}
           </div>
         )}
 
@@ -214,8 +249,8 @@ function Tile({ icon, label, tint, onClick, badge, dot }) {
 
 // iconOnly — круглая кнопка-значок рядом с «Пригласить друзей»: три подписанные
 // кнопки в одну строку на телефоне не влезают, а вторая строка отнимает место у совы.
-function Pill({ icon, label, onClick, strong, tint, iconOnly }) {
-  const cls = ['home-pill', strong && 'home-pill--strong', tint && `home-pill--tint home-pill--${tint}`, iconOnly && 'home-pill--icon']
+function Pill({ icon, label, onClick, strong, tint, iconOnly, on }) {
+  const cls = ['home-pill', strong && 'home-pill--strong', tint && `home-pill--tint home-pill--${tint}`, iconOnly && 'home-pill--icon', on && 'home-pill--on']
     .filter(Boolean).join(' ');
   return (
     <button
@@ -224,6 +259,7 @@ function Pill({ icon, label, onClick, strong, tint, iconOnly }) {
       onClick={onClick}
       onMouseDown={(e) => e.preventDefault()}
       aria-label={iconOnly ? label : undefined}
+      aria-pressed={on === undefined ? undefined : on}
       title={iconOnly ? label : undefined}
     >
       {tint && !iconOnly ? <span className="home-pill__ic">{icon}</span> : icon}

@@ -6395,23 +6395,86 @@ body.has-bg .cell--hinted .cell__face--back {
 .home__hello-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
 .home__hello-hi { font-size: 12px; color: var(--home-dim); }
 .home__hello-name { font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.home__chips { flex: none; display: flex; gap: 6px; }
-.home__chip {
+.home__chips { flex: none; display: flex; gap: 8px; }
+/* Ресурсы — «игровые» счётчики: крупный значок-медаль слева выступает за
+   край плашки, число жирное, справа маленький «+» (пополнить). Плашка —
+   тёмное стекло с цветной кромкой своего ресурса. */
+.home-res {
+  --rc: 247 190 40;
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 11px 6px 8px;
+  gap: 6px;
+  height: 32px;
+  margin-left: 10px;
+  padding: 0 4px 0 24px;
   border-radius: 999px;
-  font-size: 14px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  background: var(--home-card);
-  border: 1px solid var(--home-line);
+  border: 1px solid rgb(var(--rc) / 0.45);
+  background-origin: border-box;
+  background-image: linear-gradient(180deg, rgba(8, 12, 44, 0.55), rgba(8, 12, 44, 0.35));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -2px 6px rgba(0, 0, 0, 0.2), 0 3px 10px rgba(3, 8, 44, 0.2);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
   backdrop-filter: blur(8px);
+  transition: transform 0.12s ease, border-color 0.12s ease;
 }
-.home__chip svg { width: 17px; height: 17px; }
-.home__chip--bolt svg { color: #6fc6ff; }
-[data-theme="light"] .home__chip--bolt svg { color: #2f8fe0; }
+[data-theme="light"] .home-res {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 248, 236, 0.85));
+  box-shadow: inset 0 1px 0 #fff, 0 3px 10px rgba(90, 60, 140, 0.14);
+  color: #2a1d10;
+}
+.home-res:hover { border-color: rgb(var(--rc) / 0.8); }
+.home-res:active { transform: scale(0.96); }
+.home-res--bolt { --rc: 80 170 255; }
+.home-res__ic {
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
+}
+.home-res__ic svg { width: 100%; height: 100%; }
+.home-res--bolt .home-res__ic {
+  background: linear-gradient(160deg, #8fd3ff 0%, #2f95ff 50%, #1662d4 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(0, 0, 0, 0.15);
+  color: #fff;
+}
+.home-res--bolt .home-res__ic svg { width: 58%; height: 58%; }
+.home-res__val {
+  min-width: 1.6em;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+[data-theme="light"] .home-res__val { text-shadow: none; }
+.home-res__val small { font-size: 11px; font-weight: 700; opacity: 0.6; margin-left: 1px; }
+.home-res__plus {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(160deg, color-mix(in srgb, rgb(var(--rc)) 70%, #fff), rgb(var(--rc)));
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+.home-res--coin .home-res__plus { color: #5a3a00; }
+.home-res__plus svg { width: 13px; height: 13px; stroke-width: 3; }
+.home-res--empty .home-res__val { color: #ff8a8a; }
+[data-theme="light"] .home-res--empty .home-res__val { color: #d6404f; }
+@media (max-width: 359px) {
+  .home__chips { gap: 4px; }
+  .home-res__plus { display: none; }
+  .home-res { padding-right: 9px; }
+}
 
 /* ---- герой: логотип из плиток, Букля, слоган ---- */
 .home__hero {
@@ -6806,6 +6869,23 @@ body.has-bg .cell--hinted .cell__face--back {
 .home-pill--moon { --mi: 125 95 245; }
 .home-pill--share { --mi: 20 175 235; }
 .home-pill--fav { --mi: 255 170 20; }
+/* «В избранном»: звезда залита, на круге зелёная галочка — видно, что
+   добавление прошло. Появляется с коротким «щелчком». */
+.home-pill--on { position: relative; }
+.home-pill--on svg { animation: home-fav-pop 420ms cubic-bezier(0.2, 1.6, 0.4, 1); }
+.home-pill--on::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22b55e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 11px no-repeat;
+  box-shadow: 0 0 0 2px var(--home-bg-ring, rgba(20, 24, 70, 0.9));
+}
+[data-theme="light"] .home-pill--on::after { box-shadow: 0 0 0 2px #fff; }
+@keyframes home-fav-pop { 0% { scale: 0.6; } 60% { scale: 1.25; } 100% { scale: 1; } }
 
 .home__panel { display: contents; }
 
