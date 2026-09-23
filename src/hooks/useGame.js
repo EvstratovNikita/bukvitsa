@@ -409,7 +409,7 @@ export function useGame() {
             setLastEarnedDeco(0);
             setBoostedLastWin(false);
             const r = stats.recordAltModePlay?.();
-            if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
+            if (r?.grantedEnergy) showToast('+1 энергия за 5 побед в режимах 4/6!');
           } else {
             // Ничего не пересчитываем: показываем ровно ту раскладку, по
             // которой монеты и начислены.
@@ -448,10 +448,8 @@ export function useGame() {
             mode: 'normal', length: wordLength, won: false,
             attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
           });
-          if (wordLength !== 5) {
-            const r = stats.recordAltModePlay?.();
-            if (r?.grantedEnergy) showToast('+1 энергия за 5 партий в режимах 4/6!');
-          }
+          // Серия режимов 4/6 считает только победы (так и написано игроку:
+          // «каждые 5 побед — +1 энергия»), поэтому проигрыш её не двигает.
         }
         setLastEarned(0);
         setLastEarnedBase(0);

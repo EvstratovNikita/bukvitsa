@@ -180,16 +180,17 @@ export function StartMenu({
           </div>
         )}
 
-        {/* Тема — круглым значком: три подписанные кнопки в строку на телефоне
-            не влезают, а перенос отнимал место у совы. */}
+        {/* Служебные кнопки — такие же цветные карточки, как разделы, только
+            пилюлями. Тема — круглым значком: три подписанные кнопки в строку
+            на телефоне не влезают, а перенос отнимал место у совы. */}
         <footer className="home__util" style={{ '--d': 7 }}>
-          {hasLeaderboard && <Pill icon={<SettingsIcon />} label="Настройки" onClick={onOpenSettings} ghost />}
-          <Pill icon={<MailIcon />} label="Обратная связь" onClick={onOpenFeedback} ghost />
+          {hasLeaderboard && <Pill icon={<SettingsIcon />} label="Настройки" onClick={onOpenSettings} tint="settings" />}
+          <Pill icon={<MailIcon />} label="Написать нам" onClick={onOpenFeedback} tint="mail" />
           <Pill
             icon={isLight ? <MoonIcon /> : <SunIcon />}
             label={isLight ? 'Тёмная тема' : 'Светлая тема'}
             onClick={() => setTheme(isLight ? 'dark' : 'light')}
-            ghost
+            tint={isLight ? 'moon' : 'sun'}
             iconOnly
           />
         </footer>
@@ -212,8 +213,8 @@ function Tile({ icon, label, tint, onClick, badge, dot }) {
 
 // iconOnly — круглая кнопка-значок рядом с «Пригласить друзей»: три подписанные
 // кнопки в одну строку на телефоне не влезают, а вторая строка отнимает место у совы.
-function Pill({ icon, label, onClick, strong, ghost, iconOnly }) {
-  const cls = ['home-pill', strong && 'home-pill--strong', ghost && 'home-pill--ghost', iconOnly && 'home-pill--icon']
+function Pill({ icon, label, onClick, strong, tint, iconOnly }) {
+  const cls = ['home-pill', strong && 'home-pill--strong', tint && `home-pill--tint home-pill--${tint}`, iconOnly && 'home-pill--icon']
     .filter(Boolean).join(' ');
   return (
     <button
@@ -224,7 +225,8 @@ function Pill({ icon, label, onClick, strong, ghost, iconOnly }) {
       aria-label={iconOnly ? label : undefined}
       title={iconOnly ? label : undefined}
     >
-      {icon}{!iconOnly && <span>{label}</span>}
+      {tint && !iconOnly ? <span className="home-pill__ic">{icon}</span> : icon}
+      {!iconOnly && <span>{label}</span>}
     </button>
   );
 }

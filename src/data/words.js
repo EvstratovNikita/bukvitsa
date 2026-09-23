@@ -31,6 +31,7 @@ export const WORDS = [
 ];
 
 import { VALID_GUESSES_SET } from './validGuesses.js';
+import { VALID_GUESSES_4_SET, VALID_GUESSES_6_SET } from './validGuesses46.js';
 import { WORDS_4 } from './words4.js';
 import { WORDS_6 } from './words6.js';
 
@@ -41,18 +42,15 @@ const ANSWERS_5 = new Set(WORDS.map(normalizeWord));
 const ANSWERS_4 = new Set(WORDS_4.map(normalizeWord));
 const ANSWERS_6 = new Set(WORDS_6.map(normalizeWord));
 
-const CYRILLIC_ONLY = /^[а-я]+$/;
-
-// Length-aware validation. For 5 we keep the full OpenCorpora dictionary
-// + answers as a safety net. For 4 and 6 we don't ship a big dictionary
-// (yet), so we accept any all-cyrillic string of the right length plus
-// the answer pool — a lenient mode so players can actually probe.
+// Length-aware validation: the OpenCorpora dictionary for that length plus
+// the answer pool as a safety net. Раньше в режимах 4 и 6 принималась любая
+// кириллица — игрок мог открыть поле словом «аааа».
 export function isValidWord(w, length = 5) {
   const n = normalizeWord(w);
   if (n.length !== length) return false;
   if (length === 5) return VALID_GUESSES_SET.has(n) || ANSWERS_5.has(n);
-  if (length === 4) return CYRILLIC_ONLY.test(n) || ANSWERS_4.has(n);
-  if (length === 6) return CYRILLIC_ONLY.test(n) || ANSWERS_6.has(n);
+  if (length === 4) return VALID_GUESSES_4_SET.has(n) || ANSWERS_4.has(n);
+  if (length === 6) return VALID_GUESSES_6_SET.has(n) || ANSWERS_6.has(n);
   return false;
 }
 
