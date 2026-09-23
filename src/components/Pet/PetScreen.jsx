@@ -4,7 +4,7 @@ import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '..
 import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { pluralCoins } from '../../utils/plural.js';
-import { CloseIcon, CoinIcon } from '../icons/Icon.jsx';
+import { CloseIcon, CoinIcon, HomeIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
 import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
@@ -34,7 +34,10 @@ function pluralDays(n) {
 
 // overHome — экран открыт из главного меню VK: рисуется поверх меню, и
 // крестик возвращает в меню, а не на поле (меню под ним остаётся открытым).
-export function PetScreen({ open, onClose, overHome = false }) {
+// onHome — только в VK: кнопка «Главное меню» в шапке. Правила площадки
+// (п. 4.2.10) требуют, чтобы в меню можно было вернуться в любой момент, а
+// Букля — единственный полноэкранный экран, где этого не было.
+export function PetScreen({ open, onClose, overHome = false, onHome }) {
   const {
     stats,
     hatchPet,
@@ -145,17 +148,31 @@ export function PetScreen({ open, onClose, overHome = false }) {
 
   return (
     <div className={`pet-screen${overHome ? ' pet-screen--over-home' : ''}`} role="dialog" aria-modal="true">
-      <header className="pet-screen__head">
-        <button
-          type="button"
-          className="iconbtn"
-          onClick={onClose}
-          onMouseDown={(e) => e.preventDefault()}
-          aria-label="Назад"
-          title="Назад"
-        >
-          <CloseIcon />
-        </button>
+      <header className={`pet-screen__head${onHome ? ' pet-screen__head--home' : ''}`}>
+        <div className="pet-screen__nav">
+          <button
+            type="button"
+            className="iconbtn"
+            onClick={onClose}
+            onMouseDown={(e) => e.preventDefault()}
+            aria-label="Назад"
+            title="Назад"
+          >
+            <CloseIcon />
+          </button>
+          {onHome && (
+            <button
+              type="button"
+              className="pet-home-btn"
+              onClick={onHome}
+              onMouseDown={(e) => e.preventDefault()}
+              aria-label="Главное меню"
+              title="Главное меню"
+            >
+              <HomeIcon />
+            </button>
+          )}
+        </div>
         <h2 className="pet-screen__title">
           {!unlocked && !pet.hatched ? 'Дупло' : (pet.name || 'Букля')}
         </h2>

@@ -7024,3 +7024,40 @@ body.has-bg .cell--hinted .cell__face--back {
    модалок (100): покормить, наряды и подарки открывают окна над ним. */
 .pet-screen--over-home { z-index: 95; }
 
+
+/* Кнопка «Главное меню» в шапке экрана Букли (только VK, п. 4.2.10).
+   Рядом с «назад», чтобы стороны шапки уравновесились: слева две круглые
+   кнопки, справа монеты, имя Букли — строго по центру. Сама кнопка —
+   фирменный градиент меню с белым домиком: заметная, но не кричащая. */
+.pet-screen__head--home { grid-template-columns: 1fr auto 1fr; }
+.pet-screen__head--home .pet-screen__balance { justify-self: end; }
+.pet-screen__nav { display: flex; align-items: center; gap: 8px; justify-self: start; }
+.pet-home-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* тот же размер и скругление, что у «назад» рядом и у домика в шапке игры */
+  width: clamp(28px, 4.75vh, 38px);
+  height: clamp(28px, 4.75vh, 38px);
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(160deg, #8fb0ff 0%, #5b7cff 48%, #7b4dff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -2px 0 rgba(20, 10, 80, 0.25), 0 3px 10px rgba(91, 90, 255, 0.35);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.pet-home-btn svg { width: 19px; height: 19px; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.2)); }
+.pet-home-btn:hover { filter: brightness(1.08); }
+.pet-home-btn:active { transform: scale(0.94); }
+.pet-home-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+/* мягкий блик по краю — как у кнопок главного меню */
+.pet-home-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}

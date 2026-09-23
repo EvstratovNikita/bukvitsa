@@ -184,7 +184,12 @@ function GameShell() {
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
       {/* Из главного меню Букля открывается поверх него: меню не закрываем,
           иначе на миг мелькало поле, а крестик возвращал на поле, не в меню. */}
-      <PetScreen open={petOpen} onClose={() => setPetOpen(false)} overHome={homeOpen} />
+      <PetScreen
+        open={petOpen}
+        onClose={() => setPetOpen(false)}
+        overHome={homeOpen}
+        onHome={isVk ? () => { setHomeOpen(true); setPetOpen(false); } : undefined}
+      />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} score={stats.won || 0} showToast={showToast} />
