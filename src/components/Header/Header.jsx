@@ -1,10 +1,12 @@
 import { useGameContext } from '../../context/GameContext.jsx';
 import { PET_UNLOCK_GAMES } from '../../constants/game.js';
 import { PetHeaderButton } from '../Pet/PetHeaderButton.jsx';
-import { SunIcon, MoonIcon, PlusIcon } from '../icons/Icon.jsx';
+import { SunIcon, MoonIcon, PlusIcon, HomeIcon } from '../icons/Icon.jsx';
 import { MenuButton } from '../Menu/Menu.jsx';
 
-export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
+// onOpenHome есть только в VK: там вместо бокового меню кнопка «Домой» ведёт в
+// главное меню (правила VK, п. 4.2.10 — вернуться в меню можно в любой момент).
+export function Header({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
   // Stats moved into the side menu — the right slot now hosts Букля so the
   // pet is always one tap away without floating chrome over the board.
   const { stats, petGiftReady, setTheme } = useGameContext();
@@ -52,7 +54,21 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes }) {
 
       <div className="header__actions">
         <PetHeaderButton onClick={onOpenPet} hatched={hatched} ready={ready} giftReady={Boolean(petGiftReady)} />
-        <MenuButton onClick={onOpenMenu} />
+        {onOpenHome ? (
+          <button
+            type="button"
+            className="iconbtn iconbtn--accent"
+            data-tour="menu"
+            onClick={onOpenHome}
+            onMouseDown={(e) => e.preventDefault()}
+            aria-label="Главное меню"
+            title="Главное меню"
+          >
+            <HomeIcon />
+          </button>
+        ) : (
+          <MenuButton onClick={onOpenMenu} />
+        )}
       </div>
     </header>
   );

@@ -29,12 +29,14 @@ export function useKeyboard(enabled = true) {
   // и заодно не пускают его во фрейм: игрок жмёт по экранным клавишам, а
   // физическая клавиатура продолжает печатать в страницу площадки. Поэтому
   // при любом нажатии указателя внутри игры забираем фокус явно: во время
-  // жеста пользователя браузер это разрешает.
+  // жеста пользователя браузер это разрешает. Фокус забираем и тогда, когда
+  // ввод в поле выключен (открыто главное меню): Esc и Enter должны доходить
+  // до самого меню.
   useEffect(() => {
-    if (!enabled || window.self === window.top) return;
+    if (window.self === window.top) return;
     const grab = () => { if (!document.hasFocus()) window.focus(); };
     window.addEventListener('pointerdown', grab, true);
     grab();
     return () => window.removeEventListener('pointerdown', grab, true);
-  }, [enabled]);
+  }, []);
 }

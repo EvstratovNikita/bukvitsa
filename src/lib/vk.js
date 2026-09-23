@@ -352,4 +352,35 @@ export async function showInterstitialVk() {
   }
 }
 
+// ---------- Социальные кнопки главного меню ----------
+//
+// «Пригласить друзей» и «В избранное» — нативные окна VK. Наград за них нет и
+// быть не должно: правила (п. 2.6.2) запрещают поощрять приглашения и прочие
+// социальные действия. Окно ждёт решения игрока, поэтому без таймаута `send`.
+//
+// 'ok' — игрок довёл дело до конца, 'cancelled' — закрыл окно, 'failed' —
+// метод недоступен в этом клиенте.
+async function socialDialog(method) {
+  if (!isVk) return 'failed';
+  try {
+    await vkInit();
+    await bridge.send(method, {});
+    return 'ok';
+  } catch (e) {
+    const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || '');
+    if (e?.error_data?.error_code === 4 || /denied|cancel/i.test(reason)) return 'cancelled';
+    console.warn('[vk]', method, 'failed', e?.error_type, e?.error_data || e);
+    return 'failed';
+  }
+}
+
+export const inviteFriends = () => socialDialog('VKWebAppShowInviteBox');
+export const addToFavorites = () => socialDialog('VKWebAppAddToFavorites');
+
+// Есть ли метод в этом клиенте VK: кнопку показываем, только если она сработает.
+export async function vkSupports(method) {
+  if (!isVk) return false;
+  try { return Boolean(await bridge.supportsAsync(method)); } catch { return false; }
+}
+
 export { bridge as vkBridge };

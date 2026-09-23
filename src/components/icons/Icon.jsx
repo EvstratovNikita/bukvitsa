@@ -459,3 +459,56 @@ export function CloseIcon(props) {
     </svg>
   );
 }
+
+// ---- Главное меню VK ----
+
+export function HomeIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M4 11.2 12 4.5l8 6.7" />
+      <path d="M6.2 9.6V19h4.3v-5h3v5h4.3V9.6" />
+    </svg>
+  );
+}
+
+export function UsersIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <circle cx="9" cy="8.5" r="3.2" />
+      <path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5" />
+      <path d="M15.5 5.6a3 3 0 0 1 0 5.8" />
+      <path d="M17 14.3c1.8.6 3.1 2.1 3.5 4.7" />
+    </svg>
+  );
+}
+
+export function StarIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M12 3.8l2.5 5.1 5.6.8-4.1 3.9 1 5.6-5-2.7-5 2.7 1-5.6-4.1-3.9 5.6-.8z" />
+    </svg>
+  );
+}
+
+export function GridIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.6" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6" />
+    </svg>
+  );
+}
+
+export function OwlIcon(props) {
+  return (
+    <svg {...base} {...props} aria-hidden="true">
+      <path d="M6 7.5 5 3.8l3.6 2.1M18 7.5l1-3.7-3.6 2.1" />
+      <path d="M5.5 11c0-3.6 2.9-5.5 6.5-5.5s6.5 1.9 6.5 5.5v2.5c0 4-2.9 6.5-6.5 6.5s-6.5-2.5-6.5-6.5z" />
+      <circle cx="9.3" cy="11" r="1.9" />
+      <circle cx="14.7" cy="11" r="1.9" />
+      <path d="M11.2 13.8 12 15l.8-1.2" />
+    </svg>
+  );
+}

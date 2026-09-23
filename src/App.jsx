@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AchievementsModal } from './components/Achievements/Achievements.jsx';
 import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
 import { Header } from './components/Header/Header.jsx';
@@ -27,6 +27,8 @@ import { HowToPlay } from './components/Help/HowToPlay.jsx';
 import { SideMenu } from './components/Menu/Menu.jsx';
 import { Shop } from './components/Shop/Shop.jsx';
 import { AuthModal } from './components/Auth/Auth.jsx';
+import { StartMenu } from './components/StartMenu/StartMenu.jsx';
+import { isVk } from './lib/platform.js';
 import { GAME_STATUS } from './constants/game.js';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
@@ -40,7 +42,11 @@ function Toast() {
 }
 
 function GameShell() {
-  useKeyboard(true);
+  // Главное меню VK (правила, п. 4.2.10): открыто при запуске и по кнопке
+  // «Домой» в шапке. Пока оно на экране, физическая клавиатура не пишет в поле.
+  const [homeOpen, setHomeOpen] = useState(isVk);
+  const closeHome = useCallback(() => setHomeOpen(false), []);
+  useKeyboard(!homeOpen);
   useAuthRedirectFallback();
   useShopTheme();
   const { stats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref } = useGameContext();
@@ -99,8 +105,10 @@ function GameShell() {
   // modal is dismissed, start the tour. Один раз на игрока: флаг живёт и в
   // prefs (уезжает в облако Яндекса / в Supabase), и в localStorage — иначе
   // после входа в аккаунт обучение показывалось уже игравшему человеку.
+  // В VK обучение ждёт, пока игрок выйдет из главного меню: подсказки
+  // показывают элементы шапки и поля, а меню их закрывает.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || homeOpen) return;
     if (stats.prefs?.tourDone) return;
     let skip = false;
     try { skip = Boolean(localStorage.getItem(TOUR_DONE_KEY)); } catch { /* noop */ }
@@ -117,7 +125,7 @@ function GameShell() {
     };
     const t = setTimeout(() => { raf = requestAnimationFrame(tryStart); }, 400);
     return () => { clearTimeout(t); if (raf) cancelAnimationFrame(raf); };
-  }, [ready]);
+  }, [ready, homeOpen]);
 
   return (
     <div className="app">
@@ -125,6 +133,7 @@ function GameShell() {
         onOpenMenu={() => setMenuOpen(true)}
         onOpenPet={() => setPetOpen(true)}
         onOpenModes={openModes}
+        onOpenHome={isVk ? () => setHomeOpen(true) : undefined}
       />
       <div className="topbar">
         <Coins />
@@ -139,6 +148,20 @@ function GameShell() {
       <Toast />
       <AchievementToast />
       <DailyReward />
+      {homeOpen && (
+        <StartMenu
+          onPlay={closeHome}
+          onOpenModes={openModes}
+          onOpenShop={() => setShopOpen(true)}
+          onOpenPet={() => { setHomeOpen(false); setPetOpen(true); }}
+          onOpenAchievements={() => setAchOpen(true)}
+          onOpenLeaderboard={openLeaderboard}
+          onOpenStats={() => setStatsOpen(true)}
+          onOpenHelp={() => setHelpOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenFeedback={() => setFeedbackOpen(true)}
+        />
+      )}
       {tourOn && <Tour onDone={() => { setTourOn(false); setPref?.('tourDone', true); }} />}
 
       <SideMenu
@@ -161,7 +184,7 @@ function GameShell() {
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} score={stats.won || 0} showToast={showToast} />
-      <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} />
+      <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} onPicked={closeHome} />
 
       <Modal
         open={dailyLeaveOpen}

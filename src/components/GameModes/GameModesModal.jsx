@@ -21,12 +21,15 @@ const MODES = [
 // starts a fresh round at that length — no energy cost, no coin reward.
 // Each 5 plays in 4/6 modes refunds +1 energy to the canonical 5-letter
 // mode (capped at 3 per day).
-export function GameModesModal({ open, onClose }) {
+// onPicked — выбор сделан (а не окно просто закрыли): главное меню VK по нему
+// уходит, и игрок сразу попадает на поле с новой партией.
+export function GameModesModal({ open, onClose, onPicked }) {
   const { setGameLength, wordLength } = useGameContext();
 
   const onPick = (length) => {
     setGameLength(length);
     onClose();
+    onPicked?.();
   };
 
   return (

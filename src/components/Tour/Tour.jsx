@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { isVk } from '../../lib/platform.js';
 
 // First-run coachmarks: dim the screen, spotlight one UI element at a time and
 // describe it in a couple of words. Показывается один раз на ИГРОКА: флаг
@@ -41,11 +42,18 @@ const STEPS = [
     title: 'Режимы 4 и 6 букв',
     text: 'Дополнительные режимы — играй без траты энергии и прокачивай питомца Буклю.'
   },
-  {
-    sel: '[data-tour="menu"]',
-    title: 'Меню',
-    text: 'Магазин, достижения, статистика, настройки и обратная связь — всё здесь.'
-  }
+  // В VK на этом месте кнопка «Домой» — главное меню со всеми разделами.
+  isVk
+    ? {
+        sel: '[data-tour="menu"]',
+        title: 'Главное меню',
+        text: 'Режимы, магазин, питомец, достижения, друзья и настройки. Вернуться в меню можно в любой момент.'
+      }
+    : {
+        sel: '[data-tour="menu"]',
+        title: 'Меню',
+        text: 'Магазин, достижения, статистика, настройки и обратная связь — всё здесь.'
+      }
 ];
 
 export function Tour({ onDone }) {
