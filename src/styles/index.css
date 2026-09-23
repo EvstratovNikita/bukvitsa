@@ -6441,6 +6441,11 @@ body.has-bg .cell--hinted .cell__face--back {
 }
 .home-res__ic svg { width: 100%; height: 100%; }
 .home-res--bolt .home-res__ic {
+  /* монета в своём svg нарисована с полями — круг молнии уменьшаем до её
+     видимого диаметра, центр оставляем тем же */
+  width: 27px;
+  height: 27px;
+  left: -7.5px;
   background: linear-gradient(160deg, #8fd3ff 0%, #2f95ff 50%, #1662d4 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(0, 0, 0, 0.15);
   color: #fff;
@@ -6961,4 +6966,44 @@ body.has-bg .cell--hinted .cell__face--back {
 @media (prefers-reduced-motion: reduce) {
   .home,
   .home * { animation: none !important; }
+}
+
+/* ---------- Тёмная тема: окна и экран Букли в «ночном небе» ----------
+   Раньше модалки и экран питомца были почти чёрными (#11151c / #0a0c14) и
+   выглядели мрачно рядом с главным меню. Берём его палитру — глубокий синий
+   с уходом в фиолетовый, — но темнее и спокойнее, чтобы длинный текст
+   читался: основной текст #e9ecf3 на самом светлом месте фона (#1b2870)
+   даёт контраст выше 10:1, приглушённый #a9b3d6 — выше 6:1.
+   Токены --bg-1/2/3 и --line переопределены внутри окна, поэтому карточки,
+   липкие шапки и полосы вкладок сами перекрашиваются в тон. Верх фона
+   ровный (первые 120 px): на нём лежат липкие шапка и вкладки «Как играть»,
+   залитые --bg-1, — шва не видно. */
+:root:not([data-theme="light"]) .modal,
+:root:not([data-theme="light"]) .menu,
+:root:not([data-theme="light"]) .pet-screen {
+  --bg-1: #0e1745;
+  --bg-2: #18245e;
+  --bg-3: #213075;
+  --line: rgba(150, 172, 255, 0.2);
+  --text-dim: #a9b3d6;
+  --text-mute: #8590bb;
+}
+:root:not([data-theme="light"]) .modal,
+:root:not([data-theme="light"]) .menu {
+  background:
+    radial-gradient(120% 60% at 100% 100%, rgba(150, 96, 255, 0.22), transparent 70%),
+    linear-gradient(180deg, #0e1745 0, #0e1745 120px, #16226a 62%, #1d1a5e 100%);
+  border-color: rgba(150, 172, 255, 0.22);
+  box-shadow: 0 24px 60px rgba(2, 4, 24, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+:root:not([data-theme="light"]) .modal-backdrop { background: rgba(4, 7, 30, 0.6); }
+:root:not([data-theme="light"]) .pet-screen {
+  background:
+    radial-gradient(80vmax 60vmax at -10% -10%, rgba(84, 146, 255, 0.22), transparent 70%),
+    radial-gradient(80vmax 60vmax at 110% 110%, rgba(176, 106, 255, 0.24), transparent 70%),
+    linear-gradient(165deg, #0a1236 0%, #14206a 58%, #2a1c66 100%);
+}
+:root:not([data-theme="light"]) .pet-screen__head {
+  background: rgba(6, 10, 40, 0.35);
+  border-bottom-color: rgba(150, 172, 255, 0.14);
 }
