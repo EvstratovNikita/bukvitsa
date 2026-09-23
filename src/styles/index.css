@@ -1,12 +1,14 @@
 :root {
-  --bg-0: #0b0d12;
-  --bg-1: #11151c;
-  --bg-2: #1a2030;
-  --bg-3: #232a3c;
-  --line: #2a3145;
+  /* Тёмная тема — «ночное небо» главного меню: глубокий синий вместо
+     почти чёрного. Клавиши, клетки и карточки берут эти же токены. */
+  --bg-0: #0a1236;
+  --bg-1: #0e1745;
+  --bg-2: #18245e;
+  --bg-3: #213075;
+  --line: #34458f;
   --text: #e9ecf3;
-  --text-dim: #98a0b4;
-  --text-mute: #6a7387;
+  --text-dim: #a9b3d6;
+  --text-mute: #8590bb;
   --scroll-thumb: rgba(120, 142, 210, 0.34);
   --scroll-thumb-hover: rgba(138, 160, 230, 0.60);
 
@@ -187,6 +189,15 @@ body {
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+/* Тёмная тема — «ночное небо» главного меню вместо почти чёрного фона.
+   Светлая тема остаётся на общих токенах выше. Купленные фоны перекрывают
+   это инлайн-стилем (useShopTheme). */
+:root:not([data-theme="light"]) body {
+  background-image:
+    radial-gradient(1200px 600px at 20% -10%, rgba(84, 146, 255, 0.24), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, rgba(176, 106, 255, 0.26), transparent 60%),
+    linear-gradient(165deg, #0a1236 0%, #14206a 58%, #2a1c66 100%);
 }
 button { font-family: inherit; }
 
@@ -699,9 +710,9 @@ button { font-family: inherit; }
 }
 .shop-card__preview--default {
   background:
-    radial-gradient(1100px 600px at 20% -10%, rgba(108, 140, 255, 0.18), transparent 60%),
-    radial-gradient(900px 500px at 100% 110%, rgba(179, 136, 255, 0.14), transparent 60%),
-    linear-gradient(180deg, #0b0d12, #11151c);
+    radial-gradient(1100px 600px at 20% -10%, rgba(84, 146, 255, 0.24), transparent 60%),
+    radial-gradient(900px 500px at 100% 110%, rgba(176, 106, 255, 0.26), transparent 60%),
+    linear-gradient(165deg, #0a1236 0%, #14206a 58%, #2a1c66 100%);
   position: relative;
 }
 /* Light default card always previews as the light theme, in either mode. */
@@ -1753,13 +1764,13 @@ button { font-family: inherit; }
 }
 
 .cell--empty .cell__face--front { border-color: var(--line); background: transparent; }
-.cell--tbd   .cell__face--front { border-color: #475274; background: var(--bg-2); }
+.cell--tbd   .cell__face--front { border-color: #5a6cc0; background: var(--bg-2); }
 
 /* While flipping, lock the front face to the pre-reveal look so the
    tbd→base style transition can't bleed through during the visible half
    of the rotation (prevents flicker). */
 .cell--flipping .cell__face--front {
-  border-color: #475274;
+  border-color: #5a6cc0;
   background: var(--bg-2);
   color: var(--text);
   transition: none;
