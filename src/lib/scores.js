@@ -66,3 +66,17 @@ export async function fetchTop(platform, playerId) {
   });
   return r && Array.isArray(r.entries) ? r : null;
 }
+
+// Приходы по ссылкам «Поделиться» (supabase/vk_referrals.sql) — только
+// статистика, без наград (правила VK, п. 2.6.2). Кто пришёл, сервер берёт из
+// подписи строки запуска; чья ссылка — из метки #ref в адресе.
+export async function recordVkReferral(query, inviterId) {
+  if (!query || !/^\d{1,20}$/.test(String(inviterId || ''))) return null;
+  return rpc('record_vk_referral', { p_query: query, p_inviter: String(inviterId) });
+}
+
+// Игрок успешно поделился ссылкой — счётчик для конверсии.
+export async function recordVkShare(query) {
+  if (!query) return null;
+  return rpc('record_vk_share', { p_query: query });
+}

@@ -15,6 +15,7 @@
 import { isTelegram, isVk } from './platform.js';
 import { vkBridge, launchParams } from './vk.js';
 import { copyText } from '../utils/clipboard.js';
+import { refTag, reportShare } from './referral.js';
 
 // Канонический адрес, которым делимся.
 //
@@ -34,14 +35,15 @@ function canonicalShareUrl() {
   const appId = launchParams().vk_app_id;
   // Без номера ссылку не строим вовсе: пустая строка означает «поделиться
   // без ссылки», и текст, и мост это переживают (см. buildWordleShareText).
-  return appId ? `https://vk.com/app${appId}` : '';
+  // Метка #ref=<id> — чья это ссылка: VK передаёт хеш в приложение, и мы
+  // считаем, сколько людей пришло по ссылкам (lib/referral.js). Без наград.
+  return appId ? `https://vk.com/app${appId}${refTag()}` : '';
 }
 
 export const SHARE_BASE_URL = canonicalShareUrl();
 
-// Приглашения убраны (на Яндексе нет входа через Google/email, засчитать
-// приглашение нечем), поэтому ссылка больше не несёт ?ref — делимся
-// сеткой Слова дня на обычный канонический адрес.
+// Вне VK ссылка без метки: на Яндексе нет входа через Google/email, засчитать
+// приход нечем. В VK метка есть (см. canonicalShareUrl) — только для статистики.
 
 // Cheeky variety pack — randomised per share so the same message doesn't
 // flood feeds when many players share back to back.
@@ -100,6 +102,7 @@ async function shareVk(text, url) {
       // зовём мост с пустым link (он ответит ошибкой).
       if (!url) return copyToClipboard(text);
       await vkBridge.send('VKWebAppShare', { link: url });
+      reportShare();
       return 'shared';
     }
     const u = `https://vk.com/share.php?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`;

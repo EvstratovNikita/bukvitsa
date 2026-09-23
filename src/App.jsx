@@ -12,6 +12,7 @@ import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
 import { vkInit, preloadRewardedVk, fitToVisibleFrame } from './lib/vk.js';
+import { reportArrival } from './lib/referral.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -57,7 +58,9 @@ function GameShell() {
   // чтобы первое нажатие «Смотреть рекламу» не ждало загрузки.
   // На vk.ru ещё и укладываем игру в видимую часть фрейма — в
   // широкоформатном режиме он выше экрана (см. lib/vk.js).
-  useEffect(() => { vkInit(); preloadRewardedVk(); fitToVisibleFrame(); }, []);
+  // Пришёл по чужой ссылке «Поделиться» — отметить на сервере (статистика,
+  // без наград; см. lib/referral.js).
+  useEffect(() => { vkInit(); preloadRewardedVk(); fitToVisibleFrame(); reportArrival(); }, []);
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also
