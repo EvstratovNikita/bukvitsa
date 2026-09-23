@@ -452,4 +452,10 @@ SQL применён в боевом проекте, ключ приложени
       `private.vk_referral_summary` и `private.vk_referral_top` (SQL Editor)
 - [x] Проверка: SQL прогнан на PostgreSQL в песочнице с подписанными тестовыми
       запросами (новый/повтор/сам себя/подделка/лимит/права anon), разбор метки
-- [ ] Применить `supabase/vk_referrals.sql` в Supabase → SQL Editor (владелец)
+- [x] `supabase/vk_referrals.sql` применён в Supabase (SQL Editor, 23.09.2026);
+      снаружи проверено: RPC отвечают `bad_sign` на чужую подпись, таблицы
+      не читаются (401)
+
+## Почта обратной связи в VK (23.09.2026)
+
+- [x] В VK — relagames@mail.ru (без бренда Яндекса), на Яндексе и в вебе прежняя

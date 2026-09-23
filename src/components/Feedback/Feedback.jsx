@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
 import { callRpc } from '../../lib/economy.js';
-import { isEmbedded } from '../../lib/platform.js';
+import { isEmbedded, isVk } from '../../lib/platform.js';
 import { copyText } from '../../utils/clipboard.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { MailIcon } from '../icons/Icon.jsx';
 
-const DEV_EMAIL = 'relagames@yandex.com';
+// В VK — почта не на домене Яндекса: модерация площадки придирается к чужим
+// брендам. На Яндексе и в вебе адрес прежний.
+const DEV_EMAIL = isVk ? 'relagames@mail.ru' : 'relagames@yandex.com';
 
 const CATEGORIES = [
   { id: 'question', label: 'Вопрос',      subject: 'Вопрос' },
