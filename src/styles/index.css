@@ -6511,7 +6511,7 @@ body.has-bg .cell--hinted .cell__face--back {
   font: inherit;
   cursor: pointer;
   box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.45), inset 0 -6px 0 rgba(120, 60, 0, 0.25),
-    0 0 0 1px rgba(255, 236, 170, 0.5), 0 18px 40px rgba(247, 181, 30, 0.36), 0 6px 16px rgba(0, 0, 0, 0.22);
+    0 0 0 1px rgba(255, 236, 170, 0.5), 0 10px 24px rgba(247, 181, 30, 0.26), 0 4px 10px rgba(0, 0, 0, 0.18);
   transition: transform 0.12s ease, filter 0.12s ease;
 }
 .home__play:hover { filter: brightness(1.05); }
@@ -6599,32 +6599,36 @@ body.has-bg .cell--hinted .cell__face--back {
   cursor: pointer;
   backdrop-filter: blur(10px);
   /* стекло с объёмом: светлая кромка сверху и лёгкий цветной отсвет раздела */
-  background-image: radial-gradient(90% 70% at 50% 0%, rgb(var(--mi) / 0.12), transparent 70%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 20px rgba(3, 8, 44, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 6px 14px rgba(3, 8, 44, 0.14);
   transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
-[data-theme="light"] .home-tile { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 20px rgba(90, 60, 140, 0.1); }
+[data-theme="light"] .home-tile { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 14px rgba(90, 60, 140, 0.08); }
 .home-tile:hover { background-color: rgb(var(--mi) / 0.14); border-color: rgb(var(--mi) / 0.36); }
 .home-tile:active { transform: scale(0.97); }
-.home-tile--shop { --mi: 167 130 255; }
-.home-tile--pet { --mi: 255 170 92; }
-.home-tile--awards { --mi: 255 128 150; }
-.home-tile--rating { --mi: 240 190 70; }
-.home-tile--stats { --mi: 74 200 190; }
-.home-tile--help { --mi: 96 165 250; }
-.home-tile--settings { --mi: 142 164 204; }
+.home-tile--shop { --mi: 146 100 255; }
+.home-tile--pet { --mi: 255 140 50; }
+.home-tile--awards { --mi: 255 84 128; }
+.home-tile--rating { --mi: 250 180 20; }
+.home-tile--stats { --mi: 20 190 160; }
+.home-tile--help { --mi: 50 140 255; }
+.home-tile--settings { --mi: 110 128 255; }
+/* Значок — сочная цветная плашка с белым знаком, без ореола вокруг.
+   Без рамки: полупрозрачная рамка поверх градиента давала по краю плашки
+   цветные пиксели (у «Лучших игроков» — жёлтую точку слева). */
 .home-tile__icon {
   display: grid;
   place-items: center;
   width: clamp(30px, calc(var(--hh) * 0.054), 38px);
   height: clamp(30px, calc(var(--hh) * 0.054), 38px);
   border-radius: 11px;
-  background: linear-gradient(180deg, rgb(var(--mi) / 0.3), rgb(var(--mi) / 0.12));
-  border: 1px solid rgb(var(--mi) / 0.38);
-  color: rgb(var(--mi));
-  box-shadow: 0 2px 10px rgb(var(--mi) / 0.16);
+  background: linear-gradient(160deg,
+    color-mix(in srgb, rgb(var(--mi)) 72%, #fff) 0%,
+    rgb(var(--mi)) 50%,
+    color-mix(in srgb, rgb(var(--mi)) 80%, #000) 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.16);
 }
-[data-theme="light"] .home-tile__icon { color: color-mix(in srgb, rgb(var(--mi)) 70%, #0d1020); }
+.home-tile__icon svg { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.18)); }
 /* Одной строкой: «Лучшие игроки» в две строки делало ряд выше и сжимало сову. */
 .home-tile__label {
   max-width: 100%;
@@ -6722,12 +6726,15 @@ body.has-bg .cell--hinted .cell__face--back {
 .home-pill--tint {
   --mi: 150 162 196;
   padding-left: 6px;
+  /* от края рамки: иначе градиент повторяется под рамкой и по кромке
+     видна полоска другого цвета */
+  background-origin: border-box;
   background-image: linear-gradient(180deg, rgb(var(--mi) / 0.22), rgb(var(--mi) / 0.08));
   border-color: rgb(var(--mi) / 0.42);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 6px 16px rgb(var(--mi) / 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 3px 8px rgba(3, 8, 44, 0.14);
 }
 [data-theme="light"] .home-pill--tint {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 16px rgb(var(--mi) / 0.2);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 3px 8px rgba(90, 60, 140, 0.1);
 }
 .home-pill--tint:hover { background-color: rgb(var(--mi) / 0.18); border-color: rgb(var(--mi) / 0.6); }
 .home-pill__ic {
@@ -6737,21 +6744,31 @@ body.has-bg .cell--hinted .cell__face--back {
   height: 26px;
   border-radius: 50%;
   flex: none;
-  background: linear-gradient(180deg, rgb(var(--mi)), color-mix(in srgb, rgb(var(--mi)) 72%, #000));
+  background: linear-gradient(160deg,
+    color-mix(in srgb, rgb(var(--mi)) 72%, #fff) 0%,
+    rgb(var(--mi)) 50%,
+    color-mix(in srgb, rgb(var(--mi)) 80%, #000) 100%);
   color: #fff;
-  box-shadow: 0 2px 8px rgb(var(--mi) / 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 .home-pill__ic svg { width: 15px; height: 15px; }
+/* Круг темы — сплошная заливка без рамки и без стекла: полупрозрачная
+   рамка и backdrop-filter давали по кругу «зазоры» другого цвета. */
 .home-pill--tint.home-pill--icon {
-  background-image: linear-gradient(180deg, rgb(var(--mi)), color-mix(in srgb, rgb(var(--mi)) 72%, #000));
-  border-color: transparent;
+  border: 0;
+  backdrop-filter: none;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, rgb(var(--mi)) 72%, #fff) 0%,
+    rgb(var(--mi)) 50%,
+    color-mix(in srgb, rgb(var(--mi)) 80%, #000) 100%);
   color: #fff;
-  box-shadow: 0 4px 14px rgb(var(--mi) / 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 2px 5px rgba(0, 0, 0, 0.18);
 }
-.home-pill--settings { --mi: 124 140 255; }
-.home-pill--mail { --mi: 52 196 150; }
-.home-pill--sun { --mi: 255 176 46; }
-.home-pill--moon { --mi: 132 110 240; }
+.home-pill--tint.home-pill--icon:hover { filter: brightness(1.06); }
+.home-pill--settings { --mi: 110 128 255; }
+.home-pill--mail { --mi: 20 190 140; }
+.home-pill--sun { --mi: 255 170 20; }
+.home-pill--moon { --mi: 125 95 245; }
 
 .home__panel { display: contents; }
 
