@@ -151,7 +151,6 @@ function GameShell() {
       {homeOpen && (
         <StartMenu
           onPlay={closeHome}
-          onOpenModes={openModes}
           onOpenShop={() => setShopOpen(true)}
           onOpenPet={() => { setHomeOpen(false); setPetOpen(true); }}
           onOpenAchievements={() => setAchOpen(true)}

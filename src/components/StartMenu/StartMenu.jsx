@@ -7,7 +7,7 @@ import { share, SHARE_BASE_URL } from '../../lib/share.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { OwlSvg } from '../Pet/OwlSvg.jsx';
 import {
-  AwardIcon, BoltIcon, CoinIcon, GridIcon, HelpIcon, MailIcon, MoonIcon, OwlIcon,
+  AwardIcon, BoltIcon, CoinIcon, HelpIcon, MailIcon, MoonIcon, OwlIcon,
   PlayIcon, SettingsIcon, ShareIcon, ShopIcon, StarIcon, StatsIcon, SunIcon,
   TrophyIcon, UsersIcon
 } from '../icons/Icon.jsx';
@@ -28,7 +28,7 @@ function lettersLabel(n) {
 }
 
 export function StartMenu({
-  onPlay, onOpenModes, onOpenShop, onOpenPet, onOpenAchievements, onOpenLeaderboard,
+  onPlay, onOpenShop, onOpenPet, onOpenAchievements, onOpenLeaderboard,
   onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback
 }) {
   const {
@@ -133,6 +133,10 @@ export function StartMenu({
           </div>
           <div className="home__owl">
             <span className="home__halo" aria-hidden="true" />
+            <span className="home__rays" aria-hidden="true" />
+            <i className="home__spark home__spark--a" aria-hidden="true" />
+            <i className="home__spark home__spark--b" aria-hidden="true" />
+            <i className="home__spark home__spark--c" aria-hidden="true" />
             <div className="home__owl-float">
               <OwlSvg equipped={hatched ? (stats.pet?.equipped || {}) : {}} perch />
             </div>
@@ -144,15 +148,16 @@ export function StartMenu({
             колонкой; в широком фрейме vk.ru она становится правой колонкой. */}
         <div className="home__panel">
         <div className="home__actions" style={{ '--d': 4 }}>
+          {/* Значок «плей» — отдельным кружком у левого края, а надпись и
+              подпись центрируются по всей кнопке: иначе значок сдвигал слово
+              «Играть» вправо от подписи. Поля слева и справа одинаковые. */}
           <button ref={playRef} type="button" className="home__play" onClick={onPlay} onMouseDown={noSteal}>
-            <span className="home__play-label"><PlayIcon />{continuing ? 'Продолжить' : 'Играть'}</span>
-            <span className="home__play-sub">{playSub}</span>
+            <span className="home__play-badge" aria-hidden="true"><PlayIcon /></span>
+            <span className="home__play-text">
+              <span className="home__play-label">{continuing ? 'Продолжить' : 'Играть'}</span>
+              <span className="home__play-sub">{playSub}</span>
+            </span>
             <i className="home__play-shine" aria-hidden="true" />
-          </button>
-          <button type="button" className="home__wide" onClick={onOpenModes} onMouseDown={noSteal}>
-            <GridIcon />
-            <span className="home__wide-label">Режимы игры</span>
-            <span className="home__wide-sub">4 и 6 букв</span>
           </button>
         </div>
 
