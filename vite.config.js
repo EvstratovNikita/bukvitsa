@@ -14,7 +14,11 @@ const dropYandexSdk = () => ({
   name: 'drop-yandex-sdk',
   transformIndexHtml: {
     order: 'pre',
-    handler: (html) => html.replace(/\s*<script src="\/sdk\.js"><\/script>/, '')
+    // Заодно вырезаем HTML-комментарии: в них речь о SDK Яндекса и ссылка на
+    // его документацию — игроку не видны, но модерация VK смотрит исходник.
+    handler: (html) => html
+      .replace(/\s*<script src="\/sdk\.js"><\/script>/, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
   }
 });
 
