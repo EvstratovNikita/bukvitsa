@@ -1,3 +1,5 @@
+import { isEmbedded } from '../lib/platform.js';
+
 // Achievements catalog. Each entry is a pure descriptor — no state, no
 // mutation — so the same array drives both the listing UI and the
 // unlock-check loop in useStats. To add an achievement, append an entry:
@@ -300,4 +302,22 @@ export function findNewlyUnlocked(stats) {
     if (a.check(stats)) out.push(a.id);
   }
   return out;
+}
+
+// Награды за достижения забирают кнопкой «Забрать» (на площадках со своей
+// экономикой — VK и Яндекс). Забранные id лежат в stats.achClaimed. Старый
+// снимок этого поля не знает: там награда начислялась сразу, поэтому все его
+// открытые достижения считаются уже забранными.
+export function claimedAchievementIds(stats) {
+  return Array.isArray(stats?.achClaimed) ? stats.achClaimed : (stats?.unlockedAchievements || []);
+}
+
+// Открытые, но не забранные достижения с наградой — их и считает значок меню.
+// В вебе награды начисляет сервер сам — забирать там нечего.
+export function unclaimedAchievementIds(stats) {
+  if (!isEmbedded) return [];
+  const claimed = new Set(claimedAchievementIds(stats));
+  return (stats?.unlockedAchievements || []).filter(
+    (id) => !claimed.has(id) && (getAchievement(id)?.reward || 0) > 0
+  );
 }

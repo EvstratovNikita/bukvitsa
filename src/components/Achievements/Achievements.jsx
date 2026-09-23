@@ -4,14 +4,16 @@ import {
   ACHIEVEMENTS_BY_CATEGORY,
   ACHIEVEMENT_CATEGORIES,
   getProgress,
+  unclaimedAchievementIds,
   unlockedCountIn
 } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
+import { coinsLabel } from '../../utils/plural.js';
 
 export function AchievementsModal({ open, onClose }) {
-  const { stats } = useGameContext();
+  const { stats, claimAchievement, showToast } = useGameContext();
   const unlocked = useMemo(
     () => new Set(stats.unlockedAchievements || []),
     [stats.unlockedAchievements]
@@ -24,6 +26,12 @@ export function AchievementsModal({ open, onClose }) {
   const pct = Math.round((done / total) * 100);
 
   const items = ACHIEVEMENTS_BY_CATEGORY[tab] || [];
+  // Открытые, но не забранные — кнопка «Забрать» (VK и Яндекс; в вебе пусто).
+  const unclaimed = useMemo(() => new Set(unclaimedAchievementIds(stats)), [stats]);
+  const claim = (id) => {
+    const got = claimAchievement?.(id) || 0;
+    if (got) showToast?.(`+${coinsLabel(got)} за достижение`);
+  };
 
   return (
     <Modal open={open} onClose={onClose} title="Достижения">
@@ -41,6 +49,7 @@ export function AchievementsModal({ open, onClose }) {
           {ACHIEVEMENT_CATEGORIES.map((c) => {
             const catTotal = (ACHIEVEMENTS_BY_CATEGORY[c.id] || []).length;
             const catDone  = unlockedCountIn(c.id, unlocked);
+            const catClaim = (ACHIEVEMENTS_BY_CATEGORY[c.id] || []).some((a) => unclaimed.has(a.id));
             const isActive = tab === c.id;
             return (
               <button
@@ -53,6 +62,7 @@ export function AchievementsModal({ open, onClose }) {
               >
                 <span className="ach-tab__label">{c.label}</span>
                 <span className="ach-tab__count">{catDone}/{catTotal}</span>
+                {catClaim && <span className="ach-tab__dot" aria-label="Есть награда" />}
               </button>
             );
           })}
@@ -60,7 +70,14 @@ export function AchievementsModal({ open, onClose }) {
 
         <div className="ach-list">
           {items.map((a) => (
-            <AchCard key={a.id} ach={a} stats={stats} unlocked={unlocked.has(a.id)} />
+            <AchCard
+              key={a.id}
+              ach={a}
+              stats={stats}
+              unlocked={unlocked.has(a.id)}
+              claimable={unclaimed.has(a.id)}
+              onClaim={() => claim(a.id)}
+            />
           ))}
         </div>
       </div>
@@ -68,11 +85,11 @@ export function AchievementsModal({ open, onClose }) {
   );
 }
 
-function AchCard({ ach, stats, unlocked }) {
+function AchCard({ ach, stats, unlocked, claimable, onClaim }) {
   const prog = getProgress(ach, stats);
   const pct = Math.min(100, Math.round((prog.current / prog.target) * 100));
   return (
-    <div className={`ach-card${unlocked ? ' ach-card--unlocked' : ''}`}>
+    <div className={`ach-card${unlocked ? ' ach-card--unlocked' : ''}${claimable ? ' ach-card--claim' : ''}`}>
       <div className="ach-card__icon" aria-hidden="true">{ach.icon}</div>
       <div className="ach-card__body">
         <div className="ach-card__row">
@@ -95,7 +112,18 @@ function AchCard({ ach, stats, unlocked }) {
           </div>
         </div>
 
-        {unlocked && (
+        {claimable ? (
+          <div className="ach-card__status-row">
+            <button
+              type="button"
+              className="ach-card__claim"
+              onClick={onClaim}
+              onMouseDown={(e) => e.preventDefault()}
+            >
+              Забрать <CoinIcon /> +{ach.reward}
+            </button>
+          </div>
+        ) : unlocked && (
           <div className="ach-card__status-row">
             <span className="ach-card__status">Получено</span>
           </div>

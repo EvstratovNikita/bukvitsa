@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { getAchievement } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
+import { isEmbedded } from '../../lib/platform.js';
 
 const TOAST_DURATION_MS = 3200;
 
@@ -26,7 +27,7 @@ export function AchievementToast() {
     <div className="ach-toast" role="status" key={head.id}>
       <div className="ach-toast__icon" aria-hidden="true">{ach.icon}</div>
       <div className="ach-toast__body">
-        <div className="ach-toast__label">Достижение</div>
+        <div className="ach-toast__label">{isEmbedded && ach.reward > 0 ? 'Достижение · забери награду' : 'Достижение'}</div>
         <div className="ach-toast__title">{ach.title}</div>
       </div>
       {ach.reward > 0 && (

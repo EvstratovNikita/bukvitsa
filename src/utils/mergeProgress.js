@@ -184,6 +184,11 @@ export function mergeProgress(a, b) {
     if (v !== undefined) out[k] = v;
   }
   for (const k of UNION_KEYS) out[k] = union(a[k], b[k]);
+  // Забранные награды за достижения. Снимок старой версии поля не знает —
+  // там награда начислялась сразу, поэтому все его открытые достижения
+  // считаются забранными: иначе на другом устройстве их дали бы забрать ещё раз.
+  const claimedOf = (s) => (Array.isArray(s.achClaimed) ? s.achClaimed : s.unlockedAchievements);
+  out.achClaimed = union(claimedOf(a), claimedOf(b));
   for (const k of LATER_ISO_KEYS) {
     const v = later(a[k], b[k]);
     if (v !== undefined) out[k] = v;

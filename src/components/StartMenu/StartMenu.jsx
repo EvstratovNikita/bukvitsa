@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS, PET_UNLOCK_GAMES, ENERGY_MAX } from '../../constants/game.js';
-import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
+import { unclaimedAchievementIds } from '../../data/achievements.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
 import { getPlayerInfo, inviteFriends, addToFavorites, vkSupports } from '../../lib/vk.js';
 import { share, SHARE_BASE_URL } from '../../lib/share.js';
@@ -79,7 +79,8 @@ export function StartMenu({
   const isLight = (stats.prefs?.theme || 'dark') === 'light';
   const hatched = Boolean(stats.pet?.hatched);
   const petAlert = Boolean(petGiftReady) || (!hatched && (stats.played || 0) >= PET_UNLOCK_GAMES);
-  const achCount = (stats.unlockedAchievements || []).filter((id) => ACHIEVEMENT_IDS.includes(id)).length;
+  // Значок «Достижений» — сколько наград ждут кнопки «Забрать».
+  const achCount = unclaimedAchievementIds(stats).length;
   const firstName = player?.name ? player.name.split(' ')[0] : '';
 
   const onInvite = async () => {
@@ -175,8 +176,8 @@ export function StartMenu({
         {(social.invite || social.share || social.favorites) && (
           <div className="home__social" style={{ '--d': 6 }}>
             {social.invite && <Pill icon={<UsersIcon />} label="Пригласить друзей" onClick={onInvite} strong />}
-            {social.share && <Pill icon={<ShareIcon />} label="Поделиться" onClick={onShare} iconOnly={social.invite} />}
-            {social.favorites && <Pill icon={<StarIcon />} label="В избранное" onClick={onFavorites} iconOnly={social.invite} />}
+            {social.share && <Pill icon={<ShareIcon />} label="Поделиться" onClick={onShare} iconOnly={social.invite} tint="share" />}
+            {social.favorites && <Pill icon={<StarIcon />} label="В избранное" onClick={onFavorites} iconOnly={social.invite} tint="fav" />}
           </div>
         )}
 

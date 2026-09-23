@@ -3,7 +3,7 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 import { isYandex, openAuth, getPlayerInfo } from '../../lib/yandex.js';
 import { isEmbedded } from '../../lib/platform.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
-import { ACHIEVEMENT_IDS } from '../../data/achievements.js';
+import { ACHIEVEMENT_IDS, unclaimedAchievementIds } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import {
   AwardIcon,
@@ -41,8 +41,11 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
   // Считаем только те id, что есть в каталоге: в сохранёнках могли остаться
   // достижения удалённых категорий (например, «Друзья»), и бейдж показывал
   // бы больше, чем видно в самом списке.
-  const unlockedCount = (stats.unlockedAchievements || [])
-    .filter((id) => ACHIEVEMENT_IDS.includes(id)).length;
+  // На VK и Яндексе награды забирают кнопкой — значок считает не забранные;
+  // в вебе награду начисляет сервер сразу, там значок — число открытых.
+  const unlockedCount = isEmbedded
+    ? unclaimedAchievementIds(stats).length
+    : (stats.unlockedAchievements || []).filter((id) => ACHIEVEMENT_IDS.includes(id)).length;
 
   // Close with ESC, lock body scroll while open.
   useEffect(() => {

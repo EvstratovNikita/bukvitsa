@@ -22,7 +22,7 @@ import {
   rewardFor,
   todayKey
 } from '../constants/game.js';
-import { findNewlyUnlocked, getAchievement } from '../data/achievements.js';
+import { findNewlyUnlocked, getAchievement, claimedAchievementIds } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
 import { getDecoration, equippedDecorationsBonus, WING_KEYS } from '../data/petDecorations.js';
 import { getTreat } from '../data/petTreats.js';
@@ -81,6 +81,7 @@ const DEFAULT_STATS = {
   coinsEarned: 0,          // cumulative coins ever credited (never decreases)
   fastestWinMs: null,      // lowest elapsed time across won games
   unlockedAchievements: [], // ids of unlocked achievements
+  achClaimed: [],           // ids of achievements whose reward was collected
   referralsCount: 0,        // verified (non-anon) invitees credited to this user
   cosmeticAt: null,        // ISO последнего выбора оформления игроком (см. mergeProgress)
   prefs: {
@@ -100,7 +101,7 @@ const DEFAULT_STATS = {
     gamesWon: 0
   },
   altMode: {
-    // 4 + 6-letter mode tally. Every 5 finished plays grants +1 energy
+    // 4 + 6-letter mode tally. Every 5 wins grants +1 energy
     // (capped at 3 grants per local day). All counters reset at midnight.
     dayKey: null,           // 'YYYY-MM-DD' of last counted play
     plays: 0,               // plays since the last energy grant
@@ -144,6 +145,8 @@ function load() {
       : DEFAULT_STATS.distribution,
     inventory: Array.isArray(raw.inventory) ? raw.inventory : [],
     unlockedAchievements: Array.isArray(raw.unlockedAchievements) ? raw.unlockedAchievements : [],
+    // Старый сейв: награды уже начислены при открытии — всё открытое забрано.
+    achClaimed: claimedAchievementIds(raw),
     pet: migratePet(raw.pet),
     prefs: { ...DEFAULT_STATS.prefs, ...(raw.prefs || {}) },
     altMode: { ...DEFAULT_STATS.altMode, ...(raw.altMode || {}) },
@@ -315,26 +318,58 @@ export function useStats() {
   }, [reconciledBond.bond, reconciledBond.bondTickAt, stats.prefs?.petBond, stats.prefs?.petBondTickAt, stats.pet?.hatched]);
 
   // After any stats mutation, detect achievements whose condition just got
-  // satisfied. Mark them unlocked, credit reward coins, queue a toast. The
-  // setStats updater is idempotent (re-entry from chained unlocks ends when
-  // findNewlyUnlocked returns []).
+  // satisfied. Mark them unlocked and queue a toast. The setStats updater is
+  // idempotent (re-entry from chained unlocks ends when findNewlyUnlocked
+  // returns []).
+  // Награда: на VK и Яндексе (своя экономика) игрок забирает её кнопкой
+  // «Забрать» в окне достижений — см. claimAchievement. В вебе монеты за
+  // достижения начисляет сервер (recompute_achievements) сам, поэтому там
+  // награда по-прежнему сразу и сразу же считается забранной.
   useEffect(() => {
     const newly = findNewlyUnlocked(stats);
     if (!newly.length) return;
     setAchievementToasts((q) => [...q, ...newly.map((id) => ({ id, ts: Date.now() }))]);
     setStats((s) => {
       const ids = new Set(s.unlockedAchievements || []);
+      const claimed = new Set(claimedAchievementIds(s));
       let coins = s.coins || 0;
       let earned = s.coinsEarned || 0;
       for (const id of newly) {
         if (ids.has(id)) continue;
         ids.add(id);
-        const r = getAchievement(id)?.reward || 0;
-        coins += r;
-        earned += r;
+        if (!isEmbedded) {
+          const r = getAchievement(id)?.reward || 0;
+          coins += r;
+          earned += r;
+          claimed.add(id);
+        }
       }
-      return { ...s, unlockedAchievements: [...ids], coins, coinsEarned: earned };
+      return { ...s, unlockedAchievements: [...ids], achClaimed: [...claimed], coins, coinsEarned: earned };
     });
+  }, [stats]);
+
+  // «Забрать» награду открытого достижения. Возвращает число монет (0 —
+  // нечего забирать: не открыто, уже забрано или без награды). Проверка
+  // внутри updater'а, поэтому двойной клик не начислит дважды.
+  const claimAchievement = useCallback((id) => {
+    const reward = getAchievement(id)?.reward || 0;
+    const canClaim = (s) => isEmbedded && reward > 0
+      && (s.unlockedAchievements || []).includes(id)
+      && !claimedAchievementIds(s).includes(id);
+    // Updater React вызывает не сразу, поэтому ответ — по текущему снимку,
+    // а сама проверка повторяется в updater'е.
+    const granted = canClaim(stats) ? reward : 0;
+    setStats((s) => {
+      if (!canClaim(s)) return s;
+      const claimed = claimedAchievementIds(s);
+      return {
+        ...s,
+        achClaimed: [...claimed, id],
+        coins: (s.coins || 0) + reward,
+        coinsEarned: (s.coinsEarned || 0) + reward
+      };
+    });
+    return granted;
   }, [stats]);
 
   // UI calls this once it has shown a toast, to drop it from the queue.
@@ -1132,6 +1167,7 @@ export function useStats() {
     redeemAdDoubleServer,
     achievementToasts,
     consumeAchievementToast,
+    claimAchievement,
     auth,
     // Слияние гостевого прогресса с аккаунтом после входа на Яндексе.
     adoptYandexAccount: cloudSync.adoptAccount
