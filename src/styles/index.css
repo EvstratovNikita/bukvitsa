@@ -2993,7 +2993,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   border: 1px solid rgba(247, 201, 72, 0.5);
   border-radius: 14px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(247, 201, 72, 0.18);
-  z-index: 60;
+  /* над главным меню VK (90) и Буклей поверх него (95), ниже тостов (200) */
+  z-index: 150;
   animation: ach-toast-rise 380ms cubic-bezier(.2, .8, .2, 1);
 }
 .ach-toast__icon {
@@ -7018,3 +7019,8 @@ body.has-bg .cell--hinted .cell__face--back {
   background: rgba(6, 10, 40, 0.35);
   border-bottom-color: rgba(150, 172, 255, 0.14);
 }
+
+/* Экран Букли, открытый из главного меню VK, — поверх меню (90), но ниже
+   модалок (100): покормить, наряды и подарки открывают окна над ним. */
+.pet-screen--over-home { z-index: 95; }
+

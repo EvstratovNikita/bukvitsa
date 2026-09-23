@@ -155,7 +155,7 @@ function GameShell() {
         <StartMenu
           onPlay={closeHome}
           onOpenShop={() => setShopOpen(true)}
-          onOpenPet={() => { setHomeOpen(false); setPetOpen(true); }}
+          onOpenPet={() => setPetOpen(true)}
           onOpenAchievements={() => setAchOpen(true)}
           onOpenLeaderboard={openLeaderboard}
           onOpenStats={() => setStatsOpen(true)}
@@ -182,7 +182,9 @@ function GameShell() {
       <Shop open={shopOpen} onClose={() => setShopOpen(false)} />
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       <AchievementsModal open={achOpen} onClose={() => setAchOpen(false)} />
-      <PetScreen open={petOpen} onClose={() => setPetOpen(false)} />
+      {/* Из главного меню Букля открывается поверх него: меню не закрываем,
+          иначе на миг мелькало поле, а крестик возвращал на поле, не в меню. */}
+      <PetScreen open={petOpen} onClose={() => setPetOpen(false)} overHome={homeOpen} />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} score={stats.won || 0} showToast={showToast} />

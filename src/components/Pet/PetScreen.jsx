@@ -32,7 +32,9 @@ function pluralDays(n) {
   return 'дней';
 }
 
-export function PetScreen({ open, onClose }) {
+// overHome — экран открыт из главного меню VK: рисуется поверх меню, и
+// крестик возвращает в меню, а не на поле (меню под ним остаётся открытым).
+export function PetScreen({ open, onClose, overHome = false }) {
   const {
     stats,
     hatchPet,
@@ -142,7 +144,7 @@ export function PetScreen({ open, onClose }) {
   if (!open) return null;
 
   return (
-    <div className="pet-screen" role="dialog" aria-modal="true">
+    <div className={`pet-screen${overHome ? ' pet-screen--over-home' : ''}`} role="dialog" aria-modal="true">
       <header className="pet-screen__head">
         <button
           type="button"

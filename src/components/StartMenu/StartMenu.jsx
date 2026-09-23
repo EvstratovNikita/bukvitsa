@@ -61,10 +61,11 @@ export function StartMenu({
 
   // Esc — вернуться к игре, Enter — «Играть». Фокус на кнопку не ставим:
   // программный фокус рисует рамку, и меню выглядит «выделенным» при открытии.
-  // Пока поверх меню открыта модалка (магазин, настройки), клавиши — её.
+  // Пока поверх меню открыта модалка (магазин, настройки) или экран Букли,
+  // клавиши — их.
   useEffect(() => {
     const onKey = (e) => {
-      if (document.querySelector('.modal-backdrop')) return;
+      if (document.querySelector('.modal-backdrop, .pet-screen')) return;
       const onButton = document.activeElement?.tagName === 'BUTTON' && document.activeElement !== playRef.current;
       if (e.key === 'Escape' || (e.key === 'Enter' && !onButton)) { e.preventDefault(); onPlay(); }
     };
