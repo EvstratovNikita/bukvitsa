@@ -14,7 +14,9 @@
 //   status      → объект диагностики (window.__buklitsaCloud)
 import { isYandexGames, isVk } from './platform.js';
 import { cloudLoad as yaLoad, cloudSave as yaSave, playerIdentity as yaIdentity, cloudStatus as yaStatus } from './yandex.js';
-import { cloudLoad as vkLoad, cloudSave as vkSave, playerIdentity as vkIdentity, cloudStatus as vkStatus } from './vk.js';
+import { cloudLoad as vkLoad, cloudSave as vkSave, playerIdentity as vkIdentity, cloudStatus as vkStatus, isOk } from './vk.js';
+import { okLoad, okSave, okIdentity } from './okCloud.js';
+import { isScoresConfigured } from './scores.js';
 
 const offline = {
   load: async () => ({ ok: false, data: null }),
@@ -25,6 +27,9 @@ const offline = {
 
 function pick() {
   if (isYandexGames) return { load: yaLoad, save: yaSave, identity: yaIdentity, status: yaStatus };
+  // ОК — наш сервер (lib/okCloud.js). Без адреса сервера в сборке играем без
+  // облака: подменить его VK Storage нельзя — прогресс смешался бы с VK.
+  if (isOk) return isScoresConfigured ? { load: okLoad, save: okSave, identity: okIdentity, status: vkStatus } : offline;
   if (isVk) return { load: vkLoad, save: vkSave, identity: vkIdentity, status: vkStatus };
   return offline;
 }

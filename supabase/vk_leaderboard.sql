@@ -140,6 +140,7 @@ security definer
 set search_path = public, private, extensions, pg_temp
 as $$
 declare
+  v_plat  text;
   v_uid   text;
   v_name  text;
   v_want  integer;
@@ -151,7 +152,17 @@ begin
     return jsonb_build_object('ok', false, 'error', 'bad_sign');
   end if;
 
-  v_uid := private.query_param(p_query, 'vk_user_id');
+  -- Одноклассники запускают ту же игру с vk_client=ok. Параметр подписан,
+  -- поэтому ему можно верить. Таблица у ОК своя, а игрок в ней — по id из
+  -- ОК: vk_user_id там бывает техническим и совпадает с VK ID связанного
+  -- аккаунта, так что игроки двух соцсетей смешались бы.
+  if private.query_param(p_query, 'vk_client') = 'ok' then
+    v_plat := 'ok';
+    v_uid := private.query_param(p_query, 'vk_ok_user_id');
+  else
+    v_plat := 'vk';
+    v_uid := private.query_param(p_query, 'vk_user_id');
+  end if;
   if v_uid is null or v_uid !~ '^[0-9]{1,20}$' then
     return jsonb_build_object('ok', false, 'error', 'bad_user');
   end if;
@@ -162,11 +173,11 @@ begin
   v_want := least(greatest(coalesce(p_score, 0), 0), 100000);
 
   select * into v_prev from public.leaderboard
-   where platform = 'vk' and player_id = v_uid;
+   where platform = v_plat and player_id = v_uid;
 
   if v_prev.player_id is null then
     insert into public.leaderboard (platform, player_id, name, score)
-    values ('vk', v_uid, v_name, v_want);
+    values (v_plat, v_uid, v_name, v_want);
     return jsonb_build_object('ok', true, 'score', v_want);
   end if;
 
@@ -183,7 +194,7 @@ begin
      set score = v_final,
          name = case when v_name = '' then name else v_name end,
          updated_at = now()
-   where platform = 'vk' and player_id = v_uid;
+   where platform = v_plat and player_id = v_uid;
 
   return jsonb_build_object('ok', true, 'score', v_final);
 end;

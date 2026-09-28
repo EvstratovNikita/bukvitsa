@@ -5,9 +5,12 @@
 // это была ссылка, и один раз сообщает серверу (supabase/vk_referrals.sql).
 // Наград нет — правила VK (п. 2.6.2) запрещают поощрять социальные действия;
 // это статистика для владельца игры.
+//
+// В Одноклассниках всё это выключено: ссылка ведёт на игру в ОК, а таблицы
+// приходов ключуются VK ID — игроки ОК смешались бы с игроками VK.
 
 import { isVk } from './platform.js';
-import { launchParams, rawLaunchQuery } from './vk.js';
+import { isOk, launchParams, rawLaunchQuery } from './vk.js';
 import { isScoresConfigured, recordVkReferral, recordVkShare } from './scores.js';
 import { storage } from '../utils/storage.js';
 
@@ -15,7 +18,7 @@ const SENT_KEY = 'wordle-ru:ref-reported';
 
 // Метка отправителя для ссылки. Пусто вне VK или без id игрока.
 export function refTag() {
-  if (!isVk) return '';
+  if (!isVk || isOk) return '';
   const uid = launchParams().vk_user_id;
   return /^\d{1,20}$/.test(uid || '') ? `#ref=${uid}` : '';
 }
@@ -34,7 +37,7 @@ export function incomingRef() {
 // сам засчитывает игрока только однажды). Ошибку сети не запоминаем: при
 // следующем запуске по той же ссылке попробуем снова.
 export async function reportArrival() {
-  if (!isVk || !isScoresConfigured) return;
+  if (!isVk || isOk || !isScoresConfigured) return;
   const inviter = incomingRef();
   if (!inviter || inviter === launchParams().vk_user_id) return;
   if (storage.get(SENT_KEY, null)) return;
@@ -44,6 +47,6 @@ export async function reportArrival() {
 
 // Игрок поделился ссылкой — отметить на сервере (для конверсии).
 export function reportShare() {
-  if (!isVk || !isScoresConfigured) return;
+  if (!isVk || isOk || !isScoresConfigured) return;
   recordVkShare(rawLaunchQuery());
 }

@@ -13,7 +13,7 @@
 //   Clipboard fallback →  copy "text\nurl" to clipboard
 
 import { isTelegram, isVk } from './platform.js';
-import { vkBridge, launchParams } from './vk.js';
+import { vkBridge, launchParams, isOk } from './vk.js';
 import { copyText } from '../utils/clipboard.js';
 import { refTag, reportShare } from './referral.js';
 
@@ -32,6 +32,13 @@ const WEB_SHARE_URL =
 
 function canonicalShareUrl() {
   if (!isVk) return WEB_SHARE_URL;
+  // В Одноклассниках ссылка ведёт на игру в ОК: их правила требуют, чтобы
+  // шеринг не звал во ВКонтакте. Номер игры в ОК приходит в vk_ok_app_id.
+  // Метки #ref здесь нет — учёт приходов пока только для VK.
+  if (isOk) {
+    const okId = launchParams().vk_ok_app_id;
+    return /^\d{1,20}$/.test(okId || '') ? `https://ok.ru/game/${okId}` : '';
+  }
   const appId = launchParams().vk_app_id;
   // Без номера ссылку не строим вовсе: пустая строка означает «поделиться
   // без ссылки», и текст, и мост это переживают (см. buildWordleShareText).

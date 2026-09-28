@@ -23,6 +23,14 @@ function detectVk() {
 
 export const isVk = detectVk();
 
+// Одноклассники запускают ту же VK-сборку через тот же мост и те же
+// launch-параметры, плюс vk_client=ok и свои vk_ok_* (dev.vk.com/ru/ok/
+// development/launch-parameters). Поэтому ОК — не отдельная площадка, а
+// разновидность VK: isVk в ОК тоже true, а isOk отмечает места, где ОК живёт
+// по-своему — отдельный прогресс на нашем сервере, отдельная таблица лидеров,
+// ссылки на игру в ОК вместо vk.com, недоступные там методы моста.
+export const isOk = isVk && launchParams().vk_client === 'ok';
+
 export function launchParams() {
   if (typeof window === 'undefined') return {};
   const out = {};
@@ -51,7 +59,7 @@ export function rawLaunchQuery() {
 export const cloudStatus = {
   platform: isVk,
   sdk: 'не запрашивался',
-  mode: isVk ? 'аккаунт VK' : '—',
+  mode: isOk ? 'аккаунт ОК' : isVk ? 'аккаунт VK' : '—',
   load: 'не было',
   loaded: '—',
   identity: '—',
@@ -231,7 +239,9 @@ export async function getPlayerInfo() {
   if (!isVk) return null;
   try {
     await vkInit();
-    const u = await send('VKWebAppGetUserInfo', {});
+    // В ОК без use_local мост отдал бы профиль VK — а у игрока ОК без
+    // привязанного VK ID там лишь технический аккаунт.
+    const u = await send('VKWebAppGetUserInfo', isOk ? { use_local: true } : {});
     if (!u) return null;
     return {
       name: [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Игрок',
@@ -360,11 +370,11 @@ export async function showInterstitialVk() {
 //
 // 'ok' — игрок довёл дело до конца, 'cancelled' — закрыл окно, 'failed' —
 // метод недоступен в этом клиенте.
-async function socialDialog(method) {
+async function socialDialog(method, params = {}) {
   if (!isVk) return 'failed';
   try {
     await vkInit();
-    await bridge.send(method, {});
+    await bridge.send(method, params);
     return 'ok';
   } catch (e) {
     const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || '');
@@ -374,12 +384,22 @@ async function socialDialog(method) {
   }
 }
 
-export const inviteFriends = () => socialDialog('VKWebAppShowInviteBox');
+// На сайте ОК (полном и мобильном) окно приглашения без текста не открывается —
+// message там обязателен (dev.vk.com/ru/ok/development/bridge).
+const OK_INVITE_MESSAGE = 'Угадай слово из пяти букв за шесть попыток — сыграем в Буклицу?';
+export const inviteFriends = () =>
+  socialDialog('VKWebAppShowInviteBox', isOk ? { message: OK_INVITE_MESSAGE } : {});
 export const addToFavorites = () => socialDialog('VKWebAppAddToFavorites');
+
+// Методы, которых в ОК нет. Проверке моста здесь верить нельзя: он знает свою
+// версию, а не площадку, и ответит «есть», после чего вызов упадёт с
+// «Unsupported platform». Список — по таблице dev.vk.com/ru/ok/development/bridge.
+const OK_UNSUPPORTED = new Set(['VKWebAppAddToFavorites', 'VKWebAppShowLeaderBoardBox', 'VKWebAppAddToHomeScreen']);
 
 // Есть ли метод в этом клиенте VK: кнопку показываем, только если она сработает.
 export async function vkSupports(method) {
   if (!isVk) return false;
+  if (isOk && OK_UNSUPPORTED.has(method)) return false;
   try { return Boolean(await bridge.supportsAsync(method)); } catch { return false; }
 }
 

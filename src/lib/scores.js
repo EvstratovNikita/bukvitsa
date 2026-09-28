@@ -75,6 +75,19 @@ export async function recordVkReferral(query, inviterId) {
   return rpc('record_vk_referral', { p_query: query, p_inviter: String(inviterId) });
 }
 
+// Прогресс игрока в Одноклассниках (supabase/ok_progress.sql). ОК требует
+// хранить его отдельно от VK и на своём сервере; игрока сервер определяет по
+// подписанному vk_ok_user_id. null — сервер не ответил (это не «пусто»).
+export async function loadOkProgress(query) {
+  if (!query) return null;
+  return rpc('load_ok_progress', { p_query: query });
+}
+
+export async function saveOkProgress(query, data) {
+  if (!query || !data) return null;
+  return rpc('save_ok_progress', { p_query: query, p_data: data });
+}
+
 // Игрок успешно поделился ссылкой — счётчик для конверсии.
 export async function recordVkShare(query) {
   if (!query) return null;

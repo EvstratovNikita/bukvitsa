@@ -11,14 +11,15 @@
 
 import { isYandexGames, isVk } from './platform.js';
 import { submitScore as yandexSubmit, fetchLeaderboard as yandexFetch } from './yandex.js';
-import { getPlayerInfo, launchParams, rawLaunchQuery, showLeaderboard as vkFriendsBoard } from './vk.js';
+import { getPlayerInfo, isOk, launchParams, rawLaunchQuery, showLeaderboard as vkFriendsBoard } from './vk.js';
 import { submitVkScore, fetchTop, isScoresConfigured } from './scores.js';
 
 // Есть ли вообще что показывать на этой площадке.
 export const hasLeaderboard = isYandexGames || (isVk && isScoresConfigured);
 
-// Нативное окно «среди друзей» — только у VK, поверх общей таблицы.
-export const hasFriendsBoard = isVk;
+// Нативное окно «среди друзей» — только у VK, поверх общей таблицы. В ОК
+// такого метода моста нет.
+export const hasFriendsBoard = isVk && !isOk;
 export const showFriendsBoard = vkFriendsBoard;
 
 // Имя для таблицы: имя целиком и первая буква фамилии («Никита С.»). Полная
@@ -57,6 +58,9 @@ export async function submitScore(score) {
 // или сообщение о недоступности.
 export async function fetchLeaderboard() {
   if (isYandexGames) return yandexFetch();
+  // В ОК таблица своя: игроки ОК не соревнуются с VK, и id у них из ОК.
+  // Площадку для записи сервер определяет сам — по подписанному vk_client.
+  if (isOk && isScoresConfigured) return fetchTop('ok', launchParams().vk_ok_user_id || null);
   if (isVk && isScoresConfigured) return fetchTop('vk', launchParams().vk_user_id || null);
   return null;
 }
