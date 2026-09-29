@@ -120,6 +120,11 @@ export const boostRunning = (id, s, nowMs) => {
 // a chance to learn the core loop before the tamagotchi layer appears.
 // В VK и Яндексе — 5 партий: питомец — главная фишка, её надо показать в
 // первую же сессию. На вебе вылупление сверяет сервер — там прежние 10.
+// Цены для питомца (еда и украшения) в VK и Яндексе на 40% ниже: при 4–5
+// монетах за победу прежние цены растягивали первую покупку на десятки партий.
+// Округление — до красивых чисел. На вебе цену держит сервер.
+export const petPrice = (p, step = 10) => (isEmbedded ? Math.max(step, Math.round((p * 0.6) / step) * step) : p);
+
 export const PET_UNLOCK_GAMES = isEmbedded ? 5 : 10;
 
 export const HUNGER_MAX = 100;

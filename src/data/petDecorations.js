@@ -1,3 +1,5 @@
+import { petPrice } from '../constants/game.js';
+
 // Decoration catalog for «Порадовать» tab.
 //
 // Slots:
@@ -25,7 +27,7 @@ export const SLOT_LABEL = SLOTS.reduce((m, s) => { m[s.id] = s.label; return m; 
 // slot stay open from level 1 so a new player has something to spend on
 // immediately; higher tiers unlock as the pet grows. Designed so a typical
 // player hits level 5–10 mid-game and the top trio unlocks around 15–18.
-export const PET_DECORATIONS = [
+const RAW_DECORATIONS = [
   // ---------- HEAD ----------
   { id: 'bow',      slot: 'head', icon: '🎀', name: 'Розовый бантик',    desc: 'Прибавляет шарма',                  price: 60,  bonusCoins: 1, minLevel: 1 },
   { id: 'academic', slot: 'head', icon: '🎓', name: 'Шапка академика',   desc: 'Знание — золото',                   price: 200, bonusCoins: 1, minLevel: 4 },
@@ -50,6 +52,8 @@ export const PET_DECORATIONS = [
   { id: 'crystal', slot: 'wing', icon: '💎', name: 'Хрустальная капля', desc: 'Притягивает удачу и золото',          price: 500, bonusCoins: 3, minLevel: 13 },
   { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusCoins: 4, minLevel: 18 }
 ];
+
+export const PET_DECORATIONS = RAW_DECORATIONS.map((x) => ({ ...x, price: petPrice(x.price) }));
 
 export const getDecoration = (id) => PET_DECORATIONS.find((d) => d.id === id);
 

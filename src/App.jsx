@@ -150,7 +150,7 @@ function GameShell() {
       </main>
       {status === GAME_STATUS.PLAYING ? <Keyboard /> : <EndPanel />}
       <Toast />
-      <AchievementToast />
+      <AchievementToast onOpen={() => setAchOpen(true)} />
       <NotifyAsk />
       <DailyReward />
       {homeOpen && (

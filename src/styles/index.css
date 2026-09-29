@@ -7168,3 +7168,12 @@ body.has-bg .cell--hinted .cell__face--back {
 .daily__welcome-amount svg { width: 16px; height: 16px; }
 [data-theme="light"] .daily__welcome { background: linear-gradient(135deg, #fff5d6, #ffe9c2); border-color: #f1c46a; }
 [data-theme="light"] .daily__welcome-amount { color: #b8650a; }
+/* Всплывашка достижения — от видимого низа, а не от низа фрейма: на vk.ru
+   фрейм выше экрана (--app-h, см. lib/vk.js), и при bottom она уезжала за
+   край, её не было видно вовсе. 60px — её высота. */
+.ach-toast {
+  bottom: auto;
+  top: calc(var(--app-h, 100dvh) - env(safe-area-inset-bottom, 0px) - 110px - 60px);
+}
+.ach-toast--link { cursor: pointer; }
+.ach-toast--link:hover { filter: brightness(1.06); }

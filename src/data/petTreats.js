@@ -1,10 +1,12 @@
+import { petPrice } from '../constants/game.js';
+
 // Catalog of treats the player can buy to feed Букля. Each treat is a coin
 // → hunger trade with a different price-per-point. Bigger treats are
 // slightly cheaper per point, rewarding bulk feeding without trivialising
 // the small ones (which still suit topping off a nearly-full bar).
 //
 // Add new treats by appending — id stable, price/hunger tunable freely.
-export const PET_TREATS = [
+const RAW_TREATS = [
   {
     id: 'worm',
     icon: '🐛',
@@ -46,5 +48,7 @@ export const PET_TREATS = [
     hungerGain: 100
   }
 ];
+
+export const PET_TREATS = RAW_TREATS.map((x) => ({ ...x, price: petPrice(x.price, 5) }));
 
 export const getTreat = (id) => PET_TREATS.find((t) => t.id === id);
