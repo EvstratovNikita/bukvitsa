@@ -527,3 +527,12 @@ dev.vk.com/ru/ok/development/bridge, …/launch-parameters. apiok.ru устар�
 - [x] Настройки (VK): переключатель «Напоминания» — включить и выключить
 - [x] Проверка: победа в VK-сборке → карточка над окном победы; обе темы,
       320 px без переполнения; переключатель в настройках
+## Картинки миссий VK (29.09.2026)
+
+- [x] 13 картинок 588×196 — `design/vk-missions/png/` (NN-id.png, порядок как
+      в таблице миссий). Векторные (gen.mjs), в стиле обложки: глянцевые
+      плитки, космос, свечение; без Букли, символ каждого достижения
+- [x] Пересборка: `node design/vk-missions/gen.mjs design/vk-missions/out`,
+      превью `node design/vk-missions/serve.mjs` (:4180), PNG — headless Chrome
+      `--window-size=588,196 --virtual-time-budget=3000 --screenshot`
+- Генератор картинок (Higgsfield) недоступен: 0 кредитов, бесплатный план
