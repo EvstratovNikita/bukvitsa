@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial } from '../lib/ads.js';
+import { isVk } from '../lib/platform.js';
 import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
 import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
@@ -264,13 +265,16 @@ export function useGame() {
 
   // Show an interstitial on every 2nd inter-game transition. Yandex throttles
   // further by its own frequency cap; off-platform this is a no-op.
+  // В VK — на каждом 3-м: ролики там бывают по минуте, и реклама через раунд
+  // раздражала. Своего ограничителя частоты, как у Яндекса, у VK нет.
+  const INTERSTITIAL_EVERY = isVk ? 3 : 2;
   const maybeInterstitial = useCallback(() => {
     // Never show an interstitial before the player has finished at least one
     // game — no ads ahead of the first round of actual gameplay.
     if (sessionGamesRef.current < 1) return;
     adTransitionRef.current += 1;
-    if (adTransitionRef.current % 2 === 0) showInterstitial();
-  }, []);
+    if (adTransitionRef.current % INTERSTITIAL_EVERY === 0) showInterstitial();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tell Yandex when active play starts/stops (pause sound/ads correctly).
   useEffect(() => {
