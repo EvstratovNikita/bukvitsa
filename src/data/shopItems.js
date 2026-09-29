@@ -1,3 +1,9 @@
+import { isEmbedded } from '../lib/platform.js';
+
+// Бонусы в VK и Яндексе вдвое дешевле: за победу выходит 4–5 монет, и за 120
+// новичок до «Двойных монет» просто не дотягивался. На вебе цену держит сервер.
+const boostPrice = (embedded, web) => (isEmbedded ? embedded : web);
+
 // Catalog of in-game shop items.
 // Each item has:
 //   id        — stable identifier (saved to inventory)
@@ -537,7 +543,7 @@ export const SHOP_ITEMS = [
     category: 'boost',
     name: 'Двойные монеты',
     desc: 'Удваивает монеты за победы (база + бонус Букли) в течение 1 дня',
-    price: 120,
+    price: boostPrice(60, 120),
     consumable: true
   },
   {
@@ -545,7 +551,7 @@ export const SHOP_ITEMS = [
     category: 'boost',
     name: 'Щедрая реклама',
     desc: '+4 монеты к каждому просмотру рекламы — на следующие 10 просмотров',
-    price: 30,
+    price: boostPrice(20, 30),
     consumable: true
   },
   {
@@ -553,7 +559,7 @@ export const SHOP_ITEMS = [
     category: 'boost',
     name: 'Запас энергии',
     desc: 'Лимит энергии повышается до 7 на 2 дня',
-    price: 100,
+    price: boostPrice(50, 100),
     consumable: true
   }
 ];

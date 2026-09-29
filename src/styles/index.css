@@ -7130,3 +7130,41 @@ body.has-bg .cell--hinted .cell__face--back {
   .notify-ask__icon { width: 32px; height: 32px; }
   .notify-ask__text span { display: none; }
 }
+/* Прогресс до Букли в панели конца раунда — тёплый, «яичный» акцент, чтобы
+   не путать с синей полоской серии режимов 4/6. */
+.end-panel__pet .end-panel__alt-pip { width: 14px; }
+.end-panel__pet .end-panel__alt-pip--on {
+  background: linear-gradient(135deg, #ffe08a, #f0a53a);
+  border-color: rgba(240, 165, 58, 0.85);
+  box-shadow: 0 0 6px rgba(255, 200, 90, 0.5);
+}
+.end-panel__pet .end-panel__alt-text b { color: #ffd66b; }
+[data-theme="light"] .end-panel__pet .end-panel__alt-pip--on { background: linear-gradient(135deg, #f7c948, #d9861a); }
+[data-theme="light"] .end-panel__pet .end-panel__alt-text b { color: #b8650a; }
+.end-panel__cost--free {
+  padding: 2px 8px;
+  background: rgba(70, 200, 110, 0.28);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+/* Подарок новичку в окне первой ежедневной награды. */
+.daily__welcome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 214, 107, 0.16), rgba(240, 150, 40, 0.1));
+  border: 1px solid rgba(255, 200, 90, 0.45);
+  text-align: left;
+}
+.daily__welcome-gift { font-size: 28px; line-height: 1; filter: drop-shadow(0 3px 6px rgba(240, 150, 40, .35)); }
+.daily__welcome-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.daily__welcome-text b { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 15px; font-weight: 800; color: var(--text); }
+.daily__welcome-text > span { font-size: 12.5px; color: var(--text-dim); }
+.daily__welcome-amount { display: inline-flex; align-items: center; gap: 3px; color: #f0a53a; }
+.daily__welcome-amount svg { width: 16px; height: 16px; }
+[data-theme="light"] .daily__welcome { background: linear-gradient(135deg, #fff5d6, #ffe9c2); border-color: #f1c46a; }
+[data-theme="light"] .daily__welcome-amount { color: #b8650a; }

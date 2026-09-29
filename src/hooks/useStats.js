@@ -17,10 +17,12 @@ import {
   doubleCoinsActive,
   energyCapFor,
   energySpeedFromHunger,
+  isFreeStartGame,
   petComputeLevel,
   reconcilePetTimers,
   rewardFor,
-  todayKey
+  todayKey,
+  WELCOME_COINS
 } from '../constants/game.js';
 import { findNewlyUnlocked, getAchievement, claimedAchievementIds } from '../data/achievements.js';
 import { getItem } from '../data/shopItems.js';
@@ -505,10 +507,15 @@ export function useStats() {
     return true;
   }, [debit]);
 
-  const pendingDailyReward = useMemo(
-    () => computeDailyReward(stats.lastVisitDate, stats.dailyStreak || 0),
-    [stats.lastVisitDate, stats.dailyStreak]
-  );
+  // Подарок новичку едет с самой первой ежедневной наградой: признак новичка —
+  // награду ещё ни разу не забирали (lastVisitDate пуст). Так уже игравшие его
+  // не получат, а повторно он не выпадет — дата сохраняется при получении.
+  const welcomeFor = (s) => (WELCOME_COINS > 0 && !s.lastVisitDate ? WELCOME_COINS : 0);
+
+  const pendingDailyReward = useMemo(() => {
+    const r = computeDailyReward(stats.lastVisitDate, stats.dailyStreak || 0);
+    return r ? { ...r, welcome: welcomeFor(stats) } : r;
+  }, [stats.lastVisitDate, stats.dailyStreak]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const claimDailyReward = useCallback(() => {
     setStats((s) => {
@@ -530,9 +537,12 @@ export function useStats() {
       const nextTick = (reward.energy > 0 && nextEnergy >= cap)
         ? new Date().toISOString()
         : r.lastEnergyTickAt;
+      // Подарок — не заработок: в coinsEarned не идёт, иначе сразу открылось бы
+      // достижение «Заработай 50 монет».
+      const welcome = welcomeFor(s);
       return {
         ...s,
-        coins: (s.coins || 0) + reward.amount,
+        coins: (s.coins || 0) + reward.amount + welcome,
         coinsEarned: (s.coinsEarned || 0) + reward.amount,
         lastVisitDate: todayKey(),
         dailyStreak: reward.streak,
@@ -979,6 +989,9 @@ export function useStats() {
   // два нажатия «Новой игры» в одном такте оба видели «энергия есть» и
   // списывали по единице за одну партию. Резервируем через ref.
   const consumeEnergy = useCallback(() => {
+    // Первые партии новичка (VK и Яндекс) бесплатны: он не должен упереться в
+    // «энергия кончилась», ещё не распробовав игру. На вебе FREE_START_GAMES = 0.
+    if (isFreeStartGame(stats)) return true;
     if (energyRef.current < 1) return false;
     energyRef.current -= 1;
     mutateEnergy(-1);
@@ -986,7 +999,7 @@ export function useStats() {
     // longer decrements it). No achievements depend on energy → skip recompute.
     runEconomy('spend_energy', {}, { recompute: false });
     return true;
-  }, [mutateEnergy, runEconomy]);
+  }, [stats, mutateEnergy, runEconomy]);
 
   const buyEnergy = useCallback(() => {
     if (reconciled.energy >= energyMax) return 'full';

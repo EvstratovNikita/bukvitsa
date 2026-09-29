@@ -3,6 +3,7 @@ import {
   ENERGY_AD_REWARD,
   ENERGY_MAX,
   ENERGY_REFILL_COST,
+  ENERGY_REGEN_INTERVAL_MS,
   energySpeedFromHunger,
   formatDuration,
   msUntilNextEnergyUnit
@@ -111,7 +112,7 @@ export function EnergyModal() {
           <div className="energy-modal__desc">
             {full
               ? 'Энергия полная — можно играть!'
-              : 'Каждая новая игра тратит 1 энергию. Восстановление — раз в 2 часа.'}
+              : `Каждая новая игра тратит 1 энергию. Восстановление — раз в ${ENERGY_REGEN_INTERVAL_MS >= 2 * 3600000 ? '2 часа' : 'час'}.`}
           </div>
           {!full && (
             <div className="energy-modal__timer">

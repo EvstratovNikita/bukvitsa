@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { isEmbedded, isVk } from '../../lib/platform.js';
+import { ENERGY_REGEN_INTERVAL_MS, FREE_START_GAMES, PET_UNLOCK_GAMES } from '../../constants/game.js';
 
 // "Как играть" — a compact, tabbed reference. Three categories:
 //   • Игра    — core loop (shown first): mechanics, coins, hints, energy,
@@ -46,8 +47,8 @@ function GameHelp() {
       </Topic>
       <Topic icon="⚡" title="Энергия">
         Каждая новая партия тратит 1 энергию (максимум 5). Восстанавливается
-        сама (1 за 2 часа), за монеты или рекламу. Слово дня и доп. режимы
-        энергию не тратят.
+        сама ({ENERGY_REGEN_INTERVAL_MS >= 2 * 3600000 ? '1 за 2 часа' : '1 за час'}), за монеты или рекламу. Слово дня и доп. режимы
+        энергию не тратят.{FREE_START_GAMES > 0 && ` Первые ${FREE_START_GAMES} партии — бесплатно.`}
       </Topic>
       <Topic icon="🔤" title="Режимы 4 и 6 букв">
         Играй без траты энергии — идёт только опыт Букле. Каждые 5 побед
@@ -67,7 +68,7 @@ function PetHelp() {
   return (
     <div className="help-cat">
       <p className="help-cat__lead">
-        Совёнок Букля вылупляется после 10 сыгранных партий и растёт вместе
+        Совёнок Букля вылупляется после {PET_UNLOCK_GAMES} сыгранных партий и растёт вместе
         с тобой.
       </p>
 

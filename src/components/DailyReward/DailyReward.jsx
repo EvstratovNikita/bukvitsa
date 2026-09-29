@@ -5,7 +5,7 @@ import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon } from '../icons/Icon.jsx';
 
 export function DailyReward() {
-  const { pendingDailyReward, claimDailyReward, ready } = useGameContext();
+  const { pendingDailyReward, claimDailyReward, ready, stats } = useGameContext();
 
   // Don't open from the optimistic local state: wait for the server reconcile
   // (`ready`) so we never flash a reward that was already claimed today on
@@ -14,18 +14,36 @@ export function DailyReward() {
   const [reward, setReward] = useState(null);
   const [claimed, setClaimed] = useState(false);
 
+  // Новичку — сначала игра: награда ждёт конца первой партии, а не
+  // встречает окном поверх обучения. У игравших played > 0, для них всё
+  // как раньше — окно при входе.
+  // «Слово дня» ведёт свой счёт и в played не входит, а новичок часто
+  // начинает именно с него — считаем любую завершённую партию.
+  const played = (stats?.played || 0) + (stats?.daily?.gamesPlayed || 0);
+  // Не поверх другого окна (итог партии, магазин): ждём, пока закроют.
+  const [clear, setClear] = useState(false);
+  useEffect(() => {
+    if (!ready || !pendingDailyReward || played < 1 || open || claimed) return;
+    // Окно итога партии появляется после анимации открытия клеток, поэтому
+    // первые 2,5 с не проверяем — иначе награда успела бы выскочить раньше.
+    const check = () => setClear(!document.querySelector('.modal-backdrop'));
+    let iv = 0;
+    const t = setTimeout(() => { check(); iv = setInterval(check, 500); }, 2500);
+    return () => { clearTimeout(t); clearInterval(iv); };
+  }, [ready, pendingDailyReward, played, open, claimed]);
+
   // Arm once the synced state actually has a pending reward (also re-arms on a
   // midnight cross while the tab stays open).
   useEffect(() => {
-    if (ready && pendingDailyReward && !open && !claimed) {
+    if (ready && pendingDailyReward && played >= 1 && clear && !open && !claimed) {
       setReward(pendingDailyReward);
       setOpen(true);
     }
-  }, [ready, pendingDailyReward, open, claimed]);
+  }, [ready, pendingDailyReward, played, clear, open, claimed]);
 
   if (!open || !reward) return null;
 
-  const { streak, amount, energy: energyBonus = 0 } = reward;
+  const { streak, amount, energy: energyBonus = 0, welcome = 0 } = reward;
 
   const onClaim = () => {
     claimDailyReward();
@@ -90,6 +108,16 @@ export function DailyReward() {
             </span>
           )}
         </div>
+
+        {welcome > 0 && (
+          <div className="daily__welcome">
+            <span className="daily__welcome-gift" aria-hidden="true">🎁</span>
+            <span className="daily__welcome-text">
+              <b>Подарок новичку <span className="daily__welcome-amount"><CoinIcon />+{welcome}</span></b>
+              <span>Хватит на первый фон в магазине</span>
+            </span>
+          </div>
+        )}
 
         <button
           type="button"

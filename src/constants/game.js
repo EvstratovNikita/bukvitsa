@@ -1,3 +1,5 @@
+import { isEmbedded } from '../lib/platform.js';
+
 export const WORD_LENGTH = 5;
 export const MAX_ATTEMPTS = 6;
 
@@ -55,7 +57,18 @@ export const HINT_COST = {
 export const ENERGY_MAX = 5;
 export const ENERGY_REFILL_COST = 20;             // coins per +1 energy
 export const ENERGY_AD_REWARD = 1;                 // energy per ad watched
-export const ENERGY_REGEN_INTERVAL_MS = 2 * 60 * 60 * 1000; // 2 hours per unit
+// Восстановление энергии. В VK и Яндексе — раз в час: игрок из каталога
+// решает за первые минуты, остаться ли, и упираться в пустую энергию ему рано.
+// Веб оставлен на 2 часах: там энергию считает сервер, и клиент с другой
+// цифрой разошёлся бы с ним.
+export const ENERGY_REGEN_INTERVAL_MS = (isEmbedded ? 1 : 2) * 60 * 60 * 1000;
+// Сколько первых партий «5 букв» не тратят энергию (только VK и Яндекс).
+export const FREE_START_GAMES = isEmbedded ? 3 : 0;
+export const isFreeStartGame = (stats) => (stats?.played || 0) < FREE_START_GAMES;
+// Подарок новичку (VK и Яндекс): хватает на первый фон в магазине — сразу
+// видно, на что тратятся монеты. Выдаётся один раз вместе с первой
+// ежедневной наградой.
+export const WELCOME_COINS = isEmbedded ? 50 : 0;
 
 // ---- Timed boost consumables (Бонусы tab) ----
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -105,7 +118,9 @@ export const boostRunning = (id, s, nowMs) => {
 // Hunger drains linearly over time so feeding is a meaningful loop.
 // Pet feature is gated behind this many played games — gives the new player
 // a chance to learn the core loop before the tamagotchi layer appears.
-export const PET_UNLOCK_GAMES = 10;
+// В VK и Яндексе — 5 партий: питомец — главная фишка, её надо показать в
+// первую же сессию. На вебе вылупление сверяет сервер — там прежние 10.
+export const PET_UNLOCK_GAMES = isEmbedded ? 5 : 10;
 
 export const HUNGER_MAX = 100;
 // 1 unit drains every 2 minutes → 100 → 0 over ~3h20m. Keeps the feeding

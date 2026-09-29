@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
+import { GAME_STATUS, MAX_ATTEMPTS, PET_UNLOCK_GAMES, isFreeStartGame } from '../../constants/game.js';
+import { plural } from '../../utils/plural.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CoinIcon, PlayIcon, RefreshIcon, ShareIcon } from '../icons/Icon.jsx';
 import { SHARE_BASE_URL, buildWordleShareText, share } from '../../lib/share.js';
@@ -34,6 +35,14 @@ export function EndPanel() {
   // into the daily payout already.
   const canDouble = !isDaily && isWin && lastEarned > 0 && !doubledLastWin && (adsDoubleLeft ?? 0) > 0;
   const dayN = getDailyNumber();
+  // Цель на виду: сколько партий осталось до Букли. Питомец — главная фишка,
+  // и новичок должен видеть, что до неё рукой подать.
+  const played = stats?.played || 0;
+  const petLeft = stats?.pet?.hatched ? 0 : Math.max(0, PET_UNLOCK_GAMES - played);
+  const petReady = !stats?.pet?.hatched && played >= PET_UNLOCK_GAMES;
+  const showPet = !isAlt && (petLeft > 0 || petReady);
+  // Первые партии новичка бесплатны (VK и Яндекс) — так и пишем на кнопке.
+  const freeNext = isFreeStartGame(stats);
 
   const onShare = async () => {
     const url = SHARE_BASE_URL;
@@ -100,6 +109,22 @@ export function EndPanel() {
               </div>
             </div>
           )}
+        {showPet && (
+            <div className="end-panel__alt end-panel__pet">
+              {!petReady && (
+                <div className="end-panel__alt-bar" aria-hidden="true">
+                  {Array.from({ length: PET_UNLOCK_GAMES }, (_, i) => (
+                    <span key={i} className={`end-panel__alt-pip end-panel__pet-pip${i < played ? ' end-panel__alt-pip--on' : ''}`} />
+                  ))}
+                </div>
+              )}
+              <div className="end-panel__alt-text">
+                {petReady
+                  ? <>🥚 Яйцо Букли готово — загляни в дупло!</>
+                  : <>🥚 До питомца Букли ещё <b>{petLeft}</b> {plural(petLeft, 'партия', 'партии', 'партий')}</>}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="end-panel__actions">
@@ -147,9 +172,9 @@ export function EndPanel() {
             <span>Новая игра</span>
             {/* Цена партии прямо на кнопке: 5 букв стоят энергию, 4 и 6 — нет.
                 Без неё списание выглядело как «энергия ушла сама». */}
-            {wordLength === 5 && (
-              <span className="end-panel__cost"><BoltIcon />1</span>
-            )}
+            {wordLength === 5 && (freeNext
+              ? <span className="end-panel__cost end-panel__cost--free">бесплатно</span>
+              : <span className="end-panel__cost"><BoltIcon />1</span>)}
           </button>
         </div>
       </div>
