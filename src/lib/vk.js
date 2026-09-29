@@ -384,6 +384,33 @@ async function socialDialog(method, params = {}) {
   }
 }
 
+// ---------- Уведомления ----------
+//
+// Рассылки из кабинета (напоминания неактивным, «Достижения друга») доходят
+// только до тех, кто разрешил уведомления от игры. VK спрашивает об этом при
+// первом запуске, но окно легко закрыть — поэтому игра переспрашивает сама,
+// мягко и без наград (правила VK, п. 2.6.2). Состояние на старте — из
+// launch-параметров, дальше помним ответ до конца сессии.
+let _notifications = launchParams().vk_are_notifications_enabled === '1';
+export const notificationsEnabled = () => isVk && _notifications;
+
+// 'ok' — сделано, 'cancelled' — игрок закрыл окно, 'failed' — не вышло.
+export async function setNotifications(on) {
+  if (!isVk) return 'failed';
+  try {
+    await vkInit();
+    const r = await bridge.send(on ? 'VKWebAppAllowNotifications' : 'VKWebAppDenyNotifications', {});
+    if (!r?.result) return 'failed';
+    _notifications = on;
+    return 'ok';
+  } catch (e) {
+    const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || '');
+    if (e?.error_data?.error_code === 4 || /denied|cancel/i.test(reason)) return 'cancelled';
+    console.warn('[vk] notifications', on, 'failed', e?.error_type, e?.error_data || e);
+    return 'failed';
+  }
+}
+
 // На сайте ОК (полном и мобильном) окно приглашения без текста не открывается —
 // message там обязателен (dev.vk.com/ru/ok/development/bridge).
 const OK_INVITE_MESSAGE = 'Угадай слово из пяти букв за шесть попыток — сыграем в Буклицу?';

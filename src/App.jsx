@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AchievementsModal } from './components/Achievements/Achievements.jsx';
 import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
+import { NotifyAsk } from './components/Notify/NotifyAsk.jsx';
 import { Header } from './components/Header/Header.jsx';
 import { PetScreen } from './components/Pet/PetScreen.jsx';
 import { SettingsModal } from './components/Settings/Settings.jsx';
@@ -150,6 +151,7 @@ function GameShell() {
       {status === GAME_STATUS.PLAYING ? <Keyboard /> : <EndPanel />}
       <Toast />
       <AchievementToast />
+      <NotifyAsk />
       <DailyReward />
       {homeOpen && (
         <StartMenu

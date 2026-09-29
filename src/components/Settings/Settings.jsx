@@ -1,11 +1,25 @@
+import { useEffect, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
+import { isVk } from '../../lib/platform.js';
+import { notificationsEnabled, setNotifications } from '../../lib/vk.js';
 import { Modal } from '../Modal/Modal.jsx';
 
 // In-game settings. Preferences live under stats.prefs (jsonb-synced
 // through useRemoteSync), so toggles persist across devices.
 export function SettingsModal({ open, onClose }) {
-  const { stats, setPref } = useGameContext();
+  const { stats, setPref, showToast } = useGameContext();
   const prefs = stats.prefs || { theme: 'dark', enterOnLeft: false };
+  // Разрешение на уведомления живёт в VK, а не в prefs: переключатель
+  // показывает и меняет его через мост. Выключить можно так же легко, как
+  // включить, — требование к играм с уведомлениями.
+  // Разрешить могли и из карточки после победы — сверяемся при каждом открытии.
+  const [notify, setNotify] = useState(notificationsEnabled);
+  useEffect(() => { if (open) setNotify(notificationsEnabled()); }, [open]);
+  const onNotify = async (on) => {
+    const r = await setNotifications(on);
+    if (r === 'ok') setNotify(on);
+    else if (r === 'failed') showToast?.(on ? 'Не получилось включить напоминания' : 'Не получилось выключить напоминания');
+  };
 
   return (
     <Modal open={open} onClose={onClose} title="Настройки">
@@ -22,6 +36,14 @@ export function SettingsModal({ open, onClose }) {
           value={Boolean(prefs.enterOnLeft)}
           onChange={(v) => setPref('enterOnLeft', v)}
         />
+        {isVk && (
+          <Setting
+            label="Напоминания"
+            desc="Напомним о слове дня, если пропустишь день"
+            value={notify}
+            onChange={onNotify}
+          />
+        )}
       </div>
     </Modal>
   );
