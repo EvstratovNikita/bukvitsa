@@ -131,8 +131,20 @@ function GameShell() {
     return () => { clearTimeout(t); if (raf) cancelAnimationFrame(raf); };
   }, [ready, homeOpen]);
 
+  // Букля закрывает меню целиком, но меню под ней продолжало рисоваться —
+  // со своей анимированной совой. Когда экран Букли доехал (его въезд —
+  // 320 мс), меню перестаёт рисоваться (app--pet, см. index.css); при
+  // закрытии возвращается в том же кадре, что исчезает Букля.
+  const [petCovers, setPetCovers] = useState(false);
+  useEffect(() => {
+    if (!petOpen || !homeOpen) { setPetCovers(false); return; }
+    const t = setTimeout(() => setPetCovers(true), 360);
+    return () => clearTimeout(t);
+  }, [petOpen, homeOpen]);
+  const appClass = `app${homeOpen ? ' app--home' : ''}${petCovers && petOpen ? ' app--pet' : ''}`;
+
   return (
-    <div className="app">
+    <div className={appClass}>
       <Header
         onOpenMenu={() => setMenuOpen(true)}
         onOpenPet={() => setPetOpen(true)}
@@ -164,7 +176,6 @@ function GameShell() {
           onOpenHelp={() => setHelpOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenFeedback={() => setFeedbackOpen(true)}
-          covered={petOpen}
         />
       )}
       {tourOn && <Tour onDone={() => { setTourOn(false); setPref?.('tourDone', true); }} />}

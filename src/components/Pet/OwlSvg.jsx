@@ -22,9 +22,8 @@
 // Click anywhere on the owl → joyful jump with the wings thrown up (~700ms).
 // Debounced: while jumping, further clicks are ignored.
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { getDecoration } from '../../data/petDecorations.js';
-import { watchOwlPerf } from '../../lib/owlPerf.js';
 
 const JUMP_MS = 700;
 
@@ -125,7 +124,7 @@ function Wing({ side, uid }) {
   const mirror = side < 0 ? undefined : 'translate(400 0) scale(-1 1)';
   return (
     <g transform={mirror}>
-      <g className="owl-wing">
+      <g>
         <path d={WING_BLADE} fill={`url(#${uid}-wing)`} stroke="#8a6538" strokeWidth="1.2" strokeLinejoin="round" />
         {/* coverts */}
         <Scallops cx={118} y={158} w={44} n={4} color="#f2e0c0" op={0.32} />
@@ -156,15 +155,8 @@ function Wing({ side, uid }) {
 
 function Eye({ cx, cy, uid }) {
   const r = EYE_RAD;
-  const clip = `${uid}-eye-${cx}`;
   return (
     <g>
-      <defs>
-        <clipPath id={clip}>
-          <circle cx={cx} cy={cy} r={r + 0.5} />
-        </clipPath>
-      </defs>
-
       {/* soft socket shadow */}
       <ellipse className="owl-socket" cx={cx} cy={cy + 2} rx={r + 5} ry={r + 5} fill="#8a6a44" opacity="0.16" />
 
@@ -199,17 +191,6 @@ function Eye({ cx, cy, uid }) {
           transform={`rotate(-22 ${cx - 9} ${cy - 11})`}
         />
         <circle cx={cx + 10} cy={cy + 8} r="3.2" fill="#ffffff" opacity="0.55" />
-        <g className="owl-shine">
-          <ellipse
-            cx={cx + 2}
-            cy={cy - 4}
-            rx="3"
-            ry="12"
-            fill="#fff6dd"
-            opacity="0"
-            transform={`rotate(-24 ${cx + 2} ${cy - 4})`}
-          />
-        </g>
       </g>
 
       {/* happy arc, shown instead of the eyeball */}
@@ -236,12 +217,24 @@ function Eye({ cx, cy, uid }) {
           strokeLinecap="round"
         />
       </g>
+    </g>
+  );
+}
 
-      {/* Blink. The clip lives on the wrapper and the scale on the inner
-          group: an element's own transform carries its clip-path along, so
-          both on one node would slide together and clip nothing. */}
+// Сомкнутое веко. Лежит в своём слое-div (owl-lids), моргание — прозрачность
+// и сжатие этого слоя: видеокарта, без перерисовки SVG.
+function EyeLid({ cx, cy, uid }) {
+  const r = EYE_RAD;
+  const clip = `${uid}-lid-${cx}`;
+  return (
+    <g>
+      <defs>
+        <clipPath id={clip}>
+          <circle cx={cx} cy={cy} r={r + 0.5} />
+        </clipPath>
+      </defs>
       <g clipPath={`url(#${clip})`}>
-        <g className="owl-lid">
+        <g>
           <circle cx={cx} cy={cy} r={r + 2} fill={`url(#${uid}-lid)`} />
           <path
             d={`M ${cx - r * 0.8} ${cy + r * 0.5} q ${r * 0.8} ${r * 0.32} ${r * 1.6} 0`}
@@ -263,7 +256,6 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
   // Gradient ids must be unique per instance, otherwise a second owl on the
   // page re-points the first one's fills at its own defs.
   const uid = `owl-${useId().replace(/:/g, '')}`;
-  useEffect(() => { watchOwlPerf(); }, []);
 
   const onClick = () => {
     if (cooldown.current) return;
@@ -321,11 +313,11 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
     );
   };
 
-  // Два слоя одного размера: снизу неподвижные ветка и тень, сверху птица.
-  // Прыжок, покачивание и дыхание двигают обёртки-div целиком — это
-  // transform слоя, его делает видеокарта без перерисовки картинки. Внутри
-  // SVG шевелятся только мелкие части (моргание, голова, крылья); на слабых
-  // устройствах их выключает класс owl-lite (см. lib/owlPerf.js).
+  // Стопка слоёв одного размера: снизу неподвижные ветка и тень, сверху
+  // птица. Всё, что движется (прыжок, дыхание, крылья, голова, уши, веки,
+  // искры), — transform и opacity слоёв-div: их делает видеокарта, SVG
+  // рисуется один раз. Анимация внутри SVG перерисовывала бы его каждый
+  // кадр — на телефоне это съедало главный поток и тормозило нажатия.
   return (
     <div
       className={`owl ${jumping ? 'owl--jump ' : ''}${className}`.trim()}
@@ -370,111 +362,130 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
         )}
       </svg>
 
-      {/* Everything that leaves the ground when the owl hops. */}
+      {/* Всё, что отрывается от ветки при прыжке. Подвижные части — отдельные
+          слои-div (крылья, голова вместе с телом, уши): их поворачивает
+          видеокарта, SVG внутри не перерисовывается. Моргание и искры — тоже
+          слои; внутри SVG совы ничего не анимируется.
+          Все слои — один и тот же кадр 400×400, точки вращения в CSS заданы
+          в процентах этого кадра. Градиенты объявлены в слое тела, остальные
+          слои ссылаются на них по id (в пределах документа это работает). */}
       <div className="owl-hop">
       <div className="owl-breathe">
-      <svg className="owl-svg owl-svg--bird" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <radialGradient id={`${uid}-body`} cx="38%" cy="26%" r="82%">
-          <stop offset="0%"   stopColor="#fffdf7" />
-          <stop offset="34%"  stopColor="#f7ecd8" />
-          <stop offset="70%"  stopColor="#e2cba6" />
-          <stop offset="100%" stopColor="#a9825a" />
-        </radialGradient>
-        <radialGradient id={`${uid}-belly`} cx="50%" cy="34%" r="66%">
-          <stop offset="0%"   stopColor="#fffefb" />
-          <stop offset="60%"  stopColor="#fdf4e4" stopOpacity="0.9" />
-          <stop offset="100%" stopColor="#f3e2c4" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={`${uid}-disc`} cx="50%" cy="34%" r="72%">
-          <stop offset="0%"   stopColor="#fffdf6" />
-          <stop offset="58%"  stopColor="#f9efdb" />
-          <stop offset="82%"  stopColor="#f2e3c8" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#eeddbe" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={`${uid}-wing`} cx="26%" cy="16%" r="96%">
-          <stop offset="0%"   stopColor="#fbf0dc" />
-          <stop offset="42%"  stopColor="#e2c79c" />
-          <stop offset="78%"  stopColor="#bb9564" />
-          <stop offset="100%" stopColor="#7d5a33" />
-        </radialGradient>
-        <radialGradient id={`${uid}-iris`} cx="38%" cy="30%" r="78%">
-          <stop offset="0%"   stopColor="#ffdc93" />
-          <stop offset="40%"  stopColor="#f0a63a" />
-          <stop offset="78%"  stopColor="#c76e12" />
-          <stop offset="100%" stopColor="#7d3f06" />
-        </radialGradient>
-        <radialGradient id={`${uid}-sclera`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%"   stopColor="#fff8ea" />
-          <stop offset="100%" stopColor="#e6d0ab" />
-        </radialGradient>
-        <radialGradient id={`${uid}-pupil`} cx="40%" cy="34%" r="80%">
-          <stop offset="0%"   stopColor="#2b1a0e" />
-          <stop offset="55%"  stopColor="#120a06" />
-          <stop offset="100%" stopColor="#000000" />
-        </radialGradient>
-        <linearGradient id={`${uid}-lid`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#f3e3c6" />
-          <stop offset="100%" stopColor="#d8bf95" />
-        </linearGradient>
-        <linearGradient id={`${uid}-beak`} x1="0.2" y1="0" x2="0.8" y2="1">
-          <stop offset="0%"   stopColor="#ffe6a8" />
-          <stop offset="38%"  stopColor="#f5b13a" />
-          <stop offset="100%" stopColor="#9c5a12" />
-        </linearGradient>
-        <linearGradient id={`${uid}-talon`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#ffd08a" />
-          <stop offset="100%" stopColor="#c07a22" />
-        </linearGradient>
-        <clipPath id={`${uid}-clip-body`}>
-          <path d={BODY_SHAPE} />
-        </clipPath>
-        {/* Мягкие пятна — градиентами, не SVG-фильтрами. Части совы
-            шевелятся, и SVG перерисовывается каждый кадр; размытия
-            (feGaussianBlur/feDropShadow) при этом пересчитывались заново,
-            и на iPhone прыжок дёргался, а нажатия запаздывали. Тень от
-            всей совы — CSS drop-shadow на слое (см. index.css). */}
-        <radialGradient id={`${uid}-blush`}>
-          <stop offset="0%"   stopColor="#ff9fb0" />
-          <stop offset="100%" stopColor="#ff9fb0" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id={`${uid}-side`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="#8a6a42" stopOpacity="0" />
-          <stop offset="100%" stopColor="#8a6a42" />
-        </linearGradient>
-      </defs>
+        <div className="owl-part owl-wing owl-wing--l">
+          <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><Wing side={-1} uid={uid} /></svg>
+        </div>
+        <div className="owl-part owl-wing owl-wing--r">
+          <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><Wing side={1} uid={uid} /></svg>
+        </div>
+        {/* wing amulets sit outside the head so they don't sway */}
+        {(equipped.wingL || equipped.wingR) && (
+          <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            {renderSlot('wingL')}
+            {renderSlot('wingR')}
+          </svg>
+        )}
 
-        <g>
-          <Wing side={-1} uid={uid} />
-          <Wing side={1}  uid={uid} />
+        <div className="owl-part owl-head">
+          {/* ear tufts, behind the body so their base blends in */}
+          <div className="owl-part owl-tuft owl-tuft--l">
+            <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <g>
+                <path
+                  d="M 122 122 q -14 -46 -2 -80 q 8 -6 14 2 q 20 34 38 76 q -26 14 -50 2 Z"
+                  fill={`url(#${uid}-body)`}
+                  stroke="#c9ad82"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                />
+                <path d="M 126 114 q -8 -34 0 -60" stroke="#b8996c" strokeWidth="2" fill="none" opacity="0.5" strokeLinecap="round" />
+              </g>
+            </svg>
+          </div>
+          <div className="owl-part owl-tuft owl-tuft--r">
+            <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <g>
+                <path
+                  d="M 278 122 q 14 -46 2 -80 q -8 -6 -14 2 q -20 34 -38 76 q 26 14 50 2 Z"
+                  fill={`url(#${uid}-body)`}
+                  stroke="#c9ad82"
+                  strokeWidth="1.6"
+                  strokeLinejoin="round"
+                />
+                <path d="M 274 114 q 8 -34 0 -60" stroke="#b8996c" strokeWidth="2" fill="none" opacity="0.5" strokeLinecap="round" />
+              </g>
+            </svg>
+          </div>
 
-          {/* wing amulets sit outside the head group so they don't sway */}
-          {renderSlot('wingL')}
-          {renderSlot('wingR')}
-
-          <g className="owl-head">
-            {/* ear tufts, behind the body so their base blends in */}
-            <g className="owl-tuft-l">
-              <path
-                d="M 122 122 q -14 -46 -2 -80 q 8 -6 14 2 q 20 34 38 76 q -26 14 -50 2 Z"
-                fill={`url(#${uid}-body)`}
-                stroke="#c9ad82"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-              <path d="M 126 114 q -8 -34 0 -60" stroke="#b8996c" strokeWidth="2" fill="none" opacity="0.5" strokeLinecap="round" />
-            </g>
-            <g className="owl-tuft-r">
-              <path
-                d="M 278 122 q 14 -46 2 -80 q -8 -6 -14 2 q -20 34 -38 76 q 26 14 50 2 Z"
-                fill={`url(#${uid}-body)`}
-                stroke="#c9ad82"
-                strokeWidth="1.6"
-                strokeLinejoin="round"
-              />
-              <path d="M 274 114 q 8 -34 0 -60" stroke="#b8996c" strokeWidth="2" fill="none" opacity="0.5" strokeLinecap="round" />
-            </g>
-
+          <svg className="owl-svg owl-svg--bird" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <radialGradient id={`${uid}-body`} cx="38%" cy="26%" r="82%">
+                <stop offset="0%"   stopColor="#fffdf7" />
+                <stop offset="34%"  stopColor="#f7ecd8" />
+                <stop offset="70%"  stopColor="#e2cba6" />
+                <stop offset="100%" stopColor="#a9825a" />
+              </radialGradient>
+              <radialGradient id={`${uid}-belly`} cx="50%" cy="34%" r="66%">
+                <stop offset="0%"   stopColor="#fffefb" />
+                <stop offset="60%"  stopColor="#fdf4e4" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#f3e2c4" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id={`${uid}-disc`} cx="50%" cy="34%" r="72%">
+                <stop offset="0%"   stopColor="#fffdf6" />
+                <stop offset="58%"  stopColor="#f9efdb" />
+                <stop offset="82%"  stopColor="#f2e3c8" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#eeddbe" stopOpacity="0" />
+              </radialGradient>
+              <radialGradient id={`${uid}-wing`} cx="26%" cy="16%" r="96%">
+                <stop offset="0%"   stopColor="#fbf0dc" />
+                <stop offset="42%"  stopColor="#e2c79c" />
+                <stop offset="78%"  stopColor="#bb9564" />
+                <stop offset="100%" stopColor="#7d5a33" />
+              </radialGradient>
+              <radialGradient id={`${uid}-iris`} cx="38%" cy="30%" r="78%">
+                <stop offset="0%"   stopColor="#ffdc93" />
+                <stop offset="40%"  stopColor="#f0a63a" />
+                <stop offset="78%"  stopColor="#c76e12" />
+                <stop offset="100%" stopColor="#7d3f06" />
+              </radialGradient>
+              <radialGradient id={`${uid}-sclera`} cx="50%" cy="50%" r="50%">
+                <stop offset="0%"   stopColor="#fff8ea" />
+                <stop offset="100%" stopColor="#e6d0ab" />
+              </radialGradient>
+              <radialGradient id={`${uid}-pupil`} cx="40%" cy="34%" r="80%">
+                <stop offset="0%"   stopColor="#2b1a0e" />
+                <stop offset="55%"  stopColor="#120a06" />
+                <stop offset="100%" stopColor="#000000" />
+              </radialGradient>
+              <linearGradient id={`${uid}-lid`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor="#f3e3c6" />
+                <stop offset="100%" stopColor="#d8bf95" />
+              </linearGradient>
+              <linearGradient id={`${uid}-beak`} x1="0.2" y1="0" x2="0.8" y2="1">
+                <stop offset="0%"   stopColor="#ffe6a8" />
+                <stop offset="38%"  stopColor="#f5b13a" />
+                <stop offset="100%" stopColor="#9c5a12" />
+              </linearGradient>
+              <linearGradient id={`${uid}-talon`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor="#ffd08a" />
+                <stop offset="100%" stopColor="#c07a22" />
+              </linearGradient>
+              <clipPath id={`${uid}-clip-body`}>
+                <path d={BODY_SHAPE} />
+              </clipPath>
+              {/* Мягкие пятна — градиентами, не SVG-фильтрами. Части совы
+                  шевелятся, и SVG перерисовывается каждый кадр; размытия
+                  (feGaussianBlur/feDropShadow) при этом пересчитывались заново,
+                  и на iPhone прыжок дёргался, а нажатия запаздывали. Тень от
+                  всей совы — CSS drop-shadow на слое (см. index.css). */}
+              <radialGradient id={`${uid}-blush`}>
+                <stop offset="0%"   stopColor="#ff9fb0" />
+                <stop offset="100%" stopColor="#ff9fb0" stopOpacity="0" />
+              </radialGradient>
+              <linearGradient id={`${uid}-side`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"   stopColor="#8a6a42" stopOpacity="0" />
+                <stop offset="100%" stopColor="#8a6a42" />
+              </linearGradient>
+            </defs>
             <path d={BODY_SHAPE} fill={`url(#${uid}-body)`} stroke="var(--owl-edge)" strokeWidth="1.6" />
 
             {/* Side shading, clipped by the silhouette so it never spills
@@ -560,18 +571,27 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
                 opacity="0.85"
               />
             </g>
+          </svg>
 
-            {/* mood sparks */}
-            <g className="owl-spark owl-spark--1" fill="#ffe6a8">
-              <path d="M 96 132 l 3.4 8.6 8.6 3.4 -8.6 3.4 -3.4 8.6 -3.4 -8.6 -8.6 -3.4 8.6 -3.4 Z" />
-            </g>
-            <g className="owl-spark owl-spark--2" fill="#ffe6a8">
-              <path d="M 306 108 l 2.8 7 7 2.8 -7 2.8 -2.8 7 -2.8 -7 -7 -2.8 7 -2.8 Z" />
-            </g>
-            <g className="owl-spark owl-spark--3" fill="#ffe6a8">
-              <path d="M 318 214 l 2.2 5.6 5.6 2.2 -5.6 2.2 -2.2 5.6 -2.2 -5.6 -5.6 -2.2 5.6 -2.2 Z" />
-            </g>
+          {/* Моргание и искры — тоже слои-div: анимируются только прозрачность
+              и transform слоя, SVG внутри нарисован один раз. */}
+          <div className="owl-part owl-lids">
+            <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <EyeLid cx={EYE_L} cy={EYE_Y} uid={uid} />
+              <EyeLid cx={EYE_R} cy={EYE_Y} uid={uid} />
+            </svg>
+          </div>
+          <div className="owl-part owl-spark owl-spark--1">
+            <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M 96 132 l 3.4 8.6 8.6 3.4 -8.6 3.4 -3.4 8.6 -3.4 -8.6 -8.6 -3.4 8.6 -3.4 Z" fill="#ffe6a8" /></svg>
+          </div>
+          <div className="owl-part owl-spark owl-spark--2">
+            <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M 306 108 l 2.8 7 7 2.8 -7 2.8 -2.8 7 -2.8 -7 -7 -2.8 7 -2.8 Z" fill="#ffe6a8" /></svg>
+          </div>
+          <div className="owl-part owl-spark owl-spark--3">
+            <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M 318 214 l 2.2 5.6 5.6 2.2 -5.6 2.2 -2.2 5.6 -2.2 -5.6 -5.6 -2.2 5.6 -2.2 Z" fill="#ffe6a8" /></svg>
+          </div>
 
+          <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             {/* Zzz for the sleepy mood */}
             <g className="owl-zzz" fill="#cbb083" fontFamily="Inter, sans-serif" fontWeight="800">
               <text x="292" y="118" fontSize="20">Z</text>
@@ -582,17 +602,18 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
             <g className="owl-zzz owl-zzz--3" fill="#cbb083" fontFamily="Inter, sans-serif" fontWeight="800">
               <text x="310" y="144" fontSize="11">z</text>
             </g>
-
             {/* worn items, mapped from the legacy coordinate space */}
             <g transform={HEAD_TRANSFORM}>{renderSlot('head')}</g>
             <g transform={DECO_TRANSFORM}>
               {renderSlot('eyes')}
               {renderSlot('brooch')}
             </g>
-          </g>
-        </g>
+          </svg>
+        </div>
+      </div>
 
-        {/* feet — drawn over the perch so the toes grip it */}
+      {/* feet — drawn over the perch so the toes grip it */}
+      <svg className="owl-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <g>
           <g stroke={`url(#${uid}-talon)`} strokeWidth="11" strokeLinecap="round" fill="none">
             <path d="M 170 316 L 170 342" />
@@ -620,7 +641,6 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
           </g>
         </g>
       </svg>
-      </div>
       </div>
     </div>
   );

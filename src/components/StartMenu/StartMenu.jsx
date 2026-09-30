@@ -29,7 +29,7 @@ function lettersLabel(n) {
 
 export function StartMenu({
   onPlay, onOpenShop, onOpenPet, onOpenAchievements, onOpenLeaderboard,
-  onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback, covered = false
+  onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback
 }) {
   const {
     stats, status, guesses, gameMode, wordLength, energy, energyMax,
@@ -107,7 +107,7 @@ export function StartMenu({
   };
 
   return (
-    <div className={`home${covered ? ' home--covered' : ''}`} role="dialog" aria-modal="true" aria-label="Главное меню">
+    <div className="home" role="dialog" aria-modal="true" aria-label="Главное меню">
       <div className="home__sky" aria-hidden="true">
         <i className="home__stars" />
         <i className="home__glow home__glow--a" />
@@ -156,7 +156,12 @@ export function StartMenu({
         <section className="home__hero">
           <div className="home__logo" role="img" aria-label="Буклица">
             {LOGO.map(([ch, tone], i) => (
-              <span key={i} className={`home__tile home__tile--${tone}`} style={{ '--i': i }}>{ch}</span>
+              // Падение при появлении — на слоте, волна — на самой плитке: две
+              // анимации transform на одном элементе браузер не отдаёт
+              // видеокарте, и волна считалась на главном потоке каждый кадр.
+              <span key={i} className="home__tile-slot" style={{ '--i': i }}>
+                <span className={`home__tile home__tile--${tone}`}>{ch}</span>
+              </span>
             ))}
           </div>
           <div className="home__owl">

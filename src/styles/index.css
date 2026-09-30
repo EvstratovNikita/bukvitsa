@@ -3449,9 +3449,10 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-.owl > .owl-svg,
+.owl .owl-svg,
 .owl-hop,
-.owl-breathe {
+.owl-breathe,
+.owl-part {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -3532,10 +3533,13 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   50%      { transform: scale(1.014, 0.99) translateY(0.4%); }
 }
 
-/* Head sway, with the ear tufts trailing behind it */
-.owl-svg .owl-head {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
+/* Head sway, with the ear tufts trailing behind it. Голова, уши и крылья —
+   слои-div размером с весь кадр 400×400 (OwlSvg), поэтому точки вращения —
+   в процентах кадра: бывшие fill-box-опоры, пересчитанные в координаты
+   рисунка (1% = 4 единицы). */
+/* Низ головы вместе с телом — (200, 330). */
+.owl-head {
+  transform-origin: 50% 82.5%;
   animation: owl-sway 6.5s ease-in-out infinite;
 }
 @keyframes owl-sway {
@@ -3543,30 +3547,40 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   28%      { transform: rotate(1.6deg); }
   62%      { transform: rotate(-1.4deg); }
 }
-.owl-svg .owl-tuft-l { transform-box: fill-box; transform-origin: 70% 100%; animation: owl-tuft 6.5s ease-in-out infinite; }
-.owl-svg .owl-tuft-r { transform-box: fill-box; transform-origin: 30% 100%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
+/* Основания ушей — (155, 127) и (245, 127). */
+.owl-tuft--l { transform-origin: 38.75% 31.75%; animation: owl-tuft 6.5s ease-in-out infinite; }
+.owl-tuft--r { transform-origin: 61.25% 31.75%; animation: owl-tuft 6.5s ease-in-out infinite reverse; }
 @keyframes owl-tuft {
   0%, 100% { transform: rotate(0deg); }
   30%      { transform: rotate(3.2deg); }
   65%      { transform: rotate(-2.4deg); }
 }
 
-/* Wings. The mirror of the right wing lives on the parent <g>, so both
-   wings share one set of keyframes — a CSS transform here would override
-   the presentation attribute and drop the mirror. */
-.owl-svg .owl-wing {
-  transform-box: fill-box;
-  transform-origin: 92% 4%;
-  animation: owl-wing 5.4s ease-in-out infinite;
-}
+/* Wings — pivot at the shoulder, (145, 126) and mirrored (255, 126). The
+   right wing is mirrored inside its SVG, but its layer div is not, so it
+   turns with the opposite angle (the -r keyframes). */
+.owl-wing--l { transform-origin: 36.25% 31.5%; animation: owl-wing 5.4s ease-in-out infinite; }
+.owl-wing--r { transform-origin: 63.75% 31.5%; animation: owl-wing-r 5.4s ease-in-out infinite; }
 @keyframes owl-wing {
   0%, 100% { transform: rotate(0deg); }
   50%      { transform: rotate(-2deg); }
 }
+@keyframes owl-wing-r {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(2deg); }
+}
 /* Tap → wings thrown up and out. Positive angle: the pivot is the
    shoulder, so the lower end of the wing swings up and outward. */
-.owl--jump .owl-wing {
+.owl--jump .owl-wing--l {
   animation: owl-flap 0.7s cubic-bezier(.3, .8, .3, 1) !important;
+}
+.owl--jump .owl-wing--r {
+  animation: owl-flap-r 0.7s cubic-bezier(.3, .8, .3, 1) !important;
+}
+@keyframes owl-flap-r {
+  0%, 100% { transform: rotate(0deg); }
+  40%      { transform: rotate(-30deg); }
+  70%      { transform: rotate(7deg); }
 }
 @keyframes owl-flap {
   0%, 100% { transform: rotate(0deg); }
@@ -3574,34 +3588,28 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   70%      { transform: rotate(-7deg); }
 }
 
-/* Blink — two quick closes every ~6s. The lid is clipped to the eye, so
-   it never reaches past it. */
-.owl-svg .owl-lid {
-  transform-box: fill-box;
-  transform-origin: 50% 0%;
-  transform: scaleY(0);
+/* Blink — two quick closes every ~6s. Сомкнутые веки лежат в своём слое
+   (owl-lids): слой проявляется и чуть сжимается к верхнему краю глаз
+   (y = 138 из 400), без перерисовки SVG. */
+.owl-lids {
+  transform-origin: 50% 34.5%;
+  opacity: 0;
   animation: owl-blink 6.4s ease-in-out infinite;
 }
 @keyframes owl-blink {
-  0%, 84%, 100% { transform: scaleY(0); }
-  86%           { transform: scaleY(1); }
-  88.5%         { transform: scaleY(0); }
-  91%           { transform: scaleY(1); }
-  93.5%         { transform: scaleY(0); }
+  0%, 84%, 100% { opacity: 0; transform: scaleY(0.4); }
+  86%           { opacity: 1; transform: none; }
+  88.5%         { opacity: 0; transform: scaleY(0.4); }
+  91%           { opacity: 1; transform: none; }
+  93.5%         { opacity: 0; transform: scaleY(0.4); }
 }
 
-/* Slow highlight sweeping across the iris */
-.owl-svg .owl-shine { animation: owl-shine 5.8s ease-in-out infinite; }
-@keyframes owl-shine {
-  0%, 62%, 100% { opacity: 0;   transform: translateX(-6px); }
-  74%           { opacity: 0.9; transform: translateX(3px); }
-  88%           { opacity: 0;   transform: translateX(9px); }
-}
-
-/* Mood sparks — rare twinkle, each on its own beat */
-.owl-svg .owl-spark { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; animation: owl-spark 4.6s ease-in-out infinite; }
-.owl-svg .owl-spark--2 { animation-delay: 1.6s; }
-.owl-svg .owl-spark--3 { animation-delay: 3.1s; }
+/* Mood sparks — rare twinkle, each on its own beat. Слои-div, точки —
+   центры звёздочек: (96, 144), (306, 118), (318, 222). */
+.owl-spark { opacity: 0; animation: owl-spark 4.6s ease-in-out infinite; }
+.owl-spark--1 { transform-origin: 24% 36%; }
+.owl-spark--2 { transform-origin: 76.5% 29.5%; animation-delay: 1.6s; }
+.owl-spark--3 { transform-origin: 79.5% 55.5%; animation-delay: 3.1s; }
 @keyframes owl-spark {
   0%, 62%, 100% { opacity: 0;    transform: scale(0.4) rotate(0deg); }
   74%           { opacity: 0.95; transform: scale(1)   rotate(35deg); }
@@ -3616,40 +3624,39 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .owl-svg .owl-smile-sad { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .owl-svg *, .owl-hop, .owl-breathe { animation: none !important; }
-  .owl-svg .owl-lid { transform: scaleY(0); }
+  .owl-hop, .owl-breathe, .owl-part { animation: none !important; }
 }
-
-/* Слабое устройство (lib/owlPerf.js): движения частей внутри SVG
-   перерисовывают картинку каждый кадр — выключаем их, включая взмах крыльев
-   при прыжке. Прыжок, покачивание и дыхание остаются: это слои. */
-.owl-lite .owl-svg * { animation: none !important; }
-.owl-lite .owl-svg .owl-lid { transform: scaleY(0); }
-.owl-lite .owl-svg .owl-shine,
-.owl-lite .owl-svg .owl-spark { opacity: 0; }
 
 /* ---------- Pet header button ---------- */
+/* Неоновая рамка, чтобы вход к Букле не терялся в шапке. Раньше анимировались
+   border-color и box-shadow — это перерисовка кнопки каждый кадр, всё время,
+   пока открыто поле (≈ половина главного потока в простое на слабом
+   телефоне). Теперь голубое свечение постоянное, а фиолетовое лежит в
+   ::after и переливается только прозрачностью — это делает видеокарта. */
 .pet-headerbtn {
   position: relative;
-  /* Animated neon border so the pet entry never blends into the topbar */
-  border: 1.5px solid transparent !important;
+  border: 1.5px solid rgba(108, 140, 255, 0.65) !important;
+  box-shadow: 0 0 0 1px rgba(108, 140, 255, 0.55),
+              0 0 12px rgba(108, 140, 255, 0.55),
+              0 0 22px rgba(179, 136, 255, 0.30);
+}
+.pet-headerbtn::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  border: 1.5px solid rgba(179, 136, 255, 0.8);
+  box-shadow: 0 0 0 1px rgba(179, 136, 255, 0.7),
+              0 0 16px rgba(179, 136, 255, 0.75),
+              0 0 28px rgba(108, 140, 255, 0.35);
+  pointer-events: none;
+  opacity: 0;
   animation: pet-headerbtn-neon 3s ease-in-out infinite;
 }
-.pet-headerbtn--egg { animation: pet-headerbtn-wobble 3.2s ease-in-out infinite,
-                                 pet-headerbtn-neon  3s ease-in-out infinite; }
+.pet-headerbtn--egg { animation: pet-headerbtn-wobble 3.2s ease-in-out infinite; }
 @keyframes pet-headerbtn-neon {
-  0%, 100% {
-    box-shadow: 0 0 0 1px rgba(108, 140, 255, 0.55),
-                0 0 12px rgba(108, 140, 255, 0.55),
-                0 0 22px rgba(179, 136, 255, 0.30);
-    border-color: rgba(108, 140, 255, 0.65);
-  }
-  50% {
-    box-shadow: 0 0 0 1px rgba(179, 136, 255, 0.7),
-                0 0 16px rgba(179, 136, 255, 0.75),
-                0 0 28px rgba(108, 140, 255, 0.35);
-    border-color: rgba(179, 136, 255, 0.8);
-  }
+  0%, 100% { opacity: 0; }
+  50%      { opacity: 1; }
 }
 .pet-headerbtn__dot {
   position: absolute;
@@ -3670,6 +3677,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .pet-headerbtn--ready {
   animation: pet-headerbtn-ready 1.1s ease-in-out infinite !important;
 }
+.pet-headerbtn--ready::after { display: none; }
 @keyframes pet-headerbtn-ready {
   0%, 100% {
     transform: scale(1);
@@ -6582,8 +6590,15 @@ body.has-bg .cell--hinted .cell__face--back {
   translate: 0 calc((var(--i) - 3) * (var(--i) - 3) * 1.7px);
   rotate: calc((var(--i) - 3) * 3.4deg);
   /* после падения по слову раз в несколько секунд пробегает «волна» */
-  animation: home-tile-drop 640ms cubic-bezier(0.2, 1.4, 0.4, 1) both, home-wave 5.5s ease-in-out infinite;
-  animation-delay: calc(120ms + var(--i) * 60ms), calc(1.8s + var(--i) * 90ms);
+  animation: home-wave 5.5s ease-in-out infinite;
+  animation-delay: calc(1.8s + var(--i) * 90ms);
+}
+/* Падение — на обёртке (см. StartMenu): с волной на одном элементе оно
+   держало transform, и волну браузер считал на главном потоке. */
+.home__tile-slot {
+  display: block;
+  animation: home-tile-drop 640ms cubic-bezier(0.2, 1.4, 0.4, 1) backwards;
+  animation-delay: calc(120ms + var(--i) * 60ms);
 }
 .home__tile--gold { background: linear-gradient(180deg, #ffd766 0%, #f7b21c 50%, #dc860b 100%); }
 .home__tile--green { background: linear-gradient(180deg, #93d655 0%, #5aa82b 50%, #3b771a 100%); }
@@ -6994,14 +7009,20 @@ body.has-bg .cell--hinted .cell__face--back {
   .home__owl { width: clamp(56px, min(calc(var(--hh) * 0.36), calc(100cqh - 130px)), 250px); }
 }
 
-/* Букля открыта поверх меню на весь экран — меню не видно, но его сова,
-   искры и плитки продолжали анимироваться и отнимали кадры у сцены Букли. */
-.home--covered, .home--covered * { animation-play-state: paused !important; }
-/* То же под любой модалкой (магазин, правила, достижения…): меню за
-   размытым фоном почти не видно, а каждый кадр его анимаций заставлял
-   пересчитывать размытие — лишняя работа и мерцание. */
-body:has(.modal-backdrop) .home,
-body:has(.modal-backdrop) .home * { animation-play-state: paused !important; }
+
+
+/* Пока открыто главное меню, поле под ним не видно — не рисуем его вовсе
+   (класс app--home ставит App.jsx). После партии на поле лежат 3D-слои
+   перевёрнутых клеток; модалка с размытым фоном поверх меню заставляла их
+   пересобираться — на Android это давало разовое мигание. Заодно меньше
+   стилей и раскладки при открытии разделов. */
+.app--home > .header,
+.app--home > .topbar,
+.app--home > .main,
+.app--home > .keyboard,
+.app--home > .end-panel { content-visibility: hidden; }
+/* Экран Букли закрыл меню целиком — меню не рисуем (App.jsx, petCovers). */
+.app--pet > .home { content-visibility: hidden; }
 
 @keyframes home-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes home-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
