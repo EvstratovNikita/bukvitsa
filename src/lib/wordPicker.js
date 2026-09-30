@@ -3,7 +3,8 @@
 // Раньше слово бралось случайно из пула с возвратом: в пуле ~220 слов, так
 // что повтор через 15–20 партий был почти неизбежен, а изредка слово
 // выпадало дважды подряд. Теперь:
-//   • без повторов — помним последние ~3/4 пула этой длины и из них не берём;
+//   • без повторов — помним последние ~3/4 доигранных слов этой длины
+//     (rememberWord) и из них не берём;
 //     Слово дня тоже не загадываем в обычной партии;
 //   • по сложности — слова размечены (data/wordTiers.js), уровень для
 //     следующей партии зависит от игрока: новичку лёгкие, после проигрыша —
@@ -59,10 +60,20 @@ export function pickNextWord(length = 5, player = null, rng = Math.random) {
   // и уж совсем на крайний случай (не бывает при доле < 1) — весь пул.
   const noHard = (list) => (entry.lastTier === 'hard' ? list.filter((w) => wordTier(normalizeWord(w), length) !== 'hard') : list);
   const candidates = [ofTier(tier), ofTier('medium'), noHard(fresh), fresh, pool].find((l) => l.length);
-  const word = candidates[Math.floor(rng() * candidates.length)];
+  return candidates[Math.floor(rng() * candidates.length)];
+}
 
+// Слово попадает в историю, когда партию доиграли, а не когда его выбрали:
+// при запуске слово выбирается, а кнопка «Играть» в меню может тут же
+// поставить партию заново — первое слово игрок так и не увидел, и незачем
+// ему сгорать на ~400 партий.
+export function rememberWord(word, length = normalizeWord(word).length) {
+  const w = normalizeWord(word);
+  if (!w) return;
+  const pool = poolForLength(length);
+  const all = storage.get(HISTORY_KEY, {}) || {};
+  const recent = Array.isArray(all[length]?.words) ? all[length].words : [];
   const keep = Math.max(1, Math.floor(pool.length * NO_REPEAT_SHARE));
-  const words = [...recent.filter((w) => w !== normalizeWord(word)), normalizeWord(word)].slice(-keep);
-  storage.set(HISTORY_KEY, { ...all, [length]: { words, lastTier: wordTier(normalizeWord(word), length) } });
-  return word;
+  const words = [...recent.filter((x) => x !== w), w].slice(-keep);
+  storage.set(HISTORY_KEY, { ...all, [length]: { words, lastTier: wordTier(w, length) } });
 }

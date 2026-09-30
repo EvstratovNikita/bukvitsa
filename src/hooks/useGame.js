@@ -7,7 +7,7 @@ import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
 import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord } from '../data/words.js';
-import { pickNextWord } from '../lib/wordPicker.js';
+import { pickNextWord, rememberWord } from '../lib/wordPicker.js';
 import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
@@ -229,6 +229,14 @@ export function useGame() {
     // Re-runs once `stats.ready` flips true (server reconcile settled).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stats.ready]);
+
+  // Доигранное обычное слово — в историю, чтобы оно не выпало снова
+  // (lib/wordPicker.js). Слово дня общее для всех и в историю не идёт.
+  useEffect(() => {
+    if (gameMode !== 'normal' || !solution) return;
+    if (status !== GAME_STATUS.WON && status !== GAME_STATUS.LOST) return;
+    rememberWord(solution);
+  }, [status, gameMode, solution]);
 
   // Persist the in-flight puzzle so reload resumes it (no double energy charge).
   // Skip writing when solution/length disagree — that's a transient render
