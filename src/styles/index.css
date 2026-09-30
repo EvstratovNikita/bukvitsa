@@ -3457,9 +3457,11 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   width: 100%;
   height: 100%;
 }
-/* Тень — CSS-фильтр на слое: его накладывает компоновщик. */
-.owl .owl-svg { filter: drop-shadow(0 5px 8px var(--owl-drop)); }
-.owl-hop, .owl-breathe { will-change: transform; }
+/* Без filter и will-change: слои совы с drop-shadow моргали, когда поверх
+   открывалась модалка с размытым фоном (backdrop-filter) — браузер
+   перестраивал их заново. Отделяет сову от фона обводка --owl-edge и
+   контактная тень под лапами; анимированные div браузер и так выносит
+   на свой слой. */
 /* Низ лап — y≈368 из 400. */
 .owl-hop { transform-origin: 50% 92%; }
 .pet-scene--owl .owl-hop { animation: owl-bob 3.6s ease-in-out infinite; }
@@ -6995,6 +6997,11 @@ body.has-bg .cell--hinted .cell__face--back {
 /* Букля открыта поверх меню на весь экран — меню не видно, но его сова,
    искры и плитки продолжали анимироваться и отнимали кадры у сцены Букли. */
 .home--covered, .home--covered * { animation-play-state: paused !important; }
+/* То же под любой модалкой (магазин, правила, достижения…): меню за
+   размытым фоном почти не видно, а каждый кадр его анимаций заставлял
+   пересчитывать размытие — лишняя работа и мерцание. */
+body:has(.modal-backdrop) .home,
+body:has(.modal-backdrop) .home * { animation-play-state: paused !important; }
 
 @keyframes home-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes home-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
