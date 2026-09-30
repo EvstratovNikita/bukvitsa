@@ -14,7 +14,13 @@ import { pluralCoins } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
 
-export function EnergyModal() {
+// Сколько энергии за день дают режимы 4/6 (серия «5 побед → +1», до 3 раз) —
+// то же правило, что в EndPanel и GameEnd.
+const ALT_ENERGY_PER_DAY = 3;
+
+// onOpenModes — открыть выбор режима (App): режимы 4 и 6 букв энергию не
+// тратят и сами её приносят, так что без энергии это лучший выход из окна.
+export function EnergyModal({ onOpenModes }) {
   const {
     energy,
     energyMax,
@@ -101,6 +107,13 @@ export function EnergyModal() {
   const full = energy >= cap;
   const adCapReached = adsEnergyLeft <= 0;
 
+  // Предложение режимов 4/6 — когда на партию энергии нет.
+  const showModes = Boolean(onOpenModes) && energy < 1;
+  const altPlays = (stats?.altMode?.plays || 0) % 5;
+  const altCapped = (stats?.altMode?.energyGranted || 0) >= ALT_ENERGY_PER_DAY;
+  const altLeft = 5 - altPlays;
+  const onModes = () => { closeEnergyModal(); onOpenModes(); };
+
   return (
     <Modal open onClose={closeEnergyModal} title="Энергия">
       <div className="energy-modal">
@@ -156,13 +169,36 @@ export function EnergyModal() {
               <span className="energy-option__sub">
                 {adCapReached
                   ? 'Лимит на сегодня исчерпан'
-                  : `+${ENERGY_AD_REWARD} энергия, бесплатно · осталось ${adsEnergyLeft}`}
+                  : `+${ENERGY_AD_REWARD} энергия, бесплатно${Number.isFinite(adsEnergyLeft) ? ` · осталось ${adsEnergyLeft}` : ''}`}
               </span>
             </span>
             <span className="energy-option__price energy-option__price--ad">
               {adRunning ? '…' : (<><PlayIcon /><span>Смотреть</span></>)}
             </span>
           </button>
+
+          {showModes && (
+            <button
+              type="button"
+              className="energy-option energy-option--modes"
+              onClick={onModes}
+              onMouseDown={(e) => e.preventDefault()}
+              disabled={adRunning}
+            >
+              <span className="energy-option__icon" aria-hidden="true">4·6</span>
+              <span className="energy-option__body">
+                <span className="energy-option__title">Режимы 4 и 6 букв</span>
+                <span className="energy-option__sub">
+                  {altCapped
+                    ? 'Без энергии — играй сколько хочешь'
+                    : <>Без энергии · ещё {altLeft} {altLeft === 1 ? 'победа' : altLeft < 5 ? 'победы' : 'побед'} до <BoltIcon /> +1</>}
+                </span>
+              </span>
+              <span className="energy-option__price energy-option__price--modes">
+                <span>Играть</span>
+              </span>
+            </button>
+          )}
         </div>
 
         {feedback && (

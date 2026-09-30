@@ -6211,6 +6211,28 @@ body.has-bg .cell--hinted .cell__face--back {
 [data-theme="light"] .pet-treat__price svg,
 [data-theme="light"] .energy-option__price:not(.energy-option__price--ad) svg { color: #8a5a10; }
 
+/* «Сыграть 4 или 6 букв» в окне энергии — зелёная пилюля и значок в цвет
+   кнопки режимов в шапке. Селектор сильнее золотых правил цены выше
+   (:not(--ad) задевает и эту пилюлю, в светлой теме — с [data-theme]). */
+.energy-modal .energy-option .energy-option__price.energy-option__price--modes {
+  gap: 5px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: #06210f;
+  background: linear-gradient(135deg, #7fe09a, #3fb563);
+  box-shadow: 0 4px 12px rgba(63, 181, 99, 0.35);
+}
+.energy-option--modes .energy-option__icon {
+  font-size: 12.5px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #7fe09a;
+  background: #17331d;
+}
+[data-theme="light"] .energy-option--modes .energy-option__icon { color: #1f7a3a; background: #d8f0dc; }
+.energy-option--modes .energy-option__sub svg { width: 12px; height: 12px; vertical-align: -1px; color: #f7c948; }
+
 /* Кнопки-цены (магазин, украшения) — тот же ровный золотой тон, чтобы
    цена везде читалась одинаково. */
 .shop-card__btn:not(.shop-card__btn--active),

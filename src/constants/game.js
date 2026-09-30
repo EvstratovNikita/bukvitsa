@@ -78,13 +78,14 @@ export const BOOST_ENERGY_CAP_MS = 2 * DAY_MS;     // for 2 days
 export const AD_COIN_BONUS = 4;                    // extra coins per ad view
 export const AD_COIN_BONUS_USES = 10;              // number of boosted ad views
 
-// Soft daily cap on "double reward via ad" presses. High enough not to bother
-// a normal player, low enough to stop coin-farming via the stub/short ad.
-export const ADS_DOUBLE_PER_DAY = 10;
-
-// Daily cap on "watch ad → +1 energy". Without it the player can farm infinite
-// energy (especially with the instant stub ad), removing all energy pressure.
-export const ADS_ENERGY_PER_DAY = 10;
+// Daily caps on rewarded ads: "double reward" and "+1 energy". На VK и в
+// Яндексе лимита нет — ролики настоящие, их частоту регулирует сама площадка,
+// а кнопка удвоения, пропадавшая после 10 просмотров, выглядела как баг и
+// лишала игрока (и нас) показов. В веб-версии рекламы нет — там мгновенная
+// заглушка, и без лимита монеты и энергию можно было бы фармить бесконечно
+// (сервер держит тот же лимит).
+export const ADS_DOUBLE_PER_DAY = isEmbedded ? Infinity : 10;
+export const ADS_ENERGY_PER_DAY = isEmbedded ? Infinity : 10;
 
 // Resolve the active energy ceiling for a stats blob (7 while the cap boost
 // is live, otherwise the base 5).

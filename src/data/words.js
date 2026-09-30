@@ -74,11 +74,17 @@ export const WORDS_5_EXTRA = [
   'шпион', 'сыщик', 'забег', 'обруч', 'дробь', 'дудка', 'афиша', 'смерч',
   'вихрь', 'терем', 'лавка', 'киоск', 'ларек', 'терка', 'берет', 'фикус',
   'лиана', 'рыжик', 'полюс', 'отлив', 'оазис', 'эскиз', 'шпага', 'цапля',
-  'жажда', 'шифер', 'тираж'
+  'жажда', 'шифер', 'тираж',
+  // Несклоняемые и слова только мн. ч. + обычные слова вне OpenCorpora (30.09.2026)
+  'колье', 'табло', 'шасси', 'кашпо', 'ранчо', 'регби', 'пончо', 'мюсли',
+  'манго', 'кешью', 'лобби', 'досье', 'суфле', 'трико', 'кредо', 'ретро',
+  'диско', 'самбо', 'дзюдо', 'латте', 'хумус', 'смузи', 'шашки', 'штаны',
+  'ножны', 'недра', 'будни', 'зомби', 'хиппи', 'голем'
 ];
 
 import { VALID_GUESSES_SET } from './validGuesses.js';
 import { VALID_GUESSES_4_SET, VALID_GUESSES_6_SET } from './validGuesses46.js';
+import { EXTRA_GUESSES } from './validGuessesExtra.js';
 import { WORDS_4 } from './words4.js';
 import { WORDS_6 } from './words6.js';
 
@@ -96,6 +102,7 @@ const ANSWERS_6 = new Set(WORDS_6.map(normalizeWord));
 export function isValidWord(w, length = 5) {
   const n = normalizeWord(w);
   if (n.length !== length) return false;
+  if (EXTRA_GUESSES[length]?.has(n)) return true;
   if (length === 5) return VALID_GUESSES_SET.has(n) || ANSWERS_5.has(n);
   if (length === 4) return VALID_GUESSES_4_SET.has(n) || ANSWERS_4.has(n);
   if (length === 6) return VALID_GUESSES_6_SET.has(n) || ANSWERS_6.has(n);

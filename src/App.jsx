@@ -239,7 +239,7 @@ function GameShell() {
           </div>
         </div>
       </Modal>
-      <EnergyModal />
+      <EnergyModal onOpenModes={openModes} />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
         <Stats stats={stats} />
