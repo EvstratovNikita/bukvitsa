@@ -54,7 +54,7 @@ export function isValidWord(w, length = 5) {
   return false;
 }
 
-function poolForLength(length) {
+export function poolForLength(length) {
   if (length === 4) return WORDS_4;
   if (length === 6) return WORDS_6;
   return WORDS;

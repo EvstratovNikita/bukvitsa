@@ -6,7 +6,8 @@ import { isVk } from '../lib/platform.js';
 import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
 import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
-import { isValidWord, normalizeWord, pickRandomWord } from '../data/words.js';
+import { isValidWord, normalizeWord } from '../data/words.js';
+import { pickNextWord } from '../lib/wordPicker.js';
 import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
@@ -159,6 +160,10 @@ export function useGame() {
   const sessionGamesRef = useRef(0);
   const reviewAskedRef = useRef(false);
   const stats = useStats();
+  // Для выбора сложности следующего слова (lib/wordPicker.js). Через ref —
+  // часть колбэков с выбором слова мемоизирована без зависимостей.
+  const playerRef = useRef(stats.stats);
+  playerRef.current = stats.stats;
 
   // On first mount, pick the first puzzle:
   //   1. today's daily, if the user hasn't played it yet (no energy cost),
@@ -217,7 +222,7 @@ export function useGame() {
     }
     if (stats.consumeEnergy()) {
       gameStartRef.current = Date.now();
-      setSolution(pickRandomWord(Math.random, wordLength));
+      setSolution(pickNextWord(wordLength, playerRef.current));
     } else {
       setEnergyModalOpen(true);
     }
@@ -248,7 +253,7 @@ export function useGame() {
     if (!solution) return;
     if (normalizeWord(solution).length === wordLength) return;
     gameStartRef.current = Date.now();
-    setSolution(pickRandomWord(Math.random, wordLength));
+    setSolution(pickNextWord(wordLength, playerRef.current));
     setGuesses([]);
     setEvaluations([]);
     setCurrent('');
@@ -466,7 +471,7 @@ export function useGame() {
 
   const performReset = useCallback(() => {
     gameStartRef.current = Date.now();
-    setSolution(pickRandomWord(Math.random, wordLength));
+    setSolution(pickNextWord(wordLength, playerRef.current));
     setGuesses([]);
     setEvaluations([]);
     setCurrent('');
@@ -499,7 +504,7 @@ export function useGame() {
     const round = saved || takeRound(length);
     setWordLength(length);
     gameStartRef.current = Date.now();
-    setSolution(round ? round.solution : pickRandomWord(Math.random, length));
+    setSolution(round ? round.solution : pickNextWord(length, playerRef.current));
     setGuesses(round?.guesses || []);
     setEvaluations(round?.evaluations || []);
     setCurrent('');
@@ -535,7 +540,7 @@ export function useGame() {
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
     if (empty) {
       gameStartRef.current = Date.now();
-      setSolution(pickRandomWord(Math.random, wordLength));
+      setSolution(pickNextWord(wordLength, playerRef.current));
       setTimeout(() => { startingRef.current = false; }, 0);
       return;
     }
@@ -649,7 +654,7 @@ export function useGame() {
       }
       if (stats.consumeEnergy()) {
         gameStartRef.current = Date.now();
-        setSolution(pickRandomWord(Math.random, wordLength));
+        setSolution(pickNextWord(wordLength, playerRef.current));
         setGuesses([]);
         setEvaluations([]);
         setCurrent('');
