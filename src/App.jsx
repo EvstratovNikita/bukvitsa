@@ -164,6 +164,7 @@ function GameShell() {
           onOpenHelp={() => setHelpOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenFeedback={() => setFeedbackOpen(true)}
+          covered={petOpen}
         />
       )}
       {tourOn && <Tour onDone={() => { setTourOn(false); setPref?.('tourDone', true); }} />}

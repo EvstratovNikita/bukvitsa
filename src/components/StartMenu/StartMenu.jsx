@@ -29,7 +29,7 @@ function lettersLabel(n) {
 
 export function StartMenu({
   onPlay, onOpenShop, onOpenPet, onOpenAchievements, onOpenLeaderboard,
-  onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback
+  onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback, covered = false
 }) {
   const {
     stats, status, guesses, gameMode, wordLength, energy, energyMax,
@@ -107,7 +107,7 @@ export function StartMenu({
   };
 
   return (
-    <div className="home" role="dialog" aria-modal="true" aria-label="Главное меню">
+    <div className={`home${covered ? ' home--covered' : ''}`} role="dialog" aria-modal="true" aria-label="Главное меню">
       <div className="home__sky" aria-hidden="true">
         <i className="home__stars" />
         <i className="home__glow home__glow--a" />

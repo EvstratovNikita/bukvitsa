@@ -14,9 +14,9 @@ const HATCH_DURATION_MS = 3200;
 
 const TABS = [
   { id: 'feed',  icon: '🍖', label: 'Покормить' },
-  { id: 'cheer', icon: '🎁', label: 'Наряды'     },
+  { id: 'cheer', icon: '🎀', label: 'Наряды'     },
   { id: 'train', icon: '🎓', label: 'Обучить'    },
-  { id: 'gifts', icon: '🎀', label: 'Подарки'    }
+  { id: 'gifts', icon: '🎁', label: 'Подарки'    }
 ];
 
 function ageInDays(iso) {

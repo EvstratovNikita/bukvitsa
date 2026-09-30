@@ -389,18 +389,30 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
         <clipPath id={`${uid}-clip-body`}>
           <path d={BODY_SHAPE} />
         </clipPath>
-        <filter id={`${uid}-soft`} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="7" />
-        </filter>
-        <filter id={`${uid}-drop`} x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="10" stdDeviation="9" floodColor="var(--owl-drop)" />
-        </filter>
+        {/* Мягкие пятна — градиентами, не SVG-фильтрами. Части совы всё
+            время шевелятся, и SVG перерисовывается каждый кадр; размытия
+            (feGaussianBlur/feDropShadow) при этом пересчитывались заново,
+            и на iPhone прыжок дёргался, а нажатия запаздывали. Тень от
+            всей совы теперь CSS drop-shadow на слое (см. index.css). */}
+        <radialGradient id={`${uid}-contact`}>
+          <stop offset="0%"   stopColor="var(--owl-contact)" />
+          <stop offset="55%"  stopColor="var(--owl-contact)" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="var(--owl-contact)" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={`${uid}-blush`}>
+          <stop offset="0%"   stopColor="#ff9fb0" />
+          <stop offset="100%" stopColor="#ff9fb0" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`${uid}-side`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stopColor="#8a6a42" stopOpacity="0" />
+          <stop offset="100%" stopColor="#8a6a42" />
+        </linearGradient>
       </defs>
 
       {/* contact shadow */}
-      <ellipse cx="200" cy="378" rx="112" ry="13" fill="var(--owl-contact)" filter={`url(#${uid}-soft)`} />
+      <ellipse cx="200" cy="378" rx="126" ry="20" fill={`url(#${uid}-contact)`} />
 
-      <g filter={`url(#${uid}-drop)`}>
+      <g>
         {perch && (
           <g>
             <path
@@ -455,15 +467,13 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
 
             <path d={BODY_SHAPE} fill={`url(#${uid}-body)`} stroke="var(--owl-edge)" strokeWidth="1.6" />
 
-            {/* Side shading, clipped by the silhouette — the blur would
-                otherwise spill a dark halo past the body's right edge, right
-                into the seam with the wing. */}
+            {/* Side shading, clipped by the silhouette so it never spills
+                past the body's right edge into the seam with the wing. */}
             <g clipPath={`url(#${uid}-clip-body)`}>
               <path
                 d="M 200 62 C 274 62 312 122 310 194 C 308 274 264 330 200 330 q 46 -132 0 -268 Z"
-                fill="#8a6a42"
-                opacity="0.08"
-                filter={`url(#${uid}-soft)`}
+                fill={`url(#${uid}-side)`}
+                opacity="0.12"
               />
             </g>
             <ellipse cx="196" cy="252" rx="84" ry="76" fill={`url(#${uid}-belly)`} />
@@ -494,8 +504,8 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
             </g>
 
             <g className="owl-blush" opacity="0.72">
-              <ellipse cx="132" cy="212" rx="19" ry="11" fill="#ff9fb0" opacity="0.55" filter={`url(#${uid}-soft)`} />
-              <ellipse cx="268" cy="212" rx="19" ry="11" fill="#ff9fb0" opacity="0.55" filter={`url(#${uid}-soft)`} />
+              <ellipse cx="132" cy="212" rx="27" ry="18" fill={`url(#${uid}-blush)`} opacity="0.55" />
+              <ellipse cx="268" cy="212" rx="27" ry="18" fill={`url(#${uid}-blush)`} opacity="0.55" />
             </g>
 
             <Eye cx={EYE_L} cy={EYE_Y} uid={uid} />
