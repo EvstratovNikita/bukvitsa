@@ -417,19 +417,19 @@ E.won_200 = () => {
 
 // Порядок и акценты — как в таблице миссий.
 export const MISSIONS = [
-  ['first_win', 'Первый успех', '#ffcf5a', ['char', 'char', 'green', 'char']],
-  ['streak_3', 'Тройка', '#7dff9a', ['char', 'gold', 'char', 'char']],
-  ['won_10', 'Десятка', '#8dffb0', ['char', 'gold', 'char', 'green']],
-  ['pet_lvl_5', 'Птенец подрос', '#7ff0e0', ['char', 'green', 'char', 'gold']],
-  ['first_try', 'С первого раза', '#8dffa0', ['char', 'gold', 'char', 'char']],
-  ['daily_6', 'Неделя верности', '#ffdf7a', ['char', 'char', 'char', 'green']],
-  ['fast_30', 'Спринтер', '#9fd8ff', ['char', 'green', 'char', 'gold']],
-  ['won_50', 'Знаток', '#d2b6ff', ['char', 'green', 'char', 'gold']],
-  ['streak_10', 'Огонь', '#ff9a4a', ['char', 'gold', 'char', 'char']],
-  ['first_try_5', 'Снайпер', '#d2b6ff', ['char', 'gold', 'char', 'green']],
-  ['all_attempts', 'Универсал', '#cfe0ff', ['char', 'char', 'char', 'char']],
-  ['pet_lvl_10', 'Учёная сова', '#ffd76a', ['char', 'green', 'char', 'gold']],
-  ['won_200', 'Мастер', '#ffcf5a', ['char', 'green', 'char', 'char']]
+  ['first_win', 'Добиться первого успеха', '#ffcf5a', ['char', 'char', 'green', 'char']],
+  ['streak_3', 'Собрать тройку побед', '#7dff9a', ['char', 'gold', 'char', 'char']],
+  ['won_10', 'Разгадать десятку слов', '#8dffb0', ['char', 'gold', 'char', 'green']],
+  ['pet_lvl_5', 'Вырастить птенца', '#7ff0e0', ['char', 'green', 'char', 'gold']],
+  ['first_try', 'Угадать с первого раза', '#8dffa0', ['char', 'gold', 'char', 'char']],
+  ['daily_6', 'Пройти неделю верности', '#ffdf7a', ['char', 'char', 'char', 'green']],
+  ['fast_30', 'Стать спринтером', '#9fd8ff', ['char', 'green', 'char', 'gold']],
+  ['won_50', 'Заслужить звание знатока', '#d2b6ff', ['char', 'green', 'char', 'gold']],
+  ['streak_10', 'Разжечь огонь побед', '#ff9a4a', ['char', 'gold', 'char', 'char']],
+  ['first_try_5', 'Стать снайпером', '#d2b6ff', ['char', 'gold', 'char', 'green']],
+  ['all_attempts', 'Стать универсалом', '#cfe0ff', ['char', 'char', 'char', 'char']],
+  ['pet_lvl_10', 'Вырастить учёную сову', '#ffd76a', ['char', 'green', 'char', 'gold']],
+  ['won_200', 'Получить звание мастера', '#ffcf5a', ['char', 'green', 'char', 'char']]
 ];
 
 export function svg(id, i) {

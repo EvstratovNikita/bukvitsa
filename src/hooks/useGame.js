@@ -235,7 +235,7 @@ export function useGame() {
   useEffect(() => {
     if (gameMode !== 'normal' || !solution) return;
     if (status !== GAME_STATUS.WON && status !== GAME_STATUS.LOST) return;
-    rememberWord(solution);
+    rememberWord(solution, status === GAME_STATUS.WON, playerRef.current);
   }, [status, gameMode, solution]);
 
   // Persist the in-flight puzzle so reload resumes it (no double energy charge).

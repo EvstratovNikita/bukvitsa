@@ -42,7 +42,20 @@ function chooseTier(player, lastTier, rng) {
   return 'medium';
 }
 
-// player — stats игрока (played, currentStreak). rng — для тестов.
+// Результаты режима — свои у каждой длины: общие played/currentStreak в
+// статистике считают победы на 4, 5 и 6 буквах вместе, и серия в одном
+// режиме утяжеляла слова в другом. Счётчики живут в истории слов. Пока их
+// нет (игрок с прошлой версии), для 5 букв берём общую статистику — иначе
+// опытному игроку снова пошли бы «новичковые» лёгкие слова; для 4 и 6
+// режим с нуля, первые партии в нём — лёгкие.
+function modeResults(entry, length, player) {
+  if (typeof entry.played === 'number') return { played: entry.played, currentStreak: entry.streak || 0 };
+  if (length === 5 && player) return { played: player.played || 0, currentStreak: player.currentStreak || 0 };
+  return { played: 0, currentStreak: 0 };
+}
+
+// player — общая статистика игрока (played, currentStreak), запасной
+// источник для 5 букв, см. modeResults. rng — для тестов.
 export function pickNextWord(length = 5, player = null, rng = Math.random) {
   const pool = poolForLength(length);
   const all = storage.get(HISTORY_KEY, {}) || {};
@@ -53,7 +66,7 @@ export function pickNextWord(length = 5, player = null, rng = Math.random) {
   if (length === 5) blocked.add(normalizeWord(getDailyWord()));
   const fresh = pool.filter((w) => !blocked.has(normalizeWord(w)));
 
-  const tier = chooseTier(player, entry.lastTier, rng);
+  const tier = chooseTier(modeResults(entry, length, player), entry.lastTier, rng);
   const ofTier = (t) => fresh.filter((w) => wordTier(normalizeWord(w), length) === t);
   // Нужный уровень весь недавно был — берём соседний (для лёгкого и
   // сложного это средний), потом любой, кроме сложного после сложного;
@@ -66,14 +79,30 @@ export function pickNextWord(length = 5, player = null, rng = Math.random) {
 // Слово попадает в историю, когда партию доиграли, а не когда его выбрали:
 // при запуске слово выбирается, а кнопка «Играть» в меню может тут же
 // поставить партию заново — первое слово игрок так и не увидел, и незачем
-// ему сгорать на ~400 партий.
-export function rememberWord(word, length = normalizeWord(word).length) {
+// ему сгорать на ~400 партий. Заодно считаем результаты режима.
+// won — партия выиграна; player — общая статистика (см. modeResults).
+export function rememberWord(word, won = false, player = null) {
   const w = normalizeWord(word);
   if (!w) return;
+  const length = w.length;
   const pool = poolForLength(length);
   const all = storage.get(HISTORY_KEY, {}) || {};
-  const recent = Array.isArray(all[length]?.words) ? all[length].words : [];
+  const entry = all[length] || {};
+  const recent = Array.isArray(entry.words) ? entry.words : [];
+  // Уже записано: доигранная партия восстановилась после перезагрузки —
+  // второй раз её не считаем.
+  if (recent[recent.length - 1] === w) return;
   const keep = Math.max(1, Math.floor(pool.length * NO_REPEAT_SHARE));
   const words = [...recent.filter((x) => x !== w), w].slice(-keep);
-  storage.set(HISTORY_KEY, { ...all, [length]: { words, lastTier: wordTier(w, length) } });
+  // Первая запись для 5 букв у игрока с прошлой версии — переносим общую
+  // статистику как есть: к этому моменту она уже учла эту партию
+  // (recordWin/recordLoss срабатывают раньше), прибавлять ещё раз не нужно.
+  const seeded = typeof entry.played !== 'number' && length === 5 && player;
+  const prev = modeResults(entry, length, player);
+  const played = seeded ? Math.max(1, prev.played) : prev.played + 1;
+  const streak = !won ? 0 : seeded ? Math.max(1, prev.currentStreak) : prev.currentStreak + 1;
+  storage.set(HISTORY_KEY, {
+    ...all,
+    [length]: { words, lastTier: wordTier(w, length), played, streak }
+  });
 }
