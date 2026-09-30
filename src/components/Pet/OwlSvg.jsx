@@ -22,8 +22,9 @@
 // Click anywhere on the owl → joyful jump with the wings thrown up (~700ms).
 // Debounced: while jumping, further clicks are ignored.
 
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { getDecoration } from '../../data/petDecorations.js';
+import { watchOwlPerf } from '../../lib/owlPerf.js';
 
 const JUMP_MS = 700;
 
@@ -262,6 +263,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
   // Gradient ids must be unique per instance, otherwise a second owl on the
   // page re-points the first one's fills at its own defs.
   const uid = `owl-${useId().replace(/:/g, '')}`;
+  useEffect(() => { watchOwlPerf(); }, []);
 
   const onClick = () => {
     if (cooldown.current) return;
@@ -319,15 +321,59 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
     );
   };
 
+  // Два слоя одного размера: снизу неподвижные ветка и тень, сверху птица.
+  // Прыжок, покачивание и дыхание двигают обёртки-div целиком — это
+  // transform слоя, его делает видеокарта без перерисовки картинки. Внутри
+  // SVG шевелятся только мелкие части (моргание, голова, крылья); на слабых
+  // устройствах их выключает класс owl-lite (см. lib/owlPerf.js).
   return (
-    <svg
-      className={`owl-svg ${jumping ? 'owl-svg--jump ' : ''}${className}`.trim()}
-      viewBox="0 0 400 400"
-      xmlns="http://www.w3.org/2000/svg"
+    <div
+      className={`owl ${jumping ? 'owl--jump ' : ''}${className}`.trim()}
       onClick={onClick}
       role="button"
       aria-label="Букля"
     >
+      <svg className="owl-svg owl-svg--base" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id={`${uid}-contact`}>
+            <stop offset="0%"   stopColor="var(--owl-contact)" />
+            <stop offset="55%"  stopColor="var(--owl-contact)" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="var(--owl-contact)" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id={`${uid}-branch`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stopColor="#8a6034" />
+            <stop offset="45%"  stopColor="#5f3e1f" />
+            <stop offset="100%" stopColor="#3a2412" />
+          </linearGradient>
+        </defs>
+
+        {/* contact shadow */}
+        <ellipse cx="200" cy="378" rx="126" ry="20" fill={`url(#${uid}-contact)`} />
+
+        {perch && (
+          <g>
+            <path
+              d="M 58 344 q 142 -14 284 0 q 5 13 0 24 q -142 13 -284 0 q -6 -12 0 -24 Z"
+              fill={`url(#${uid}-branch)`}
+              stroke="#2e1c0c"
+              strokeWidth="1.6"
+              strokeLinejoin="round"
+            />
+            <g stroke="#3a2412" strokeWidth="1.4" opacity="0.5" fill="none" strokeLinecap="round">
+              <path d="M 94 350 q 30 4 62 3" />
+              <path d="M 178 352 q 40 4 84 2" />
+              <path d="M 106 361 q 46 4 92 2" />
+              <path d="M 218 361 q 40 3 80 0" />
+            </g>
+            <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" strokeWidth="2" fill="none" opacity="0.5" />
+          </g>
+        )}
+      </svg>
+
+      {/* Everything that leaves the ground when the owl hops. */}
+      <div className="owl-hop">
+      <div className="owl-breathe">
+      <svg className="owl-svg owl-svg--bird" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
       <defs>
         <radialGradient id={`${uid}-body`} cx="38%" cy="26%" r="82%">
           <stop offset="0%"   stopColor="#fffdf7" />
@@ -380,25 +426,14 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
           <stop offset="0%"   stopColor="#ffd08a" />
           <stop offset="100%" stopColor="#c07a22" />
         </linearGradient>
-        <linearGradient id={`${uid}-branch`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#8a6034" />
-          <stop offset="45%"  stopColor="#5f3e1f" />
-          <stop offset="100%" stopColor="#3a2412" />
-        </linearGradient>
-
         <clipPath id={`${uid}-clip-body`}>
           <path d={BODY_SHAPE} />
         </clipPath>
-        {/* Мягкие пятна — градиентами, не SVG-фильтрами. Части совы всё
-            время шевелятся, и SVG перерисовывается каждый кадр; размытия
+        {/* Мягкие пятна — градиентами, не SVG-фильтрами. Части совы
+            шевелятся, и SVG перерисовывается каждый кадр; размытия
             (feGaussianBlur/feDropShadow) при этом пересчитывались заново,
             и на iPhone прыжок дёргался, а нажатия запаздывали. Тень от
-            всей совы теперь CSS drop-shadow на слое (см. index.css). */}
-        <radialGradient id={`${uid}-contact`}>
-          <stop offset="0%"   stopColor="var(--owl-contact)" />
-          <stop offset="55%"  stopColor="var(--owl-contact)" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="var(--owl-contact)" stopOpacity="0" />
-        </radialGradient>
+            всей совы — CSS drop-shadow на слое (см. index.css). */}
         <radialGradient id={`${uid}-blush`}>
           <stop offset="0%"   stopColor="#ff9fb0" />
           <stop offset="100%" stopColor="#ff9fb0" stopOpacity="0" />
@@ -409,32 +444,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
         </linearGradient>
       </defs>
 
-      {/* contact shadow */}
-      <ellipse cx="200" cy="378" rx="126" ry="20" fill={`url(#${uid}-contact)`} />
-
-      <g>
-        {perch && (
-          <g>
-            <path
-              d="M 58 344 q 142 -14 284 0 q 5 13 0 24 q -142 13 -284 0 q -6 -12 0 -24 Z"
-              fill={`url(#${uid}-branch)`}
-              stroke="#2e1c0c"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            />
-            <g stroke="#3a2412" strokeWidth="1.4" opacity="0.5" fill="none" strokeLinecap="round">
-              <path d="M 94 350 q 30 4 62 3" />
-              <path d="M 178 352 q 40 4 84 2" />
-              <path d="M 106 361 q 46 4 92 2" />
-              <path d="M 218 361 q 40 3 80 0" />
-            </g>
-            <path d="M 66 345 q 138 -13 268 0" stroke="var(--owl-rim)" strokeWidth="2" fill="none" opacity="0.5" />
-          </g>
-        )}
-
-        {/* Everything that leaves the ground when the owl hops. */}
-        <g className="owl-hop">
-        <g className="owl-breathe">
+        <g>
           <Wing side={-1} uid={uid} />
           <Wing side={1}  uid={uid} />
 
@@ -609,9 +619,10 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
             <path d="M 248 360 q 4 3 5 7" />
           </g>
         </g>
-        </g>
-      </g>
-    </svg>
+      </svg>
+      </div>
+      </div>
+    </div>
   );
 }
 

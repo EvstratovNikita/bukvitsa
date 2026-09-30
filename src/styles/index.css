@@ -3355,11 +3355,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   pointer-events: auto;
   cursor: pointer;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45));
-  /* Свой слой: тень накладывает компоновщик, а не пересчёт на каждом
-     кадре анимации совы. */
-  will-change: transform;
   opacity: 0;
 }
 
@@ -3440,26 +3435,50 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
    уходят примерно на y=−50 при верхе рисунка в 0 — уши срезались. Рамка
    сцены при этом выше (≈ −63 в тех же единицах), так что достаточно
    разрешить сове рисоваться за пределами собственного поля. */
-.owl-svg { overflow: visible; }
-.owl-svg .owl-hop { transform-box: fill-box; transform-origin: 50% 100%; }
-.pet-scene--owl .owl-svg .owl-hop { animation: owl-bob 3.6s ease-in-out infinite; }
+.owl-svg { overflow: visible; display: block; }
+
+/* Сова — стопка слоёв одного размера (см. OwlSvg): снизу ветка и тень,
+   сверху птица в двух обёртках-div. Прыжок, покачивание и дыхание — transform
+   этих div: их двигает видеокарта, SVG при этом не перерисовывается.
+   Сдвиги в процентах от высоты совы: 1% = 4 единицы рисунка 400×400. */
+/* Позиционирование задаёт место (.pet-scene__owl-img — absolute,
+   .home__owl-float > .owl — relative); здесь его нет, иначе правило ниже по
+   файлу перебивало absolute на сцене Букли. */
+.owl {
+  aspect-ratio: 1;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.owl > .owl-svg,
+.owl-hop,
+.owl-breathe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+/* Тень — CSS-фильтр на слое: его накладывает компоновщик. */
+.owl .owl-svg { filter: drop-shadow(0 5px 8px var(--owl-drop)); }
+.owl-hop, .owl-breathe { will-change: transform; }
+/* Низ лап — y≈368 из 400. */
+.owl-hop { transform-origin: 50% 92%; }
+.pet-scene--owl .owl-hop { animation: owl-bob 3.6s ease-in-out infinite; }
 @keyframes owl-bob {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-5px); }
+  50%      { transform: translateY(-1.25%); }
 }
-.owl-svg--jump .owl-hop {
+.owl--jump .owl-hop {
   animation: owl-hop-jump 0.7s cubic-bezier(.2, 1.4, .4, 1) !important;
 }
 @keyframes owl-hop-jump {
-  0%   { transform: translateY(0)     scale(1, 1); }
-  15%  { transform: translateY(7px)   scale(1.08, 0.88); }
-  /* −42, а не −52: с вытягиванием и наклоном кончики ушей при −52 касались
-     верхней рамки сцены (зазор 0 px, замерено на 390×844). Пропорции сцены
-     и совы от экрана не зависят, так что запас ≈6 px одинаков везде. */
-  45%  { transform: translateY(-42px) scale(0.95, 1.10) rotate(-4deg); }
-  70%  { transform: translateY(6px)   scale(1.05, 0.95) rotate(3deg); }
-  85%  { transform: translateY(-3px)  scale(0.98, 1.02); }
-  100% { transform: translateY(0)     scale(1, 1); }
+  0%   { transform: translateY(0)       scale(1, 1); }
+  15%  { transform: translateY(1.75%)   scale(1.08, 0.88); }
+  /* −10,5% (= −42 единицы), а не −52: с вытягиванием и наклоном кончики ушей
+     при −52 касались верхней рамки сцены (замерено на 390×844). */
+  45%  { transform: translateY(-10.5%)  scale(0.95, 1.10) rotate(-4deg); }
+  70%  { transform: translateY(1.5%)    scale(1.05, 0.95) rotate(3deg); }
+  85%  { transform: translateY(-0.75%)  scale(0.98, 1.02); }
+  100% { transform: translateY(0)       scale(1, 1); }
 }
 
 /* ---------- Fireflies in the hollow ---------- */
@@ -3500,15 +3519,15 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
    re-anchors the plain transform ATTRIBUTES underneath — the mirrored wing
    and the decoration mapping both landed far off. */
 
-/* Breathing of the whole bird */
-.owl-svg .owl-breathe {
-  transform-box: fill-box;
-  transform-origin: 50% 92%;
+/* Breathing of the whole bird — on the layer div, origin near the belly
+   bottom (y≈308 of 400), no repaint. */
+.owl-breathe {
+  transform-origin: 50% 77%;
   animation: owl-breathe 4.2s ease-in-out infinite;
 }
 @keyframes owl-breathe {
   0%, 100% { transform: scale(1, 1)        translateY(0); }
-  50%      { transform: scale(1.014, 0.99) translateY(1.6px); }
+  50%      { transform: scale(1.014, 0.99) translateY(0.4%); }
 }
 
 /* Head sway, with the ear tufts trailing behind it */
@@ -3544,7 +3563,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 /* Tap → wings thrown up and out. Positive angle: the pivot is the
    shoulder, so the lower end of the wing swings up and outward. */
-.owl-svg--jump .owl-wing {
+.owl--jump .owl-wing {
   animation: owl-flap 0.7s cubic-bezier(.3, .8, .3, 1) !important;
 }
 @keyframes owl-flap {
@@ -3595,9 +3614,17 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 .owl-svg .owl-smile-sad { opacity: 0; }
 
 @media (prefers-reduced-motion: reduce) {
-  .owl-svg * { animation: none !important; }
+  .owl-svg *, .owl-hop, .owl-breathe { animation: none !important; }
   .owl-svg .owl-lid { transform: scaleY(0); }
 }
+
+/* Слабое устройство (lib/owlPerf.js): движения частей внутри SVG
+   перерисовывают картинку каждый кадр — выключаем их, включая взмах крыльев
+   при прыжке. Прыжок, покачивание и дыхание остаются: это слои. */
+.owl-lite .owl-svg * { animation: none !important; }
+.owl-lite .owl-svg .owl-lid { transform: scaleY(0); }
+.owl-lite .owl-svg .owl-shine,
+.owl-lite .owl-svg .owl-spark { opacity: 0; }
 
 /* ---------- Pet header button ---------- */
 .pet-headerbtn {
@@ -6570,9 +6597,7 @@ body.has-bg .cell--hinted .cell__face--back {
   animation: home-pop 720ms 420ms cubic-bezier(0.2, 1.3, 0.4, 1) both;
 }
 .home__owl-float { position: relative; width: 100%; height: 100%; animation: home-float 5s ease-in-out infinite; }
-/* Тень совы — CSS-фильтр на отдельном слое вместо feDropShadow внутри SVG
-   (см. OwlSvg): его накладывает компоновщик, без пересчёта каждый кадр. */
-.home__owl-float > svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(0 6px 6px var(--owl-drop)); will-change: transform; }
+.home__owl-float > .owl { position: relative; width: 100%; height: 100%; }
 .home__halo {
   position: absolute;
   inset: -24%;
