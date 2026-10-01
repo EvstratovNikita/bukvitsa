@@ -6,7 +6,8 @@
 
    Производительность — по урокам совы и меню: анимируются только transform и
    opacity отдельных слоёв, никаких фильтров (drop-shadow/blur под размытием
-   модалок мерцал на Android), свечение — box-shadow и градиенты без анимации.
+   модалок мерцал на Android), свечение — box-shadow. Элементы интерфейса — ровные цвета, без градиентов
+   (градиенты только в картинках: обложка, фоны, стиль клеток).
    ========================================================================== */
 
 :root {
@@ -53,32 +54,29 @@
   letter-spacing: 0.01em;
   color: #fff;
   white-space: nowrap;
-  background: linear-gradient(120deg, #ff8a1f 0%, #d9480f 45%, #7c3aed 100%);
-  box-shadow: 0 2px 8px rgba(255, 120, 30, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  background: #e8701a;
+  box-shadow: 0 2px 6px rgba(255, 120, 30, 0.3);
 }
 .hw-badge .hw-pumpkin-ic { width: 14px; height: 14px; }
 .hw-badge__till {
   margin-left: 2px;
   padding-left: 5px;
-  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
   font-weight: 700;
   opacity: 0.92;
 }
 
 /* ---------- Ивентовая рамка карточек ----------
-   Градиентная рамка: фон в padding-box, градиент в border-box. Двойной класс
-   поднимает специфичность над правилами карточек из index.css. */
+   Без градиентов: ивент выделяют цвет — ночная лиловая подложка и тыквенная
+   рамка. Двойной класс поднимает специфичность над карточками из index.css. */
 .hw-frame.hw-frame {
-  border: 1.5px solid transparent;
-  background:
-    radial-gradient(120% 90% at 100% 0%, rgba(255, 138, 31, 0.16), transparent 60%) padding-box,
-    radial-gradient(120% 90% at 0% 100%, rgba(139, 92, 246, 0.18), transparent 60%) padding-box,
-    linear-gradient(var(--hw-card), var(--hw-card)) padding-box,
-    linear-gradient(135deg, #ffb35c, #ff8a1f 30%, #8b5cf6 70%, #ff8a1f) border-box;
-  box-shadow: 0 6px 22px rgba(139, 92, 246, 0.22), 0 0 0 1px rgba(255, 138, 31, 0.06);
+  border: 1.5px solid rgba(255, 150, 60, 0.7);
+  background: var(--hw-card);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
 }
 [data-theme="light"] .hw-frame.hw-frame {
-  box-shadow: 0 6px 18px rgba(194, 86, 12, 0.14);
+  border-color: rgba(194, 86, 12, 0.5);
+  box-shadow: 0 4px 12px rgba(194, 86, 12, 0.1);
 }
 
 /* ---------- Карточка загадки над полем ---------- */
@@ -89,9 +87,7 @@
   flex: none;
   padding: 7px 12px 8px;
   border-radius: 14px;
-  background:
-    linear-gradient(120deg, rgba(255, 138, 31, 0.18), rgba(139, 92, 246, 0.2)),
-    #1b1029;
+  background: #241433;
   border: 1px solid rgba(255, 165, 90, 0.5);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25), inset 0 0 22px rgba(255, 138, 31, 0.08);
   animation: hw-riddle-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
@@ -124,7 +120,7 @@
   color: #fff1e0;
 }
 [data-theme="light"] .hw-riddle {
-  background: linear-gradient(120deg, #fff1e2, #f6ebff);
+  background: #fff3e6;
   border-color: rgba(220, 110, 30, 0.5);
   box-shadow: 0 4px 14px rgba(194, 86, 12, 0.12);
 }
@@ -190,9 +186,7 @@
   padding: 9px 12px 9px 10px;
   border-radius: 18px;
   border: 1px solid rgba(255, 175, 95, 0.6);
-  background:
-    radial-gradient(90% 140% at 0% 50%, rgba(255, 138, 31, 0.45), transparent 60%),
-    linear-gradient(115deg, #2a1240 0%, #45185a 50%, #7a2c14 100%);
+  background: #2e1644;
   color: #fff;
   text-align: left;
   font: inherit;
@@ -203,24 +197,6 @@
   transition: transform 160ms ease;
 }
 .hw-banner:active { transform: scale(0.985); }
-/* Блик — отдельный слой, двигается только transform. */
-.hw-banner::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -40%;
-  width: 40%;
-  background: linear-gradient(100deg, transparent, rgba(255, 230, 200, 0.22), transparent);
-  transform: translateX(0);
-  animation: hw-banner-shine 5.5s ease-in-out 1.2s infinite;
-  will-change: transform;
-  pointer-events: none;
-}
-@keyframes hw-banner-shine {
-  0%, 70% { transform: translateX(0); }
-  100% { transform: translateX(380%); }
-}
 .hw-banner__art {
   flex: none;
   display: grid;
@@ -228,7 +204,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 190, 110, 0.55), rgba(255, 138, 31, 0.12) 70%, transparent);
+  background: rgba(255, 138, 31, 0.22);
 }
 .hw-banner__art .hw-pumpkin-ic { width: 34px; height: 34px; }
 .hw-banner__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
@@ -253,7 +229,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #ff8a1f, #ffd36b);
+  background: #ff8a1f;
 }
 .hw-banner__go { flex: none; font-size: 26px; line-height: 1; color: #ffd2a6; padding: 0 2px 2px; }
 [data-theme="light"] .hw-banner { box-shadow: 0 8px 20px rgba(122, 44, 20, 0.22); }
@@ -367,8 +343,8 @@
   font-size: 16px;
   color: #2a1000;
   cursor: pointer;
-  background: linear-gradient(135deg, #ffd36b 0%, #ff9a3a 45%, #ff7a1a 100%);
-  box-shadow: 0 8px 22px rgba(255, 120, 30, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  background: #ff8a1f;
+  box-shadow: 0 6px 16px rgba(255, 120, 30, 0.32);
   -webkit-tap-highlight-color: transparent;
 }
 .hw-cta:active { transform: scale(0.985); }
@@ -388,7 +364,7 @@
 .hw-track__head b { font-size: 15px; font-weight: 900; }
 .hw-track__count { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13px; color: var(--hw-accent); }
 .hw-track__bar { height: 6px; margin: 9px 0 10px; border-radius: 999px; background: rgba(139, 92, 246, 0.22); overflow: hidden; }
-.hw-track__bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #ff8a1f 60%, #ffd36b); }
+.hw-track__bar span { display: block; height: 100%; border-radius: inherit; background: #ff8a1f; }
 .hw-track__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
 .hw-step {
   display: flex;
@@ -429,11 +405,11 @@
 [data-theme="light"] .hw-step--done .hw-step__need { color: #2f8a2a; }
 .hw-step--next {
   border-color: rgba(255, 165, 90, 0.75);
-  background: linear-gradient(90deg, rgba(255, 138, 31, 0.16), rgba(139, 92, 246, 0.1));
+  background: rgba(255, 138, 31, 0.14);
 }
 .hw-step--next .hw-step__need { color: var(--hw-accent); }
 .hw-step--grand .hw-step__icon {
-  background: radial-gradient(closest-side, rgba(255, 211, 107, 0.6), rgba(139, 92, 246, 0.35));
+  background: rgba(255, 211, 107, 0.3);
   box-shadow: 0 0 0 1.5px rgba(255, 211, 107, 0.7);
 }
 .hw-hub__links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -493,7 +469,7 @@
   border: 0;
   border-radius: 999px;
   color: #2a1000;
-  background: linear-gradient(135deg, #ffd36b, #ff8a1f);
+  background: #ff8a1f;
   box-shadow: 0 4px 12px rgba(255, 120, 30, 0.35);
 }
 
@@ -519,7 +495,7 @@
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid rgba(255, 175, 95, 0.6);
-  background: linear-gradient(100deg, rgba(255, 138, 31, 0.2), rgba(139, 92, 246, 0.2));
+  background: rgba(255, 138, 31, 0.16);
   animation: hw-chip-in 520ms cubic-bezier(0.2, 0.9, 0.3, 1.25) 260ms both;
 }
 .hw-reward-chip__icon { font-size: 24px; flex: none; }
@@ -530,7 +506,7 @@
 @keyframes hw-chip-in { from { opacity: 0; transform: scale(0.85) translateY(6px); } to { opacity: 1; transform: none; } }
 .hw-result__track { display: flex; flex-direction: column; gap: 4px; }
 .hw-result__bar { height: 5px; border-radius: 999px; background: rgba(139, 92, 246, 0.24); overflow: hidden; }
-.hw-result__fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #ff8a1f 70%, #ffd36b); }
+.hw-result__fill { display: block; height: 100%; border-radius: inherit; background: #ff8a1f; }
 .hw-result__text { font-size: 12px; font-weight: 650; color: var(--text-dim); text-align: center; }
 .hw-result__text b { color: var(--hw-accent); }
 .hw-result--compact { margin-top: 2px; gap: 5px; }
@@ -549,7 +525,7 @@
   padding: 5px 8px;
   border-radius: 10px;
   border: 1px solid rgba(255, 175, 95, 0.6);
-  background: linear-gradient(100deg, rgba(255, 138, 31, 0.2), rgba(139, 92, 246, 0.2));
+  background: rgba(255, 138, 31, 0.16);
 }
 .hw-result__icons small { font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hw-accent); }
 .hw-result__icons span { font-size: 18px; letter-spacing: 2px; line-height: 1.2; }
@@ -568,7 +544,7 @@
 }
 .hw-next-btn,
 .gameend--hw .gameend__btn.btn--primary {
-  background: linear-gradient(135deg, #ffd36b, #ff9a3a 45%, #ff7a1a);
+  background: #ff8a1f;
   color: #2a1000;
   border-color: transparent;
   box-shadow: 0 6px 18px rgba(255, 120, 30, 0.35);
@@ -711,7 +687,7 @@ body.cell-style-cells-hw-lights .key--correct,
   font-size: 13px;
   font-weight: 800;
   color: #2a1000;
-  background: linear-gradient(135deg, #ffd36b, #ff9a3a);
+  background: #ff9a3a;
   box-shadow: 0 3px 10px rgba(255, 120, 30, 0.3);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -736,7 +712,7 @@ body.cell-style-cells-hw-lights .key--correct,
   font-size: 13.5px;
   font-weight: 900;
   color: #2a1000;
-  background: linear-gradient(135deg, #ffd36b, #ff8a1f);
+  background: #ff8a1f;
   box-shadow: 0 3px 10px rgba(255, 120, 30, 0.3);
   cursor: pointer;
 }
@@ -745,7 +721,7 @@ body.cell-style-cells-hw-lights .key--correct,
 /* В магазине и нарядах кнопка тыквенная, а не золотая «монетная». */
 .shop-card__btn.hw-buy:not(.shop-card__btn--active),
 .pet-deco__btn.hw-buy {
-  background: linear-gradient(135deg, #ffd36b, #ff8a1f);
+  background: #ff8a1f;
   border-color: transparent;
   color: #2a1000;
 }
@@ -786,7 +762,7 @@ body.cell-style-cells-hw-lights .key--correct,
 [data-theme="light"] .pet-deco__hw-need { color: #a8410a; background: #fff3e6; border-color: rgba(194, 86, 12, 0.55); }
 [data-theme="light"] .hw-step--next {
   border-color: rgba(194, 86, 12, 0.6);
-  background: linear-gradient(90deg, #ffe9d2, #f6edff);
+  background: #ffe9d2;
 }
 
 /* Карточки достижений ивента — без градиентной рамки и цветных пятен: ровная

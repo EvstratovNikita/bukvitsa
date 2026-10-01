@@ -375,54 +375,71 @@ const HW_DARK = hwTile({
   bat: '#4a2f78', spark: '#ffd98a', alpha: '0.6'
 });
 
-// Светлый — другая картина, а не перекрашенная ночь: дневное тыквенное поле.
-// Тыквы без лиц на плетях с усиками и листьями, падающие кленовые листья,
-// колоски. Тоже всё у краёв плитки, центр пустой.
+// Светлый — другая картина, а не перекрашенная ночь: туманные сиреневые
+// сумерки над тыквенной грядкой. Тыквы-фонари с вырезанными лицами на плетях,
+// паутина с паучком, голая ветка с вороном, маленькое привидение, редкие
+// листья. Всё у краёв плитки, центр пустой.
 const HW_FIELD = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
   <defs>
     <radialGradient id='fpk' cx='0.36' cy='0.3' r='0.78'>
-      <stop offset='0' stop-color='#ffd08e'/><stop offset='0.6' stop-color='#f28a2e'/><stop offset='1' stop-color='#c4561a'/>
+      <stop offset='0' stop-color='#ffc27a'/><stop offset='0.6' stop-color='#ee7c24'/><stop offset='1' stop-color='#b44a14'/>
     </radialGradient>
     <g id='fp'>
       <ellipse cx='-12' cy='2' rx='13' ry='15' fill='url(#fpk)'/>
       <ellipse cx='12' cy='2' rx='13' ry='15' fill='url(#fpk)'/>
       <ellipse cx='0' cy='1' rx='12' ry='16.5' fill='url(#fpk)'/>
-      <g stroke='#b0521c' stroke-width='1.1' fill='none' opacity='0.55'>
+      <g stroke='#a3461a' stroke-width='1.1' fill='none' opacity='0.5'>
         <path d='M-6 -13 Q-10 2 -6 16'/><path d='M6 -13 Q10 2 6 16'/>
       </g>
-      <path d='M-1 -15 Q0 -22 5 -24' stroke='#5f7d2e' stroke-width='3.6' fill='none' stroke-linecap='round'/>
+      <path d='M-1 -15 Q0 -22 5 -24' stroke='#556b2f' stroke-width='3.6' fill='none' stroke-linecap='round'/>
+      <g fill='#4a1f0a'>
+        <path d='M-9 -4 L-3 -4 L-6 -10 Z'/><path d='M3 -4 L9 -4 L6 -10 Z'/>
+        <path d='M-10 4 L-6 8 L-3 5 L0 9 L3 5 L6 8 L10 4 Q0 15 -10 4 Z'/>
+      </g>
     </g>
     <path id='fl' d='M0 -14 L3 -6 L10 -9 L7 -2 L13 2 L5 4 L6 11 L0 7 L-6 11 L-5 4 L-13 2 L-7 -2 L-10 -9 L-3 -6 Z'/>
     <g id='vl'>
-      <path d='M0 0 C-7 -10 -18 -8 -20 -1 C-14 0 -9 4 -8 10 C-3 6 0 3 0 0 Z' fill='#7fa24a'/>
-      <path d='M0 0 L-14 2' stroke='#5f7d2e' stroke-width='1'/>
+      <path d='M0 0 C-7 -10 -18 -8 -20 -1 C-14 0 -9 4 -8 10 C-3 6 0 3 0 0 Z' fill='#6f8a46'/>
+      <path d='M0 0 L-14 2' stroke='#4f6630' stroke-width='1'/>
     </g>
-    <g id='wh' stroke='#c99a4a' stroke-width='1.6' stroke-linecap='round' fill='#e4b762'>
-      <path d='M0 30 L0 -6' fill='none'/>
-      <ellipse cx='-3' cy='-2' rx='2.4' ry='4.6' transform='rotate(-24 -3 -2)'/>
-      <ellipse cx='3' cy='4' rx='2.4' ry='4.6' transform='rotate(24 3 4)'/>
-      <ellipse cx='-3' cy='10' rx='2.4' ry='4.6' transform='rotate(-24 -3 10)'/>
-      <ellipse cx='0' cy='-9' rx='2.2' ry='4.2'/>
+    <g id='cr'>
+      <path d='M-2 2 C-2 -6 6 -11 13 -8 C17 -6 18 0 15 5 C12 9 4 10 -2 8 L-14 14 L-11 8 L-16 7 Z'/>
+      <circle cx='15' cy='-11' r='5'/>
+      <path d='M19 -12 L27 -10 L19 -8 Z'/>
+      <circle cx='16.5' cy='-12' r='1' fill='#e8e2f0'/>
+      <path d='M6 9 L5 15 M10 9 L10 15' stroke-width='1.4' stroke='currentColor'/>
+    </g>
+    <g id='gh'>
+      <path d='M-11 12 L-11 -2 C-11 -10 -6 -15 0 -15 C6 -15 11 -10 11 -2 L11 12 L7 9 L3.5 12 L0 9 L-3.5 12 L-7 9 Z' fill='#fbf8ff' stroke='#9a8cb4' stroke-width='1.1'/>
+      <ellipse cx='-4' cy='-4' rx='1.8' ry='2.6' fill='#3d3350'/>
+      <ellipse cx='4' cy='-4' rx='1.8' ry='2.6' fill='#3d3350'/>
+      <ellipse cx='0' cy='2.5' rx='2' ry='2.6' fill='#3d3350'/>
     </g>
   </defs>
-  <g opacity='0.72'>
-    <path d='M8 300 C40 284 70 300 98 288 S150 280 176 300' stroke='#6f8f3a' stroke-width='2.2' fill='none'/>
-    <path d='M98 288 q6 -14 18 -10 q-8 4 -4 10' stroke='#6f8f3a' stroke-width='1.3' fill='none'/>
+  <g opacity='0.75'>
+    <g stroke='#8d82a3' stroke-width='0.9' fill='none' opacity='0.8'>
+      <path d='M0 0 L58 58 M0 0 L74 20 M0 0 L22 74 M0 0 L80 0 M0 0 L0 80'/>
+      <path d='M16 0 Q14 9 0 16'/><path d='M34 0 Q30 18 22 22 Q18 30 0 34'/>
+      <path d='M54 0 Q48 22 40 40 Q22 48 0 54'/><path d='M72 0 Q66 26 58 58 Q26 66 0 72'/>
+    </g>
+    <path d='M44 44 L44 76' stroke='#5a5070' stroke-width='0.8'/>
+    <g fill='#3d3350'><ellipse cx='44' cy='80' rx='4' ry='4.6'/>
+      <path d='M40 78 l-6 -3 M40 81 l-6 1 M48 78 l6 -3 M48 81 l6 1' stroke='#3d3350' stroke-width='1.1'/></g>
+    <path d='M340 112 C318 108 300 96 286 100 C272 104 262 92 246 96 M300 100 C296 88 302 78 296 70 M266 98 C268 110 262 118 266 128' stroke='#5e4f6a' stroke-width='3' fill='none' stroke-linecap='round'/>
+    <use href='#cr' fill='#3a3046' color='#3a3046' transform='translate(276 84) scale(1.05)'/>
+    <use href='#cr' fill='#4a405a' color='#4a405a' transform='translate(150 26) scale(0.6) rotate(-8)'/>
+    <use href='#gh' transform='translate(30 186) scale(0.95) rotate(-6)'/>
+    <use href='#gh' transform='translate(318 214) scale(0.62) rotate(8)'/>
+    <path d='M8 300 C40 284 70 300 98 288 S150 280 176 300' stroke='#5f7a36' stroke-width='2.2' fill='none'/>
+    <path d='M98 288 q6 -14 18 -10 q-8 4 -4 10' stroke='#5f7a36' stroke-width='1.3' fill='none'/>
     <use href='#vl' transform='translate(40 290) rotate(-20)'/>
     <use href='#vl' transform='translate(132 286) scale(0.85) rotate(160)'/>
     <use href='#fp' transform='translate(64 300) scale(1.15)'/>
     <use href='#fp' transform='translate(150 306) scale(0.72) rotate(6)'/>
-    <path d='M250 70 C270 58 296 66 318 56' stroke='#6f8f3a' stroke-width='2' fill='none'/>
-    <use href='#vl' transform='translate(300 60) scale(0.8) rotate(200)'/>
-    <use href='#fp' transform='translate(276 80) scale(0.78) rotate(-6)'/>
-    <use href='#wh' transform='translate(312 270) rotate(8)'/>
-    <use href='#wh' transform='translate(326 278) scale(0.85) rotate(16)'/>
-    <use href='#wh' transform='translate(22 112) scale(0.8) rotate(-10)'/>
-    <use href='#fl' fill='#e8742a' transform='translate(122 52) rotate(18)'/>
-    <use href='#fl' fill='#d9452a' transform='translate(204 196) scale(0.75) rotate(-28)'/>
-    <use href='#fl' fill='#f0a83a' transform='translate(40 30) scale(0.65) rotate(40)'/>
-    <use href='#fl' fill='#e8742a' transform='translate(300 170) scale(0.6) rotate(-50)'/>
-    <use href='#fl' fill='#d9452a' transform='translate(232 318) scale(0.55) rotate(70)'/>
+    <use href='#fp' transform='translate(296 300) scale(0.85) rotate(-5)'/>
+    <use href='#fl' fill='#c8642a' transform='translate(204 196) scale(0.75) rotate(-28)'/>
+    <use href='#fl' fill='#a8402a' transform='translate(232 318) scale(0.55) rotate(70)'/>
+    <use href='#fl' fill='#d0882e' transform='translate(110 150) scale(0.5) rotate(30)'/>
   </g>
 </svg>`);
 
@@ -457,13 +474,13 @@ export const SHOP_ITEMS = [
     theme: 'light',
     event: 'halloween',
     name: 'Тыквенное поле',
-    desc: 'Солнечный день на грядке спелых тыкв',
+    desc: 'Туманные сумерки, тыквы-фонари и паутина',
     payload: {
       gradient: [
         HW_FIELD,
-        'radial-gradient(520px 420px at 10% 4%, rgba(255, 224, 140, 0.75), rgba(255, 210, 120, 0.18) 50%, transparent 72%)',
-        'radial-gradient(1300px 340px at 50% 118%, rgba(150, 170, 80, 0.35), transparent 70%)',
-        'linear-gradient(180deg, #fff6e4 0%, #fdebcf 55%, #f6d9a8 100%)'
+        'radial-gradient(1300px 360px at 50% 116%, rgba(232, 128, 50, 0.28), transparent 70%)',
+        'radial-gradient(900px 300px at 50% 62%, rgba(255, 255, 255, 0.35), transparent 70%)',
+        'linear-gradient(180deg, #e6deef 0%, #efe3e6 50%, #efd6c4 100%)'
       ].join(', '),
       previewSize: '210px 210px, auto, auto, auto'
     }
