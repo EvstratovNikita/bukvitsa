@@ -93,3 +93,10 @@ export async function recordVkShare(query) {
   if (!query) return null;
   return rpc('record_vk_share', { p_query: query });
 }
+
+// Миссия VK пройдена (supabase/vk_missions.sql): сервер проверяет подпись и
+// сам зовёт secure.addAppEvent — сервисный ключ VK живёт только там.
+export async function completeVkMission(query, missionId) {
+  if (!query || !Number.isInteger(missionId)) return null;
+  return rpc('complete_vk_mission', { p_query: query, p_mission: missionId });
+}
