@@ -254,7 +254,10 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
   const [jumping, setJumping] = useState(false);
   const cooldown = useRef(false);
   // Gradient ids must be unique per instance, otherwise a second owl on the
-  // page re-points the first one's fills at its own defs.
+  // page re-points the first one's fills at its own defs. Наряды тоже: из
+  // главного меню сова меню остаётся в DOM (content-visibility: hidden), и
+  // шапка в экране Букли брала её невидимый градиент — рисовался один контур.
+  // Градиент наряда лежит в самом наряде (в той же <svg>), id — с uid.
   const uid = `owl-${useId().replace(/:/g, '')}`;
 
   const onClick = () => {
@@ -327,7 +330,6 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
     >
       <svg className="owl-svg owl-svg--base" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
-          <DecoDefs uid={uid} />
           <radialGradient id={`${uid}-contact`}>
             <stop offset="0%"   stopColor="var(--owl-contact)" />
             <stop offset="55%"  stopColor="var(--owl-contact)" stopOpacity="0.6" />
@@ -700,6 +702,13 @@ function Shades() {
 function Bow({ uid }) {
   return (
     <g className="owl-deco owl-deco--bow">
+      <defs>
+        <linearGradient id={`${uid}-bow-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#ff95c8" />
+          <stop offset="50%" stopColor="#ff5fa3" />
+          <stop offset="100%" stopColor="#c43075" />
+        </linearGradient>
+      </defs>
       {/* Left loop */}
       <path
         d="M 200 78
@@ -757,6 +766,17 @@ function Bow({ uid }) {
 function Academic({ uid }) {
   return (
     <g className="owl-deco owl-deco--academic">
+      <defs>
+        <linearGradient id={`${uid}-academic-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#5a78d0" />
+          <stop offset="55%" stopColor="#2840a8" />
+          <stop offset="100%" stopColor="#0e1c5e" />
+        </linearGradient>
+        <linearGradient id={`${uid}-academic-band-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#3a52b8" />
+          <stop offset="100%" stopColor="#10206a" />
+        </linearGradient>
+      </defs>
       {/* Soft cap band under the board */}
       <path
         d="M 138 96
@@ -802,6 +822,16 @@ function Academic({ uid }) {
 function Cap({ uid }) {
   return (
     <g className="owl-deco owl-deco--cap">
+      <defs>
+        <linearGradient id={`${uid}-cap-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#4a8cff" />
+          <stop offset="100%" stopColor="#1c4abf" />
+        </linearGradient>
+        <linearGradient id={`${uid}-cap-visor-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#1c4abf" />
+          <stop offset="100%" stopColor="#0d2a70" />
+        </linearGradient>
+      </defs>
       {/* Crown — rounded dome, slightly forward-leaning so the back is
           taller than the front (emoji 🧢 silhouette). */}
       <path
@@ -862,6 +892,13 @@ function Cap({ uid }) {
 function TopHat({ uid }) {
   return (
     <g className="owl-deco owl-deco--tophat">
+      <defs>
+        <linearGradient id={`${uid}-tophat-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#2a2a36" />
+          <stop offset="60%" stopColor="#0e0e16" />
+          <stop offset="100%" stopColor="#000000" />
+        </linearGradient>
+      </defs>
       {/* Brim — wide ellipse hugging the head */}
       <ellipse cx="200" cy="106" rx="94" ry="12" fill={`url(#${uid}-tophat-grad)`} stroke="#000" strokeWidth="1.1" />
       {/* Crown — tall trapezoid */}
@@ -898,6 +935,13 @@ function TopHat({ uid }) {
 function Crown({ uid }) {
   return (
     <g className="owl-deco owl-deco--crown">
+      <defs>
+        <linearGradient id={`${uid}-crown-grad`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#ffe07a" />
+          <stop offset="55%" stopColor="#f0b830" />
+          <stop offset="100%" stopColor="#8a5a10" />
+        </linearGradient>
+      </defs>
       {/* Zigzag silhouette — wider + taller, 5 peaks for grandeur */}
       <path
         d="M 130 108
@@ -954,6 +998,13 @@ function Feather({ x, y, uid }) {
   const id = `${uid}-feather`;
   return (
     <g transform={`translate(${x - 26} ${y - 26})`}>
+      <defs>
+        <linearGradient id={`${uid}-feather`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#fff3c0" />
+          <stop offset="55%" stopColor="#f0c050" />
+          <stop offset="100%" stopColor="#a86810" />
+        </linearGradient>
+      </defs>
       <AmuletHalo x={26} y={26} color="rgba(247, 201, 72, 0.45)" />
       {/* Vane — leaf-like outline */}
       <path
@@ -988,6 +1039,13 @@ function Sparkle({ x, y, uid }) {
   const id = `${uid}-sparkle`;
   return (
     <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <radialGradient id={`${uid}-sparkle`} cx="35%" cy="30%" r="70%">
+          <stop offset="0%"  stopColor="#ffe0ff" />
+          <stop offset="40%" stopColor="#d070ff" />
+          <stop offset="100%" stopColor="#4a0e7a" />
+        </radialGradient>
+      </defs>
       {/* Outer aura */}
       <circle r="30" fill="rgba(208, 112, 255, 0.25)" />
       <circle r="22" fill={`url(#${id})`} stroke="#2a0848" strokeWidth="1.2" />
@@ -1017,6 +1075,16 @@ function Crystal({ x, y, uid }) {
   const idSide = `${uid}-crys-side`;
   return (
     <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <linearGradient id={`${uid}-crys-top`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#a8e8ff" />
+        </linearGradient>
+        <linearGradient id={`${uid}-crys-side`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#7ec8e8" />
+          <stop offset="100%" stopColor="#1e5a8a" />
+        </linearGradient>
+      </defs>
       {/* Halo */}
       <circle r="30" fill="rgba(168, 232, 255, 0.30)" />
       {/* Top crown facets */}
@@ -1038,6 +1106,13 @@ function Star({ x, y, uid }) {
   const id = `${uid}-star`;
   return (
     <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <radialGradient id={`${uid}-star`} cx="40%" cy="35%" r="70%">
+          <stop offset="0%"  stopColor="#fff3a0" />
+          <stop offset="60%" stopColor="#f7c948" />
+          <stop offset="100%" stopColor="#a86010" />
+        </radialGradient>
+      </defs>
       {/* Glow halo */}
       <circle r="28" fill="rgba(247, 201, 72, 0.30)" />
       {/* Comet trail */}
@@ -1107,81 +1182,5 @@ function Monocle() {
         <circle cx="265" cy="230" r="1.2" />
       </g>
     </g>
-  );
-}
-
-// Градиенты всех нарядов. Лежат в <defs> совы постоянно, а не внутри самих
-// нарядов: на телефоне слой головы — отдельный слой видеокарты, и шапка,
-// вставленная вместе со своим градиентом, первые кадры рисовалась одной
-// обводкой (движок не успевал подхватить свежий градиент). Префикс uid —
-// чтобы у двух сов на странице id не совпадали.
-function DecoDefs({ uid }) {
-  return (
-    <>
-      {/* Bow */}
-      <linearGradient id={`${uid}-bow-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#ff95c8" />
-        <stop offset="50%" stopColor="#ff5fa3" />
-        <stop offset="100%" stopColor="#c43075" />
-      </linearGradient>
-      {/* Academic */}
-      <linearGradient id={`${uid}-academic-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#5a78d0" />
-        <stop offset="55%" stopColor="#2840a8" />
-        <stop offset="100%" stopColor="#0e1c5e" />
-      </linearGradient>
-      <linearGradient id={`${uid}-academic-band-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#3a52b8" />
-        <stop offset="100%" stopColor="#10206a" />
-      </linearGradient>
-      {/* Cap */}
-      <linearGradient id={`${uid}-cap-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#4a8cff" />
-        <stop offset="100%" stopColor="#1c4abf" />
-      </linearGradient>
-      <linearGradient id={`${uid}-cap-visor-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#1c4abf" />
-        <stop offset="100%" stopColor="#0d2a70" />
-      </linearGradient>
-      {/* TopHat */}
-      <linearGradient id={`${uid}-tophat-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#2a2a36" />
-        <stop offset="60%" stopColor="#0e0e16" />
-        <stop offset="100%" stopColor="#000000" />
-      </linearGradient>
-      {/* Crown */}
-      <linearGradient id={`${uid}-crown-grad`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#ffe07a" />
-        <stop offset="55%" stopColor="#f0b830" />
-        <stop offset="100%" stopColor="#8a5a10" />
-      </linearGradient>
-      {/* Feather */}
-      <linearGradient id={`${uid}-feather`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#fff3c0" />
-        <stop offset="55%" stopColor="#f0c050" />
-        <stop offset="100%" stopColor="#a86810" />
-      </linearGradient>
-      {/* Sparkle */}
-      <radialGradient id={`${uid}-sparkle`} cx="35%" cy="30%" r="70%">
-        <stop offset="0%"  stopColor="#ffe0ff" />
-        <stop offset="40%" stopColor="#d070ff" />
-        <stop offset="100%" stopColor="#4a0e7a" />
-      </radialGradient>
-      {/* Crystal */}
-      <linearGradient id={`${uid}-crys-top`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#ffffff" />
-        <stop offset="100%" stopColor="#a8e8ff" />
-      </linearGradient>
-      <linearGradient id={`${uid}-crys-side`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%"  stopColor="#7ec8e8" />
-        <stop offset="100%" stopColor="#1e5a8a" />
-      </linearGradient>
-      {/* Star */}
-      <radialGradient id={`${uid}-star`} cx="40%" cy="35%" r="70%">
-        <stop offset="0%"  stopColor="#fff3a0" />
-        <stop offset="60%" stopColor="#f7c948" />
-        <stop offset="100%" stopColor="#a86010" />
-      </radialGradient>
-    </>
   );
 }
