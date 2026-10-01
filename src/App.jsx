@@ -14,6 +14,7 @@ import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
 import { vkInit, preloadRewardedVk, preloadInterstitialVk, fitToVisibleFrame } from './lib/vk.js';
 import { reportArrival } from './lib/referral.js';
+import { reportMissions } from './lib/missions.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -72,6 +73,12 @@ function GameShell() {
     hideSplash();
     loadingReady();
   }, [ready]);
+
+  // Миссии VK: открытые достижения → лента друзей и баллы (lib/missions.js).
+  // Ждём ready — до сверки с облаком список достижений неполный.
+  useEffect(() => {
+    if (ready) reportMissions(stats.unlockedAchievements);
+  }, [ready, stats.unlockedAchievements]);
   const [statsOpen, setStatsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
