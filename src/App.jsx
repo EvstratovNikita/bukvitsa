@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AchievementsModal } from './components/Achievements/Achievements.jsx';
 import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
 import { NotifyAsk } from './components/Notify/NotifyAsk.jsx';
@@ -91,10 +91,10 @@ function GameShell() {
   const [dailyLeaveOpen, setDailyLeaveOpen] = useState(false);
   const [dailyLeaveTo, setDailyLeaveTo] = useState('modes');
   const dailyInProgress = gameMode === 'daily' && status === GAME_STATUS.PLAYING;
-  const openModes = () => {
+  const openModes = useCallback(() => {
     if (dailyInProgress) { setDailyLeaveTo('modes'); setDailyLeaveOpen(true); }
     else setModesOpen(true);
-  };
+  }, [dailyInProgress]);
   // Ивент «Ночь тыкв»: окно с тропой и вход в «Загадки ночи». Из Слова дня
   // в загадки — через то же подтверждение (сегодняшнее слово сгорит).
   const [hwOpen, setHwOpen] = useState(false);
@@ -124,7 +124,23 @@ function GameShell() {
   // API, у VK — наш сервер, потому что общего рейтинга площадка не даёт вовсе
   // (нативное окно сравнивает только с друзьями, оно осталось кнопкой внутри
   // модалки). Метрика одна: сколько слов отгадано.
-  const openLeaderboard = () => setLbOpen(true);
+  const openLeaderboard = useCallback(() => setLbOpen(true), []);
+
+  // Стабильные обработчики для шапки и главного меню: они обёрнуты в memo, и
+  // новые стрелки на каждый рендер App сводили бы memo на нет — открытие любого
+  // окна перерисовывало сову и всё меню.
+  const nav = useMemo(() => ({
+    menu: () => setMenuOpen(true),
+    pet: () => setPetOpen(true),
+    home: () => setHomeOpen(true),
+    shop: () => setShopOpen(true),
+    ach: () => setAchOpen(true),
+    stats: () => setStatsOpen(true),
+    help: () => setHelpOpen(true),
+    settings: () => setSettingsOpen(true),
+    feedback: () => setFeedbackOpen(true),
+    hw: () => setHwOpen(true)
+  }), []);
 
   // First-run coachmarks: once the game is ready and the daily-reward (or any)
   // modal is dismissed, start the tour. Один раз на игрока: флаг живёт и в
@@ -167,10 +183,10 @@ function GameShell() {
   return (
     <div className={appClass}>
       <Header
-        onOpenMenu={() => setMenuOpen(true)}
-        onOpenPet={() => setPetOpen(true)}
+        onOpenMenu={nav.menu}
+        onOpenPet={nav.pet}
         onOpenModes={openModes}
-        onOpenHome={isVk ? () => setHomeOpen(true) : undefined}
+        onOpenHome={isVk ? nav.home : undefined}
       />
       <div className="topbar">
         <Coins />
@@ -192,15 +208,15 @@ function GameShell() {
       {homeOpen && (
         <StartMenu
           onPlay={closeHome}
-          onOpenShop={() => setShopOpen(true)}
-          onOpenPet={() => setPetOpen(true)}
-          onOpenAchievements={() => setAchOpen(true)}
+          onOpenShop={nav.shop}
+          onOpenPet={nav.pet}
+          onOpenAchievements={nav.ach}
           onOpenLeaderboard={openLeaderboard}
-          onOpenStats={() => setStatsOpen(true)}
-          onOpenHelp={() => setHelpOpen(true)}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onOpenFeedback={() => setFeedbackOpen(true)}
-          onOpenHalloween={hwOn ? () => setHwOpen(true) : undefined}
+          onOpenStats={nav.stats}
+          onOpenHelp={nav.help}
+          onOpenSettings={nav.settings}
+          onOpenFeedback={nav.feedback}
+          onOpenHalloween={hwOn ? nav.hw : undefined}
         />
       )}
       {tourOn && <Tour onDone={() => { setTourOn(false); setPref?.('tourDone', true); }} />}

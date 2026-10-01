@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { LETTER_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Row } from './Row.jsx';
 
-export function Board() {
+function BoardView() {
   const {
     guesses,
     evaluations,
@@ -56,3 +56,7 @@ export function Board() {
     </div>
   );
 }
+
+// Открытие любого окна меняет состояние в App, и без memo это перерисовывало
+// всё дерево. Компонент берёт данные из контекста — его изменения дойдут и так.
+export const Board = memo(BoardView);

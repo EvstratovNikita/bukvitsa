@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { PET_UNLOCK_GAMES } from '../../constants/game.js';
 import { PetHeaderButton } from '../Pet/PetHeaderButton.jsx';
@@ -6,7 +7,7 @@ import { MenuButton } from '../Menu/Menu.jsx';
 
 // onOpenHome есть только в VK: там вместо бокового меню кнопка «Домой» ведёт в
 // главное меню (правила VK, п. 4.2.10 — вернуться в меню можно в любой момент).
-export function Header({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
+function HeaderView({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
   // Stats moved into the side menu — the right slot now hosts Букля so the
   // pet is always one tap away without floating chrome over the board.
   const { stats, petGiftReady, setTheme } = useGameContext();
@@ -73,3 +74,8 @@ export function Header({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
     </header>
   );
 }
+
+// Открытие любого окна меняет состояние в App, и без memo это перерисовывало
+// всё дерево. Компонент берёт данные из контекста — его изменения дойдут и так. Обработчики App
+// передаёт стабильные (useCallback / useMemo).
+export const Header = memo(HeaderView);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS, PET_UNLOCK_GAMES, ENERGY_MAX } from '../../constants/game.js';
 import { unclaimedAchievementIds } from '../../data/achievements.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
@@ -24,11 +24,14 @@ import {
 
 const LOGO = [['Б', 'gold'], ['У', 'dark'], ['К', 'green'], ['Л', 'gold'], ['И', 'dark'], ['Ц', 'green'], ['А', 'gold']];
 
+// Один и тот же пустой наряд — новый {} на каждый рендер ломал memo совы.
+const NO_DECO = {};
+
 function lettersLabel(n) {
   return n === 4 ? '4 буквы' : `${n} букв`;
 }
 
-export function StartMenu({
+function StartMenuView({
   onPlay, onOpenShop, onOpenPet, onOpenAchievements, onOpenLeaderboard,
   onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback, onOpenHalloween
 }) {
@@ -177,7 +180,7 @@ export function StartMenu({
             <i className="home__spark home__spark--b" aria-hidden="true" />
             <i className="home__spark home__spark--c" aria-hidden="true" />
             <div className="home__owl-float">
-              <OwlSvg equipped={hatched ? (stats.pet?.equipped || {}) : {}} perch />
+              <OwlSvg equipped={hatched ? (stats.pet?.equipped || NO_DECO) : NO_DECO} perch />
             </div>
           </div>
           <p className="home__tagline" style={{ '--d': 3 }}><b>✦</b> Игра в слова <b>✦</b></p>
@@ -285,3 +288,8 @@ function Pill({ icon, label, onClick, strong, tint, iconOnly, on }) {
     </button>
   );
 }
+
+// Открытие любого окна меняет состояние в App, и без memo это перерисовывало
+// всё дерево. Компонент берёт данные из контекста — его изменения дойдут и так. Обработчики App
+// передаёт стабильные (useCallback / useMemo).
+export const StartMenu = memo(StartMenuView);

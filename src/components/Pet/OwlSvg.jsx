@@ -22,7 +22,7 @@
 // Click anywhere on the owl → joyful jump with the wings thrown up (~700ms).
 // Debounced: while jumping, further clicks are ignored.
 
-import { useId, useRef, useState } from 'react';
+import { useId, useRef, useState, memo } from 'react';
 import { getDecoration } from '../../data/petDecorations.js';
 
 const JUMP_MS = 700;
@@ -250,7 +250,7 @@ function EyeLid({ cx, cy, uid }) {
   );
 }
 
-export function OwlSvg({ className = '', equipped = {}, perch = false }) {
+function OwlSvgView({ className = '', equipped = {}, perch = false }) {
   const [jumping, setJumping] = useState(false);
   const cooldown = useRef(false);
   // Gradient ids must be unique per instance, otherwise a second owl on the
@@ -1340,3 +1340,6 @@ function Monocle() {
     </g>
   );
 }
+
+// Большая SVG-сова (сотни узлов): перерисовываем только при смене наряда.
+export const OwlSvg = memo(OwlSvgView);

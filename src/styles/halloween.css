@@ -272,8 +272,9 @@
 [data-theme="light"] .hw-home-glow { background: radial-gradient(closest-side, rgba(255, 150, 60, 0.3), transparent); }
 
 /* ---------- Летучие мыши над меню ----------
-   Слой мыши летит (transform), внутри два кадра крыльев меняются
-   прозрачностью. Обе анимации — видеокарта, по одной на элемент. */
+   Мыши планируют: анимируется только transform слоя-span. Взмах крыльев
+   (кадры через steps или сжатие) считался на главном потоке — меню в
+   простое занимало 35% вместо 10% (CPU ×4), поэтому его нет. */
 .hw-bats { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .hw-bat {
   position: absolute;
@@ -285,23 +286,18 @@
 .hw-bat__f {
   position: absolute;
   inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
   fill: #1c0f2e;
   stroke: rgba(255, 190, 120, 0.4);
   stroke-width: 1;
-  will-change: opacity;
 }
 [data-theme="light"] .hw-bat__f { fill: #3b2a5c; stroke: none; }
-.hw-bat__f--a { animation: hw-flap-a 340ms steps(1, end) infinite; }
-.hw-bat__f--b { opacity: 0; animation: hw-flap-b 340ms steps(1, end) infinite; }
-@keyframes hw-flap-a { 0% { opacity: 1; } 50% { opacity: 0; } }
-@keyframes hw-flap-b { 0% { opacity: 0; } 50% { opacity: 1; } }
 
 .hw-bat--1 { top: 11%; animation: hw-fly-1 17s linear 0.6s infinite; }
 .hw-bat--2 { top: 23%; width: 26px; height: 17px; animation: hw-fly-2 23s linear 5s infinite; }
 .hw-bat--3 { top: 6%; width: 22px; height: 14px; animation: hw-fly-3 29s linear 11s infinite; }
-.hw-bat--2 .hw-bat__f, .hw-bat--3 .hw-bat__f { animation-duration: 300ms; }
 @keyframes hw-fly-1 {
   0% { transform: translate3d(-60px, 0, 0); }
   25% { transform: translate3d(25vw, -18px, 0); }
@@ -323,7 +319,7 @@
 /* Мыши живут, пока меню на экране: под экраном Букли и полем меню не
    рисуется (content-visibility в index.css), анимации стоят вместе с ним. */
 @media (prefers-reduced-motion: reduce) {
-  .hw-bat, .hw-bat__f, .hw-banner::after { animation: none; }
+  .hw-bat, .hw-banner::after { animation: none; }
   .hw-bat--1 { transform: translate3d(14vw, 0, 0); }
   .hw-bat--2 { transform: translate3d(78vw, 0, 0) scaleX(-1); }
   .hw-bat--3 { display: none; }
