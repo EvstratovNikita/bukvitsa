@@ -10,7 +10,7 @@ import { TrainPanel } from './TrainPanel.jsx';
 import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
 import { BOND_MINUTES_PER_POINT } from '../../utils/petBond.js';
 import { halloweenActive } from '../../lib/events.js';
-import { hwPrice } from '../../data/halloween.js';
+import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 const HATCH_DURATION_MS = 3200;
@@ -45,7 +45,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
     stats,
     hatchPet,
     feedPet, petHunger,
-    buyDecoration, equipDecoration, unequipDecorationSlot, buyHalloweenItem,
+    buyDecoration, equipDecoration, unequipDecorationSlot,
     showToast,
     petBond, petBondMax, petGiftReady, petGifts, claimPetGift,
     setActiveBackground, setActiveCellStyle, setTheme
@@ -264,12 +264,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
                   coins={stats.coins || 0}
                   petLevel={lvl.level || 1}
                   onBuy={onBuyDeco}
-                  pumpkins={stats.halloween?.pumpkins || 0}
-                  onBuyHw={(d) => {
-                    const r = buyHalloweenItem(d.id);
-                    if (r === 'ok') showToast?.(`${d.name} — куплено и надето`);
-                    else showToast?.(r === 'not_enough' ? 'Не хватает тыкв' : 'Не получилось купить');
-                  }}
+                  pumpkins={stats.halloween?.earned || 0}
                   onEquip={(id, slotOverride) => equipDecoration(id, slotOverride)}
                   onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
                 />
@@ -349,12 +344,12 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
   );
 }
 
-// Хэллоуинская коллекция (Тыквенная лавка) — отдельный блок, пока идёт
+// Хэллоуинская коллекция (награды ленты) — отдельный блок, пока идёт
 // ивент. После ивента купленные наряды стоят в своих слотах как обычные,
 // некупленные не показываются.
 const HW_DECOS = PET_DECORATIONS.filter((d) => d.event === 'halloween');
 
-function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUnequipSlot, pumpkins = 0, onBuyHw }) {
+function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUnequipSlot, pumpkins = 0 }) {
   const hwOn = halloweenActive();
   const bySlot = SLOTS.map((s) => ({
     slot: s,
@@ -372,7 +367,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
       {hwItems.length > 0 && (
         <div className="pet-deco-group pet-deco-group--hw hw-frame">
           <div className="pet-deco-group__head">
-            <span className="pet-deco-group__label">Тыквенная лавка</span>
+            <span className="pet-deco-group__label">Награды ленты</span>
             <HwBadge />
           </div>
           {hwItems.map((d) => {
@@ -391,15 +386,10 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                 </span>
                 <div className="pet-deco__cta">
                   {!isOwned ? (
-                    <button
-                      type="button"
-                      className="btn btn--primary pet-deco__btn hw-buy"
-                      onClick={() => onBuyHw?.(d)}
-                      onMouseDown={(e) => e.preventDefault()}
-                      disabled={pumpkins < hwPrice(d.id)}
-                    >
-                      {hwPrice(d.id)} <PumpkinIcon />
-                    </button>
+                    // Не продаётся — выдаётся лентой «Ночи тыкв» на этой отметке.
+                    <span className="pet-deco__chip pet-deco__hw-need" title="Награда ленты «Ночи тыкв»">
+                      {hwStepFor(d.id)?.need} <PumpkinIcon />
+                    </span>
                   ) : isWing ? (
                     <div className="pet-deco__wing-btns">
                       <button type="button" className={`pet-deco__wing-btn${onL ? ' pet-deco__wing-btn--on' : ''}`}
@@ -419,7 +409,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
             );
           })}
           {hwItems.some((d) => !owned.includes(d.id)) && (
-            <p className="pet-deco-group__note">Наряды продаются за тыквы — их дают «Загадки ночи». У тебя <b>{pumpkins}</b> 🎃</p>
+            <p className="pet-deco-group__note">Наряды выдаёт лента наград: тыквы за «Загадки ночи». У тебя <b>{pumpkins}</b> 🎃</p>
           )}
         </div>
       )}

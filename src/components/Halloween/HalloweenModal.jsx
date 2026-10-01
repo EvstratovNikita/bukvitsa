@@ -1,40 +1,26 @@
-import { useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { HALLOWEEN, halloweenDaysLeft } from '../../lib/events.js';
-import { HW_DAILY_CAP, HW_SHOP } from '../../data/halloween.js';
-import { earnedToday } from '../../lib/halloweenProgress.js';
+import { HW_DAILY_CAP, HW_TRACK, HW_TRACK_MAX } from '../../data/halloween.js';
+import { earnedToday, nextStep } from '../../lib/halloweenProgress.js';
 import { todayKey } from '../../constants/game.js';
 import { plural } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
-import { HwBadge, PumpkinIcon, itemInfo, ownsHwItem } from './HwIcons.jsx';
+import { HwBadge, PumpkinIcon, stepInfo } from './HwIcons.jsx';
 
-const BUY_ERROR = {
-  not_enough: 'Не хватает тыкв',
-  already_owned: 'Уже куплено',
-  closed: 'Ивент закончился'
-};
-
-// Окно ивента «Ночь тыкв»: обложка с отсчётом, вход в режим и Тыквенная
-// лавка — наряды Букли, фоны и стиль клеток за тыквы.
+// Окно ивента «Ночь тыкв»: обложка с отсчётом, вход в режим и лента наград —
+// наряды Букли, фоны, стиль клеток и монеты за собранные тыквы. Тыквы не
+// тратятся: ступень открывается сама, когда набрано нужное число.
 export function HalloweenModal({ open, onClose, onPlay, onOpenAchievements }) {
-  const { stats, gameMode, status, buyHalloweenItem, showToast } = useGameContext();
-  const [flash, setFlash] = useState(null); // { id, text }
+  const { stats, gameMode, status } = useGameContext();
   if (!open) return null;
   const hw = stats.halloween || {};
-  const pumpkins = hw.pumpkins || 0;
+  const earned = hw.earned || 0;
   const today = earnedToday(hw, todayKey());
   const days = halloweenDaysLeft();
   const inMode = gameMode === 'halloween' && status === 'playing';
   const pct = Math.min(100, Math.round((today / HW_DAILY_CAP) * 100));
-
-  const onBuy = (id) => {
-    const r = buyHalloweenItem(id);
-    if (r === 'ok') showToast?.(`${itemInfo(id).name} — куплено`);
-    else {
-      setFlash({ id, text: BUY_ERROR[r] || 'Не получилось' });
-      setTimeout(() => setFlash(null), 1400);
-    }
-  };
+  const next = nextStep(hw);
+  const got = new Set(hw.steps || []);
 
   return (
     <Modal open={open} onClose={onClose} title="Ночь тыкв" headerRight={<HwBadge till={false} />}>
@@ -59,43 +45,34 @@ export function HalloweenModal({ open, onClose, onPlay, onOpenAchievements }) {
           <span className="hw-cta__go" aria-hidden="true">›</span>
         </button>
 
-        <section className="hw-track" aria-label="Тыквенная лавка">
+        <section className="hw-track" aria-label="Лента наград">
           <div className="hw-track__head">
-            <b>Тыквенная лавка</b>
-            <span className="hw-track__count"><PumpkinIcon /> {pumpkins}</span>
+            <b>Лента наград</b>
+            <span className="hw-track__count"><PumpkinIcon /> {earned} / {HW_TRACK_MAX}</span>
           </div>
           <div className="hw-track__today">
             <span>Собрано сегодня: <b>{today}</b> из {HW_DAILY_CAP}</span>
             <span className="hw-track__bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span>
           </div>
           <ol className="hw-track__steps">
-            {HW_SHOP.map((e) => {
-              const info = itemInfo(e.id);
-              const owned = ownsHwItem(stats, e.id);
-              const afford = pumpkins >= e.price;
+            {HW_TRACK.map((st) => {
+              const info = stepInfo(st);
+              const done = got.has(st.id) || earned >= st.need;
+              const isNext = st === next;
               return (
-                <li key={e.id} className={`hw-step${owned ? ' hw-step--done' : ''}${e.grand ? ' hw-step--grand' : ''}`}>
+                <li
+                  key={st.id}
+                  className={`hw-step${done ? ' hw-step--done' : ''}${isNext ? ' hw-step--next' : ''}${st.grand ? ' hw-step--grand' : ''}`}
+                >
                   <span className="hw-step__icon" aria-hidden="true">{info.icon}</span>
                   <span className="hw-step__body">
                     <span className="hw-step__name">{info.name}</span>
-                    {e.grand && <span className="hw-step__tag">Главный предмет</span>}
-                    {!owned && !afford && <span className="hw-step__left">ещё {e.price - pumpkins} 🎃</span>}
+                    {st.grand && <span className="hw-step__tag">Главная награда</span>}
+                    {isNext && <span className="hw-step__left">ещё {st.need - earned} 🎃</span>}
                   </span>
-                  {owned ? (
-                    <span className="hw-step__need">✓</span>
-                  ) : flash?.id === e.id ? (
-                    <span className="hw-step__flash">{flash.text}</span>
-                  ) : (
-                    <button
-                      type="button"
-                      className="hw-buy"
-                      onClick={() => onBuy(e.id)}
-                      onMouseDown={(ev) => ev.preventDefault()}
-                      disabled={!afford}
-                    >
-                      {e.price} <PumpkinIcon />
-                    </button>
-                  )}
+                  <span className="hw-step__need">
+                    {done ? '✓' : <>{st.need} <PumpkinIcon /></>}
+                  </span>
                 </li>
               );
             })}
@@ -110,8 +87,8 @@ export function HalloweenModal({ open, onClose, onPlay, onOpenAchievements }) {
 
         <p className="hw-hub__note">
           За разгаданную загадку: с 1–2 попыток — 3 🎃, с 3–4 — 2, с 5–6 — 1,
-          до {HW_DAILY_CAP} в день. Загадка над полем — подсказка за монеты.
-          Купленное остаётся навсегда.
+          до {HW_DAILY_CAP} в день. Тыквы не тратятся — награды открываются сами,
+          наряды и фоны остаются навсегда. Загадка над полем — подсказка за монеты.
         </p>
       </div>
     </Modal>

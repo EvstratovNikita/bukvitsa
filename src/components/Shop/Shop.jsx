@@ -5,7 +5,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
 import { halloweenActive } from '../../lib/events.js';
-import { hwPrice } from '../../data/halloween.js';
+import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 const BOOST_EMOJI = {
@@ -92,7 +92,7 @@ function orderForShop(list) {
 }
 
 export function Shop({ open, onClose }) {
-  const { stats, buyItem, buyHalloweenItem, setActiveBackground, setActiveCellStyle, setPref } = useGameContext();
+  const { stats, buyItem, setActiveBackground, setActiveCellStyle, setPref } = useGameContext();
   const [activeCat, setActiveCat] = useState(SHOP_CATEGORIES[0].id);
   // Backgrounds split by the theme they belong to (dark / light "summer").
   const [bgTheme, setBgTheme] = useState('dark');
@@ -118,8 +118,7 @@ export function Shop({ open, onClose }) {
   };
 
   const onBuy = (item) => {
-    // Ивентовые товары — за тыквы (Тыквенная лавка), остальное — за монеты.
-    const result = item.event ? buyHalloweenItem(item.id) : buyItem(item.id);
+    const result = buyItem(item.id);
     if (result === 'ok') {
       flash(item.id, 'ok', item.consumable ? 'Активировано' : 'Куплено');
     } else {
@@ -217,7 +216,7 @@ export function Shop({ open, onClose }) {
 }
 
 function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
-  // Ивентовое оформление и цена в тыквах — только пока ивент идёт.
+  // Ивентовое оформление и отметка ленты — только пока ивент идёт.
   const isHw = item.event === 'halloween' && halloweenActive();
   const owned = item.isDefault || (stats.inventory || []).includes(item.id);
   const curTheme = stats.prefs?.theme === 'light' ? 'light' : 'dark';
@@ -312,16 +311,11 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
             Применить
           </button>
         ) : isHw ? (
-          <button
-            type="button"
-            className="btn btn--primary shop-card__btn hw-buy"
-            onClick={onBuy}
-            onMouseDown={(e) => e.preventDefault()}
-            disabled={(stats.halloween?.pumpkins || 0) < hwPrice(item.id)}
-          >
-            <span>{hwPrice(item.id)}</span>
+          // Не продаётся — выдаётся лентой «Ночи тыкв» на этой отметке.
+          <span className="shop-card__hw-need" title="Награда ленты «Ночи тыкв»">
             <PumpkinIcon />
-          </button>
+            <span>{hwStepFor(item.id)?.need} · лента</span>
+          </span>
         ) : (
           <button
             type="button"

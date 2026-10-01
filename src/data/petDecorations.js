@@ -53,10 +53,9 @@ const RAW_DECORATIONS = [
   { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusCoins: 4, minLevel: 18 },
 
   // ---------- ХЭЛЛОУИН 2026 (ивент «Ночь тыкв») ----------
-  // Продаются только за тыквы в Тыквенной лавке и только во время ивента
-  // (цены — data/halloween.js). event — к какому ивенту относятся: особое
+  // Не продаются: их выдаёт лента наград ивента (отметки — data/halloween.js). event — к какому ивенту относятся: особое
   // оформление на время ивента, после него — обычные предметы своего слота.
-  { id: 'hw-witchhat',   slot: 'head',   icon: '🧙', name: 'Шляпа ведьмы',        desc: 'Главный предмет Тыквенной лавки', bonusCoins: 3, event: 'halloween' },
+  { id: 'hw-witchhat',   slot: 'head',   icon: '🧙', name: 'Шляпа ведьмы',        desc: 'Главная награда «Ночи тыкв»', bonusCoins: 3, event: 'halloween' },
   { id: 'hw-batglasses', slot: 'eyes',   icon: '🦇', name: 'Очки «Летучие мыши»', desc: 'Видят в самой тёмной ночи',    bonusCoins: 2, event: 'halloween' },
   { id: 'hw-pumpkin',    slot: 'brooch', icon: '🎃', name: 'Брошь «Тыквочка»',    desc: 'Светится изнутри, как фонарь', bonusCoins: 1, event: 'halloween' },
   { id: 'hw-lantern',    slot: 'wing',   icon: '🏮', name: 'Ведьмин фонарик',     desc: 'Огонёк в ночь Хэллоуина',      bonusCoins: 2, event: 'halloween' }

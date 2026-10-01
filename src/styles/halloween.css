@@ -710,7 +710,7 @@ body.cell-style-cells-hw-lights .key--correct,
 .hw-riddle__btn svg { width: 15px; height: 15px; }
 .hw-riddle__btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* ---------- Тыквенная лавка ---------- */
+/* ---------- Предметы ивента в магазине ---------- */
 .hw-track__today { display: flex; flex-direction: column; gap: 5px; margin: 8px 0 10px; font-size: 12px; font-weight: 650; color: var(--hw-dim); }
 .hw-track__today b { color: var(--hw-accent); }
 .hw-track__today .hw-track__bar { margin: 0; }
@@ -753,3 +753,29 @@ body.cell-style-cells-hw-lights .key--correct,
   border: 1px dashed rgba(255, 165, 90, 0.55);
 }
 .pet-deco-group__note b { color: var(--hw-accent); }
+
+/* Отметка ленты на неполученном предмете ивента (магазин, гардероб Букли):
+   не кнопка — предмет не продаётся, его выдаёт лента наград. */
+.shop-card__hw-need,
+.pet-deco__hw-need {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 165, 90, 0.7);
+  background: rgba(255, 138, 31, 0.1);
+  color: #ffc08a;
+  font-weight: 800;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.shop-card__hw-need .hw-pumpkin-ic,
+.pet-deco__hw-need .hw-pumpkin-ic { width: 15px; height: 15px; }
+[data-theme="light"] .shop-card__hw-need,
+[data-theme="light"] .pet-deco__hw-need { color: #a8410a; background: #fff3e6; border-color: rgba(194, 86, 12, 0.55); }
+[data-theme="light"] .hw-step--next {
+  border-color: rgba(194, 86, 12, 0.6);
+  background: linear-gradient(90deg, #ffe9d2, #f6edff);
+}

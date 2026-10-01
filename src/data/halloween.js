@@ -1,5 +1,5 @@
 // Контент ивента «Ночь тыкв» (Хэллоуин 2026): слова с загадками для режима
-// «Загадки ночи» и товары Тыквенной лавки.
+// «Загадки ночи» и лента наград.
 //
 // Слова — «добро-жуткие» и общеизвестные: в VK играют и дети, поэтому без
 // анатомии и жестокости. Длина 4–6 букв, ё → е. Каждое слово обязано
@@ -68,25 +68,27 @@ export const HW_RIDDLES = [
 const BY_WORD = new Map(HW_RIDDLES.map((r) => [r.word, r]));
 export const getRiddle = (word) => BY_WORD.get(word) || null;
 
-// Тыквенная лавка: ивентовые наряды Букли, фоны и стиль клеток продаются
-// только за тыквы и только во время ивента. kind: deco → petDecorations.js,
-// shop → shopItems.js. Порядок — порядок витрины (от дешёвого к главному).
-//
-// Темп: за победу 3/2/1 тыквы (по попыткам), но не больше HW_DAILY_CAP в
-// день. Вся лавка — 115 тыкв: при лимите 12 это ~10 дней игры каждый день из
-// 11 дней ивента; тот, кто заходит через день, соберёт примерно половину.
-export const HW_SHOP = [
-  { id: 'hw-pumpkin',      kind: 'deco', price: 8 },
-  { id: 'hw-batglasses',   kind: 'deco', price: 14 },
-  { id: 'hw-lantern',      kind: 'deco', price: 16 },
-  { id: 'cells-hw-lights', kind: 'shop', price: 16 },
-  { id: 'bg-hw-night',     kind: 'shop', price: 18 },
-  { id: 'bg-hw-field',     kind: 'shop', price: 18 },
-  { id: 'hw-witchhat',     kind: 'deco', price: 25, grand: true }
+// Лента наград. Тыквы не тратятся: ступень открывается, когда заработано
+// `need` тыкв за весь ивент. За победу 3/2/1 тыквы (по попыткам), но не больше
+// HW_DAILY_CAP в день — конец ленты (72) при игре каждый день на максимум
+// берётся за 6 дней из 11, а у того, кто заходит через день, — к концу ивента.
+// Награда попадает в гардероб/магазин, но не надевается и не включается сама.
+//   kind: deco — наряд Букли, shop — фон или стиль клеток, coins — монеты.
+export const HW_TRACK = [
+  { id: 'hw-s1', need: 5,  kind: 'deco',  ref: 'hw-pumpkin' },
+  { id: 'hw-s2', need: 12, kind: 'deco',  ref: 'hw-batglasses' },
+  { id: 'hw-s3', need: 20, kind: 'shop',  ref: 'cells-hw-lights' },
+  { id: 'hw-s4', need: 29, kind: 'shop',  ref: 'bg-hw-field' },
+  { id: 'hw-s5', need: 38, kind: 'deco',  ref: 'hw-lantern' },
+  { id: 'hw-s6', need: 48, kind: 'coins', amount: 100 },
+  { id: 'hw-s7', need: 59, kind: 'shop',  ref: 'bg-hw-night' },
+  { id: 'hw-s8', need: 72, kind: 'deco',  ref: 'hw-witchhat', grand: true }
 ];
 
+export const HW_TRACK_MAX = HW_TRACK[HW_TRACK.length - 1].need;
 export const HW_DAILY_CAP = 12;
 
-const SHOP_BY_ID = new Map(HW_SHOP.map((x) => [x.id, x]));
-export const hwShopEntry = (id) => SHOP_BY_ID.get(id) || null;
-export const hwPrice = (id) => SHOP_BY_ID.get(id)?.price ?? null;
+// Предметы ленты (без монет) и ступень по id предмета.
+export const HW_ITEMS = HW_TRACK.filter((s) => s.ref);
+const STEP_BY_REF = new Map(HW_ITEMS.map((s) => [s.ref, s]));
+export const hwStepFor = (ref) => STEP_BY_REF.get(ref) || null;

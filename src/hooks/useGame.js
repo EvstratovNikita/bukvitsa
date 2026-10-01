@@ -1146,7 +1146,6 @@ export function useGame() {
     petGifts: stats.petGifts,
     claimPetGift: stats.claimPetGift,
     buyDecoration: stats.buyDecoration,
-    buyHalloweenItem: stats.buyHalloweenItem,
     equipDecoration: stats.equipDecoration,
     unequipDecorationSlot: stats.unequipDecorationSlot,
     recordMiniGamePlay: stats.recordMiniGamePlay,

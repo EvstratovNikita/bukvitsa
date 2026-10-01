@@ -1,18 +1,16 @@
 import { useGameContext } from '../../context/GameContext.jsx';
 import { halloweenDaysLeft } from '../../lib/events.js';
-import { HW_DAILY_CAP } from '../../data/halloween.js';
-import { earnedToday } from '../../lib/halloweenProgress.js';
-import { todayKey } from '../../constants/game.js';
+import { HW_TRACK_MAX } from '../../data/halloween.js';
 import { plural } from '../../utils/plural.js';
 import { PumpkinIcon } from './HwIcons.jsx';
 
 // Баннер ивента в главном меню, между «Играть» и сеткой разделов. Тонкая
-// шкала — сколько тыкв собрано сегодня из дневного лимита.
+// шкала — пройденная часть ленты наград.
 export function HalloweenBanner({ onOpen }) {
   const { stats } = useGameContext();
   const hw = stats.halloween || {};
-  const pumpkins = hw.pumpkins || 0;
-  const pct = Math.round((earnedToday(hw, todayKey()) / HW_DAILY_CAP) * 100);
+  const earned = hw.earned || 0;
+  const pct = Math.round((earned / HW_TRACK_MAX) * 100);
   const days = halloweenDaysLeft();
 
   return (
@@ -23,7 +21,7 @@ export function HalloweenBanner({ onOpen }) {
       <span className="hw-banner__text">
         <span className="hw-banner__title">Ночь тыкв</span>
         <span className="hw-banner__sub">
-          Загадки ночи · {pumpkins} 🎃 · ещё {days} {plural(days, 'день', 'дня', 'дней')}
+          Лента {earned}/{HW_TRACK_MAX} 🎃 · ещё {days} {plural(days, 'день', 'дня', 'дней')}
         </span>
         <span className="hw-banner__bar" aria-hidden="true"><i style={{ width: `${Math.max(4, Math.min(100, pct))}%` }} /></span>
       </span>

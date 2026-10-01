@@ -3,7 +3,7 @@ import { getDecoration } from '../../data/petDecorations.js';
 import { getItem } from '../../data/shopItems.js';
 
 // Общие мелочи оформления ивента «Ночь тыкв»: значок тыквы, плашка
-// «Хэллоуин», описание предмета Тыквенной лавки.
+// «Хэллоуин», описание награды ленты.
 
 // Тыква-фонарь. Своя, а не эмодзи: эмодзи на разных телефонах рисуются
 // по-разному, а значок должен совпадать с тыквами на фоне и в наряде.
@@ -35,7 +35,7 @@ export function HwBadge({ till = true, className = '' }) {
   );
 }
 
-// Предмет Тыквенной лавки: значок и название для витрины и панелей.
+// Предмет ивента: значок и название для витрины и панелей.
 export function itemInfo(id) {
   const d = getDecoration(id);
   if (d) return { icon: d.icon, name: d.name, kind: 'deco' };
@@ -45,7 +45,13 @@ export function itemInfo(id) {
   return { icon: '🎁', name: id, kind: 'unknown' };
 }
 
-// Есть ли предмет лавки у игрока: наряд — в гардеробе, остальное — в инвентаре.
+// Награда ступени ленты: предмет или монеты.
+export function stepInfo(step) {
+  if (step.kind === 'coins') return { icon: '🪙', name: `${step.amount} монет`, kind: 'coins' };
+  return itemInfo(step.ref);
+}
+
+// Есть ли предмет ивента у игрока: наряд — в гардеробе, остальное — в инвентаре.
 export function ownsHwItem(stats, id) {
   if (getDecoration(id)) return (stats?.pet?.ownedDecorations || []).includes(id);
   return (stats?.inventory || []).includes(id);

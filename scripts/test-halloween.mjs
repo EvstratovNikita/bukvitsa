@@ -1,14 +1,14 @@
 // Проверки ивента «Ночь тыкв»: календарь, словарь, колода, тыквы с дневным
-// лимитом, Тыквенная лавка, слияние прогресса, восстановление купленного.
+// лимитом, лента наград, слияние прогресса, восстановление полученного.
 // Запуск: node scripts/test-halloween.mjs
 // Отдельного тест-раннера в проекте нет; модули ивента чистые и грузятся в
 // node как есть (платформа там определяется как web).
 
 import assert from 'node:assert/strict';
 import { HALLOWEEN, daysLeftAt, halloweenActive, halloweenWindowOpen } from '../src/lib/events.js';
-import { HW_DAILY_CAP, HW_RIDDLES, HW_SHOP } from '../src/data/halloween.js';
+import { HW_DAILY_CAP, HW_ITEMS, HW_RIDDLES, HW_TRACK, HW_TRACK_MAX } from '../src/data/halloween.js';
 import {
-  HW_DEFAULT, applyHalloweenResult, buyFromHalloweenShop, earnedToday, mergeHalloween,
+  HW_DEFAULT, applyHalloweenResult, earnedToday, mergeHalloween, nextStep,
   nextRiddle, normalizeHalloween, pumpkinsFor, restoreEventItems
 } from '../src/lib/halloweenProgress.js';
 import { isValidWord } from '../src/data/words.js';
@@ -56,21 +56,23 @@ test('загадки: формат и словарь', () => {
   assert.ok(HW_RIDDLES.length >= 45);
 });
 
-test('лавка: все товары существуют, ивентовые, без цены в монетах', () => {
-  for (const e of HW_SHOP) {
-    assert.ok(e.price > 0);
-    const it = e.kind === 'deco' ? PET_DECORATIONS.find((x) => x.id === e.id) : getItem(e.id);
-    assert.equal(it?.event, 'halloween', e.id);
-    assert.ok(!it.price, `${e.id} не продаётся за монеты`);
+test('лента: все предметы существуют, ивентовые, без цены в монетах', () => {
+  for (const e of HW_ITEMS) {
+    const it = e.kind === 'deco' ? PET_DECORATIONS.find((x) => x.id === e.ref) : getItem(e.ref);
+    assert.equal(it?.event, 'halloween', e.ref);
+    assert.ok(!it.price, `${e.ref} не продаётся за монеты`);
   }
-  // Каждый ивентовый наряд есть в лавке — иначе его не получить.
-  const ids = new Set(HW_SHOP.map((e) => e.id));
-  for (const d of PET_DECORATIONS.filter((x) => x.event)) assert.ok(ids.has(d.id), d.id);
+  // Каждый ивентовый наряд есть на ленте — иначе его не получить.
+  const refs = new Set(HW_ITEMS.map((e) => e.ref));
+  for (const d of PET_DECORATIONS.filter((x) => x.event)) assert.ok(refs.has(d.id), d.id);
+  // Отметки строго растут, главная награда — последняя.
+  HW_TRACK.forEach((st, i) => i && assert.ok(st.need > HW_TRACK[i - 1].need, st.id));
+  assert.ok(HW_TRACK[HW_TRACK.length - 1].grand);
 });
 
-test('лавка растянута: при лимите вся коллекция — не меньше 9 дней', () => {
-  const total = HW_SHOP.reduce((n, e) => n + e.price, 0);
-  assert.ok(total / HW_DAILY_CAP >= 9, `всего ${total}, лимит ${HW_DAILY_CAP}`);
+test('лента растянута: на максимуме — не меньше 6 дней из 11', () => {
+  assert.ok(HW_TRACK_MAX / HW_DAILY_CAP >= 6, `конец ${HW_TRACK_MAX}, лимит ${HW_DAILY_CAP}`);
+  assert.ok(HW_TRACK_MAX / HW_DAILY_CAP <= 8, `конец ${HW_TRACK_MAX} — не пройти за ивент через день`);
 });
 
 test('тыквы за попытки', () => {
@@ -135,16 +137,30 @@ test('итог партии: конец круга сбрасывает коло
   assert.deepEqual(next.seen, [all[all.length - 1]]);
 });
 
-test('покупка: списывает тыквы, второй раз не продаёт', () => {
-  const hw = { ...HW_DEFAULT, pumpkins: 20 };
-  const r = buyFromHalloweenShop(hw, 'hw-pumpkin', false);
-  assert.equal(r.result, 'ok');
-  assert.equal(r.next.pumpkins, 12);
+test('лента: ступени открываются по заработанному, по одному разу', () => {
+  let hw = HW_DEFAULT;
+  let r = win(hw, 1, 'луна');                 // 3
+  assert.deepEqual(r.newSteps, []);
+  r = win(r.next, 1, 'луна');                 // 6 → брошь (5)
+  assert.deepEqual(r.newSteps.map((x) => x.id), ['hw-s1']);
   assert.deepEqual(r.next.bought, ['hw-pumpkin']);
-  assert.equal(buyFromHalloweenShop(r.next, 'hw-pumpkin', false).result, 'already_owned');
-  assert.equal(buyFromHalloweenShop(hw, 'hw-witchhat', false).result, 'not_enough');
-  assert.equal(buyFromHalloweenShop(hw, 'crown', false).result, 'unknown');
-  assert.equal(buyFromHalloweenShop(hw, 'hw-lantern', true).result, 'already_owned');
+  assert.equal(nextStep(r.next).id, 'hw-s2');
+  hw = r.next;
+  r = win(hw, 6, 'паук');                     // 7 — ничего нового
+  assert.deepEqual(r.newSteps, []);
+  // Прыжок через несколько отметок (например, после слияния) выдаёт все.
+  r = win({ ...HW_DEFAULT, earned: 45, steps: ['hw-s1'] }, 1, 'луна', D2);
+  assert.deepEqual(r.newSteps.map((x) => x.id), ['hw-s2', 'hw-s3', 'hw-s4', 'hw-s5', 'hw-s6']);
+  assert.ok(!r.next.bought.includes(undefined), 'монеты не попадают в предметы');
+  // Пройденная лента.
+  assert.equal(nextStep({ earned: HW_TRACK_MAX }), null);
+});
+
+test('версия с лавкой: потраченные тыквы не теряются', () => {
+  const hw = normalizeHalloween({ pumpkins: 4, earned: 30, bought: ['hw-witchhat'] });
+  assert.equal(hw.earned, 30);
+  assert.equal(hw.pumpkins, 30);
+  assert.deepEqual(hw.bought, ['hw-witchhat']);
 });
 
 test('слияние: максимум, день — по последнему, списки объединены, симметрично', () => {
@@ -152,8 +168,8 @@ test('слияние: максимум, день — по последнему, 
   const b = { pumpkins: 7, earned: 25, dayKey: D1, dayEarned: 12, solved: 5, firstTry: 1, seen: ['паук'], bought: ['bg-hw-night'] };
   const ab = mergeHalloween(a, b);
   const ba = mergeHalloween(b, a);
-  assert.equal(ab.pumpkins, 10);
   assert.equal(ab.earned, 30);
+  assert.equal(ab.pumpkins, 30);
   assert.equal(ab.dayKey, D2);
   assert.equal(ab.dayEarned, 4);
   assert.equal(ab.solved, 5);
@@ -162,13 +178,13 @@ test('слияние: максимум, день — по последнему, 
   assert.equal(mergeHalloween(undefined, undefined), undefined);
 });
 
-test('старые сохранения с тропой: выданное считается купленным', () => {
+test('старые сохранения с тропой: выданное считается полученным', () => {
   const hw = normalizeHalloween({ pumpkins: 45, rewards: ['hw-t1', 'hw-t5', 'hw-t6'] });
   assert.deepEqual(hw.bought.sort(), ['hw-pumpkin', 'hw-witchhat']);
   assert.equal(hw.earned, 45);
 });
 
-test('купленное возвращается, если версия без ивента его выбросила', () => {
+test('полученное возвращается, если версия без ивента его выбросила', () => {
   const s = { halloween: { bought: ['hw-pumpkin', 'cells-hw-lights'] }, pet: { ownedDecorations: ['bow'] }, inventory: [] };
   const r = restoreEventItems(s);
   assert.deepEqual(r.pet.ownedDecorations, ['bow', 'hw-pumpkin']);
@@ -178,7 +194,7 @@ test('купленное возвращается, если версия без 
   assert.equal(restoreEventItems(clean), clean);
 });
 
-test('mergeProgress переносит halloween и возвращает купленное', () => {
+test('mergeProgress переносит halloween и возвращает полученное', () => {
   const out = mergeProgress(
     { played: 1, halloween: { pumpkins: 5, bought: ['hw-witchhat'] }, pet: { xp: 5, ownedDecorations: [] } },
     { played: 2, pet: { xp: 1, ownedDecorations: [] } }
