@@ -14,6 +14,10 @@ import { useStats } from './useStats.js';
 
 const isCyrillicLetter = (ch) => /^[а-яё]$/i.test(ch);
 
+// Сколько ждать межстраничный ролик перед новой партией. Ролик идёт до
+// полуминуты; дольше мост не отвечает только если завис.
+const AD_WAIT_MAX_MS = 45000;
+
 // Игрок сам ушёл из Слова дня — в этот день его больше не предлагаем.
 // Иначе предупреждение «вернуться не получится» врало бы: после
 // перезагрузки Слово дня встречало бы игрока снова.
@@ -281,12 +285,21 @@ export function useGame() {
   // В VK — на каждом 3-м: ролики там бывают по минуте, и реклама через раунд
   // раздражала. Своего ограничителя частоты, как у Яндекса, у VK нет.
   const INTERSTITIAL_EVERY = isVk ? 3 : 2;
+  //
+  // Возвращает промис: новая партия начинается только ПОСЛЕ ролика. Раньше
+  // показ запускался параллельно, VK грузил ролик несколько секунд, и реклама
+  // вылезала посреди уже начатого слова. Ждём не дольше AD_WAIT_MAX_MS —
+  // если мост так и не ответит, игра не должна зависнуть.
   const maybeInterstitial = useCallback(() => {
     // Never show an interstitial before the player has finished at least one
     // game — no ads ahead of the first round of actual gameplay.
-    if (sessionGamesRef.current < 1) return;
+    if (sessionGamesRef.current < 1) return Promise.resolve(false);
     adTransitionRef.current += 1;
-    if (adTransitionRef.current % INTERSTITIAL_EVERY === 0) showInterstitial();
+    if (adTransitionRef.current % INTERSTITIAL_EVERY !== 0) return Promise.resolve(false);
+    return Promise.race([
+      showInterstitial().catch(() => false),
+      new Promise((r) => setTimeout(() => r(false), AD_WAIT_MAX_MS))
+    ]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tell Yandex when active play starts/stops (pause sound/ads correctly).
@@ -544,20 +557,22 @@ export function useGame() {
     }
     startingRef.current = true;
     // A real new game is starting → count it toward the interstitial throttle.
-    maybeInterstitial();
+    // Новое слово — только после ролика (см. maybeInterstitial).
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
-    if (empty) {
-      gameStartRef.current = Date.now();
-      setSolution(pickNextWord(wordLength, playerRef.current));
-      setTimeout(() => { startingRef.current = false; }, 0);
-      return;
-    }
-    setIsClearing(true);
-    setTimeout(() => {
-      performReset();
-      setIsClearing(false);
-      startingRef.current = false;
-    }, ANIM.CLEAR_TOTAL_MS);
+    maybeInterstitial().then(() => {
+      if (empty) {
+        gameStartRef.current = Date.now();
+        setSolution(pickNextWord(wordLength, playerRef.current));
+        setTimeout(() => { startingRef.current = false; }, 0);
+        return;
+      }
+      setIsClearing(true);
+      setTimeout(() => {
+        performReset();
+        setIsClearing(false);
+        startingRef.current = false;
+      }, ANIM.CLEAR_TOTAL_MS);
+    });
   }, [guesses.length, current.length, hints, performReset, stats, wordLength, maybeInterstitial]);
 
   // Called after the user successfully tops up energy from the modal. Spends
@@ -637,9 +652,9 @@ export function useGame() {
   // spend 1 energy and start a fresh normal round. If energy is empty,
   // pop the modal and leave the board cleared so reset can take over.
   const exitDailyMode = useCallback(() => {
-    if (gameMode !== 'daily') return;
+    if (gameMode !== 'daily' || startingRef.current) return;
+    startingRef.current = true;
     setGameMode('normal');
-    maybeInterstitial();
     // Снимаем с полки сразу: недоигранную вернём, доигранную helper выбросит.
     const backup = takeNormalBackup();
 
@@ -679,11 +694,15 @@ export function useGame() {
       }
     };
 
-    setIsClearing(true);
-    setTimeout(() => {
-      applyNext();
-      setIsClearing(false);
-    }, ANIM.CLEAR_TOTAL_MS);
+    // Следующая партия — только после ролика (см. maybeInterstitial).
+    maybeInterstitial().then(() => {
+      setIsClearing(true);
+      setTimeout(() => {
+        applyNext();
+        setIsClearing(false);
+        startingRef.current = false;
+      }, ANIM.CLEAR_TOTAL_MS);
+    });
   }, [gameMode, stats, wordLength, maybeInterstitial]);
 
   // Осознанный выход из Слова дня на полпути (игрок полез в доп. режимы).

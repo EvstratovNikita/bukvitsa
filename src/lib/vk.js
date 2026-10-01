@@ -312,6 +312,13 @@ export function preloadRewardedVk() {
   vkInit().then((ok) => { if (ok) checkNativeAds('reward'); });
 }
 
+// То же для межстраничной: без предзагрузки VK качал ролик уже после
+// нажатия «Новая игра», и пауза перед ним тянулась несколько секунд.
+export function preloadInterstitialVk() {
+  if (!isVk) return;
+  vkInit().then((ok) => { if (ok) checkNativeAds('interstitial'); });
+}
+
 // Последняя попытка показа — для диагностики из консоли:
 // window.__buklitsaCloud.ads. Отказ площадки иначе виден игроку только как
 // «Реклама недоступна», без причины.
@@ -359,6 +366,8 @@ export async function showInterstitialVk() {
     return Boolean(r?.result);
   } catch {
     return false;
+  } finally {
+    preloadInterstitialVk();
   }
 }
 

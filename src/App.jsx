@@ -12,7 +12,7 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
-import { vkInit, preloadRewardedVk, fitToVisibleFrame } from './lib/vk.js';
+import { vkInit, preloadRewardedVk, preloadInterstitialVk, fitToVisibleFrame } from './lib/vk.js';
 import { reportArrival } from './lib/referral.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
@@ -61,7 +61,7 @@ function GameShell() {
   // широкоформатном режиме он выше экрана (см. lib/vk.js).
   // Пришёл по чужой ссылке «Поделиться» — отметить на сервере (статистика,
   // без наград; см. lib/referral.js).
-  useEffect(() => { vkInit(); preloadRewardedVk(); fitToVisibleFrame(); reportArrival(); }, []);
+  useEffect(() => { vkInit(); preloadRewardedVk(); preloadInterstitialVk(); fitToVisibleFrame(); reportArrival(); }, []);
 
   // Dismiss the boot splash once the initial server reconcile has settled, so
   // the player never sees the empty board flash before its first puzzle. Also
