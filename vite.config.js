@@ -27,6 +27,9 @@ export default defineConfig(({ mode }) => ({
   // an iframe, where absolute "/assets/..." URLs 404. Relative paths also work
   // fine on Vercel (index.html at root), so one build serves both.
   base: './',
+  // Время сборки — мелкой строкой в настройках: по телефону видно, какая
+  // версия реально открылась (площадки любят отдавать старую из кэша).
+  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
   plugins: [react(), ...(mode === 'vk' ? [dropYandexSdk()] : [])],
   resolve: {
     alias: EMBEDDED_MODES.includes(mode)

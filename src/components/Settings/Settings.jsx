@@ -4,6 +4,11 @@ import { isVk } from '../../lib/platform.js';
 import { notificationsEnabled, setNotifications } from '../../lib/vk.js';
 import { Modal } from '../Modal/Modal.jsx';
 
+// Время сборки по Москве (vite.config.js → define).
+const BUILD_LABEL = typeof __BUILD_TIME__ === 'string'
+  ? new Date(__BUILD_TIME__).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+  : 'dev';
+
 // In-game settings. Preferences live under stats.prefs (jsonb-synced
 // through useRemoteSync), so toggles persist across devices.
 export function SettingsModal({ open, onClose }) {
@@ -45,6 +50,7 @@ export function SettingsModal({ open, onClose }) {
           />
         )}
       </div>
+      <p className="settings__build">сборка {BUILD_LABEL}</p>
     </Modal>
   );
 }
