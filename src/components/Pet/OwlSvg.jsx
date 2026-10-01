@@ -282,11 +282,11 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
       if (id === 'shades')  return <Shades  key={slot} />;
     }
     if (slot === 'head') {
-      if (id === 'bow')      return <Bow      key={slot} />;
-      if (id === 'academic') return <Academic key={slot} />;
-      if (id === 'cap')      return <Cap      key={slot} />;
-      if (id === 'tophat')   return <TopHat   key={slot} />;
-      if (id === 'crown')    return <Crown    key={slot} />;
+      if (id === 'bow')      return <Bow key={slot} uid={uid} />;
+      if (id === 'academic') return <Academic key={slot} uid={uid} />;
+      if (id === 'cap')      return <Cap key={slot} uid={uid} />;
+      if (id === 'tophat')   return <TopHat key={slot} uid={uid} />;
+      if (id === 'crown')    return <Crown key={slot} uid={uid} />;
     }
     if (slot === 'wingL' || slot === 'wingR') {
       const wp = WING_SLOT_POS[slot];
@@ -294,7 +294,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
       const Comp = WING_COMPS[id];
       return (
         <g key={slot} className={`owl-deco owl-deco--${slot} owl-deco--${id}`} transform={fit}>
-          {Comp ? <Comp x={wp.x} y={wp.y} /> : (
+          {Comp ? <Comp x={wp.x} y={wp.y} uid={uid} /> : (
             <text x={wp.x} y={wp.y} fontSize={pos.size} textAnchor="middle" dominantBaseline="central">
               {d.icon}
             </text>
@@ -327,6 +327,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
     >
       <svg className="owl-svg owl-svg--base" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
+          <DecoDefs uid={uid} />
           <radialGradient id={`${uid}-contact`}>
             <stop offset="0%"   stopColor="var(--owl-contact)" />
             <stop offset="55%"  stopColor="var(--owl-contact)" stopOpacity="0.6" />
@@ -696,23 +697,16 @@ function Shades() {
 // is hand-drawn so it sits flush instead of an emoji floating above the head.
 
 // Pink ribbon bow — central knot, two side loops, two short tails.
-function Bow() {
+function Bow({ uid }) {
   return (
     <g className="owl-deco owl-deco--bow">
-      <defs>
-        <linearGradient id="bow-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#ff95c8" />
-          <stop offset="50%" stopColor="#ff5fa3" />
-          <stop offset="100%" stopColor="#c43075" />
-        </linearGradient>
-      </defs>
       {/* Left loop */}
       <path
         d="M 200 78
            Q 162 50 145 75
            Q 138 92 162 100
            Q 185 100 200 92 Z"
-        fill="url(#bow-grad)"
+        fill={`url(#${uid}-bow-grad)`}
         stroke="#7e1a4a"
         strokeWidth="1.2"
         strokeLinejoin="round"
@@ -723,7 +717,7 @@ function Bow() {
            Q 238 50 255 75
            Q 262 92 238 100
            Q 215 100 200 92 Z"
-        fill="url(#bow-grad)"
+        fill={`url(#${uid}-bow-grad)`}
         stroke="#7e1a4a"
         strokeWidth="1.2"
         strokeLinejoin="round"
@@ -733,7 +727,7 @@ function Bow() {
         d="M 188 95
            L 176 122
            L 192 110 Z"
-        fill="url(#bow-grad)"
+        fill={`url(#${uid}-bow-grad)`}
         stroke="#7e1a4a"
         strokeWidth="1"
         strokeLinejoin="round"
@@ -743,7 +737,7 @@ function Bow() {
         d="M 212 95
            L 224 122
            L 208 110 Z"
-        fill="url(#bow-grad)"
+        fill={`url(#${uid}-bow-grad)`}
         stroke="#7e1a4a"
         strokeWidth="1"
         strokeLinejoin="round"
@@ -760,27 +754,16 @@ function Bow() {
 // Academic mortarboard — board + band in saturated royal blue (the
 // classic black washed out against the dark scene background). Gold
 // trim + gold tassel make it pop.
-function Academic() {
+function Academic({ uid }) {
   return (
     <g className="owl-deco owl-deco--academic">
-      <defs>
-        <linearGradient id="academic-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#5a78d0" />
-          <stop offset="55%" stopColor="#2840a8" />
-          <stop offset="100%" stopColor="#0e1c5e" />
-        </linearGradient>
-        <linearGradient id="academic-band-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#3a52b8" />
-          <stop offset="100%" stopColor="#10206a" />
-        </linearGradient>
-      </defs>
       {/* Soft cap band under the board */}
       <path
         d="M 138 96
            Q 200 70 262 96
            L 260 110
            Q 200 92 140 110 Z"
-        fill="url(#academic-band-grad)"
+        fill={`url(#${uid}-academic-band-grad)`}
         stroke="#0a1450"
         strokeWidth="1.3"
       />
@@ -790,7 +773,7 @@ function Academic() {
            L 290 78
            L 200 102
            L 110 78 Z"
-        fill="url(#academic-grad)"
+        fill={`url(#${uid}-academic-grad)`}
         stroke="#0a1450"
         strokeWidth="1.5"
         strokeLinejoin="round"
@@ -816,19 +799,9 @@ function Academic() {
 // Baseball cap — like 🧢 emoji: rounded crown facing slightly right with
 // a sweeping curved visor projecting forward-right (not symmetric). The
 // crown sits low on the head, visor casts an underside shadow.
-function Cap() {
+function Cap({ uid }) {
   return (
     <g className="owl-deco owl-deco--cap">
-      <defs>
-        <linearGradient id="cap-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#4a8cff" />
-          <stop offset="100%" stopColor="#1c4abf" />
-        </linearGradient>
-        <linearGradient id="cap-visor-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#1c4abf" />
-          <stop offset="100%" stopColor="#0d2a70" />
-        </linearGradient>
-      </defs>
       {/* Crown — rounded dome, slightly forward-leaning so the back is
           taller than the front (emoji 🧢 silhouette). */}
       <path
@@ -836,7 +809,7 @@ function Cap() {
            Q 138 52 200 48
            Q 254 50 258 100
            Z"
-        fill="url(#cap-grad)"
+        fill={`url(#${uid}-cap-grad)`}
         stroke="#0d2a70"
         strokeWidth="1.4"
         strokeLinejoin="round"
@@ -858,7 +831,7 @@ function Cap() {
            Q 200 92 258 100
            Q 264 130 200 134
            Q 136 130 142 100 Z"
-        fill="url(#cap-visor-grad)"
+        fill={`url(#${uid}-cap-visor-grad)`}
         stroke="#0d2a70"
         strokeWidth="1.4"
         strokeLinejoin="round"
@@ -886,25 +859,18 @@ function Cap() {
 }
 
 // Top hat — tall cylinder with a band, sitting on a wide flat brim.
-function TopHat() {
+function TopHat({ uid }) {
   return (
     <g className="owl-deco owl-deco--tophat">
-      <defs>
-        <linearGradient id="tophat-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#2a2a36" />
-          <stop offset="60%" stopColor="#0e0e16" />
-          <stop offset="100%" stopColor="#000000" />
-        </linearGradient>
-      </defs>
       {/* Brim — wide ellipse hugging the head */}
-      <ellipse cx="200" cy="106" rx="94" ry="12" fill="url(#tophat-grad)" stroke="#000" strokeWidth="1.1" />
+      <ellipse cx="200" cy="106" rx="94" ry="12" fill={`url(#${uid}-tophat-grad)`} stroke="#000" strokeWidth="1.1" />
       {/* Crown — tall trapezoid */}
       <path
         d="M 152 106
            L 158 14
            Q 200 6 242 14
            L 248 106 Z"
-        fill="url(#tophat-grad)"
+        fill={`url(#${uid}-tophat-grad)`}
         stroke="#000"
         strokeWidth="1.2"
         strokeLinejoin="round"
@@ -929,16 +895,9 @@ function TopHat() {
 }
 
 // Royal crown — gold zigzag with three jewels, on a banded base.
-function Crown() {
+function Crown({ uid }) {
   return (
     <g className="owl-deco owl-deco--crown">
-      <defs>
-        <linearGradient id="crown-grad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#ffe07a" />
-          <stop offset="55%" stopColor="#f0b830" />
-          <stop offset="100%" stopColor="#8a5a10" />
-        </linearGradient>
-      </defs>
       {/* Zigzag silhouette — wider + taller, 5 peaks for grandeur */}
       <path
         d="M 130 108
@@ -950,13 +909,13 @@ function Crown() {
            L 235 96
            L 258 64
            L 270 108 Z"
-        fill="url(#crown-grad)"
+        fill={`url(#${uid}-crown-grad)`}
         stroke="#5a3a08"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       {/* Base band */}
-      <rect x="126" y="106" width="148" height="20" rx="4" fill="url(#crown-grad)" stroke="#5a3a08" strokeWidth="1.4" />
+      <rect x="126" y="106" width="148" height="20" rx="4" fill={`url(#${uid}-crown-grad)`} stroke="#5a3a08" strokeWidth="1.4" />
       {/* Base inner shadow */}
       <rect x="132" y="112" width="136" height="8" fill="rgba(122, 80, 12, 0.45)" />
       {/* Jewels at each peak */}
@@ -991,17 +950,10 @@ function AmuletHalo({ x, y, color = 'rgba(255, 220, 130, 0.45)', r = 22 }) {
 }
 
 // Feather — curved rachis with barbs splayed out, gold-cream gradient.
-function Feather({ x, y }) {
-  const id = `feather-${x}`;
+function Feather({ x, y, uid }) {
+  const id = `${uid}-feather`;
   return (
     <g transform={`translate(${x - 26} ${y - 26})`}>
-      <defs>
-        <linearGradient id={id} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#fff3c0" />
-          <stop offset="55%" stopColor="#f0c050" />
-          <stop offset="100%" stopColor="#a86810" />
-        </linearGradient>
-      </defs>
       <AmuletHalo x={26} y={26} color="rgba(247, 201, 72, 0.45)" />
       {/* Vane — leaf-like outline */}
       <path
@@ -1032,17 +984,10 @@ function Feather({ x, y }) {
 }
 
 // Sparkle orb — purple/pink crystal ball with starbursts.
-function Sparkle({ x, y }) {
-  const id = `sparkle-${x}`;
+function Sparkle({ x, y, uid }) {
+  const id = `${uid}-sparkle`;
   return (
     <g transform={`translate(${x} ${y})`}>
-      <defs>
-        <radialGradient id={id} cx="35%" cy="30%" r="70%">
-          <stop offset="0%"  stopColor="#ffe0ff" />
-          <stop offset="40%" stopColor="#d070ff" />
-          <stop offset="100%" stopColor="#4a0e7a" />
-        </radialGradient>
-      </defs>
       {/* Outer aura */}
       <circle r="30" fill="rgba(208, 112, 255, 0.25)" />
       <circle r="22" fill={`url(#${id})`} stroke="#2a0848" strokeWidth="1.2" />
@@ -1067,21 +1012,11 @@ function Sparkle({ x, y }) {
 }
 
 // Crystal — faceted cut diamond, white/cyan.
-function Crystal({ x, y }) {
-  const idTop = `crys-top-${x}`;
-  const idSide = `crys-side-${x}`;
+function Crystal({ x, y, uid }) {
+  const idTop = `${uid}-crys-top`;
+  const idSide = `${uid}-crys-side`;
   return (
     <g transform={`translate(${x} ${y})`}>
-      <defs>
-        <linearGradient id={idTop} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#a8e8ff" />
-        </linearGradient>
-        <linearGradient id={idSide} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"  stopColor="#7ec8e8" />
-          <stop offset="100%" stopColor="#1e5a8a" />
-        </linearGradient>
-      </defs>
       {/* Halo */}
       <circle r="30" fill="rgba(168, 232, 255, 0.30)" />
       {/* Top crown facets */}
@@ -1099,17 +1034,10 @@ function Crystal({ x, y }) {
 }
 
 // Star — 5-point gold star with a comet trail.
-function Star({ x, y }) {
-  const id = `star-${x}`;
+function Star({ x, y, uid }) {
+  const id = `${uid}-star`;
   return (
     <g transform={`translate(${x} ${y})`}>
-      <defs>
-        <radialGradient id={id} cx="40%" cy="35%" r="70%">
-          <stop offset="0%"  stopColor="#fff3a0" />
-          <stop offset="60%" stopColor="#f7c948" />
-          <stop offset="100%" stopColor="#a86010" />
-        </radialGradient>
-      </defs>
       {/* Glow halo */}
       <circle r="28" fill="rgba(247, 201, 72, 0.30)" />
       {/* Comet trail */}
@@ -1179,5 +1107,81 @@ function Monocle() {
         <circle cx="265" cy="230" r="1.2" />
       </g>
     </g>
+  );
+}
+
+// Градиенты всех нарядов. Лежат в <defs> совы постоянно, а не внутри самих
+// нарядов: на телефоне слой головы — отдельный слой видеокарты, и шапка,
+// вставленная вместе со своим градиентом, первые кадры рисовалась одной
+// обводкой (движок не успевал подхватить свежий градиент). Префикс uid —
+// чтобы у двух сов на странице id не совпадали.
+function DecoDefs({ uid }) {
+  return (
+    <>
+      {/* Bow */}
+      <linearGradient id={`${uid}-bow-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#ff95c8" />
+        <stop offset="50%" stopColor="#ff5fa3" />
+        <stop offset="100%" stopColor="#c43075" />
+      </linearGradient>
+      {/* Academic */}
+      <linearGradient id={`${uid}-academic-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#5a78d0" />
+        <stop offset="55%" stopColor="#2840a8" />
+        <stop offset="100%" stopColor="#0e1c5e" />
+      </linearGradient>
+      <linearGradient id={`${uid}-academic-band-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#3a52b8" />
+        <stop offset="100%" stopColor="#10206a" />
+      </linearGradient>
+      {/* Cap */}
+      <linearGradient id={`${uid}-cap-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#4a8cff" />
+        <stop offset="100%" stopColor="#1c4abf" />
+      </linearGradient>
+      <linearGradient id={`${uid}-cap-visor-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#1c4abf" />
+        <stop offset="100%" stopColor="#0d2a70" />
+      </linearGradient>
+      {/* TopHat */}
+      <linearGradient id={`${uid}-tophat-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#2a2a36" />
+        <stop offset="60%" stopColor="#0e0e16" />
+        <stop offset="100%" stopColor="#000000" />
+      </linearGradient>
+      {/* Crown */}
+      <linearGradient id={`${uid}-crown-grad`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#ffe07a" />
+        <stop offset="55%" stopColor="#f0b830" />
+        <stop offset="100%" stopColor="#8a5a10" />
+      </linearGradient>
+      {/* Feather */}
+      <linearGradient id={`${uid}-feather`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#fff3c0" />
+        <stop offset="55%" stopColor="#f0c050" />
+        <stop offset="100%" stopColor="#a86810" />
+      </linearGradient>
+      {/* Sparkle */}
+      <radialGradient id={`${uid}-sparkle`} cx="35%" cy="30%" r="70%">
+        <stop offset="0%"  stopColor="#ffe0ff" />
+        <stop offset="40%" stopColor="#d070ff" />
+        <stop offset="100%" stopColor="#4a0e7a" />
+      </radialGradient>
+      {/* Crystal */}
+      <linearGradient id={`${uid}-crys-top`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#ffffff" />
+        <stop offset="100%" stopColor="#a8e8ff" />
+      </linearGradient>
+      <linearGradient id={`${uid}-crys-side`} x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%"  stopColor="#7ec8e8" />
+        <stop offset="100%" stopColor="#1e5a8a" />
+      </linearGradient>
+      {/* Star */}
+      <radialGradient id={`${uid}-star`} cx="40%" cy="35%" r="70%">
+        <stop offset="0%"  stopColor="#fff3a0" />
+        <stop offset="60%" stopColor="#f7c948" />
+        <stop offset="100%" stopColor="#a86010" />
+      </radialGradient>
+    </>
   );
 }
