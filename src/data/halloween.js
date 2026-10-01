@@ -87,6 +87,9 @@ export const HW_TRACK = [
 
 export const HW_TRACK_MAX = HW_TRACK[HW_TRACK.length - 1].need;
 export const HW_DAILY_CAP = 12;
+// Сверх дневного лимита победа всё равно награждается: каждая недополученная
+// тыква — столько опыта Букле (победа с 1–2 попыток → +15 опыта).
+export const HW_CAP_XP_PER_PUMPKIN = 5;
 
 // Предметы ленты (без монет) и ступень по id предмета.
 export const HW_ITEMS = HW_TRACK.filter((s) => s.ref);

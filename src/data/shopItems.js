@@ -323,8 +323,8 @@ const AUTUMN_DARK = autumnTile({
   alpha: '0.62'
 });
 
-// Хэллоуин 2026 («Ночь тыкв»). Тыквы-фонари, летучие мыши и искры на одной
-// плитке; тёмный и светлый фон отличаются только палитрой. Формы в defs,
+// Хэллоуин 2026 («Ночь тыкв»). Тёмный фон — тыквы-фонари, летучие мыши и
+// искры под луной. Формы в defs,
 // раскладка через <use>, как у осенних фонов. Всё держится у краёв и в
 // углах плитки — центр закрывает поле, там пусто.
 const hwTile = (c) => enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
@@ -375,11 +375,56 @@ const HW_DARK = hwTile({
   bat: '#4a2f78', spark: '#ffd98a', alpha: '0.6'
 });
 
-const HW_LIGHT = hwTile({
-  pk0: '#ffc98a', pk1: '#f2883a', pk2: '#c25a1a',
-  rib: '#a8501a', stem: '#5a7a34', face: '#6a2e0a',
-  bat: '#5b4282', spark: '#e08a3a', alpha: '0.5'
-});
+// Светлый — другая картина, а не перекрашенная ночь: дневное тыквенное поле.
+// Тыквы без лиц на плетях с усиками и листьями, падающие кленовые листья,
+// колоски. Тоже всё у краёв плитки, центр пустой.
+const HW_FIELD = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+  <defs>
+    <radialGradient id='fpk' cx='0.36' cy='0.3' r='0.78'>
+      <stop offset='0' stop-color='#ffd08e'/><stop offset='0.6' stop-color='#f28a2e'/><stop offset='1' stop-color='#c4561a'/>
+    </radialGradient>
+    <g id='fp'>
+      <ellipse cx='-12' cy='2' rx='13' ry='15' fill='url(#fpk)'/>
+      <ellipse cx='12' cy='2' rx='13' ry='15' fill='url(#fpk)'/>
+      <ellipse cx='0' cy='1' rx='12' ry='16.5' fill='url(#fpk)'/>
+      <g stroke='#b0521c' stroke-width='1.1' fill='none' opacity='0.55'>
+        <path d='M-6 -13 Q-10 2 -6 16'/><path d='M6 -13 Q10 2 6 16'/>
+      </g>
+      <path d='M-1 -15 Q0 -22 5 -24' stroke='#5f7d2e' stroke-width='3.6' fill='none' stroke-linecap='round'/>
+    </g>
+    <path id='fl' d='M0 -14 L3 -6 L10 -9 L7 -2 L13 2 L5 4 L6 11 L0 7 L-6 11 L-5 4 L-13 2 L-7 -2 L-10 -9 L-3 -6 Z'/>
+    <g id='vl'>
+      <path d='M0 0 C-7 -10 -18 -8 -20 -1 C-14 0 -9 4 -8 10 C-3 6 0 3 0 0 Z' fill='#7fa24a'/>
+      <path d='M0 0 L-14 2' stroke='#5f7d2e' stroke-width='1'/>
+    </g>
+    <g id='wh' stroke='#c99a4a' stroke-width='1.6' stroke-linecap='round' fill='#e4b762'>
+      <path d='M0 30 L0 -6' fill='none'/>
+      <ellipse cx='-3' cy='-2' rx='2.4' ry='4.6' transform='rotate(-24 -3 -2)'/>
+      <ellipse cx='3' cy='4' rx='2.4' ry='4.6' transform='rotate(24 3 4)'/>
+      <ellipse cx='-3' cy='10' rx='2.4' ry='4.6' transform='rotate(-24 -3 10)'/>
+      <ellipse cx='0' cy='-9' rx='2.2' ry='4.2'/>
+    </g>
+  </defs>
+  <g opacity='0.72'>
+    <path d='M8 300 C40 284 70 300 98 288 S150 280 176 300' stroke='#6f8f3a' stroke-width='2.2' fill='none'/>
+    <path d='M98 288 q6 -14 18 -10 q-8 4 -4 10' stroke='#6f8f3a' stroke-width='1.3' fill='none'/>
+    <use href='#vl' transform='translate(40 290) rotate(-20)'/>
+    <use href='#vl' transform='translate(132 286) scale(0.85) rotate(160)'/>
+    <use href='#fp' transform='translate(64 300) scale(1.15)'/>
+    <use href='#fp' transform='translate(150 306) scale(0.72) rotate(6)'/>
+    <path d='M250 70 C270 58 296 66 318 56' stroke='#6f8f3a' stroke-width='2' fill='none'/>
+    <use href='#vl' transform='translate(300 60) scale(0.8) rotate(200)'/>
+    <use href='#fp' transform='translate(276 80) scale(0.78) rotate(-6)'/>
+    <use href='#wh' transform='translate(312 270) rotate(8)'/>
+    <use href='#wh' transform='translate(326 278) scale(0.85) rotate(16)'/>
+    <use href='#wh' transform='translate(22 112) scale(0.8) rotate(-10)'/>
+    <use href='#fl' fill='#e8742a' transform='translate(122 52) rotate(18)'/>
+    <use href='#fl' fill='#d9452a' transform='translate(204 196) scale(0.75) rotate(-28)'/>
+    <use href='#fl' fill='#f0a83a' transform='translate(40 30) scale(0.65) rotate(40)'/>
+    <use href='#fl' fill='#e8742a' transform='translate(300 170) scale(0.6) rotate(-50)'/>
+    <use href='#fl' fill='#d9452a' transform='translate(232 318) scale(0.55) rotate(70)'/>
+  </g>
+</svg>`);
 
 export const SHOP_ITEMS = [
   // ---------- Хэллоуин 2026 ----------
@@ -412,13 +457,13 @@ export const SHOP_ITEMS = [
     theme: 'light',
     event: 'halloween',
     name: 'Тыквенное поле',
-    desc: 'Сиреневые сумерки над тыквенной грядкой',
+    desc: 'Солнечный день на грядке спелых тыкв',
     payload: {
       gradient: [
-        HW_LIGHT,
-        'radial-gradient(circle at 86% 9%, #fff4dc 0, #fff4dc 26px, rgba(255, 244, 220, 0) 28px)',
-        'radial-gradient(420px 420px at 86% 9%, rgba(255, 236, 200, 0.85), rgba(255, 200, 150, 0.25) 45%, transparent 70%)',
-        'linear-gradient(180deg, #f1dcf3 0%, #fadfd0 55%, #f6c9a2 100%)'
+        HW_FIELD,
+        'radial-gradient(520px 420px at 10% 4%, rgba(255, 224, 140, 0.75), rgba(255, 210, 120, 0.18) 50%, transparent 72%)',
+        'radial-gradient(1300px 340px at 50% 118%, rgba(150, 170, 80, 0.35), transparent 70%)',
+        'linear-gradient(180deg, #fff6e4 0%, #fdebcf 55%, #f6d9a8 100%)'
       ].join(', '),
       previewSize: '210px 210px, auto, auto, auto'
     }

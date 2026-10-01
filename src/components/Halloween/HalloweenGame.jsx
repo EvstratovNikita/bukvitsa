@@ -75,6 +75,7 @@ export function HwRoundResult({ compact = false }) {
   const earned = hw.earned || 0;
   const won = status === GAME_STATUS.WON;
   const gained = lastHw?.gained || 0;
+  const bonusXp = lastHw?.bonusXp || 0;
   const opened = won ? (lastHw?.newSteps || []) : [];
   const today = earnedToday(hw, todayKey());
   const capped = today >= HW_DAILY_CAP;
@@ -114,7 +115,13 @@ export function HwRoundResult({ compact = false }) {
           })}
         </div>
       )}
-      {won && gained === 0 && capped && (
+      {won && bonusXp > 0 && (
+        <div className="hw-result__capped">
+          {gained > 0 ? 'Лимит тыкв на сегодня набран' : 'Тыквы на сегодня собраны'} — вместо них
+          {' '}<b>+{bonusXp} опыта</b> Букле. Завтра снова {HW_DAILY_CAP} 🎃
+        </div>
+      )}
+      {won && gained === 0 && !bonusXp && capped && (
         <div className="hw-result__capped">Тыквы на сегодня собраны — завтра ещё {HW_DAILY_CAP}</div>
       )}
       <div className="hw-result__track">

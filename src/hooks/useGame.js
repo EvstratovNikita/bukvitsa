@@ -9,8 +9,8 @@ import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord } from '../data/words.js';
 import { pickNextWord, rememberWord } from '../lib/wordPicker.js';
 import { halloweenActive } from '../lib/events.js';
-import { getRiddle } from '../data/halloween.js';
-import { nextRiddle } from '../lib/halloweenProgress.js';
+import { HW_CAP_XP_PER_PUMPKIN, getRiddle } from '../data/halloween.js';
+import { nextRiddle, pumpkinsFor } from '../lib/halloweenProgress.js';
 import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
@@ -489,16 +489,20 @@ export function useGame() {
           setBoostedLastWin(false);
         } else if (gameMode === 'halloween') {
           // Загадки ночи: монет за партию нет (режим бесплатный и
-          // безлимитный), награда — тыквы на тропу. Победа идёт в общую
-          // статистику, как в режимах 4/6; опыт Букле — как за 5 букв.
+          // безлимитный), награда — тыквы на ленту. Победа идёт в общую
+          // статистику, как в режимах 4/6; опыт Букле — как за 5 букв, а то,
+          // что не влезло в дневной лимит тыкв, — дополнительным опытом.
           stats.recordWin(nextGuesses.length, elapsedMs, 1, /* creditCoins */ false);
-          setLastHw(stats.recordHalloweenResult({ won: true, attempts: nextGuesses.length, word: normalizeWord(solution) }));
+          const hwRes = stats.recordHalloweenResult({ won: true, attempts: nextGuesses.length, word: normalizeWord(solution) });
+          const hatched = Boolean(stats.stats.pet?.hatched);
+          const bonusXp = hatched ? (pumpkinsFor(nextGuesses.length) - hwRes.gained) * HW_CAP_XP_PER_PUMPKIN : 0;
+          setLastHw({ ...hwRes, bonusXp });
           setLastEarned(0);
           setLastEarnedBase(0);
           setLastEarnedDeco(0);
           setBoostedLastWin(false);
           setDoubledLastWin(false);
-          const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length));
+          const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length) + bonusXp);
           if (petResult.levelAfter > petResult.levelBefore) {
             const petName = stats.stats.pet?.name || 'Букля';
             showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
