@@ -1,6 +1,6 @@
 import { isEmbedded } from '../lib/platform.js';
 import { halloweenActive } from '../lib/events.js';
-import { HW_TRACK_MAX } from './halloween.js';
+import { HW_SHOP } from './halloween.js';
 
 // Achievements catalog. Each entry is a pure descriptor — no state, no
 // mutation — so the same array drives both the listing UI and the
@@ -71,6 +71,10 @@ export const ACHIEVEMENT_CATEGORIES = [
 const HW_DECO_IDS = new Set(PET_DECORATIONS.filter((d) => d.event === 'halloween').map((d) => d.id));
 const hwWornCount = (s) => Object.values(s.pet?.equipped || {}).filter((id) => HW_DECO_IDS.has(id)).length;
 const hw = (s) => s.halloween || {};
+// Сколько предметов Тыквенной лавки у игрока (наряды — в гардеробе, фоны и
+// стиль клеток — в инвентаре).
+const hwOwnedCount = (s) => HW_SHOP.filter((e) => (e.kind === 'deco'
+  ? (s.pet?.ownedDecorations || []) : (s.inventory || [])).includes(e.id)).length;
 
 export const ACHIEVEMENTS = [
   // ============ СЛОВА ============
@@ -311,9 +315,9 @@ export const ACHIEVEMENTS = [
   {
     id: 'hw_path', category: 'halloween', tier: 'hard', icon: '👑', reward: 100,
     title: 'Тыквенный король',
-    desc: 'Пройди Тыквенную тропу до конца',
-    check: (s) => (hw(s).rewards || []).includes('hw-t6'),
-    progress: (s) => ({ current: Math.min(HW_TRACK_MAX, hw(s).pumpkins || 0), target: HW_TRACK_MAX })
+    desc: 'Собери всю коллекцию Тыквенной лавки',
+    check: (s) => hwOwnedCount(s) >= HW_SHOP.length,
+    progress: (s) => ({ current: hwOwnedCount(s), target: HW_SHOP.length })
   }
   // Достижения «Друзья» (invite_1, invite_5) убраны вместе с приглашениями:
   // на Яндексе нет входа через Google/email, засчитать приглашение нечем —

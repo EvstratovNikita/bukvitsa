@@ -383,9 +383,9 @@ const HW_LIGHT = hwTile({
 
 export const SHOP_ITEMS = [
   // ---------- Хэллоуин 2026 ----------
-  // event — ивентовый товар: особое оформление, продаётся только во время
-  // ивента (lib/events.js), купленный остаётся навсегда. source: 'track' —
-  // не продаётся вовсе, выдаётся Тыквенной тропой (data/halloween.js).
+  // event — ивентовый товар: продаётся только за тыквы и только во время
+  // ивента (цены — data/halloween.js), купленный остаётся навсегда и после
+  // ивента стоит в своей категории как обычный.
   {
     id: 'bg-hw-night',
     category: 'background',
@@ -393,7 +393,6 @@ export const SHOP_ITEMS = [
     event: 'halloween',
     name: 'Тыквенная ночь',
     desc: 'Лунный свет, летучие мыши и тыквы-фонари',
-    price: 150,
     payload: {
       gradient: [
         HW_DARK,
@@ -414,7 +413,6 @@ export const SHOP_ITEMS = [
     event: 'halloween',
     name: 'Тыквенное поле',
     desc: 'Сиреневые сумерки над тыквенной грядкой',
-    price: 150,
     payload: {
       gradient: [
         HW_LIGHT,
@@ -429,7 +427,6 @@ export const SHOP_ITEMS = [
     id: 'cells-hw-lights',
     category: 'cells',
     event: 'halloween',
-    source: 'track',
     name: 'Тыквенные огоньки',
     desc: 'Буквы не на месте горят тыквой, верные — ведьминым зельем'
   },

@@ -32,7 +32,7 @@ import { reconcileBond, BOND_PER_GIFT } from '../utils/petBond.js';
 import { GIFT_IDS, nextUnclaimedGiftId, getGift } from '../data/petGifts.js';
 import { storage } from '../utils/storage.js';
 import { halloweenActive } from '../lib/events.js';
-import { HW_DEFAULT, applyHalloweenResult, normalizeHalloween, restoreTrackGrants } from '../lib/halloweenProgress.js';
+import { HW_DEFAULT, applyHalloweenResult, buyFromHalloweenShop, normalizeHalloween, restoreEventItems } from '../lib/halloweenProgress.js';
 
 // Настройки-оформление: их смена ставит отметку cosmeticAt (см. mergeProgress).
 const COSMETIC_PREF_KEYS = ['theme', 'enterOnLeft', 'bgByTheme'];
@@ -144,7 +144,7 @@ const DEFAULT_STATS = {
 function load() {
   const raw = storage.get(STORAGE_KEYS.STATS, null);
   if (!raw) return DEFAULT_STATS;
-  return restoreTrackGrants({
+  return restoreEventItems({
     ...DEFAULT_STATS,
     ...raw,
     distribution: Array.isArray(raw.distribution) && raw.distribution.length === MAX_ATTEMPTS
@@ -718,8 +718,8 @@ export function useStats() {
   const buyDecoration = useCallback((decoId) => {
     const d = getDecoration(decoId);
     if (!d) return 'unknown';
-    // Наряды Тыквенной тропы не продаются — их выдаёт ивент.
-    if (d.source === 'track') return 'locked';
+    // Ивентовые наряды продаются только за тыквы (buyHalloweenItem).
+    if (d.event) return 'locked';
     const owned = stats.pet?.ownedDecorations || [];
     if (owned.includes(decoId)) return 'already_owned';
     const petLevel = stats.pet?.level || 1;
@@ -830,10 +830,9 @@ export function useStats() {
     const item = getItem(itemId);
     if (!item) return 'unknown_item';
     const owns = (stats.inventory || []).includes(itemId);
-    // Ивентовые товары продаются только пока идёт ивент, а награды тропы не
-    // продаются вовсе — их выдаёт recordHalloweenResult.
-    if (item.source === 'track') return 'unknown_item';
-    if (item.event && !owns && !halloweenActive()) return 'unknown_item';
+    // Ивентовые товары — только за тыквы и только во время ивента
+    // (buyHalloweenItem), за монеты их не купить.
+    if (item.event) return 'unknown_item';
     if (!item.consumable && owns) return 'already_owned';
     // Работающий бонус нельзя купить второй раз — деньги ушли бы впустую, а
     // игрок этого не ждёт. Кнопка в магазине погашена, это страховка логики.
@@ -997,47 +996,61 @@ export function useStats() {
     return { grantedEnergy: shouldGrant };
   }, [stats.altMode, mutateEnergy, runEconomy]);
 
-  // Итог партии в режиме «Загадки ночи»: тыквы, учёт колоды и выдача
-  // ступеней Тыквенной тропы — сразу, без кнопки «Забрать», чтобы после
-  // ивента не оставалось зависших наград. Наряд надевается и стиль клеток
-  // включается так же, как при покупке. Возвращает { gained, newSteps }
-  // для панели конца партии.
+  // Итог партии в режиме «Загадки ночи»: тыквы (с дневным лимитом) и учёт
+  // колоды. Предметы здесь не выдаются — их покупают за тыквы в лавке
+  // (buyHalloweenItem). Возвращает { gained, capped } для панели конца партии.
   const recordHalloweenResult = useCallback(({ won, attempts, word }) => {
-    const result = applyHalloweenResult(stats.halloween, { won, attempts, word });
+    const today = todayKey();
+    const result = applyHalloweenResult(stats.halloween, { won, attempts, word, today });
+    setStats((s) => ({
+      ...s,
+      halloween: applyHalloweenResult(s.halloween, { won, attempts, word, today }).next
+    }));
+    return { gained: result.gained, capped: result.capped };
+  }, [stats.halloween]);
+
+  // Покупка в Тыквенной лавке — только пока идёт ивент. Наряд надевается,
+  // фон и стиль клеток включаются — так же, как при покупке за монеты.
+  // Возвращает 'ok' | 'already_owned' | 'not_enough' | 'closed' | 'unknown'.
+  const buyHalloweenItem = useCallback((id) => {
+    if (!halloweenActive()) return 'closed';
+    const deco = getDecoration(id);
+    const item = deco ? null : getItem(id);
+    if (!deco && !item) return 'unknown';
+    const owned = deco
+      ? (stats.pet?.ownedDecorations || []).includes(id)
+      : (stats.inventory || []).includes(id);
+    const check = buyFromHalloweenShop(stats.halloween, id, owned);
+    if (check.result !== 'ok') return check.result;
     setStats((s) => {
-      const { next, newSteps } = applyHalloweenResult(s.halloween, { won, attempts, word });
-      const out = { ...s, halloween: next };
-      for (const step of newSteps) {
-        if (step.kind === 'coins') {
-          out.coins = (out.coins || 0) + step.amount;
-          out.coinsEarned = (out.coinsEarned || 0) + step.amount;
-        } else if (step.kind === 'cells') {
-          if (!(out.inventory || []).includes(step.ref)) out.inventory = [...(out.inventory || []), step.ref];
-          out.activeCellStyle = step.ref;
-          out.cosmeticAt = new Date().toISOString();
-        } else if (step.kind === 'deco') {
-          const d = getDecoration(step.ref);
-          if (!d) continue;
-          const pet = out.pet || DEFAULT_STATS.pet;
-          const owned = pet.ownedDecorations || [];
-          const eq = { ...(pet.equipped || {}) };
-          if (d.slot === 'wing') {
-            const target = !eq.wingL ? 'wingL' : !eq.wingR ? 'wingR' : 'wingL';
-            eq[target] = d.id;
-          } else {
-            eq[d.slot] = d.id;
-          }
-          out.pet = {
-            ...pet,
-            ownedDecorations: owned.includes(d.id) ? owned : [...owned, d.id],
-            equipped: eq
+      const r = buyFromHalloweenShop(s.halloween, id, false);
+      if (r.result !== 'ok') return s;
+      const out = { ...s, halloween: r.next, itemsBought: (s.itemsBought || 0) + 1 };
+      if (deco) {
+        const pet = s.pet || DEFAULT_STATS.pet;
+        const eq = { ...(pet.equipped || {}) };
+        if (deco.slot === 'wing') eq[!eq.wingL ? 'wingL' : !eq.wingR ? 'wingR' : 'wingL'] = id;
+        else eq[deco.slot] = id;
+        const ownedList = pet.ownedDecorations || [];
+        out.pet = { ...pet, ownedDecorations: ownedList.includes(id) ? ownedList : [...ownedList, id], equipped: eq };
+      } else {
+        out.inventory = (s.inventory || []).includes(id) ? s.inventory : [...(s.inventory || []), id];
+        out.cosmeticAt = new Date().toISOString();
+        if (item.category === 'cells') out.activeCellStyle = id;
+        if (item.category === 'background') {
+          const slot = item.theme || 'dark';
+          out.activeBackground = id;
+          out.prefs = {
+            ...(s.prefs || DEFAULT_STATS.prefs),
+            theme: slot,
+            bgByTheme: { ...((s.prefs?.bgByTheme) || {}), [slot]: id }
           };
         }
       }
       return out;
     });
-    return { gained: result.gained, newSteps: result.newSteps };
-  }, [stats.halloween]);
+    return 'ok';
+  }, [stats.halloween, stats.pet?.ownedDecorations, stats.inventory]);
 
   // Та же оговорка, что и с монетами, только промах здесь не в пользу игрока:
   // два нажатия «Новой игры» в одном такте оба видели «энергия есть» и
@@ -1230,6 +1243,7 @@ export function useStats() {
     recordMiniGamePlay,
     recordAltModePlay,
     recordHalloweenResult,
+    buyHalloweenItem,
     awardWinServer,
     spendHintServer,
     redeemAdDoubleServer,

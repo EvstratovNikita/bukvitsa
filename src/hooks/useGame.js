@@ -17,6 +17,10 @@ import { useStats } from './useStats.js';
 
 const isCyrillicLetter = (ch) => /^[а-яё]$/i.test(ch);
 
+// Сколько ждать межстраничный ролик перед новой партией. Ролик идёт до
+// полуминуты; дольше мост не отвечает только если завис.
+const AD_WAIT_MAX_MS = 45000;
+
 // Игрок сам ушёл из Слова дня — в этот день его больше не предлагаем.
 // Иначе предупреждение «вернуться не получится» врало бы: после
 // перезагрузки Слово дня встречало бы игрока снова.
@@ -173,6 +177,8 @@ export function useGame() {
   // Итог последней загадки ночи: сколько тыкв и какие ступени тропы выданы.
   // Хранится с доской — после перезагрузки панель конца партии та же.
   const [lastHw, setLastHw] = useState(() => savedGame?.lastHw ?? null);
+  // Загадка ночи открыта за монеты (платная подсказка) — хранится с доской.
+  const [riddleShown, setRiddleShown] = useState(() => Boolean(savedGame?.riddleShown));
   const [doublingAd, setDoublingAd] = useState(false);
   const [hints, setHints] = useState(() => savedGame?.hints ?? Array((savedGame?.wordLength ?? 5)).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
@@ -244,6 +250,7 @@ export function useGame() {
       setEvaluations(fromCloud.evaluations || []);
       setStatus(fromCloud.status);
       setHints(fromCloud.hints || Array(len).fill(null));
+      setRiddleShown(Boolean(fromCloud.riddleShown));
       setGameMode(fromCloud.gameMode === 'daily' ? 'daily' : restoredMode(fromCloud));
       return;
     }
@@ -262,6 +269,7 @@ export function useGame() {
       setStatus(backup.status || GAME_STATUS.PLAYING);
       setHints(backup.hints || Array(restoreLen).fill(null));
       setGameMode(restoredMode(backup));
+      setRiddleShown(Boolean(backup.riddleShown));
       return;
     }
     // Обычная партия могла остаться на полке, пока игрок разгадывал загадки
@@ -306,9 +314,9 @@ export function useGame() {
     if (normalizeWord(solution).length !== wordLength) return;
     storage.set(STORAGE_KEYS.GAME_STATE, {
       solution, guesses, evaluations, status, hints, gameMode, wordLength,
-      lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastHw
+      lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastHw, riddleShown
     });
-  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastHw]);
+  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastHw, riddleShown]);
 
   // Watchdog: if the solution length ever drifts from the active wordLength
   // (caused by a stale persisted blob, a race between setWordLength and
@@ -343,12 +351,21 @@ export function useGame() {
   // В VK — на каждом 3-м: ролики там бывают по минуте, и реклама через раунд
   // раздражала. Своего ограничителя частоты, как у Яндекса, у VK нет.
   const INTERSTITIAL_EVERY = isVk ? 3 : 2;
+  //
+  // Возвращает промис: новая партия начинается только ПОСЛЕ ролика. Раньше
+  // показ запускался параллельно, VK грузил ролик несколько секунд, и реклама
+  // вылезала посреди уже начатого слова. Ждём не дольше AD_WAIT_MAX_MS —
+  // если мост так и не ответит, игра не должна зависнуть.
   const maybeInterstitial = useCallback(() => {
     // Never show an interstitial before the player has finished at least one
     // game — no ads ahead of the first round of actual gameplay.
-    if (sessionGamesRef.current < 1) return;
+    if (sessionGamesRef.current < 1) return Promise.resolve(false);
     adTransitionRef.current += 1;
-    if (adTransitionRef.current % INTERSTITIAL_EVERY === 0) showInterstitial();
+    if (adTransitionRef.current % INTERSTITIAL_EVERY !== 0) return Promise.resolve(false);
+    return Promise.race([
+      showInterstitial().catch(() => false),
+      new Promise((r) => setTimeout(() => r(false), AD_WAIT_MAX_MS))
+    ]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tell Yandex when active play starts/stops (pause sound/ads correctly).
@@ -586,12 +603,12 @@ export function useGame() {
   const stashCurrentRound = useCallback(() => {
     if (!solution || status !== GAME_STATUS.PLAYING) return;
     if (gameMode === 'halloween') {
-      stashRound('hw', { solution, guesses, evaluations, hints, status, wordLength, gameMode });
+      stashRound('hw', { solution, guesses, evaluations, hints, status, wordLength, gameMode, riddleShown });
       return;
     }
     if (gameMode !== 'normal') return;
     stashRound(wordLength, { solution, guesses, evaluations, hints, status, wordLength });
-  }, [gameMode, solution, status, wordLength, guesses, evaluations, hints]);
+  }, [gameMode, solution, status, wordLength, guesses, evaluations, hints, riddleShown]);
 
   // Ставит партию в выбранном формате: возвращает отложенную, если она есть,
   // иначе берёт новое слово. Энергию НЕ трогает — гейт живёт в setGameLength,
@@ -640,6 +657,7 @@ export function useGame() {
     setBoostedLastWin(false);
     setDoubledLastWin(false);
     setLastHw(null);
+    setRiddleShown(Boolean(saved?.riddleShown));
     isLocked.current = false;
   }, []);
 
@@ -714,8 +732,8 @@ export function useGame() {
   const nextHalloweenRiddle = useCallback(() => {
     if (gameMode !== 'halloween' || startingRef.current) return;
     startingRef.current = true;
-    maybeInterstitial();
     const prev = normalizeWord(solution || '');
+    maybeInterstitial().then(() => {
     setIsClearing(true);
     setTimeout(() => {
       if (halloweenActive()) {
@@ -727,6 +745,7 @@ export function useGame() {
       setIsClearing(false);
       startingRef.current = false;
     }, ANIM.CLEAR_TOTAL_MS);
+    });
   }, [gameMode, solution, maybeInterstitial, applyRiddle, leaveToNormal]);
 
   const reset = useCallback(() => {
@@ -746,20 +765,22 @@ export function useGame() {
     }
     startingRef.current = true;
     // A real new game is starting → count it toward the interstitial throttle.
-    maybeInterstitial();
+    // Новое слово — только после ролика (см. maybeInterstitial).
     const empty = guesses.length === 0 && current.length === 0 && hints.every((h) => !h);
-    if (empty) {
-      gameStartRef.current = Date.now();
-      setSolution(pickNextWord(wordLength, playerRef.current));
-      setTimeout(() => { startingRef.current = false; }, 0);
-      return;
-    }
-    setIsClearing(true);
-    setTimeout(() => {
-      performReset();
-      setIsClearing(false);
-      startingRef.current = false;
-    }, ANIM.CLEAR_TOTAL_MS);
+    maybeInterstitial().then(() => {
+      if (empty) {
+        gameStartRef.current = Date.now();
+        setSolution(pickNextWord(wordLength, playerRef.current));
+        setTimeout(() => { startingRef.current = false; }, 0);
+        return;
+      }
+      setIsClearing(true);
+      setTimeout(() => {
+        performReset();
+        setIsClearing(false);
+        startingRef.current = false;
+      }, ANIM.CLEAR_TOTAL_MS);
+    });
   }, [guesses.length, current.length, hints, performReset, stats, wordLength, maybeInterstitial, gameMode, nextHalloweenRiddle]);
 
   // Called after the user successfully tops up energy from the modal. Spends
@@ -841,9 +862,9 @@ export function useGame() {
   // spend 1 energy and start a fresh normal round. If energy is empty,
   // pop the modal and leave the board cleared so reset can take over.
   const exitDailyMode = useCallback(() => {
-    if (gameMode !== 'daily') return;
+    if (gameMode !== 'daily' || startingRef.current) return;
+    startingRef.current = true;
     setGameMode('normal');
-    maybeInterstitial();
     // Снимаем с полки сразу: недоигранную вернём, доигранную helper выбросит.
     const backup = takeNormalBackup();
 
@@ -862,6 +883,7 @@ export function useGame() {
         setRevealRow(-1);
         // Утром отложенной могла оказаться загадка ночи — возвращаем её режим.
         setGameMode(restoredMode(backup));
+        setRiddleShown(Boolean(backup.riddleShown));
         isLocked.current = false;
         gameStartRef.current = Date.now();
         return;
@@ -885,11 +907,15 @@ export function useGame() {
       }
     };
 
-    setIsClearing(true);
-    setTimeout(() => {
-      applyNext();
-      setIsClearing(false);
-    }, ANIM.CLEAR_TOTAL_MS);
+    // Следующая партия — только после ролика (см. maybeInterstitial).
+    maybeInterstitial().then(() => {
+      setIsClearing(true);
+      setTimeout(() => {
+        applyNext();
+        setIsClearing(false);
+        startingRef.current = false;
+      }, ANIM.CLEAR_TOTAL_MS);
+    });
   }, [gameMode, stats, wordLength, maybeInterstitial]);
 
   // Осознанный выход из Слова дня на полпути (игрок полез в доп. режимы).
@@ -1034,6 +1060,15 @@ export function useGame() {
     [guesses, evaluations]
   );
 
+  // Открыть загадку ночи — платная подсказка, один раз на слово.
+  const revealRiddle = useCallback(() => {
+    if (gameMode !== 'halloween' || riddleShown || status !== GAME_STATUS.PLAYING) return false;
+    if (!stats.spendCoins(HINT_COST.RIDDLE)) { showToast('Недостаточно монет'); return false; }
+    setRiddleShown(true);
+    stats.recordHintUsed();
+    return true;
+  }, [gameMode, riddleShown, status, stats, showToast]);
+
   // Загадка над полем — по загаданному слову: слова колоды уникальны.
   const riddle = useMemo(
     () => (gameMode === 'halloween' && solution ? getRiddle(normalizeWord(solution)) : null),
@@ -1062,6 +1097,8 @@ export function useGame() {
     leaveDailyMode,
     // Загадки ночи (ивент «Ночь тыкв»)
     riddle,
+    riddleShown,
+    revealRiddle,
     lastHw,
     startHalloween,
     nextHalloweenRiddle,
@@ -1109,6 +1146,7 @@ export function useGame() {
     petGifts: stats.petGifts,
     claimPetGift: stats.claimPetGift,
     buyDecoration: stats.buyDecoration,
+    buyHalloweenItem: stats.buyHalloweenItem,
     equipDecoration: stats.equipDecoration,
     unequipDecorationSlot: stats.unequipDecorationSlot,
     recordMiniGamePlay: stats.recordMiniGamePlay,

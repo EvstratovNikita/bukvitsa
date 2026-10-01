@@ -1,20 +1,18 @@
 import { useGameContext } from '../../context/GameContext.jsx';
 import { halloweenDaysLeft } from '../../lib/events.js';
-import { HW_TRACK } from '../../data/halloween.js';
-import { nextStep } from '../../lib/halloweenProgress.js';
+import { HW_DAILY_CAP } from '../../data/halloween.js';
+import { earnedToday } from '../../lib/halloweenProgress.js';
+import { todayKey } from '../../constants/game.js';
 import { plural } from '../../utils/plural.js';
 import { PumpkinIcon } from './HwIcons.jsx';
 
 // Баннер ивента в главном меню, между «Играть» и сеткой разделов. Тонкая
-// шкала — путь до следующей ступени тропы.
+// шкала — сколько тыкв собрано сегодня из дневного лимита.
 export function HalloweenBanner({ onOpen }) {
   const { stats } = useGameContext();
   const hw = stats.halloween || {};
   const pumpkins = hw.pumpkins || 0;
-  const step = nextStep(hw);
-  const idx = step ? HW_TRACK.findIndex((s) => s.id === step.id) : -1;
-  const from = idx > 0 ? HW_TRACK[idx - 1].need : 0;
-  const pct = step ? Math.round(((pumpkins - from) / (step.need - from)) * 100) : 100;
+  const pct = Math.round((earnedToday(hw, todayKey()) / HW_DAILY_CAP) * 100);
   const days = halloweenDaysLeft();
 
   return (

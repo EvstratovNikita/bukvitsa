@@ -1,5 +1,5 @@
 // Контент ивента «Ночь тыкв» (Хэллоуин 2026): слова с загадками для режима
-// «Загадки ночи» и ступени Тыквенной тропы.
+// «Загадки ночи» и товары Тыквенной лавки.
 //
 // Слова — «добро-жуткие» и общеизвестные: в VK играют и дети, поэтому без
 // анатомии и жестокости. Длина 4–6 букв, ё → е. Каждое слово обязано
@@ -68,18 +68,25 @@ export const HW_RIDDLES = [
 const BY_WORD = new Map(HW_RIDDLES.map((r) => [r.word, r]));
 export const getRiddle = (word) => BY_WORD.get(word) || null;
 
-// Тыквенная тропа: ступени выдаются сами, как только тыкв набралось на
-// порог (кнопки «Забрать» нет — после ивента не остаётся зависших наград).
-//   deco  → наряд Букли (petDecorations.js)
-//   cells → стиль клеток (shopItems.js)
-//   coins → монеты
-export const HW_TRACK = [
-  { id: 'hw-t1', need: 3,  kind: 'deco',  ref: 'hw-pumpkin' },
-  { id: 'hw-t2', need: 8,  kind: 'deco',  ref: 'hw-batglasses' },
-  { id: 'hw-t3', need: 14, kind: 'cells', ref: 'cells-hw-lights' },
-  { id: 'hw-t4', need: 22, kind: 'deco',  ref: 'hw-lantern' },
-  { id: 'hw-t5', need: 32, kind: 'coins', amount: 100 },
-  { id: 'hw-t6', need: 45, kind: 'deco',  ref: 'hw-witchhat', grand: true }
+// Тыквенная лавка: ивентовые наряды Букли, фоны и стиль клеток продаются
+// только за тыквы и только во время ивента. kind: deco → petDecorations.js,
+// shop → shopItems.js. Порядок — порядок витрины (от дешёвого к главному).
+//
+// Темп: за победу 3/2/1 тыквы (по попыткам), но не больше HW_DAILY_CAP в
+// день. Вся лавка — 115 тыкв: при лимите 12 это ~10 дней игры каждый день из
+// 11 дней ивента; тот, кто заходит через день, соберёт примерно половину.
+export const HW_SHOP = [
+  { id: 'hw-pumpkin',      kind: 'deco', price: 8 },
+  { id: 'hw-batglasses',   kind: 'deco', price: 14 },
+  { id: 'hw-lantern',      kind: 'deco', price: 16 },
+  { id: 'cells-hw-lights', kind: 'shop', price: 16 },
+  { id: 'bg-hw-night',     kind: 'shop', price: 18 },
+  { id: 'bg-hw-field',     kind: 'shop', price: 18 },
+  { id: 'hw-witchhat',     kind: 'deco', price: 25, grand: true }
 ];
 
-export const HW_TRACK_MAX = HW_TRACK[HW_TRACK.length - 1].need;
+export const HW_DAILY_CAP = 12;
+
+const SHOP_BY_ID = new Map(HW_SHOP.map((x) => [x.id, x]));
+export const hwShopEntry = (id) => SHOP_BY_ID.get(id) || null;
+export const hwPrice = (id) => SHOP_BY_ID.get(id)?.price ?? null;

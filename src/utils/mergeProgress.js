@@ -1,5 +1,5 @@
 import { energyCapFor, reconcilePetTimers } from '../constants/game.js';
-import { mergeHalloween, restoreTrackGrants } from '../lib/halloweenProgress.js';
+import { mergeHalloween, restoreEventItems } from '../lib/halloweenProgress.js';
 
 // Слияние двух снимков прогресса — местного и облачного.
 //
@@ -244,5 +244,5 @@ export function mergeProgress(a, b) {
   const hw = mergeHalloween(a.halloween, b.halloween);
   if (hw) out.halloween = hw;
 
-  return restoreTrackGrants(out);
+  return restoreEventItems(out);
 }

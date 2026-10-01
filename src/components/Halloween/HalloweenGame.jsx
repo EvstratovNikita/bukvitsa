@@ -1,27 +1,50 @@
+import { GAME_STATUS, HINT_COST, todayKey } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { GAME_STATUS } from '../../constants/game.js';
-import { HW_TRACK, HW_TRACK_MAX } from '../../data/halloween.js';
-import { nextStep } from '../../lib/halloweenProgress.js';
+import { HW_DAILY_CAP, HW_SHOP } from '../../data/halloween.js';
+import { earnedToday } from '../../lib/halloweenProgress.js';
 import { plural } from '../../utils/plural.js';
-import { PumpkinIcon, stepInfo } from './HwIcons.jsx';
+import { CoinIcon } from '../icons/Icon.jsx';
+import { PumpkinIcon, itemInfo, ownsHwItem } from './HwIcons.jsx';
 
 // Куски интерфейса партии в режиме «Загадки ночи».
 
 const lettersLabel = (n) => `${n} ${plural(n, 'буква', 'буквы', 'букв')}`;
+const pumpkinsLabel = (n) => `${n} ${plural(n, 'тыква', 'тыквы', 'тыкв')}`;
 
-// Загадка над полем. Компактная: на маленьком экране поле не должно заметно
-// ужаться — текст в одну-две строки.
+// Загадка над полем. С ней слово угадывается почти сразу, поэтому она —
+// платная подсказка: сначала только «загадка спрятана» и кнопка с ценой.
+// После партии загадку показывают панели конца партии.
 export function RiddleCard() {
-  const { riddle, wordLength } = useGameContext();
+  const { riddle, riddleShown, revealRiddle, wordLength, status, stats } = useGameContext();
   if (!riddle) return null;
+  const open = riddleShown || status !== GAME_STATUS.PLAYING;
+  const cantAfford = (stats.coins || 0) < HINT_COST.RIDDLE;
   return (
-    <div className="hw-riddle" role="note" aria-label="Загадка">
+    <div className={`hw-riddle${open ? '' : ' hw-riddle--closed'}`} role="note" aria-label="Загадка">
       <div className="hw-riddle__head">
         <PumpkinIcon />
         <span className="hw-riddle__title">Загадка ночи</span>
         <span className="hw-riddle__len">{lettersLabel(wordLength)}</span>
       </div>
-      <p className="hw-riddle__text">{riddle.riddle}</p>
+      {open ? (
+        <p className="hw-riddle__text">{riddle.riddle}</p>
+      ) : (
+        <div className="hw-riddle__closed">
+          <span className="hw-riddle__hint">Жуткое слово спрятано. Нужна подсказка?</span>
+          <button
+            type="button"
+            className="hw-riddle__btn"
+            onClick={revealRiddle}
+            onMouseDown={(e) => e.preventDefault()}
+            disabled={cantAfford}
+            title={cantAfford ? 'Не хватает монет' : 'Открыть загадку'}
+          >
+            <span>Загадка</span>
+            <CoinIcon />
+            <b>{HINT_COST.RIDDLE}</b>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -36,8 +59,8 @@ export function PumpkinBadge({ onClick }) {
       className="hw-pumpkins"
       onClick={onClick}
       onMouseDown={(e) => e.preventDefault()}
-      aria-label={`Тыквы: ${n}. Открыть Тыквенную тропу`}
-      title="Тыквенная тропа"
+      aria-label={`Тыквы: ${n}. Открыть Тыквенную лавку`}
+      title="Тыквенная лавка"
     >
       <PumpkinIcon />
       <span className="hw-pumpkins__value">{n}</span>
@@ -45,20 +68,23 @@ export function PumpkinBadge({ onClick }) {
   );
 }
 
-// Итог загадки — для панели конца партии и окна победы: сколько тыкв, сколько
-// до следующей ступени, какие награды только что выданы.
+// Ближайшая цель в лавке: самый дешёвый предмет, которого у игрока нет.
+export function nextHwGoal(stats) {
+  return HW_SHOP.find((e) => !ownsHwItem(stats, e.id)) || null;
+}
+
+// Итог загадки — для панели конца партии и окна победы: сколько тыкв,
+// сколько ещё можно собрать сегодня, на что копим.
 export function HwRoundResult({ compact = false }) {
   const { stats, lastHw, status } = useGameContext();
   const hw = stats.halloween || {};
   const pumpkins = hw.pumpkins || 0;
   const won = status === GAME_STATUS.WON;
-  const step = nextStep(hw);
   const gained = lastHw?.gained || 0;
-  const fresh = lastHw?.newSteps || [];
-  // Шкала — от порога предыдущей ступени до порога следующей.
-  const idx = step ? HW_TRACK.findIndex((x) => x.id === step.id) : -1;
-  const from = idx > 0 ? HW_TRACK[idx - 1].need : 0;
-  const pct = step ? Math.min(100, Math.round(((pumpkins - from) / (step.need - from)) * 100)) : 100;
+  const today = earnedToday(hw, todayKey());
+  const capped = today >= HW_DAILY_CAP;
+  const goal = nextHwGoal(stats);
+  const pct = Math.min(100, Math.round((today / HW_DAILY_CAP) * 100));
 
   return (
     <div className={`hw-result${compact ? ' hw-result--compact' : ''}`}>
@@ -69,40 +95,22 @@ export function HwRoundResult({ compact = false }) {
           <small>{plural(gained, 'тыква', 'тыквы', 'тыкв')}</small>
         </div>
       )}
-      {compact && fresh.length > 1 ? (
-        // В нижней панели места мало: несколько наград сразу — одной строкой
-        // значков, подробности — в окне победы и на тропе.
-        <div className="hw-result__icons" title={fresh.map((s) => stepInfo(s).name).join(', ')}>
-          <small>Новые награды</small>
-          <span aria-hidden="true">{fresh.map((s) => stepInfo(s).icon).join(' ')}</span>
-        </div>
-      ) : fresh.length > 0 && (
-        <div className="hw-result__new">
-          {fresh.map((s) => {
-            const info = stepInfo(s);
-            return (
-              <div key={s.id} className={`hw-reward-chip${s.grand ? ' hw-reward-chip--grand' : ''}`}>
-                <span className="hw-reward-chip__icon" aria-hidden="true">{info.icon}</span>
-                <span className="hw-reward-chip__text">
-                  <small>Новая награда</small>
-                  <b>{info.name}</b>
-                </span>
-              </div>
-            );
-          })}
-        </div>
+      {won && gained === 0 && capped && (
+        <div className="hw-result__capped">Тыквы на сегодня собраны — завтра ещё {HW_DAILY_CAP}</div>
       )}
       <div className="hw-result__track">
         <div className="hw-result__bar" aria-hidden="true">
           <span className="hw-result__fill" style={{ width: `${pct}%` }} />
         </div>
         <div className="hw-result__text">
-          {step
-            ? <>Ещё <b>{step.need - pumpkins}</b> 🎃{compact ? ': ' : ' до награды: '}{stepInfo(step).name}</>
-            : <>Тыквенная тропа пройдена: <b>{pumpkins}</b> 🎃 из {HW_TRACK_MAX}</>}
+          Сегодня <b>{today}</b> из {HW_DAILY_CAP} 🎃 · на руках <b>{pumpkins}</b>
+          {!compact && goal && (
+            pumpkins >= goal.price
+              ? <> · хватает на: {itemInfo(goal.id).name}</>
+              : <> · ещё {pumpkinsLabel(goal.price - pumpkins)} до: {itemInfo(goal.id).name}</>
+          )}
         </div>
       </div>
     </div>
   );
 }
-

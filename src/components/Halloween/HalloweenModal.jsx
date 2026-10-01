@@ -1,23 +1,40 @@
+import { useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { HALLOWEEN, halloweenDaysLeft } from '../../lib/events.js';
-import { HW_TRACK, HW_TRACK_MAX } from '../../data/halloween.js';
-import { nextStep } from '../../lib/halloweenProgress.js';
+import { HW_DAILY_CAP, HW_SHOP } from '../../data/halloween.js';
+import { earnedToday } from '../../lib/halloweenProgress.js';
+import { todayKey } from '../../constants/game.js';
 import { plural } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
-import { HwBadge, PumpkinIcon, stepInfo } from './HwIcons.jsx';
+import { HwBadge, PumpkinIcon, itemInfo, ownsHwItem } from './HwIcons.jsx';
+
+const BUY_ERROR = {
+  not_enough: 'Не хватает тыкв',
+  already_owned: 'Уже куплено',
+  closed: 'Ивент закончился'
+};
 
 // Окно ивента «Ночь тыкв»: обложка с отсчётом, вход в режим и Тыквенная
-// тропа — все ступени с наградами, пройденные отмечены.
-export function HalloweenModal({ open, onClose, onPlay, onOpenShop, onOpenAchievements }) {
-  const { stats, gameMode, status } = useGameContext();
+// лавка — наряды Букли, фоны и стиль клеток за тыквы.
+export function HalloweenModal({ open, onClose, onPlay, onOpenAchievements }) {
+  const { stats, gameMode, status, buyHalloweenItem, showToast } = useGameContext();
+  const [flash, setFlash] = useState(null); // { id, text }
   if (!open) return null;
   const hw = stats.halloween || {};
   const pumpkins = hw.pumpkins || 0;
-  const got = new Set(hw.rewards || []);
-  const next = nextStep(hw);
+  const today = earnedToday(hw, todayKey());
   const days = halloweenDaysLeft();
   const inMode = gameMode === 'halloween' && status === 'playing';
-  const pct = Math.min(100, Math.round((pumpkins / HW_TRACK_MAX) * 100));
+  const pct = Math.min(100, Math.round((today / HW_DAILY_CAP) * 100));
+
+  const onBuy = (id) => {
+    const r = buyHalloweenItem(id);
+    if (r === 'ok') showToast?.(`${itemInfo(id).name} — куплено`);
+    else {
+      setFlash({ id, text: BUY_ERROR[r] || 'Не получилось' });
+      setTimeout(() => setFlash(null), 1400);
+    }
+  };
 
   return (
     <Modal open={open} onClose={onClose} title="Ночь тыкв" headerRight={<HwBadge till={false} />}>
@@ -26,7 +43,7 @@ export function HalloweenModal({ open, onClose, onPlay, onOpenShop, onOpenAchiev
           <HeroArt />
           <div className="hw-hub__hero-text">
             <b>Загадки ночи</b>
-            <span>Отгадывай жуткие слова по загадкам и собирай тыквы</span>
+            <span>Отгадывай жуткие слова, собирай тыквы и наряжай Буклю</span>
           </div>
           <div className="hw-hub__timer">
             ещё {days} {plural(days, 'день', 'дня', 'дней')} · до {HALLOWEEN.endLabel}
@@ -42,51 +59,59 @@ export function HalloweenModal({ open, onClose, onPlay, onOpenShop, onOpenAchiev
           <span className="hw-cta__go" aria-hidden="true">›</span>
         </button>
 
-        <section className="hw-track" aria-label="Тыквенная тропа">
+        <section className="hw-track" aria-label="Тыквенная лавка">
           <div className="hw-track__head">
-            <b>Тыквенная тропа</b>
-            <span className="hw-track__count"><PumpkinIcon /> {pumpkins} / {HW_TRACK_MAX}</span>
+            <b>Тыквенная лавка</b>
+            <span className="hw-track__count"><PumpkinIcon /> {pumpkins}</span>
           </div>
-          <div className="hw-track__bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></div>
+          <div className="hw-track__today">
+            <span>Собрано сегодня: <b>{today}</b> из {HW_DAILY_CAP}</span>
+            <span className="hw-track__bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span>
+          </div>
           <ol className="hw-track__steps">
-            {HW_TRACK.map((s) => {
-              const info = stepInfo(s);
-              const done = got.has(s.id);
-              const isNext = next?.id === s.id;
+            {HW_SHOP.map((e) => {
+              const info = itemInfo(e.id);
+              const owned = ownsHwItem(stats, e.id);
+              const afford = pumpkins >= e.price;
               return (
-                <li
-                  key={s.id}
-                  className={`hw-step${done ? ' hw-step--done' : ''}${isNext ? ' hw-step--next' : ''}${s.grand ? ' hw-step--grand' : ''}`}
-                >
+                <li key={e.id} className={`hw-step${owned ? ' hw-step--done' : ''}${e.grand ? ' hw-step--grand' : ''}`}>
                   <span className="hw-step__icon" aria-hidden="true">{info.icon}</span>
                   <span className="hw-step__body">
                     <span className="hw-step__name">{info.name}</span>
-                    {s.grand && <span className="hw-step__tag">Главный приз</span>}
-                    {isNext && !done && (
-                      <span className="hw-step__left">ещё {s.need - pumpkins} 🎃</span>
-                    )}
+                    {e.grand && <span className="hw-step__tag">Главный предмет</span>}
+                    {!owned && !afford && <span className="hw-step__left">ещё {e.price - pumpkins} 🎃</span>}
                   </span>
-                  <span className="hw-step__need">
-                    {done ? '✓' : <>{s.need} <PumpkinIcon /></>}
-                  </span>
+                  {owned ? (
+                    <span className="hw-step__need">✓</span>
+                  ) : flash?.id === e.id ? (
+                    <span className="hw-step__flash">{flash.text}</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="hw-buy"
+                      onClick={() => onBuy(e.id)}
+                      onMouseDown={(ev) => ev.preventDefault()}
+                      disabled={!afford}
+                    >
+                      {e.price} <PumpkinIcon />
+                    </button>
+                  )}
                 </li>
               );
             })}
           </ol>
         </section>
 
-        <div className="hw-hub__links">
-          <button type="button" className="hw-link" onClick={onOpenShop} onMouseDown={(e) => e.preventDefault()}>
-            🛍️ Хэллоуинские фоны
-          </button>
+        <div className="hw-hub__links hw-hub__links--one">
           <button type="button" className="hw-link" onClick={onOpenAchievements} onMouseDown={(e) => e.preventDefault()}>
             🏅 Достижения ивента
           </button>
         </div>
 
         <p className="hw-hub__note">
-          За разгаданную загадку: с 1–2 попыток — 3 🎃, с 3–4 — 2, с 5–6 — 1.
-          Награды тропы выдаются сразу и остаются навсегда.
+          За разгаданную загадку: с 1–2 попыток — 3 🎃, с 3–4 — 2, с 5–6 — 1,
+          до {HW_DAILY_CAP} в день. Загадка над полем — подсказка за монеты.
+          Купленное остаётся навсегда.
         </p>
       </div>
     </Modal>

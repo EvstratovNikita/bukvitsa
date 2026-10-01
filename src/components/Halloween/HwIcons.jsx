@@ -1,10 +1,9 @@
 import { HALLOWEEN } from '../../lib/events.js';
 import { getDecoration } from '../../data/petDecorations.js';
 import { getItem } from '../../data/shopItems.js';
-import { coinsLabel } from '../../utils/plural.js';
 
 // Общие мелочи оформления ивента «Ночь тыкв»: значок тыквы, плашка
-// «Хэллоуин», описание ступени тропы.
+// «Хэллоуин», описание предмета Тыквенной лавки.
 
 // Тыква-фонарь. Своя, а не эмодзи: эмодзи на разных телефонах рисуются
 // по-разному, а значок должен совпадать с тыквами на фоне и в наряде.
@@ -36,13 +35,18 @@ export function HwBadge({ till = true, className = '' }) {
   );
 }
 
-// Что лежит на ступени тропы: значок и название для списков и панелей.
-export function stepInfo(step) {
-  if (step.kind === 'coins') return { icon: '🪙', name: coinsLabel(step.amount), kind: 'coins' };
-  if (step.kind === 'cells') {
-    const it = getItem(step.ref);
-    return { icon: '✨', name: it ? `Стиль клеток «${it.name}»` : 'Стиль клеток', kind: 'cells' };
-  }
-  const d = getDecoration(step.ref);
-  return { icon: d?.icon || '🎁', name: d?.name || 'Наряд', kind: 'deco' };
+// Предмет Тыквенной лавки: значок и название для витрины и панелей.
+export function itemInfo(id) {
+  const d = getDecoration(id);
+  if (d) return { icon: d.icon, name: d.name, kind: 'deco' };
+  const it = getItem(id);
+  if (it?.category === 'cells') return { icon: '✨', name: `Стиль клеток «${it.name}»`, kind: 'cells' };
+  if (it) return { icon: it.theme === 'light' ? '🌅' : '🌙', name: `Фон «${it.name}»`, kind: 'background' };
+  return { icon: '🎁', name: id, kind: 'unknown' };
+}
+
+// Есть ли предмет лавки у игрока: наряд — в гардеробе, остальное — в инвентаре.
+export function ownsHwItem(stats, id) {
+  if (getDecoration(id)) return (stats?.pet?.ownedDecorations || []).includes(id);
+  return (stats?.inventory || []).includes(id);
 }

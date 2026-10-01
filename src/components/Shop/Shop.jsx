@@ -5,7 +5,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
 import { halloweenActive } from '../../lib/events.js';
-import { HW_TRACK } from '../../data/halloween.js';
+import { hwPrice } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 const BOOST_EMOJI = {
@@ -72,21 +72,27 @@ const ERROR_LABEL = {
   not_enough_coins: 'Не хватает монет',
   already_owned: 'Уже куплено',
   already_active: 'Бонус ещё работает',
-  unknown_item: 'Товар не найден'
+  unknown_item: 'Товар не найден',
+  not_enough: 'Не хватает тыкв',
+  closed: 'Ивент закончился'
 };
 
 // Ивентовый товар виден, пока идёт ивент, и навсегда — у того, кто его уже
-// получил. Награда тропы, которой у игрока нет, после ивента не показывается.
+// купил. Некупленный после ивента не показывается.
 function visibleInShop(item, inventory) {
   if (!item.event) return true;
   return halloweenActive() || inventory.includes(item.id);
 }
 
-// Порог тыкв для награды тропы — для кнопки «🎃 14 на тропе».
-const trackNeed = (id) => HW_TRACK.find((s) => s.ref === id)?.need || null;
+// Во время ивента его товары — первыми и в ивентовом оформлении. После —
+// купленные встают в конец своей категории обычными карточками.
+function orderForShop(list) {
+  if (halloweenActive()) return list;
+  return [...list.filter((i) => !i.event), ...list.filter((i) => i.event)];
+}
 
 export function Shop({ open, onClose }) {
-  const { stats, buyItem, setActiveBackground, setActiveCellStyle, setPref } = useGameContext();
+  const { stats, buyItem, buyHalloweenItem, setActiveBackground, setActiveCellStyle, setPref } = useGameContext();
   const [activeCat, setActiveCat] = useState(SHOP_CATEGORIES[0].id);
   // Backgrounds split by the theme they belong to (dark / light "summer").
   const [bgTheme, setBgTheme] = useState('dark');
@@ -94,7 +100,7 @@ export function Shop({ open, onClose }) {
 
   const inventory = stats.inventory || [];
   const items = useMemo(() => {
-    const cataloged = itemsByCategory(activeCat).filter((i) => visibleInShop(i, inventory));
+    const cataloged = orderForShop(itemsByCategory(activeCat).filter((i) => visibleInShop(i, inventory)));
     if (activeCat === 'background') {
       const filtered = cataloged.filter((i) => (i.theme || 'dark') === bgTheme);
       // Each sub-tab leads with its own "Стандартный" card (dark / light).
@@ -112,7 +118,8 @@ export function Shop({ open, onClose }) {
   };
 
   const onBuy = (item) => {
-    const result = buyItem(item.id);
+    // Ивентовые товары — за тыквы (Тыквенная лавка), остальное — за монеты.
+    const result = item.event ? buyHalloweenItem(item.id) : buyItem(item.id);
     if (result === 'ok') {
       flash(item.id, 'ok', item.consumable ? 'Активировано' : 'Куплено');
     } else {
@@ -210,8 +217,8 @@ export function Shop({ open, onClose }) {
 }
 
 function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
-  const isHw = item.event === 'halloween';
-  const fromTrack = item.source === 'track';
+  // Ивентовое оформление и цена в тыквах — только пока ивент идёт.
+  const isHw = item.event === 'halloween' && halloweenActive();
   const owned = item.isDefault || (stats.inventory || []).includes(item.id);
   const curTheme = stats.prefs?.theme === 'light' ? 'light' : 'dark';
   const active = item.isDefault
@@ -304,11 +311,17 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
           >
             Применить
           </button>
-        ) : fromTrack ? (
-          // Награда Тыквенной тропы — не продаётся, показываем путь к ней.
-          <span className="shop-card__track" title="Награда Тыквенной тропы">
-            <PumpkinIcon /> {trackNeed(item.id)} на тропе
-          </span>
+        ) : isHw ? (
+          <button
+            type="button"
+            className="btn btn--primary shop-card__btn hw-buy"
+            onClick={onBuy}
+            onMouseDown={(e) => e.preventDefault()}
+            disabled={(stats.halloween?.pumpkins || 0) < hwPrice(item.id)}
+          >
+            <span>{hwPrice(item.id)}</span>
+            <PumpkinIcon />
+          </button>
         ) : (
           <button
             type="button"
