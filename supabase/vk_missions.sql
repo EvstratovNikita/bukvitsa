@@ -1,5 +1,10 @@
 -- Миссии VK: сообщение в ленту друзей и баллы за пройденную миссию.
 --
+-- ВАЖНО: в настройках игры (Настройки → Дополнительные → Таблица результатов)
+-- должно стоять «По баллам за миссии». activity_id обязан соответствовать типу
+-- таблицы — при «По набранным очкам» VK миссии не примет. Из этих же баллов
+-- VK строит окно «Среди друзей» (VKWebAppShowLeaderBoardBox).
+--
 -- Зачем сервер. Засчитать миссию можно только методом secure.addAppEvent, а
 -- он вызывается с СЕРВИСНЫМ ключом приложения — в клиент такой ключ класть
 -- нельзя. Игра сообщает сюда «я прошёл миссию N», функция проверяет подпись
@@ -86,12 +91,14 @@ begin
   get diagnostics v_rows = row_count;
   -- Уже отправляли. Повторяем, только если VK тогда ответил ошибкой (скажем,
   -- ключ был неверный); ответ ещё не пришёл или уже стёрт — не трогаем.
+  -- Ошибка 1251 «This achievement is already unlocked» — тоже успех.
   if v_rows = 0 and not exists (
     select 1
       from public.vk_missions m
       join net._http_response r on r.id = m.request_id
      where m.user_id = v_uid and m.mission_id = p_mission
-       and (r.status_code is distinct from 200 or r.content not like '{"response"%')
+       and (r.status_code is distinct from 200
+            or (r.content not like '{"response"%' and r.content not like '%"error_code":1251%'))
   ) then
     return jsonb_build_object('ok', true, 'sent', false);
   end if;
