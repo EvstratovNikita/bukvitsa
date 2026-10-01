@@ -323,7 +323,113 @@ const AUTUMN_DARK = autumnTile({
   alpha: '0.62'
 });
 
+// Хэллоуин 2026 («Ночь тыкв»). Тыквы-фонари, летучие мыши и искры на одной
+// плитке; тёмный и светлый фон отличаются только палитрой. Формы в defs,
+// раскладка через <use>, как у осенних фонов. Всё держится у краёв и в
+// углах плитки — центр закрывает поле, там пусто.
+const hwTile = (c) => enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+  <defs>
+    <radialGradient id='hpk' cx='0.38' cy='0.32' r='0.75'>
+      <stop offset='0' stop-color='${c.pk0}'/><stop offset='0.6' stop-color='${c.pk1}'/><stop offset='1' stop-color='${c.pk2}'/>
+    </radialGradient>
+    <g id='pk'>
+      <ellipse cx='-11' cy='2' rx='13' ry='16' fill='url(#hpk)'/>
+      <ellipse cx='11' cy='2' rx='13' ry='16' fill='url(#hpk)'/>
+      <ellipse cx='0' cy='1' rx='12' ry='17.5' fill='url(#hpk)'/>
+      <g stroke='${c.rib}' stroke-width='1' fill='none' opacity='0.55'>
+        <path d='M-6 -14 Q-10 2 -6 17'/><path d='M6 -14 Q10 2 6 17'/>
+      </g>
+      <path d='M-1 -16 Q0 -23 5 -25' stroke='${c.stem}' stroke-width='3.5' fill='none' stroke-linecap='round'/>
+      <g fill='${c.face}'>
+        <path d='M-9 -4 L-3 -4 L-6 -10 Z'/><path d='M3 -4 L9 -4 L6 -10 Z'/>
+        <path d='M-10 4 L-6 8 L-3 5 L0 9 L3 5 L6 8 L10 4 Q0 15 -10 4 Z'/>
+      </g>
+    </g>
+    <path id='bat' d='M0 -2 L3 -7 L4 -2 C8 -6 15 -9 24 -6 C20 -3 20 1 21 4 C17 2 14 3 12 6 C10 3 7 3 5 6 C3 8 1 9 0 9 C-1 9 -3 8 -5 6 C-7 3 -10 3 -12 6 C-14 3 -17 2 -21 4 C-20 1 -20 -3 -24 -6 C-15 -9 -8 -6 -4 -2 L-3 -7 Z'/>
+    <path id='sp' d='M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z'/>
+  </defs>
+  <g opacity='${c.alpha}'>
+    <use href='#pk' transform='translate(62 262) scale(1.1) rotate(-6)'/>
+    <use href='#pk' transform='translate(262 92) scale(0.72) rotate(8)'/>
+    <use href='#pk' transform='translate(292 300) scale(0.56) rotate(-4)'/>
+    <g fill='${c.bat}'>
+      <use href='#bat' transform='translate(70 66) scale(0.9) rotate(-10)'/>
+      <use href='#bat' transform='translate(176 176) scale(0.7) rotate(6)'/>
+      <use href='#bat' transform='translate(300 206) scale(0.6) rotate(14)'/>
+    </g>
+    <g fill='${c.spark}'>
+      <use href='#sp' transform='translate(146 40)'/>
+      <use href='#sp' transform='translate(222 262) scale(0.8)'/>
+      <use href='#sp' transform='translate(26 160) scale(0.7)'/>
+      <use href='#sp' transform='translate(320 28) scale(0.6)'/>
+      <use href='#sp' transform='translate(160 318) scale(0.9)'/>
+      <circle cx='108' cy='126' r='1.4'/><circle cx='246' cy='160' r='1.2'/>
+      <circle cx='36' cy='318' r='1.2'/><circle cx='318' cy='120' r='1.4'/>
+    </g>
+  </g>
+</svg>`);
+
+const HW_DARK = hwTile({
+  pk0: '#ffb35c', pk1: '#e8741c', pk2: '#9c3f0a',
+  rib: '#7a3005', stem: '#4a6a2a', face: '#ffe08a',
+  bat: '#4a2f78', spark: '#ffd98a', alpha: '0.6'
+});
+
+const HW_LIGHT = hwTile({
+  pk0: '#ffc98a', pk1: '#f2883a', pk2: '#c25a1a',
+  rib: '#a8501a', stem: '#5a7a34', face: '#6a2e0a',
+  bat: '#5b4282', spark: '#e08a3a', alpha: '0.5'
+});
+
 export const SHOP_ITEMS = [
+  // ---------- Хэллоуин 2026 ----------
+  // event — ивентовый товар: особое оформление, продаётся только во время
+  // ивента (lib/events.js), купленный остаётся навсегда. source: 'track' —
+  // не продаётся вовсе, выдаётся Тыквенной тропой (data/halloween.js).
+  {
+    id: 'bg-hw-night',
+    category: 'background',
+    theme: 'dark',
+    event: 'halloween',
+    name: 'Тыквенная ночь',
+    desc: 'Лунный свет, летучие мыши и тыквы-фонари',
+    price: 150,
+    payload: {
+      gradient: [
+        HW_DARK,
+        'radial-gradient(circle at 86% 9%, #ffe6ad 0, #ffe6ad 26px, rgba(255, 230, 173, 0) 28px)',
+        'radial-gradient(420px 420px at 86% 9%, rgba(255, 214, 140, 0.34), rgba(255, 170, 80, 0.10) 45%, transparent 70%)',
+        'radial-gradient(900px 520px at 50% 115%, rgba(255, 120, 30, 0.22), transparent 70%)',
+        'linear-gradient(180deg, #0f0820 0%, #1a0d2e 55%, #24102a 100%)'
+      ].join(', ')
+    }
+  },
+  {
+    id: 'bg-hw-field',
+    category: 'background',
+    theme: 'light',
+    event: 'halloween',
+    name: 'Тыквенное поле',
+    desc: 'Сиреневые сумерки над тыквенной грядкой',
+    price: 150,
+    payload: {
+      gradient: [
+        HW_LIGHT,
+        'radial-gradient(circle at 86% 9%, #fff4dc 0, #fff4dc 26px, rgba(255, 244, 220, 0) 28px)',
+        'radial-gradient(420px 420px at 86% 9%, rgba(255, 236, 200, 0.85), rgba(255, 200, 150, 0.25) 45%, transparent 70%)',
+        'linear-gradient(180deg, #f1dcf3 0%, #fadfd0 55%, #f6c9a2 100%)'
+      ].join(', ')
+    }
+  },
+  {
+    id: 'cells-hw-lights',
+    category: 'cells',
+    event: 'halloween',
+    source: 'track',
+    name: 'Тыквенные огоньки',
+    desc: 'Буквы не на месте горят тыквой, верные — ведьминым зельем'
+  },
+
   // ---------- Backgrounds ----------
   // Порядок в каталоге = порядок карточек в магазине. Новые фоны добавляем
   // В НАЧАЛО своей темы, чтобы свежее было видно сразу, без прокрутки.

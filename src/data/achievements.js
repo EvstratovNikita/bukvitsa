@@ -28,7 +28,7 @@ import { isEmbedded } from '../lib/platform.js';
 //   pet.level       — Букля's level (derived from xp)
 //   referralsCount  — verified invitees credited to this user
 
-import { PET_DECORATIONS } from './petDecorations.js';
+import { PET_DECORATIONS, REGULAR_DECORATIONS } from './petDecorations.js';
 
 const allDistributionFilled = (s) =>
   (s.distribution || []).every((n) => (n || 0) > 0);
@@ -49,7 +49,12 @@ const equippedSlotCount = (s) => {
   if (e.wingR)  n++;
   return n;
 };
-const TOTAL_DECO = PET_DECORATIONS.length;
+const TOTAL_DECO = REGULAR_DECORATIONS.length;
+// Для «Коллекционера модных вещей» считаются только обычные украшения:
+// ивентовые нельзя купить, и с ними счётчик дошёл бы до цели раньше.
+const REGULAR_DECO_IDS = new Set(REGULAR_DECORATIONS.map((d) => d.id));
+const ownedRegularDecoCount = (s) =>
+  (s.pet?.ownedDecorations || []).filter((id) => REGULAR_DECO_IDS.has(id)).length;
 
 export const ACHIEVEMENT_CATEGORIES = [
   { id: 'words',   label: 'Слова'    },
@@ -260,8 +265,8 @@ export const ACHIEVEMENTS = [
     id: 'deco_collection', category: 'pet', tier: 'hard', icon: '🏆', reward: 200,
     title: 'Коллекционер модных вещей',
     desc: 'Купи все украшения для Букли',
-    check: (s) => ownedDecoCount(s) >= TOTAL_DECO,
-    progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedDecoCount(s)), target: TOTAL_DECO })
+    check: (s) => ownedRegularDecoCount(s) >= TOTAL_DECO,
+    progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedRegularDecoCount(s)), target: TOTAL_DECO })
   }
   // Достижения «Друзья» (invite_1, invite_5) убраны вместе с приглашениями:
   // на Яндексе нет входа через Google/email, засчитать приглашение нечем —

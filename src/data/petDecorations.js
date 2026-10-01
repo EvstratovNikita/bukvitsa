@@ -50,10 +50,24 @@ const RAW_DECORATIONS = [
   { id: 'feather', slot: 'wing', icon: '🪶', name: 'Перьевой амулет',    desc: 'Лёгкость в перьях — тяжесть в монете', price: 250, bonusCoins: 2, minLevel: 2 },
   { id: 'sparkle', slot: 'wing', icon: '🔮', name: 'Магический амулет',  desc: 'Искрит при каждой победе',           price: 350, bonusCoins: 2, minLevel: 8 },
   { id: 'crystal', slot: 'wing', icon: '💎', name: 'Хрустальная капля', desc: 'Притягивает удачу и золото',          price: 500, bonusCoins: 3, minLevel: 13 },
-  { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusCoins: 4, minLevel: 18 }
+  { id: 'star',    slot: 'wing', icon: '🌠', name: 'Звёздный оберег',   desc: 'Падающая звезда исполняет мечты',     price: 750, bonusCoins: 4, minLevel: 18 },
+
+  // ---------- ХЭЛЛОУИН 2026 (ивент «Ночь тыкв») ----------
+  // Не продаются: выдаются ступенями Тыквенной тропы (data/halloween.js).
+  // event — к какому ивенту относятся (особое оформление, видимость после
+  // ивента); source: 'track' — купить за монеты нельзя (buyDecoration).
+  { id: 'hw-witchhat',   slot: 'head',   icon: '🧙', name: 'Шляпа ведьмы',        desc: 'Главный приз Тыквенной тропы', bonusCoins: 3, event: 'halloween', source: 'track' },
+  { id: 'hw-batglasses', slot: 'eyes',   icon: '🦇', name: 'Очки «Летучие мыши»', desc: 'Видят в самой тёмной ночи',    bonusCoins: 2, event: 'halloween', source: 'track' },
+  { id: 'hw-pumpkin',    slot: 'brooch', icon: '🎃', name: 'Брошь «Тыквочка»',    desc: 'Светится изнутри, как фонарь', bonusCoins: 1, event: 'halloween', source: 'track' },
+  { id: 'hw-lantern',    slot: 'wing',   icon: '🏮', name: 'Ведьмин фонарик',     desc: 'Огонёк в ночь Хэллоуина',      bonusCoins: 2, event: 'halloween', source: 'track' }
 ];
 
-export const PET_DECORATIONS = RAW_DECORATIONS.map((x) => ({ ...x, price: petPrice(x.price) }));
+export const PET_DECORATIONS = RAW_DECORATIONS.map((x) => (x.price ? { ...x, price: petPrice(x.price) } : x));
+
+// Обычный каталог — без ивентовых предметов: по нему считают «купи все
+// украшения», и ивентовые туда не входят (их нельзя купить, а после ивента —
+// и получить).
+export const REGULAR_DECORATIONS = PET_DECORATIONS.filter((d) => !d.event);
 
 export const getDecoration = (id) => PET_DECORATIONS.find((d) => d.id === id);
 

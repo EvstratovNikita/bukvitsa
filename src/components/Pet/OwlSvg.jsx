@@ -280,6 +280,7 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
       if (id === 'monocle') return <Monocle key={slot} />;
       if (id === 'glasses') return <Glasses key={slot} />;
       if (id === 'shades')  return <Shades  key={slot} />;
+      if (id === 'hw-batglasses') return <BatGlasses key={slot} />;
     }
     if (slot === 'head') {
       if (id === 'bow')      return <Bow      key={slot} />;
@@ -287,7 +288,9 @@ export function OwlSvg({ className = '', equipped = {}, perch = false }) {
       if (id === 'cap')      return <Cap      key={slot} />;
       if (id === 'tophat')   return <TopHat   key={slot} />;
       if (id === 'crown')    return <Crown    key={slot} />;
+      if (id === 'hw-witchhat') return <WitchHat key={slot} />;
     }
+    if (slot === 'brooch' && id === 'hw-pumpkin') return <PumpkinBrooch key={slot} />;
     if (slot === 'wingL' || slot === 'wingR') {
       const wp = WING_SLOT_POS[slot];
       const fit = `translate(${wp.x} ${wp.y}) scale(${WING_SLOT_SCALE}) translate(${-wp.x} ${-wp.y})`;
@@ -1150,11 +1153,167 @@ function Star({ x, y }) {
   );
 }
 
+// ---------- ХЭЛЛОУИН 2026 (Тыквенная тропа) ----------
+// Рисуются в том же старом пространстве координат, что и обычные наряды.
+// Свечение — полупрозрачными кругами, без SVG-фильтров: фильтры на слоях
+// совы мерцали под размытием модалок.
+
+// Шляпа ведьмы — высокий конус с заломленным кончиком, широкие поля,
+// тыквенная лента с золотой пряжкой и пара звёздочек.
+function WitchHat() {
+  return (
+    <g className="owl-deco owl-deco--hw-witchhat">
+      <defs>
+        <linearGradient id="hw-hat-grad" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#6a3fa0" />
+          <stop offset="50%" stopColor="#331a52" />
+          <stop offset="100%" stopColor="#140a22" />
+        </linearGradient>
+        <linearGradient id="hw-hat-brim" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%"  stopColor="#4a2a72" />
+          <stop offset="100%" stopColor="#170b26" />
+        </linearGradient>
+      </defs>
+      {/* Поля */}
+      <ellipse cx="200" cy="104" rx="108" ry="15" fill="url(#hw-hat-brim)" stroke="#0b0612" strokeWidth="1.4" />
+      <path d="M 100 102 Q 200 92 300 102" stroke="rgba(190, 150, 255, 0.35)" strokeWidth="1.6" fill="none" />
+      {/* Конус с заломом кончика вправо */}
+      <path
+        d="M 150 104
+           C 162 80 176 54 190 34
+           C 198 22 210 12 226 12
+           C 240 12 252 20 260 34
+           C 248 27 236 27 228 33
+           C 224 58 238 84 250 104 Z"
+        fill="url(#hw-hat-grad)"
+        stroke="#0b0612"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      {/* Блик по левому склону */}
+      <path d="M 166 94 C 174 72 184 54 196 38" stroke="rgba(255,255,255,0.18)" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+      {/* Лента */}
+      <path
+        d="M 152 100
+           Q 200 109 249 100
+           L 244 85
+           Q 200 93 158 85 Z"
+        fill="#ff8a1f"
+        stroke="#8a3a06"
+        strokeWidth="1"
+      />
+      <path d="M 158 88 Q 200 96 244 88" stroke="#ffc27a" strokeWidth="1.2" fill="none" opacity="0.7" />
+      {/* Пряжка */}
+      <rect x="189" y="85.5" width="22" height="15" rx="2.5" fill="none" stroke="#f7c948" strokeWidth="3" />
+      <rect x="196" y="90" width="8" height="6" fill="#f7c948" />
+      {/* Звёздочки */}
+      <path d="M 184 58 l 2.2 5 5 2.2 -5 2.2 -2.2 5 -2.2 -5 -5 -2.2 5 -2.2 Z" fill="#ffd36b" />
+      <path d="M 214 40 l 1.6 3.6 3.6 1.6 -3.6 1.6 -1.6 3.6 -1.6 -3.6 -3.6 -1.6 3.6 -1.6 Z" fill="#ffd36b" opacity="0.85" />
+      <circle cx="252" cy="31" r="2.4" fill="#ffd36b" />
+    </g>
+  );
+}
+
+// Очки «Летучие мыши» — тёплые оранжевые линзы, оправа с перепончатыми
+// крылышками у висков и крошечными ушками на переносице.
+function BatGlasses() {
+  const wing = 'M 137 160 C 126 148 112 139 92 134 C 98 143 98 151 94 158 C 102 156 108 160 110 167 C 116 162 124 164 128 171 C 131 173 134 175 137 177 Z';
+  return (
+    <g className="owl-deco owl-deco--hw-batglasses">
+      <circle cx="166" cy="172" r="30" fill="rgba(255, 138, 31, 0.22)" />
+      <circle cx="234" cy="172" r="30" fill="rgba(255, 138, 31, 0.22)" />
+      {/* Крылья — левое и зеркальное правое */}
+      <g fill="#2a1438" stroke="#12081c" strokeWidth="1.2" strokeLinejoin="round">
+        <path d={wing} />
+        <path d={wing} transform="translate(400 0) scale(-1 1)" />
+      </g>
+      <g stroke="rgba(255, 150, 60, 0.55)" strokeWidth="1" fill="none" strokeLinecap="round">
+        <path d="M 134 162 L 100 140" /><path d="M 133 166 L 106 156" />
+        <path d="M 266 162 L 300 140" /><path d="M 267 166 L 294 156" />
+      </g>
+      {/* Оправа */}
+      <circle cx="166" cy="172" r="30" fill="none" stroke="#2a1438" strokeWidth="4" />
+      <circle cx="234" cy="172" r="30" fill="none" stroke="#2a1438" strokeWidth="4" />
+      <circle cx="166" cy="172" r="27.5" fill="none" stroke="#ff8a1f" strokeWidth="1" opacity="0.6" />
+      <circle cx="234" cy="172" r="27.5" fill="none" stroke="#ff8a1f" strokeWidth="1" opacity="0.6" />
+      {/* Переносица с ушками */}
+      <path d="M 196 172 Q 200 166 204 172" stroke="#2a1438" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M 196.5 168 L 197.5 161 L 200 165.5 L 202.5 161 L 203.5 168 Z" fill="#2a1438" />
+      {/* Блики */}
+      <path d="M 148 160 A 30 30 0 0 1 162 145" stroke="rgba(255,255,255,0.75)" strokeWidth="1.5" fill="none" />
+      <path d="M 216 160 A 30 30 0 0 1 230 145" stroke="rgba(255,255,255,0.75)" strokeWidth="1.5" fill="none" />
+    </g>
+  );
+}
+
+// Брошь «Тыквочка» — тыковка-фонарь с хвостиком и листиком; глаза и рот
+// светятся изнутри.
+function PumpkinBrooch() {
+  return (
+    <g className="owl-deco owl-deco--hw-pumpkin" transform="translate(244 256)">
+      <defs>
+        <radialGradient id="hw-pumpkin-grad" cx="38%" cy="32%" r="75%">
+          <stop offset="0%"  stopColor="#ffc06a" />
+          <stop offset="55%" stopColor="#f07a12" />
+          <stop offset="100%" stopColor="#a8410a" />
+        </radialGradient>
+      </defs>
+      <circle r="21" fill="rgba(255, 170, 60, 0.26)" />
+      <ellipse cx="-6.5" cy="1" rx="8.5" ry="10.5" fill="url(#hw-pumpkin-grad)" stroke="#7a3204" strokeWidth="1" />
+      <ellipse cx="6.5" cy="1" rx="8.5" ry="10.5" fill="url(#hw-pumpkin-grad)" stroke="#7a3204" strokeWidth="1" />
+      <ellipse cx="0" cy="0.5" rx="8" ry="11.5" fill="url(#hw-pumpkin-grad)" stroke="#7a3204" strokeWidth="1" />
+      {/* Лицо */}
+      <g fill="#ffe08a">
+        <path d="M -5.5 -2.5 L -2.5 -2.5 L -4 -5.5 Z" />
+        <path d="M 2.5 -2.5 L 5.5 -2.5 L 4 -5.5 Z" />
+        <path d="M -5 2.5 L -3 4.5 L -1 3 L 1 4.5 L 3 3 L 5 2.5 Q 0 8 -5 2.5 Z" />
+      </g>
+      {/* Хвостик и листик */}
+      <path d="M -0.5 -11 Q 0 -15.5 3 -17.5" stroke="#4f7a2a" strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      <path d="M 1 -13 Q 8 -17 11 -12 Q 5 -10 1 -13 Z" fill="#7bbf4a" stroke="#3d6a20" strokeWidth="0.6" />
+      <ellipse cx="-4" cy="-5" rx="2.6" ry="1.4" transform="rotate(-30 -4 -5)" fill="#ffffff" opacity="0.35" />
+    </g>
+  );
+}
+
+// Ведьмин фонарик — кованый фонарь со свечой, тёплое стекло и ореол.
+function Lantern({ x, y }) {
+  const id = `hw-lantern-${x}`;
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <defs>
+        <radialGradient id={id} cx="50%" cy="55%" r="65%">
+          <stop offset="0%"  stopColor="#fff6c8" />
+          <stop offset="45%" stopColor="#ffb84a" />
+          <stop offset="100%" stopColor="#d9621a" />
+        </radialGradient>
+      </defs>
+      <circle r="31" fill="rgba(255, 170, 60, 0.24)" />
+      <circle r="21" fill="rgba(255, 200, 110, 0.22)" />
+      {/* Дужка и крышка */}
+      <path d="M -7 -24 Q 0 -33 7 -24" stroke="#2a1a10" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+      <path d="M -13 -17 L 13 -17 L 8 -24 L -8 -24 Z" fill="#2a1a10" />
+      {/* Стекло */}
+      <rect x="-11" y="-17" width="22" height="29" rx="3" fill={`url(#${id})`} stroke="#2a1a10" strokeWidth="2" />
+      <g stroke="#2a1a10" strokeWidth="1.3" opacity="0.75">
+        <path d="M -4 -17 L -4 12" /><path d="M 4 -17 L 4 12" />
+      </g>
+      {/* Огонёк */}
+      <path d="M 0 -10 C 4.5 -4 4.5 2 0 4.5 C -4.5 2 -4.5 -4 0 -10 Z" fill="#fffbe6" />
+      <path d="M 0 -4 C 2 -1 2 2 0 3 C -2 2 -2 -1 0 -4 Z" fill="#ffb84a" />
+      {/* Основание и лиловая ленточка */}
+      <rect x="-13" y="11" width="26" height="5.5" rx="1.6" fill="#2a1a10" />
+      <path d="M 7 -24 q 6 2 8 8 q -5 -1 -8 -3 Z" fill="#8b5cf6" stroke="#4a2a8a" strokeWidth="0.6" />
+    </g>
+  );
+}
+
 const WING_COMPS = {
   feather: Feather,
   sparkle: Sparkle,
   crystal: Crystal,
-  star:    Star
+  star:    Star,
+  'hw-lantern': Lantern
 };
 
 // Inline-SVG monocle worn over the right eye. Lens + thin gold rim,
