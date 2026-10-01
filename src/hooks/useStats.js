@@ -32,7 +32,7 @@ import { reconcileBond, BOND_PER_GIFT } from '../utils/petBond.js';
 import { GIFT_IDS, nextUnclaimedGiftId, getGift } from '../data/petGifts.js';
 import { storage } from '../utils/storage.js';
 import { halloweenActive } from '../lib/events.js';
-import { HW_DEFAULT, applyHalloweenResult, normalizeHalloween } from '../lib/halloweenProgress.js';
+import { HW_DEFAULT, applyHalloweenResult, normalizeHalloween, restoreTrackGrants } from '../lib/halloweenProgress.js';
 
 // Настройки-оформление: их смена ставит отметку cosmeticAt (см. mergeProgress).
 const COSMETIC_PREF_KEYS = ['theme', 'enterOnLeft', 'bgByTheme'];
@@ -144,7 +144,7 @@ const DEFAULT_STATS = {
 function load() {
   const raw = storage.get(STORAGE_KEYS.STATS, null);
   if (!raw) return DEFAULT_STATS;
-  return {
+  return restoreTrackGrants({
     ...DEFAULT_STATS,
     ...raw,
     distribution: Array.isArray(raw.distribution) && raw.distribution.length === MAX_ATTEMPTS
@@ -163,7 +163,7 @@ function load() {
     // Bootstrap regen anchor — otherwise reconcile reads lastE=now on every
     // render and elapsed stays 0 forever (the bug: energy stuck at 0/5).
     lastEnergyTickAt: raw.lastEnergyTickAt || ((raw.energy ?? ENERGY_MAX) < ENERGY_MAX ? new Date().toISOString() : null)
-  };
+  });
 }
 
 function migratePet(rawPet) {

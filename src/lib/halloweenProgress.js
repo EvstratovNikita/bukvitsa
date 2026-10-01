@@ -81,6 +81,27 @@ export function mergeHalloween(a, b) {
   };
 }
 
+// Выданные ступени тропы → предметы во владении. Версия игры без ивента
+// (старый клиент, боевая сборка до слияния) выбрасывает незнакомые id нарядов
+// из гардероба, а запись о выдаче в halloween.rewards переживает её — по ней
+// наряды и стиль клеток возвращаются. Ничего не надевает и не включает.
+export function restoreTrackGrants(stats) {
+  const got = stats?.halloween?.rewards;
+  if (!Array.isArray(got) || got.length === 0) return stats;
+  let pet = stats.pet;
+  let inventory = stats.inventory;
+  for (const s of HW_TRACK) {
+    if (!got.includes(s.id)) continue;
+    if (s.kind === 'deco' && pet && !(pet.ownedDecorations || []).includes(s.ref)) {
+      pet = { ...pet, ownedDecorations: [...(pet.ownedDecorations || []), s.ref] };
+    }
+    if (s.kind === 'cells' && !(inventory || []).includes(s.ref)) {
+      inventory = [...(inventory || []), s.ref];
+    }
+  }
+  return pet === stats.pet && inventory === stats.inventory ? stats : { ...stats, pet, inventory };
+}
+
 // Следующая невыданная ступень — для шкал «ещё N 🎃 до …».
 export function nextStep(hw) {
   const got = new Set(normalizeHalloween(hw).rewards);

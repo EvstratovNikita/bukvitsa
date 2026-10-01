@@ -19,6 +19,13 @@ import { auditFiles, collectFiles, kb, writeZip } from './lib/zip.mjs';
 const DIST = 'dist';
 const OUT = 'buklitsa-vk.zip';
 
+// --event-preview: ивент «Ночь тыкв» включён всегда, без дат и метки в
+// адресе (lib/events.js). Только для dev-адреса — npm run deploy:vk:dev:halloween.
+const eventPreview = process.argv.includes('--event-preview');
+if (eventPreview) {
+  process.env.VITE_EVENT_PREVIEW = 'halloween';
+  console.log('› ивент «Ночь тыкв» включён принудительно (сборка для dev-адреса)');
+}
 console.log('› vite build --mode vk');
 execFileSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--mode', 'vk'], { stdio: 'inherit' });
 
@@ -35,7 +42,11 @@ const problems = auditFiles(files, [
   // отвалился, и на хостинге VK каждый запуск начинается с 404. Ищем только
   // в index.html: в бандле та же строка стоит по делу — это запасной
   // загрузчик SDK, который вне Яндекса всё равно не вызывается.
-  [/src="\/sdk\.js"/, 'тег SDK Яндекса в index.html (на хостинге VK это 404)', /^index\.html$/]
+  [/src="\/sdk\.js"/, 'тег SDK Яндекса в index.html (на хостинге VK это 404)', /^index\.html$/],
+  // Боевая сборка не должна показывать ивент вне дат. Флаг ставит только
+  // --event-preview (сборка для dev-адреса), но переменная могла остаться и в
+  // окружении — проверяем результат, а не намерение.
+  ...(eventPreview ? [] : [[/VITE_EVENT_PREVIEW:"halloween"/, 'ивент включён принудительно (VITE_EVENT_PREVIEW) в боевой сборке']])
 ]);
 
 if (problems.length) {

@@ -52,7 +52,11 @@ function readPreviewFlag() {
   }
 }
 
-const preview = readPreviewFlag();
+// Сборка для dev-адреса VK (npm run deploy:vk:dev:halloween) показывает ивент
+// всегда: на телефоне метку в адрес не поставить, а dev-версию видят только
+// администраторы с «Режимом разработки». Боевая сборка флага не получает.
+const ENV = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+const preview = ENV.VITE_EVENT_PREVIEW === 'halloween' || readPreviewFlag();
 
 export function halloweenActive(now = Date.now()) {
   return preview || (isEmbedded && halloweenWindowOpen(now));

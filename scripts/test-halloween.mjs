@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { HALLOWEEN, daysLeftAt, halloweenActive, halloweenWindowOpen } from '../src/lib/events.js';
 import { HW_RIDDLES, HW_TRACK, HW_TRACK_MAX } from '../src/data/halloween.js';
 import {
-  HW_DEFAULT, applyHalloweenResult, mergeHalloween, nextRiddle, nextStep, pumpkinsFor
+  HW_DEFAULT, applyHalloweenResult, mergeHalloween, nextRiddle, nextStep, pumpkinsFor, restoreTrackGrants
 } from '../src/lib/halloweenProgress.js';
 import { isValidWord } from '../src/data/words.js';
 import { mergeProgress } from '../src/utils/mergeProgress.js';
@@ -138,6 +138,19 @@ test('mergeProgress переносит halloween', () => {
   assert.equal(out2.halloween.pumpkins, 9);
   const out3 = mergeProgress({ played: 1 }, { played: 2 });
   assert.equal(out3.halloween, undefined);
+});
+
+test('выданные ступени возвращают выброшенные наряды', () => {
+  // Версия без ивента выкинула наряды из гардероба, запись о выдаче осталась.
+  const s = { halloween: { rewards: ['hw-t1', 'hw-t2', 'hw-t3'] }, pet: { ownedDecorations: ['bow'] }, inventory: [] };
+  const r = restoreTrackGrants(s);
+  assert.deepEqual(r.pet.ownedDecorations, ['bow', 'hw-pumpkin', 'hw-batglasses']);
+  assert.deepEqual(r.inventory, ['cells-hw-lights']);
+  assert.equal(restoreTrackGrants(r), r, 'повторно ничего не меняет');
+  const clean = { played: 1 };
+  assert.equal(restoreTrackGrants(clean), clean);
+  const merged = mergeProgress({ halloween: { rewards: ['hw-t6'] }, pet: { xp: 5, ownedDecorations: [] } }, { pet: { xp: 1, ownedDecorations: [] } });
+  assert.ok(merged.pet.ownedDecorations.includes('hw-witchhat'));
 });
 
 console.log(process.exitCode ? 'FAILED' : `OK — ${passed} проверок`);
