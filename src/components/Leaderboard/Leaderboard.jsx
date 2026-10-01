@@ -15,7 +15,7 @@ let cached = null;
 // площадки (Яндекс) или с нашего сервера (VK) — см. lib/leaderboard.js.
 // У Яндекса имя видно только у вошедших, гости идут анонимно; в VK игрок
 // всегда под своим аккаунтом.
-export function LeaderboardModal({ open, onClose, score = 0, showToast }) {
+export function LeaderboardModal({ open, onClose, showToast }) {
   const [res, setRes] = useState(cached);
   const [failed, setFailed] = useState(false);
 
@@ -117,7 +117,7 @@ export function LeaderboardModal({ open, onClose, score = 0, showToast }) {
             type="button"
             className="lb__friends"
             onClick={async () => {
-              const r = await showFriendsBoard(score);
+              const r = await showFriendsBoard();
               if (r === 'failed') showToast?.('Список друзей сейчас недоступен');
             }}
           >

@@ -254,7 +254,7 @@ function GameShell() {
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
-      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} score={stats.won || 0} showToast={showToast} />
+      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} showToast={showToast} />
       <GameModesModal
         open={modesOpen}
         onClose={() => setModesOpen(false)}

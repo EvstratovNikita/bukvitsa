@@ -257,16 +257,19 @@ export async function getPlayerInfo() {
 // ---------- Таблица лидеров ----------
 //
 // У VK она нативная: площадка сама рисует окно и сравнивает игрока с его
-// друзьями, которые тоже играют. Результат передаётся прямо в вызове, поэтому
-// отдельной отправки счёта (как submitScore у Яндекса) здесь не нужно.
+// друзьями, которые тоже играют. Тип таблицы — «По баллам за миссии»
+// (Настройки → Дополнительные): значения VK хранит сам, их пишет сервер через
+// secure.addAppEvent (supabase/vk_missions.sql). Вызываем без user_result —
+// он только для показа и не сохраняется, а число, расходящееся с тем, что
+// видят друзья, VK прямо просит не показывать.
 //
 // 'ok' — окно показали, 'closed' — игрок закрыл его сам, 'failed' — вызвать не
 // удалось (метод недоступен в этой версии клиента).
-export async function showLeaderboard(score) {
+export async function showLeaderboard() {
   if (!isVk) return 'failed';
   try {
     await vkInit();
-    const r = await send('VKWebAppShowLeaderBoardBox', { user_result: Math.max(0, Math.round(score) || 0) });
+    const r = await send('VKWebAppShowLeaderBoardBox', {});
     return r?.success ? 'ok' : 'closed';
   } catch (e) {
     console.warn('[vk] ShowLeaderBoardBox failed', e);
