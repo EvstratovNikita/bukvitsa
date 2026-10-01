@@ -13,8 +13,8 @@ import { BOND_MINUTES_PER_POINT } from '../../utils/petBond.js';
 const HATCH_DURATION_MS = 3200;
 
 const TABS = [
-  { id: 'feed',  icon: '🍖', label: 'Покормить' },
   { id: 'cheer', icon: '🎀', label: 'Наряды'     },
+  { id: 'feed',  icon: '🍖', label: 'Покормить' },
   { id: 'train', icon: '🎓', label: 'Обучить'    },
   { id: 'gifts', icon: '🎁', label: 'Подарки'    }
 ];
@@ -57,7 +57,8 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
   const gamesLeft = Math.max(0, PET_UNLOCK_GAMES - played);
 
   const [mode, setMode] = useState(pet.hatched ? 'owl' : 'egg');
-  const [tab, setTab] = useState('feed');
+  // Наряды — первыми и открыты сразу: туда заходят чаще, чем кормить.
+  const [tab, setTab] = useState('cheer');
   // Each successful feed pushes a flying emoji that animates from the
   // tapped treat button to Букля's mouth. Multiple can be in-flight.
   const [flyingTreats, setFlyingTreats] = useState([]);
