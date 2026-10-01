@@ -15,7 +15,7 @@ let cached = null;
 // площадки (Яндекс) или с нашего сервера (VK) — см. lib/leaderboard.js.
 // У Яндекса имя видно только у вошедших, гости идут анонимно; в VK игрок
 // всегда под своим аккаунтом.
-export function LeaderboardModal({ open, onClose, showToast }) {
+export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }) {
   const [res, setRes] = useState(cached);
   const [failed, setFailed] = useState(false);
 
@@ -117,8 +117,11 @@ export function LeaderboardModal({ open, onClose, showToast }) {
             type="button"
             className="lb__friends"
             onClick={async () => {
-              const r = await showFriendsBoard();
-              if (r === 'failed') showToast?.('Список друзей сейчас недоступен');
+              const r = await showFriendsBoard(missionPoints);
+              if (r.startsWith('failed')) {
+                const code = r.split(':')[1];
+                showToast?.(`Список друзей сейчас недоступен${code ? ` (${code})` : ''}`);
+              }
             }}
           >
             Среди друзей

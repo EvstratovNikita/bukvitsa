@@ -35,6 +35,14 @@ export const VK_MISSIONS = {
 
 // Версия в ключе: поднять — и все устройства перешлют миссии заново (сервер
 // повторит в VK только те, что VK тогда не принял).
+// Баллы одобренных миссий — те же, что в панели VK. По ним считаем, сколько у
+// игрока уже набрано: это значение VK хранит и показывает друзьям.
+const MISSION_POINTS = { 3: 10, 4: 15, 5: 20, 6: 20, 7: 30, 8: 30, 9: 35, 10: 40, 11: 50, 12: 60, 13: 50, 14: 70, 15: 100 };
+
+export function missionPoints(unlocked) {
+  return (unlocked || []).reduce((sum, id) => sum + (MISSION_POINTS[VK_MISSIONS[id]] || 0), 0);
+}
+
 const sentKey = (uid) => `wordle-ru:vk-missions:v1:${uid}`;
 let inFlight = false;
 
