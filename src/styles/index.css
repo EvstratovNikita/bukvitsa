@@ -7283,3 +7283,11 @@ body.has-bg .cell--hinted .cell__face--back {
 }
 .ach-toast--link { cursor: pointer; }
 .ach-toast--link:hover { filter: brightness(1.06); }
+/* Время сборки в настройках — служебная строка, почти незаметная. */
+.settings__build {
+  margin: 14px 0 0;
+  font-size: 11px;
+  text-align: center;
+  color: var(--text-muted, currentColor);
+  opacity: 0.45;
+}
