@@ -13,6 +13,7 @@ import { showRewardedAd } from '../../lib/ads.js';
 import { pluralCoins } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
+import { PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 // Сколько энергии за день дают режимы 4/6 (серия «5 побед → +1», до 3 раз) —
 // то же правило, что в EndPanel и GameEnd.
@@ -20,7 +21,9 @@ const ALT_ENERGY_PER_DAY = 3;
 
 // onOpenModes — открыть выбор режима (App): режимы 4 и 6 букв энергию не
 // тратят и сами её приносят, так что без энергии это лучший выход из окна.
-export function EnergyModal({ onOpenModes }) {
+// onPlayHalloween — только пока идёт ивент «Ночь тыкв»: загадки ночи тоже
+// не тратят энергию.
+export function EnergyModal({ onOpenModes, onPlayHalloween }) {
   const {
     energy,
     energyMax,
@@ -36,7 +39,8 @@ export function EnergyModal({ onOpenModes }) {
     startAfterRefuel,
     stats,
     solution,
-    status
+    status,
+    gameMode
   } = useGameContext();
   const cap = energyMax || ENERGY_MAX;
   const [, setTick] = useState(0);
@@ -64,7 +68,9 @@ export function EnergyModal({ onOpenModes }) {
   // round is finished and the user is trying to start a new one.
   // Плюс случай, когда партия идёт, но игрок упёрся в энергию на переходе в
   // режим 5 букв: после пополнения ведём туда, куда он и шёл.
-  const needsStart = !solution || status !== 'playing' || Boolean(pendingLength);
+  // В загадках ночи энергия не нужна — пополнение ничего не запускает, только
+  // переход в режим 5 букв (pendingLength).
+  const needsStart = Boolean(pendingLength) || (gameMode !== 'halloween' && (!solution || status !== 'playing'));
 
   const flash = (type, text) => {
     setFeedback({ type, text });
@@ -113,6 +119,8 @@ export function EnergyModal({ onOpenModes }) {
   const altCapped = (stats?.altMode?.energyGranted || 0) >= ALT_ENERGY_PER_DAY;
   const altLeft = 5 - altPlays;
   const onModes = () => { closeEnergyModal(); onOpenModes(); };
+  const showHw = Boolean(onPlayHalloween) && energy < 1 && gameMode !== 'halloween';
+  const onHw = () => { closeEnergyModal(); onPlayHalloween(); };
 
   return (
     <Modal open onClose={closeEnergyModal} title="Энергия">
@@ -176,6 +184,25 @@ export function EnergyModal({ onOpenModes }) {
               {adRunning ? '…' : (<><PlayIcon /><span>Смотреть</span></>)}
             </span>
           </button>
+
+          {showHw && (
+            <button
+              type="button"
+              className="energy-option energy-option--hw hw-frame"
+              onClick={onHw}
+              onMouseDown={(e) => e.preventDefault()}
+              disabled={adRunning}
+            >
+              <span className="energy-option__icon" aria-hidden="true"><PumpkinIcon /></span>
+              <span className="energy-option__body">
+                <span className="energy-option__title">Загадки ночи</span>
+                <span className="energy-option__sub">Хэллоуин · без энергии, награда — тыквы</span>
+              </span>
+              <span className="energy-option__price energy-option__price--hw">
+                <span>Играть</span>
+              </span>
+            </button>
+          )}
 
           {showModes && (
             <button

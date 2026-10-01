@@ -4,26 +4,29 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
 import { SHARE_BASE_URL, buildWordleShareText, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
+import { HwRoundResult } from '../Halloween/HalloweenGame.jsx';
 
 const CONFETTI_PALETTE = ['#f7c948', '#ffd864', '#6c8cff', '#b388ff', '#e9ecf3'];
+// В загадках ночи — тыквенно-лиловое конфетти.
+const HW_CONFETTI = ['#ff8a1f', '#ffb35c', '#8b5cf6', '#b794ff', '#7bbf4a'];
 
 // Rough "better than" lookup vs the average Buкvitsa player. Calibrated
 // off real Wordle distributions — fewer guesses = higher percentile.
 const PERCENTILE_BY_ATTEMPTS = { 1: 99, 2: 92, 3: 75, 4: 50, 5: 25, 6: 10 };
 
-function Confetti({ count = 22 }) {
+function Confetti({ count = 22, palette = CONFETTI_PALETTE }) {
   const pieces = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
-        color: CONFETTI_PALETTE[Math.floor(Math.random() * CONFETTI_PALETTE.length)],
+        color: palette[Math.floor(Math.random() * palette.length)],
         duration: 1600 + Math.random() * 1400,
         delay: Math.random() * 500,
         size: 6 + Math.random() * 6,
         rotate: Math.random() * 720 - 360
       })),
-    [count]
+    [count, palette]
   );
 
   return (
@@ -50,12 +53,14 @@ export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, stats,
     guesses, evaluations, gameMode, exitDailyMode, reset,
-    doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength
+    doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength,
+    nextHalloweenRiddle, riddle
   } = useGameContext();
   // В Слове дня «бонус» — это вторая половина удвоенной награды; в обычной
   // игре раскладка приходит готовой, вычитать ничего не нужно.
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
-  const isAlt = gameMode !== 'daily' && wordLength !== 5;
+  const isHw = gameMode === 'halloween';
+  const isAlt = gameMode !== 'daily' && !isHw && wordLength !== 5;
   const altPlays = (stats?.altMode?.plays || 0) % 5;
   const altGranted = stats?.altMode?.energyGranted || 0;
   const altLeft = 5 - altPlays;
@@ -100,12 +105,13 @@ export function GameEnd() {
   const onContinue = () => {
     setClosed(true);
     if (isDaily) exitDailyMode();
+    else if (isHw) nextHalloweenRiddle();
     else reset();
   };
 
   return (
-    <div className={`gameend gameend--${isWin ? 'win' : 'lose'}`} role="dialog" aria-live="polite">
-      {isWin && <Confetti />}
+    <div className={`gameend gameend--${isWin ? 'win' : 'lose'}${isHw ? ' gameend--hw' : ''}`} role="dialog" aria-live="polite">
+      {isWin && <Confetti palette={isHw ? HW_CONFETTI : CONFETTI_PALETTE} />}
 
       <div className="gameend__card">
         <button
@@ -123,8 +129,9 @@ export function GameEnd() {
         </div>
 
         <h2 className="gameend__title">
-          {isWin ? 'Победа!' : 'Не угадал'}
+          {isHw ? (isWin ? 'Загадка разгадана!' : 'Загадка не далась') : (isWin ? 'Победа!' : 'Не угадал')}
         </h2>
+        {isHw && riddle && <p className="gameend__riddle">{riddle.riddle}</p>}
 
         <div className="gameend__label">Слово</div>
         <div className="gameend__word">
@@ -156,13 +163,15 @@ export function GameEnd() {
           </div>
         )}
 
-        {isWin && streak >= 2 && (
+        {isHw && <HwRoundResult />}
+
+        {!isHw && isWin && streak >= 2 && (
           <div className="gameend__streak">
             {streakLabel}: <b>{streak}</b>
           </div>
         )}
 
-        {!isWin && (
+        {!isWin && !isHw && (
           <div className="gameend__streak">
             Серия прервана. Попробуй ещё.
           </div>
@@ -231,7 +240,7 @@ export function GameEnd() {
             onMouseDown={(e) => e.preventDefault()}
           >
             <RefreshIcon />
-            <span>Играем дальше</span>
+            <span>{isHw ? 'Следующая загадка' : 'Играем дальше'}</span>
           </button>
         </div>
       </div>

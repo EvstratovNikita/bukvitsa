@@ -1,6 +1,7 @@
 import { Modal } from '../Modal/Modal.jsx';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon } from '../icons/Icon.jsx';
+import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 const MODES = [
   {
@@ -23,8 +24,11 @@ const MODES = [
 // mode (capped at 3 per day).
 // onPicked — выбор сделан (а не окно просто закрыли): главное меню VK по нему
 // уходит, и игрок сразу попадает на поле с новой партией.
-export function GameModesModal({ open, onClose, onPicked }) {
-  const { setGameLength, wordLength } = useGameContext();
+// onPlayHalloween — есть только пока идёт ивент «Ночь тыкв»: карточка
+// «Загадки ночи» первой, в ивентовом оформлении.
+export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
+  const { setGameLength, wordLength, gameMode, exitHalloween } = useGameContext();
+  const inHw = gameMode === 'halloween';
 
   const onPick = (length) => {
     setGameLength(length);
@@ -40,7 +44,16 @@ export function GameModesModal({ open, onClose, onPicked }) {
           +1 энергия (до 3 в день).
         </p>
 
-        {wordLength !== 5 && (
+        {inHw ? (
+          <button
+            type="button"
+            className="btn modes__back"
+            onClick={() => { exitHalloween(); onClose(); onPicked?.(); }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            ← Вернуться к обычной игре
+          </button>
+        ) : wordLength !== 5 && (
           <button
             type="button"
             className="btn modes__back"
@@ -51,8 +64,36 @@ export function GameModesModal({ open, onClose, onPicked }) {
           </button>
         )}
 
+        {onPlayHalloween && (inHw ? (
+          <div className="mode-now hw-frame hw-mode-now">
+            <span className="mode-now__title"><PumpkinIcon /> Загадки ночи</span>
+            <span className="mode-now__badge">Сейчас играешь</span>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="hw-mode-card hw-frame"
+            onClick={onPlayHalloween}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <span className="hw-mode-card__top">
+              <span className="hw-mode-card__title">Загадки ночи</span>
+              <HwBadge />
+            </span>
+            <span className="hw-mode-card__desc">
+              Жуткие слова по загадкам. Тыквы за победы — наряды для Букли.
+            </span>
+            <span className="hw-mode-card__foot">
+              <span className="hw-mode-card__sample" aria-hidden="true">
+                {[...'ТЫКВА'].map((ch, i) => <span key={i} className="hw-mode-card__cell">{ch}</span>)}
+              </span>
+              <span className="mode-card__free"><BoltIcon /><span>бесплатно</span></span>
+            </span>
+          </button>
+        ))}
+
         {MODES.map((m) => {
-          const active = wordLength === m.length;
+          const active = !inHw && wordLength === m.length;
           // Режим, в котором игрок уже находится, показываем строкой, а не
           // карточкой: полноразмерная карточка с описанием и превью
           // выталкивала модалку в скролл на 4 и 6 буквах.
@@ -86,7 +127,7 @@ export function GameModesModal({ open, onClose, onPicked }) {
           );
         })}
 
-        {wordLength === 5 && (
+        {!inHw && wordLength === 5 && (
           <p className="modes__foot">
             Сейчас: <b>основной режим, 5 букв</b>.
           </p>

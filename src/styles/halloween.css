@@ -1,0 +1,691 @@
+/* ==========================================================================
+   Ивент «Ночь тыкв» (Хэллоуин 2026)
+   Всё ивентовое оформление — здесь, после index.css: правила с той же
+   специфичностью перекрывают базовые. Ивент выключится сам (lib/events.js),
+   а стили можно будет удалить одним файлом.
+
+   Производительность — по урокам совы и меню: анимируются только transform и
+   opacity отдельных слоёв, никаких фильтров (drop-shadow/blur под размытием
+   модалок мерцал на Android), свечение — box-shadow и градиенты без анимации.
+   ========================================================================== */
+
+:root {
+  --hw-orange: #ff8a1f;
+  --hw-orange-2: #ffb35c;
+  --hw-violet: #8b5cf6;
+  --hw-violet-2: #b794ff;
+  --hw-card: #1f1232;
+  --hw-card-2: #2a1540;
+  --hw-text: #fff1e0;
+  --hw-dim: rgba(255, 228, 200, 0.72);
+  --hw-accent: #ffb35c;
+  --hw-chip: rgba(139, 92, 246, 0.28);
+  --hw-chip-text: #e6dbff;
+}
+[data-theme="light"] {
+  --hw-card: #fff5ea;
+  --hw-card-2: #fbe9ff;
+  --hw-text: #3b1a06;
+  --hw-dim: rgba(80, 40, 20, 0.7);
+  --hw-accent: #c2560c;
+  --hw-chip: rgba(124, 58, 237, 0.12);
+  --hw-chip-text: #5b21b6;
+}
+
+/* ---------- Значок тыквы ---------- */
+.hw-pumpkin-ic {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  vertical-align: -0.2em;
+}
+
+/* ---------- Плашка «Хэллоуин · до 3.11» ---------- */
+.hw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 3px 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: #fff;
+  white-space: nowrap;
+  background: linear-gradient(120deg, #ff8a1f 0%, #d9480f 45%, #7c3aed 100%);
+  box-shadow: 0 2px 8px rgba(255, 120, 30, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.hw-badge .hw-pumpkin-ic { width: 14px; height: 14px; }
+.hw-badge__till {
+  margin-left: 2px;
+  padding-left: 5px;
+  border-left: 1px solid rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+  opacity: 0.92;
+}
+
+/* ---------- Ивентовая рамка карточек ----------
+   Градиентная рамка: фон в padding-box, градиент в border-box. Двойной класс
+   поднимает специфичность над правилами карточек из index.css. */
+.hw-frame.hw-frame {
+  border: 1.5px solid transparent;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(255, 138, 31, 0.16), transparent 60%) padding-box,
+    radial-gradient(120% 90% at 0% 100%, rgba(139, 92, 246, 0.18), transparent 60%) padding-box,
+    linear-gradient(var(--hw-card), var(--hw-card)) padding-box,
+    linear-gradient(135deg, #ffb35c, #ff8a1f 30%, #8b5cf6 70%, #ff8a1f) border-box;
+  box-shadow: 0 6px 22px rgba(139, 92, 246, 0.22), 0 0 0 1px rgba(255, 138, 31, 0.06);
+}
+[data-theme="light"] .hw-frame.hw-frame {
+  box-shadow: 0 6px 18px rgba(194, 86, 12, 0.14);
+}
+
+/* ---------- Карточка загадки над полем ---------- */
+.hw-riddle {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 440px;
+  flex: none;
+  padding: 7px 12px 8px;
+  border-radius: 14px;
+  background:
+    linear-gradient(120deg, rgba(255, 138, 31, 0.18), rgba(139, 92, 246, 0.2)),
+    #1b1029;
+  border: 1px solid rgba(255, 165, 90, 0.5);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25), inset 0 0 22px rgba(255, 138, 31, 0.08);
+  animation: hw-riddle-in 380ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+.hw-riddle__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #ffb35c;
+}
+.hw-riddle__len {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.32);
+  color: #e6dbff;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.hw-riddle__text {
+  margin: 3px 0 0;
+  font-size: clamp(13px, 1.9vh, 15px);
+  font-weight: 650;
+  line-height: 1.3;
+  color: #fff1e0;
+}
+[data-theme="light"] .hw-riddle {
+  background: linear-gradient(120deg, #fff1e2, #f6ebff);
+  border-color: rgba(220, 110, 30, 0.5);
+  box-shadow: 0 4px 14px rgba(194, 86, 12, 0.12);
+}
+[data-theme="light"] .hw-riddle__head { color: #c2560c; }
+[data-theme="light"] .hw-riddle__len { background: rgba(124, 58, 237, 0.12); color: #5b21b6; }
+[data-theme="light"] .hw-riddle__text { color: #3b1a06; }
+@keyframes hw-riddle-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+/* Поле под загадкой: высоту делят карточка и доска, иначе доска в 100%
+   высоты вылезала бы под клавиатуру. */
+.app--hw .main { justify-content: flex-start; }
+.app--hw .main > .board { height: auto; flex: 1 1 0; min-height: 0; margin: 0 auto; }
+
+/* Тёплая виньетка за полем — статичный слой под содержимым. */
+.app--hw::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 40% at 50% 42%, rgba(255, 138, 31, 0.1), transparent 70%),
+    radial-gradient(120% 70% at 50% 115%, rgba(139, 92, 246, 0.2), transparent 65%);
+}
+
+/* ---------- Счётчик тыкв в верхней панели ---------- */
+.hw-pumpkins {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #4a2410;
+  border: 1px solid rgba(255, 165, 90, 0.85);
+  color: #ffd2a6;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 120, 30, 0.18);
+  -webkit-tap-highlight-color: transparent;
+}
+.hw-pumpkins .hw-pumpkin-ic { width: 17px; height: 17px; }
+.hw-pumpkins__value { font-variant-numeric: tabular-nums; color: #fff1e0; }
+[data-theme="light"] .hw-pumpkins { background: #fff0e0; border-color: rgba(194, 86, 12, 0.8); color: #8a3a06; }
+[data-theme="light"] .hw-pumpkins__value { color: #5a2408; }
+@media (max-width: 400px) { .hw-pumpkins { padding: 5px 9px; font-size: 12.5px; } }
+
+/* ---------- Главное меню: баннер ---------- */
+.home__event {
+  animation: home-rise 520ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(80ms + var(--d, 0) * 70ms);
+}
+.hw-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px 9px 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 175, 95, 0.6);
+  background:
+    radial-gradient(90% 140% at 0% 50%, rgba(255, 138, 31, 0.45), transparent 60%),
+    linear-gradient(115deg, #2a1240 0%, #45185a 50%, #7a2c14 100%);
+  color: #fff;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(255, 110, 30, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 160ms ease;
+}
+.hw-banner:active { transform: scale(0.985); }
+/* Блик — отдельный слой, двигается только transform. */
+.hw-banner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -40%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 230, 200, 0.22), transparent);
+  transform: translateX(0);
+  animation: hw-banner-shine 5.5s ease-in-out 1.2s infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+@keyframes hw-banner-shine {
+  0%, 70% { transform: translateX(0); }
+  100% { transform: translateX(380%); }
+}
+.hw-banner__art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 190, 110, 0.55), rgba(255, 138, 31, 0.12) 70%, transparent);
+}
+.hw-banner__art .hw-pumpkin-ic { width: 34px; height: 34px; }
+.hw-banner__text { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.hw-banner__title { font-weight: 900; font-size: 16px; letter-spacing: 0.01em; color: #fff3e2; }
+.hw-banner__sub {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 236, 214, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hw-banner__bar {
+  display: block;
+  height: 4px;
+  margin-top: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+.hw-banner__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff8a1f, #ffd36b);
+}
+.hw-banner__go { flex: none; font-size: 26px; line-height: 1; color: #ffd2a6; padding: 0 2px 2px; }
+[data-theme="light"] .hw-banner { box-shadow: 0 8px 20px rgba(122, 44, 20, 0.22); }
+
+/* Тыквенный отсвет у нижнего края меню — статичный. */
+.hw-home-glow {
+  position: absolute;
+  left: 50%;
+  bottom: -46vmax;
+  width: 100vmax;
+  height: 70vmax;
+  margin-left: -50vmax;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 128, 30, 0.26), transparent);
+}
+[data-theme="light"] .hw-home-glow { background: radial-gradient(closest-side, rgba(255, 150, 60, 0.3), transparent); }
+
+/* ---------- Летучие мыши над меню ----------
+   Слой мыши летит (transform), внутри два кадра крыльев меняются
+   прозрачностью. Обе анимации — видеокарта, по одной на элемент. */
+.hw-bats { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hw-bat {
+  position: absolute;
+  left: 0;
+  width: 34px;
+  height: 22px;
+  will-change: transform;
+}
+.hw-bat__f {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: #1c0f2e;
+  stroke: rgba(255, 190, 120, 0.4);
+  stroke-width: 1;
+  will-change: opacity;
+}
+[data-theme="light"] .hw-bat__f { fill: #3b2a5c; stroke: none; }
+.hw-bat__f--a { animation: hw-flap-a 340ms steps(1, end) infinite; }
+.hw-bat__f--b { opacity: 0; animation: hw-flap-b 340ms steps(1, end) infinite; }
+@keyframes hw-flap-a { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes hw-flap-b { 0% { opacity: 0; } 50% { opacity: 1; } }
+
+.hw-bat--1 { top: 11%; animation: hw-fly-1 17s linear 0.6s infinite; }
+.hw-bat--2 { top: 23%; width: 26px; height: 17px; animation: hw-fly-2 23s linear 5s infinite; }
+.hw-bat--3 { top: 6%; width: 22px; height: 14px; animation: hw-fly-3 29s linear 11s infinite; }
+.hw-bat--2 .hw-bat__f, .hw-bat--3 .hw-bat__f { animation-duration: 300ms; }
+@keyframes hw-fly-1 {
+  0% { transform: translate3d(-60px, 0, 0); }
+  25% { transform: translate3d(25vw, -18px, 0); }
+  50% { transform: translate3d(50vw, 10px, 0); }
+  75% { transform: translate3d(75vw, -12px, 0); }
+  100% { transform: translate3d(calc(100vw + 60px), 4px, 0); }
+}
+@keyframes hw-fly-2 {
+  0% { transform: translate3d(calc(100vw + 50px), 0, 0) scaleX(-1); }
+  33% { transform: translate3d(66vw, 14px, 0) scaleX(-1); }
+  66% { transform: translate3d(33vw, -10px, 0) scaleX(-1); }
+  100% { transform: translate3d(-50px, 6px, 0) scaleX(-1); }
+}
+@keyframes hw-fly-3 {
+  0% { transform: translate3d(-40px, 20px, 0); }
+  50% { transform: translate3d(48vw, -6px, 0); }
+  100% { transform: translate3d(calc(100vw + 40px), 16px, 0); }
+}
+/* Мыши живут, пока меню на экране: под экраном Букли и полем меню не
+   рисуется (content-visibility в index.css), анимации стоят вместе с ним. */
+@media (prefers-reduced-motion: reduce) {
+  .hw-bat, .hw-bat__f, .hw-banner::after { animation: none; }
+  .hw-bat--1 { transform: translate3d(14vw, 0, 0); }
+  .hw-bat--2 { transform: translate3d(78vw, 0, 0) scaleX(-1); }
+  .hw-bat--3 { display: none; }
+}
+
+/* ---------- Окно ивента ---------- */
+.hw-hub { display: flex; flex-direction: column; gap: 14px; }
+.hw-hub__hero {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 14px;
+  box-shadow: 0 10px 26px rgba(40, 10, 60, 0.35);
+}
+.hw-hub__art { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hw-hub__hero-text { position: relative; display: flex; flex-direction: column; gap: 2px; max-width: 64%; }
+.hw-hub__hero-text b { font-size: 19px; font-weight: 900; color: #fff3e2; }
+.hw-hub__hero-text span { font-size: 12.5px; font-weight: 600; color: rgba(255, 236, 214, 0.88); line-height: 1.3; }
+.hw-hub__timer {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #ffd9b0;
+  background: rgba(20, 8, 30, 0.6);
+  border: 1px solid rgba(255, 175, 95, 0.4);
+}
+.hw-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-weight: 900;
+  font-size: 16px;
+  color: #2a1000;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffd36b 0%, #ff9a3a 45%, #ff7a1a 100%);
+  box-shadow: 0 8px 22px rgba(255, 120, 30, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  -webkit-tap-highlight-color: transparent;
+}
+.hw-cta:active { transform: scale(0.985); }
+.hw-cta .hw-pumpkin-ic { width: 24px; height: 24px; }
+.hw-cta__label { flex: 1; display: flex; flex-direction: column; gap: 1px; text-align: left; line-height: 1.15; }
+.hw-cta__label b { font-size: 18px; font-weight: 900; }
+.hw-cta__label small { font-size: 12px; font-weight: 750; color: rgba(60, 20, 0, 0.75); }
+.hw-cta__go { font-size: 28px; line-height: 1; font-weight: 700; color: rgba(60, 20, 0, 0.7); }
+
+.hw-track {
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--hw-card);
+  border: 1px solid rgba(255, 165, 90, 0.28);
+}
+.hw-track__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--hw-text); }
+.hw-track__head b { font-size: 15px; font-weight: 900; }
+.hw-track__count { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13px; color: var(--hw-accent); }
+.hw-track__bar { height: 6px; margin: 9px 0 10px; border-radius: 999px; background: rgba(139, 92, 246, 0.22); overflow: hidden; }
+.hw-track__bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #ff8a1f 60%, #ffd36b); }
+.hw-track__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hw-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--hw-text);
+}
+[data-theme="light"] .hw-step { background: rgba(255, 255, 255, 0.7); border-color: rgba(194, 86, 12, 0.12); }
+.hw-step__icon {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 19px;
+  background: var(--hw-chip);
+}
+.hw-step__body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.hw-step__name { font-weight: 750; font-size: 13.5px; line-height: 1.2; }
+.hw-step__tag { font-size: 11px; font-weight: 800; color: var(--hw-accent); }
+.hw-step__left { font-size: 11.5px; font-weight: 700; color: var(--hw-dim); }
+.hw-step__need {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--hw-dim);
+}
+.hw-step--done { border-color: rgba(123, 191, 74, 0.45); }
+.hw-step--done .hw-step__need { color: #7bd96a; font-size: 16px; }
+[data-theme="light"] .hw-step--done .hw-step__need { color: #2f8a2a; }
+.hw-step--next {
+  border-color: rgba(255, 165, 90, 0.75);
+  background: linear-gradient(90deg, rgba(255, 138, 31, 0.16), rgba(139, 92, 246, 0.1));
+}
+.hw-step--next .hw-step__need { color: var(--hw-accent); }
+.hw-step--grand .hw-step__icon {
+  background: radial-gradient(closest-side, rgba(255, 211, 107, 0.6), rgba(139, 92, 246, 0.35));
+  box-shadow: 0 0 0 1.5px rgba(255, 211, 107, 0.7);
+}
+.hw-hub__links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hw-link {
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: var(--hw-chip);
+  color: var(--hw-chip-text);
+  font: inherit;
+  font-weight: 750;
+  font-size: 13px;
+  cursor: pointer;
+}
+.hw-hub__note { margin: 0; font-size: 12px; line-height: 1.4; color: var(--text-dim); text-align: center; }
+
+/* ---------- Режимы: карточка «Загадки ночи» ---------- */
+.hw-mode-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  text-align: left;
+  font: inherit;
+  color: var(--hw-text);
+  cursor: pointer;
+}
+.hw-mode-card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hw-mode-card__title { font-weight: 900; font-size: 17px; }
+.hw-mode-card__desc { font-size: 12.5px; line-height: 1.35; color: var(--hw-dim); }
+.hw-mode-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hw-mode-card__sample { display: flex; gap: 4px; }
+.hw-mode-card__cell {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-weight: 900;
+  font-size: 14px;
+  color: #fff;
+  background: #6aaa64;
+}
+.hw-mode-card__cell:nth-child(2), .hw-mode-card__cell:nth-child(4) { background: #ff8a1f; }
+.hw-mode-card__cell:nth-child(5) { background: #3a3352; }
+.hw-mode-now .mode-now__title { display: inline-flex; align-items: center; gap: 6px; color: var(--hw-text); }
+
+/* ---------- Окно энергии ---------- */
+.energy-option--hw .energy-option__icon { background: rgba(255, 138, 31, 0.18); }
+.energy-option--hw .energy-option__icon .hw-pumpkin-ic { width: 22px; height: 22px; }
+.energy-option--hw .energy-option__title { color: var(--hw-text); }
+.energy-option--hw .energy-option__sub { color: var(--hw-dim); }
+.energy-modal .energy-option .energy-option__price.energy-option__price--hw {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: #2a1000;
+  background: linear-gradient(135deg, #ffd36b, #ff8a1f);
+  box-shadow: 0 4px 12px rgba(255, 120, 30, 0.35);
+}
+
+/* ---------- Итог загадки (панель и окно победы) ---------- */
+.hw-result { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 4px; }
+.hw-result__gain {
+  align-self: center;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 900;
+  font-size: 26px;
+  color: #ffb35c;
+}
+.hw-result__gain .hw-pumpkin-ic { width: 28px; height: 28px; align-self: center; }
+.hw-result__gain small { font-size: 13px; font-weight: 800; color: var(--hw-dim); }
+[data-theme="light"] .hw-result__gain { color: #c2560c; }
+.hw-result__new { display: flex; flex-direction: column; gap: 6px; }
+.hw-reward-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 175, 95, 0.6);
+  background: linear-gradient(100deg, rgba(255, 138, 31, 0.2), rgba(139, 92, 246, 0.2));
+  animation: hw-chip-in 520ms cubic-bezier(0.2, 0.9, 0.3, 1.25) 260ms both;
+}
+.hw-reward-chip__icon { font-size: 24px; flex: none; }
+.hw-reward-chip__text { display: flex; flex-direction: column; text-align: left; min-width: 0; }
+.hw-reward-chip__text small { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hw-accent); }
+.hw-reward-chip__text b { font-size: 14px; color: var(--hw-text); }
+.hw-reward-chip--grand { border-color: #ffd36b; box-shadow: 0 0 0 1px rgba(255, 211, 107, 0.4), 0 6px 18px rgba(255, 170, 60, 0.3); }
+@keyframes hw-chip-in { from { opacity: 0; transform: scale(0.85) translateY(6px); } to { opacity: 1; transform: none; } }
+.hw-result__track { display: flex; flex-direction: column; gap: 4px; }
+.hw-result__bar { height: 5px; border-radius: 999px; background: rgba(139, 92, 246, 0.24); overflow: hidden; }
+.hw-result__fill { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #ff8a1f 70%, #ffd36b); }
+.hw-result__text { font-size: 12px; font-weight: 650; color: var(--text-dim); text-align: center; }
+.hw-result__text b { color: var(--hw-accent); }
+.hw-result--compact { margin-top: 2px; gap: 5px; }
+.hw-result--compact .hw-result__gain { align-self: flex-start; font-size: 18px; }
+.hw-result--compact .hw-result__gain .hw-pumpkin-ic { width: 20px; height: 20px; }
+.hw-result--compact .hw-result__text { text-align: left; }
+.hw-result--compact .hw-reward-chip { padding: 4px 8px; gap: 6px; border-radius: 10px; }
+.hw-result--compact .hw-reward-chip__icon { font-size: 18px; }
+.hw-result--compact .hw-reward-chip__text small { font-size: 9.5px; }
+.hw-result--compact .hw-reward-chip__text b { font-size: 12px; line-height: 1.2; }
+.hw-result--compact .hw-result__text { font-size: 11.5px; line-height: 1.3; }
+.hw-result__icons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 175, 95, 0.6);
+  background: linear-gradient(100deg, rgba(255, 138, 31, 0.2), rgba(139, 92, 246, 0.2));
+}
+.hw-result__icons small { font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hw-accent); }
+.hw-result__icons span { font-size: 18px; letter-spacing: 2px; line-height: 1.2; }
+
+.gameend--hw .gameend__card {
+  border-color: rgba(255, 165, 90, 0.55);
+  box-shadow: 0 18px 48px rgba(60, 20, 90, 0.45), 0 0 0 1px rgba(255, 138, 31, 0.25);
+}
+.gameend__riddle {
+  margin: -2px 0 6px;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--text-dim);
+  text-align: center;
+}
+.hw-next-btn,
+.gameend--hw .gameend__btn.btn--primary {
+  background: linear-gradient(135deg, #ffd36b, #ff9a3a 45%, #ff7a1a);
+  color: #2a1000;
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(255, 120, 30, 0.35);
+}
+
+/* ---------- Магазин ---------- */
+.shop-card--hw { position: relative; }
+.shop-card__hw-badge { position: absolute; top: 6px; left: 6px; z-index: 2; font-size: 10px; padding: 2px 7px 2px 4px; }
+.shop-card__hw-badge .hw-pumpkin-ic { width: 12px; height: 12px; }
+.shop-card__track {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px 6px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--hw-accent);
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px dashed rgba(255, 165, 90, 0.6);
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.shop-card__preview--cells-hw-lights {
+  background:
+    radial-gradient(circle at 50% 60%, rgba(255, 138, 31, 0.35), transparent 70%),
+    #1b1029;
+}
+.shop-card__preview--cells-hw-lights .shop-card__preview-letter {
+  background: linear-gradient(160deg, #ffb35c, #e8741c 60%, #b8520f);
+  color: #fff;
+  border-color: #ffc27a;
+  box-shadow: 0 0 14px rgba(255, 138, 31, 0.6), inset 0 0 8px rgba(255, 230, 160, 0.45);
+}
+
+/* ---------- Наряды Букли ---------- */
+.pet-deco-group--hw { padding: 10px; border-radius: 16px; }
+.pet-deco-group--hw .pet-deco-group__head { gap: 8px; }
+.pet-deco-group--hw .pet-deco-group__label { color: var(--hw-text); }
+.pet-deco--hw .pet-deco__icon { background: rgba(255, 138, 31, 0.16); border-radius: 12px; }
+.pet-deco__track {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 13px;
+  color: var(--hw-accent);
+  background: rgba(255, 138, 31, 0.12);
+  border: 1px dashed rgba(255, 165, 90, 0.6);
+  white-space: nowrap;
+}
+.pet-deco__chip--btn { cursor: pointer; font-family: inherit; }
+.pet-deco-group__note { margin: 6px 2px 0; font-size: 12px; color: var(--hw-dim); }
+
+/* ---------- Достижения ---------- */
+.ach-tab--hw.ach-tab--active {
+  background: linear-gradient(135deg, #ff8a1f, #7c3aed);
+  color: #fff;
+  border-color: transparent;
+}
+.ach-tab--hw:not(.ach-tab--active) { border-color: rgba(255, 165, 90, 0.55); }
+.ach-hw-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+.ach-card--hw .ach-card__icon { background: rgba(255, 138, 31, 0.16); }
+.ach-card--hw .ach-card__title { color: var(--hw-text); }
+
+/* ---------- Стиль клеток «Тыквенные огоньки» ----------
+   Не на месте — тыква (оранжевый вместо жёлтого), на месте — ведьмино зелье
+   (кислотно-зелёный с лиловой каймой). Свечение — тенью, без анимации. */
+body.cell-style-cells-hw-lights .cell--present:not(.cell--flipping) .cell__face--front,
+body.cell-style-cells-hw-lights .cell--present .cell__face--back {
+  background: linear-gradient(160deg, #ffb35c 0%, #e8741c 55%, #b8520f 100%);
+  color: #fff;
+  border-color: #ffc27a;
+  box-shadow: 0 0 12px rgba(255, 138, 31, 0.5), inset 0 0 10px rgba(255, 230, 160, 0.35);
+  text-shadow: 0 1px 2px rgba(90, 30, 0, 0.45);
+}
+body.cell-style-cells-hw-lights .cell--correct:not(.cell--flipping) .cell__face--front,
+body.cell-style-cells-hw-lights .cell--correct .cell__face--back {
+  background: linear-gradient(160deg, #8ee05a 0%, #4caf3a 55%, #2f7d2a 100%);
+  color: #fff;
+  border-color: #b794ff;
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.6), 0 0 12px rgba(139, 92, 246, 0.45);
+  text-shadow: 0 1px 2px rgba(10, 50, 10, 0.5);
+}
+[data-theme="light"] body.cell-style-cells-hw-lights .cell--correct:not(.cell--flipping) .cell__face--front,
+[data-theme="light"] body.cell-style-cells-hw-lights .cell--correct .cell__face--back {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.5), 0 0 10px rgba(124, 58, 237, 0.3);
+}
+/* Клавиатура — в тех же цветах, что поле: иначе буква «не на месте» горит
+   тыквой на поле и жёлтым на клавише. */
+body.cell-style-cells-hw-lights .key--present,
+[data-theme="light"] body.cell-style-cells-hw-lights .key--present {
+  background: #e8741c;
+  border-color: #ffb35c;
+  color: #fff;
+}
+body.cell-style-cells-hw-lights .key--correct,
+[data-theme="light"] body.cell-style-cells-hw-lights .key--correct {
+  background: #4caf3a;
+  border-color: #b794ff;
+  color: #fff;
+}

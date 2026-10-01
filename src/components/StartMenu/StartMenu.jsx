@@ -6,6 +6,7 @@ import { getPlayerInfo, inviteFriends, addToFavorites, vkSupports, launchParams 
 import { share, SHARE_BASE_URL } from '../../lib/share.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { OwlSvg } from '../Pet/OwlSvg.jsx';
+import { HalloweenBanner, HalloweenBats } from '../Halloween/HalloweenBanner.jsx';
 import {
   AwardIcon, BoltIcon, CoinIcon, HelpIcon, MailIcon, MoonIcon, OwlIcon,
   PlayIcon, PlusIcon, SettingsIcon, ShareIcon, ShopIcon, StarIcon, StatsIcon, SunIcon,
@@ -29,7 +30,7 @@ function lettersLabel(n) {
 
 export function StartMenu({
   onPlay, onOpenShop, onOpenPet, onOpenAchievements, onOpenLeaderboard,
-  onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback
+  onOpenStats, onOpenHelp, onOpenSettings, onOpenFeedback, onOpenHalloween
 }) {
   const {
     stats, status, guesses, gameMode, wordLength, energy, energyMax,
@@ -76,7 +77,9 @@ export function StartMenu({
   const playing = status === GAME_STATUS.PLAYING;
   const tries = guesses?.length || 0;
   const continuing = playing && tries > 0;
-  const modeLabel = gameMode === 'daily' ? 'Слово дня' : `Обычная игра · ${lettersLabel(wordLength || 5)}`;
+  const modeLabel = gameMode === 'daily' ? 'Слово дня'
+    : gameMode === 'halloween' ? `Загадки ночи · ${lettersLabel(wordLength || 5)}`
+    : `Обычная игра · ${lettersLabel(wordLength || 5)}`;
   const playSub = !playing
     ? 'Партия сыграна — впереди новое слово'
     : continuing ? `${modeLabel} · попытка ${Math.min(tries + 1, MAX_ATTEMPTS)} из ${MAX_ATTEMPTS}` : modeLabel;
@@ -112,6 +115,9 @@ export function StartMenu({
         <i className="home__stars" />
         <i className="home__glow home__glow--a" />
         <i className="home__glow home__glow--b" />
+        {/* Ивент «Ночь тыкв»: тыквенный отсвет и летучие мыши. */}
+        {onOpenHalloween && <i className="hw-home-glow" />}
+        {onOpenHalloween && <HalloweenBats />}
       </div>
 
       <div className="home__inner">
@@ -193,6 +199,12 @@ export function StartMenu({
             <i className="home__play-shine" aria-hidden="true" />
           </button>
         </div>
+
+        {onOpenHalloween && (
+          <div className="home__event" style={{ '--d': 4 }}>
+            <HalloweenBanner onOpen={onOpenHalloween} />
+          </div>
+        )}
 
         <nav className="home__grid" aria-label="Разделы" style={{ '--d': 5 }}>
           <Tile icon={<ShopIcon />} label="Магазин" tint="shop" onClick={onOpenShop} />

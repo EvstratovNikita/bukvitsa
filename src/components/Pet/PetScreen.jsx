@@ -9,6 +9,9 @@ import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
 import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
 import { BOND_MINUTES_PER_POINT } from '../../utils/petBond.js';
+import { halloweenActive } from '../../lib/events.js';
+import { HW_TRACK } from '../../data/halloween.js';
+import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -340,11 +343,18 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
   );
 }
 
+// Хэллоуинская коллекция (Тыквенная тропа). Видна во время ивента, а после —
+// только с теми предметами, что игрок успел получить.
+const HW_DECOS = PET_DECORATIONS.filter((d) => d.event === 'halloween');
+const hwNeed = (id) => HW_TRACK.find((s) => s.ref === id)?.need || null;
+
 function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUnequipSlot }) {
   const bySlot = SLOTS.map((s) => ({
     slot: s,
-    items: PET_DECORATIONS.filter((d) => d.slot === s.id)
+    items: PET_DECORATIONS.filter((d) => d.slot === s.id && !d.event)
   }));
+  const hwOn = halloweenActive();
+  const hwItems = hwOn ? HW_DECOS : HW_DECOS.filter((d) => owned.includes(d.id));
 
   return (
     <div className="pet-decos">
@@ -353,6 +363,54 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
         можно носить два амулета (по одному на каждое крыло). Бонусы
         суммируются.
       </p>
+      {hwItems.length > 0 && (
+        <div className="pet-deco-group pet-deco-group--hw hw-frame">
+          <div className="pet-deco-group__head">
+            <span className="pet-deco-group__label">Тыквенная тропа</span>
+            <HwBadge till={hwOn} />
+          </div>
+          {hwItems.map((d) => {
+            const isOwned = owned.includes(d.id);
+            const isWing = d.slot === 'wing';
+            const onL = equipped.wingL === d.id;
+            const onR = equipped.wingR === d.id;
+            const worn = isWing ? (onL || onR) : equipped[d.slot] === d.id;
+            return (
+              <div key={d.id} className={`pet-deco pet-deco--hw${worn ? ' pet-deco--active' : ''}${!isOwned ? ' pet-deco--locked' : ''}`}>
+                <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
+                <span className="pet-deco__meta">
+                  <span className="pet-deco__name">{d.name}</span>
+                  <span className="pet-deco__desc">{d.desc}</span>
+                  <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)} за победу</span>
+                </span>
+                <div className="pet-deco__cta">
+                  {!isOwned ? (
+                    <span className="pet-deco__track" title="Награда Тыквенной тропы">
+                      <PumpkinIcon /> {hwNeed(d.id)}
+                    </span>
+                  ) : isWing ? (
+                    <div className="pet-deco__wing-btns">
+                      <button type="button" className={`pet-deco__wing-btn${onL ? ' pet-deco__wing-btn--on' : ''}`}
+                        onClick={() => onEquip(d.id, 'wingL')} onMouseDown={(e) => e.preventDefault()}>Лев</button>
+                      <button type="button" className={`pet-deco__wing-btn${onR ? ' pet-deco__wing-btn--on' : ''}`}
+                        onClick={() => onEquip(d.id, 'wingR')} onMouseDown={(e) => e.preventDefault()}>Прав</button>
+                    </div>
+                  ) : worn ? (
+                    <button type="button" className="pet-deco__chip pet-deco__chip--btn"
+                      onClick={() => onUnequipSlot(d.slot)} onMouseDown={(e) => e.preventDefault()}>Снять</button>
+                  ) : (
+                    <button type="button" className="btn btn--primary pet-deco__btn"
+                      onClick={() => onEquip(d.id)} onMouseDown={(e) => e.preventDefault()}>Надеть</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {hwOn && hwItems.some((d) => !owned.includes(d.id)) && (
+            <p className="pet-deco-group__note">Наряды выдаёт Тыквенная тропа — собирай тыквы в «Загадках ночи».</p>
+          )}
+        </div>
+      )}
       {bySlot.map(({ slot, items }) => {
         const isWing = slot.id === 'wing';
         const wingL = equipped.wingL;

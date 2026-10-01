@@ -401,7 +401,10 @@ export const SHOP_ITEMS = [
         'radial-gradient(420px 420px at 86% 9%, rgba(255, 214, 140, 0.34), rgba(255, 170, 80, 0.10) 45%, transparent 70%)',
         'radial-gradient(900px 520px at 50% 115%, rgba(255, 120, 30, 0.22), transparent 70%)',
         'linear-gradient(180deg, #0f0820 0%, #1a0d2e 55%, #24102a 100%)'
-      ].join(', ')
+      ].join(', '),
+      // Плитка в 340 px шире карточки — в превью виден лишь угол с мышью.
+      // В карточке магазина рисуем её вдвое мельче (Shop.jsx).
+      previewSize: '210px 210px, auto, auto, auto, auto'
     }
   },
   {
@@ -418,7 +421,8 @@ export const SHOP_ITEMS = [
         'radial-gradient(circle at 86% 9%, #fff4dc 0, #fff4dc 26px, rgba(255, 244, 220, 0) 28px)',
         'radial-gradient(420px 420px at 86% 9%, rgba(255, 236, 200, 0.85), rgba(255, 200, 150, 0.25) 45%, transparent 70%)',
         'linear-gradient(180deg, #f1dcf3 0%, #fadfd0 55%, #f6c9a2 100%)'
-      ].join(', ')
+      ].join(', '),
+      previewSize: '210px 210px, auto, auto, auto'
     }
   },
   {
