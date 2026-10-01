@@ -14,7 +14,7 @@ import { hideSplash } from './lib/splash.js';
 import { loadingReady } from './lib/yandex.js';
 import { vkInit, preloadRewardedVk, preloadInterstitialVk, fitToVisibleFrame } from './lib/vk.js';
 import { reportArrival } from './lib/referral.js';
-import { reportMissions } from './lib/missions.js';
+import { missionPoints, reportMissions } from './lib/missions.js';
 import { Board } from './components/Board/Board.jsx';
 import { Keyboard } from './components/Keyboard/Keyboard.jsx';
 import { Stats } from './components/Stats/Stats.jsx';
@@ -254,7 +254,7 @@ function GameShell() {
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
-      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} showToast={showToast} />
+      <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} missionPoints={missionPoints(stats.unlockedAchievements)} showToast={showToast} />
       <GameModesModal
         open={modesOpen}
         onClose={() => setModesOpen(false)}

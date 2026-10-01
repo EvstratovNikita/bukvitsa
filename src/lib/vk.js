@@ -259,21 +259,23 @@ export async function getPlayerInfo() {
 // У VK она нативная: площадка сама рисует окно и сравнивает игрока с его
 // друзьями, которые тоже играют. Тип таблицы — «По баллам за миссии»
 // (Настройки → Дополнительные): значения VK хранит сам, их пишет сервер через
-// secure.addAppEvent (supabase/vk_missions.sql). Вызываем без user_result —
-// он только для показа и не сохраняется, а число, расходящееся с тем, что
-// видят друзья, VK прямо просит не показывать.
+// secure.addAppEvent (supabase/vk_missions.sql). user_result VK не сохраняет,
+// но без него окно не открывается (в типах моста он обязательный) — передаём
+// баллы миссий игрока, то есть ровно то, что VK у себя хранит.
 //
-// 'ok' — окно показали, 'closed' — игрок закрыл его сам, 'failed' — вызвать не
-// удалось (метод недоступен в этой версии клиента).
-export async function showLeaderboard() {
+// 'ok' — окно показали, 'closed' — игрок закрыл его сам, 'failed' / 'failed:<код>' —
+// вызвать не удалось (метод недоступен в этой версии клиента и т.п.).
+export async function showLeaderboard(points) {
   if (!isVk) return 'failed';
   try {
     await vkInit();
-    const r = await send('VKWebAppShowLeaderBoardBox', {});
+    const r = await send('VKWebAppShowLeaderBoardBox', { user_result: Math.max(0, Math.round(points) || 0) });
     return r?.success ? 'ok' : 'closed';
   } catch (e) {
     console.warn('[vk] ShowLeaderBoardBox failed', e);
-    return 'failed';
+    // Код ошибки VK — в тосте, чтобы причину было видно и без консоли.
+    const code = e?.error_data?.error_code ?? e?.error_data?.error_reason;
+    return code != null ? `failed:${code}` : 'failed';
   }
 }
 
