@@ -156,6 +156,17 @@ test('лента: ступени открываются по заработан�
   assert.equal(nextStep({ earned: HW_TRACK_MAX }), null);
 });
 
+test('конец ленты: тыкв больше не дают, лимит дня не трогается', () => {
+  let r = win({ ...HW_DEFAULT, earned: HW_TRACK_MAX - 1, steps: HW_TRACK.slice(0, -1).map((x) => x.id) }, 1, 'луна');
+  assert.equal(r.gained, 1);
+  assert.equal(r.capped, true);
+  assert.deepEqual(r.newSteps.map((x) => x.id), ['hw-s8']);
+  r = win(r.next, 1, 'паук');
+  assert.equal(r.gained, 0);
+  assert.equal(r.capped, true);
+  assert.equal(r.next.earned, HW_TRACK_MAX);
+});
+
 test('версия с лавкой: потраченные тыквы не теряются', () => {
   const hw = normalizeHalloween({ pumpkins: 4, earned: 30, bought: ['hw-witchhat'] });
   assert.equal(hw.earned, 30);

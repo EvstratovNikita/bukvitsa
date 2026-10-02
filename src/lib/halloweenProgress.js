@@ -1,4 +1,4 @@
-import { HW_DAILY_CAP, HW_ITEMS, HW_RIDDLES, HW_TRACK } from '../data/halloween.js';
+import { HW_DAILY_CAP, HW_ITEMS, HW_RIDDLES, HW_TRACK, HW_TRACK_MAX } from '../data/halloween.js';
 
 // Прогресс ивента «Ночь тыкв» — чистые функции без React и хранилища, чтобы
 // их можно было проверить в node (scripts/test-halloween.mjs). Состояние
@@ -71,14 +71,17 @@ export function dueSteps(hw) {
   return HW_TRACK.filter((s) => s.need <= hw.earned && !got.has(s.id));
 }
 
+// Лента пройдена — тыквы больше не копятся (победа даёт опыт Букле, useGame).
+export const trackDone = (hw) => (hw?.earned || 0) >= HW_TRACK_MAX;
+
 // Итог партии в режиме. Слово помечается сыгранным при любом исходе — иначе
 // проигранная загадка возвращалась бы следующей же. Тыквы — с учётом
-// дневного лимита: capped — лимит на сегодня исчерпан этой или прошлой победой.
+// дневного лимита и конца ленты: capped — сегодня (или вообще) больше не дадут.
 // newSteps — ступени, открытые этой победой: их награды выдаёт useStats.
 export function applyHalloweenResult(raw, { won, attempts, word, today }) {
   const hw = normalizeHalloween(raw);
   const sofar = earnedToday(hw, today);
-  const room = Math.max(0, HW_DAILY_CAP - sofar);
+  const room = Math.max(0, Math.min(HW_DAILY_CAP - sofar, HW_TRACK_MAX - hw.earned));
   const gained = won ? Math.min(pumpkinsFor(attempts), room) : 0;
   const allSeen = HW_RIDDLES.every((r) => r.word === word || hw.seen.includes(r.word));
   const seen = allSeen ? [word] : (hw.seen.includes(word) ? hw.seen : [...hw.seen, word]);
@@ -95,7 +98,8 @@ export function applyHalloweenResult(raw, { won, attempts, word, today }) {
   const newSteps = dueSteps(next);
   next.steps = [...next.steps, ...newSteps.map((s) => s.id)];
   next.bought = [...new Set([...next.bought, ...newSteps.filter((s) => s.ref).map((s) => s.ref)])];
-  return { next, gained, capped: won && sofar + gained >= HW_DAILY_CAP, newSteps };
+  const capped = won && (sofar + gained >= HW_DAILY_CAP || next.earned >= HW_TRACK_MAX);
+  return { next, gained, capped, newSteps };
 }
 
 // Слияние местного и облачного снимков: числа — по максимуму (как монеты в

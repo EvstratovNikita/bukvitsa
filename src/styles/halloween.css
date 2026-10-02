@@ -612,7 +612,18 @@
   box-shadow: inset 0 0 0 1px rgba(255, 150, 60, 0.6);
 }
 .ach-tab--hw.ach-tab--active .ach-tab__count { color: #ffa24a; }
-.ach-tab--hw:not(.ach-tab--active) { box-shadow: inset 0 0 0 1px rgba(255, 165, 90, 0.35); }
+/* Невыбранная — тоже тыквенная: лёгкая прозрачная заливка и рамка, чтобы
+   вкладку ивента было видно сразу, а текст читался. */
+.ach-tab--hw:not(.ach-tab--active) {
+  background: rgba(255, 138, 31, 0.1);
+  color: #ffc896;
+  box-shadow: inset 0 0 0 1px rgba(255, 165, 90, 0.45);
+}
+[data-theme="light"] .ach-tab--hw:not(.ach-tab--active) {
+  background: rgba(255, 138, 31, 0.1);
+  color: #8a3a06;
+  box-shadow: inset 0 0 0 1px rgba(194, 86, 12, 0.35);
+}
 [data-theme="light"] .ach-tab--hw.ach-tab--active {
   background: #ffe6cc;
   color: #7a3206;

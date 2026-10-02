@@ -1,7 +1,7 @@
 import { GAME_STATUS, HINT_COST, todayKey } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { HW_DAILY_CAP, HW_TRACK, HW_TRACK_MAX } from '../../data/halloween.js';
-import { earnedToday, nextStep } from '../../lib/halloweenProgress.js';
+import { earnedToday, nextStep, trackDone } from '../../lib/halloweenProgress.js';
 import { plural } from '../../utils/plural.js';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { PumpkinIcon, stepInfo } from './HwIcons.jsx';
@@ -117,11 +117,17 @@ export function HwRoundResult({ compact = false }) {
       )}
       {won && bonusXp > 0 && (
         <div className="hw-result__capped">
-          {gained > 0 ? 'Лимит тыкв на сегодня набран' : 'Тыквы на сегодня собраны'} — вместо них
-          {' '}<b>+{bonusXp} опыта</b> Букле. Завтра снова {HW_DAILY_CAP} 🎃
+          {trackDone(hw) ? (
+            <>Лента пройдена — вместо тыкв <b>+{bonusXp} опыта</b> Букле</>
+          ) : (
+            <>
+              {gained > 0 ? 'Лимит тыкв на сегодня набран' : 'Тыквы на сегодня собраны'} — вместо них
+              {' '}<b>+{bonusXp} опыта</b> Букле. Завтра снова {HW_DAILY_CAP} 🎃
+            </>
+          )}
         </div>
       )}
-      {won && gained === 0 && !bonusXp && capped && (
+      {won && gained === 0 && !bonusXp && capped && !trackDone(hw) && (
         <div className="hw-result__capped">Тыквы на сегодня собраны — завтра ещё {HW_DAILY_CAP}</div>
       )}
       <div className="hw-result__track">

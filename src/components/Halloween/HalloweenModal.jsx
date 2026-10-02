@@ -1,7 +1,7 @@
 import { useGameContext } from '../../context/GameContext.jsx';
 import { HALLOWEEN, halloweenDaysLeft } from '../../lib/events.js';
 import { HW_DAILY_CAP, HW_TRACK, HW_TRACK_MAX } from '../../data/halloween.js';
-import { earnedToday, nextStep } from '../../lib/halloweenProgress.js';
+import { earnedToday, nextStep, trackDone } from '../../lib/halloweenProgress.js';
 import { todayKey } from '../../constants/game.js';
 import { plural } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
@@ -50,10 +50,16 @@ export function HalloweenModal({ open, onClose, onPlay, onOpenAchievements }) {
             <b>Лента наград</b>
             <span className="hw-track__count"><PumpkinIcon /> {earned} / {HW_TRACK_MAX}</span>
           </div>
-          <div className="hw-track__today">
-            <span>Собрано сегодня: <b>{today}</b> из {HW_DAILY_CAP}</span>
-            <span className="hw-track__bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span>
-          </div>
+          {trackDone(hw) ? (
+            <div className="hw-track__today">
+              <span>Все награды получены — за загадки теперь опыт Букле</span>
+            </div>
+          ) : (
+            <div className="hw-track__today">
+              <span>Собрано сегодня: <b>{today}</b> из {HW_DAILY_CAP}</span>
+              <span className="hw-track__bar" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span>
+            </div>
+          )}
           <ol className="hw-track__steps">
             {HW_TRACK.map((st) => {
               const info = stepInfo(st);
