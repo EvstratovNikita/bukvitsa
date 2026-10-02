@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { CloseIcon } from '../icons/Icon.jsx';
 
 // Сколько окон открыто сейчас. Пока есть хоть одно, на <html> висит
 // modal-open: анимации главного меню под затемнением встают на паузу
-// (index.css) — телефону не нужно тратить на них кадры.
+// (index.css) — телефону не нужно тратить на них кадры. Ставим до отрисовки
+// (useLayoutEffect): в том же кадре, что и само окно, а не отдельным
+// пересчётом стилей кадром позже.
 let openCount = 0;
 
 export function Modal({ open, onClose, title, headerRight, children }) {
@@ -14,7 +16,7 @@ export function Modal({ open, onClose, title, headerRight, children }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return undefined;
     openCount += 1;
     document.documentElement.classList.add('modal-open');
