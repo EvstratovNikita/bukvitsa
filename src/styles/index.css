@@ -329,12 +329,14 @@ button { font-family: inherit; }
 }
 
 /* ---------- Side menu ---------- */
+/* Затемнение без размытия. На телефоне backdrop-filter включался на кадр-два
+   позже самой подложки: экран сначала темнел чётким, потом резко
+   размывался — это и было «моргание» при открытии разделов (видно на записи
+   экрана, сильнее в тёмной теме). Так же у .modal-backdrop и .gameend. */
 .menu-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(5, 7, 12, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(5, 7, 12, 0.66);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--t-med);
@@ -2131,9 +2133,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(5, 7, 12, 0.55);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(5, 7, 12, 0.66);
   z-index: 100;
   animation: fade 240ms ease both;
   /* Req 1.10.1 — карточку не обрезаем: на низких экранах (iPhone SE) её
@@ -2584,8 +2584,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 /* ---------- Modal ---------- */
 .modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(5, 7, 12, 0.55);
-  backdrop-filter: blur(6px);
+  background: rgba(5, 7, 12, 0.66);
   display: grid; place-items: center;
   z-index: 100;
   animation: fade var(--t-med);
@@ -7044,10 +7043,9 @@ body.has-bg .cell--hinted .cell__face--back {
 .app--home > .end-panel { content-visibility: hidden; }
 /* Экран Букли закрыл меню целиком — меню не рисуем (App.jsx, petCovers). */
 .app--pet > .home { content-visibility: hidden; }
-/* Окно поверх меню: подложка размывает меню, а размытие поверх движущихся
-   слоёв (сова, искры, летучие мыши) на Android пересчитывается рывками —
-   моргание. Под окном меню всё равно не разглядеть — останавливаем его
-   анимации (Modal.jsx ставит modal-open). */
+/* Окно поверх меню: меню под затемнением всё равно не разглядеть —
+   останавливаем его анимации, чтобы телефон не тратил на них кадры
+   (Modal.jsx ставит modal-open). */
 .modal-open .home *,
 .modal-open .home *::before,
 .modal-open .home *::after { animation-play-state: paused !important; }
@@ -7120,7 +7118,11 @@ body.has-bg .cell--hinted .cell__face--back {
   border-color: rgba(150, 172, 255, 0.22);
   box-shadow: 0 24px 60px rgba(2, 4, 24, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-:root:not([data-theme="light"]) .modal-backdrop { background: rgba(4, 7, 30, 0.6); }
+:root:not([data-theme="light"]) .modal-backdrop { background: rgba(4, 7, 30, 0.72); }
+/* В светлой теме без размытия плотное затемнение выглядело грязным — легче. */
+[data-theme="light"] .modal-backdrop,
+[data-theme="light"] .menu-backdrop,
+[data-theme="light"] .gameend { background: rgba(24, 26, 48, 0.5); }
 :root:not([data-theme="light"]) .pet-screen {
   background:
     radial-gradient(80vmax 60vmax at -10% -10%, rgba(84, 146, 255, 0.22), transparent 70%),
