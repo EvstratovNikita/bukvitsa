@@ -2610,7 +2610,6 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
   top: 0;
   z-index: 2;
   background: var(--bg-1);
-  backdrop-filter: blur(8px);
 }
 /* Заголовок растягивается — всё остальное (слот и крестик) прижато вправо. */
 .modal__title { margin: 0; font-size: 18px; flex: 1 1 auto; min-width: 0; }
@@ -7045,6 +7044,13 @@ body.has-bg .cell--hinted .cell__face--back {
 .app--home > .end-panel { content-visibility: hidden; }
 /* Экран Букли закрыл меню целиком — меню не рисуем (App.jsx, petCovers). */
 .app--pet > .home { content-visibility: hidden; }
+/* Окно поверх меню: подложка размывает меню, а размытие поверх движущихся
+   слоёв (сова, искры, летучие мыши) на Android пересчитывается рывками —
+   моргание. Под окном меню всё равно не разглядеть — останавливаем его
+   анимации (Modal.jsx ставит modal-open). */
+.modal-open .home *,
+.modal-open .home *::before,
+.modal-open .home *::after { animation-play-state: paused !important; }
 
 @keyframes home-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes home-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
