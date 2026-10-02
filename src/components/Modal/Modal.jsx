@@ -2,9 +2,8 @@ import { useEffect } from 'react';
 import { CloseIcon } from '../icons/Icon.jsx';
 
 // Сколько окон открыто сейчас. Пока есть хоть одно, на <html> висит
-// modal-open: анимации главного меню под размытой подложкой встают на паузу
-// (index.css). Размытие поверх движущихся слоёв на Android пересчитывалось
-// рывками — меню за окном «моргало», сильнее всего в тёмной теме.
+// modal-open: анимации главного меню под затемнением встают на паузу
+// (index.css) — телефону не нужно тратить на них кадры.
 let openCount = 0;
 
 export function Modal({ open, onClose, title, headerRight, children }) {
