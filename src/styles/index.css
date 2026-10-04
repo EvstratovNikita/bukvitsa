@@ -4376,6 +4376,8 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
      itself comes from the spotlight's huge box-shadow. */
   pointer-events: auto;
 }
+/* Ликбез Букли — поверх её экрана (50, из меню VK — 95). */
+.tour--pet { z-index: 120; }
 .tour__spot {
   position: fixed;
   border-radius: 12px;

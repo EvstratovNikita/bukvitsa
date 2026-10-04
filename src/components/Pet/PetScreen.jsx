@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HUNGER_MAX, PET_UNLOCK_GAMES, energySpeedFromHunger, petComputeLevel } from '../../constants/game.js';
 import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '../../data/petDecorations.js';
 import { PET_TREATS } from '../../data/petTreats.js';
@@ -9,8 +9,58 @@ import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
 import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
 import { BOND_MINUTES_PER_POINT } from '../../utils/petBond.js';
+import { Tour } from '../Tour/Tour.jsx';
 
 const HATCH_DURATION_MS = 3200;
+
+// Ликбез экрана Букли — один раз, сразу после вылупления: новичок видит опыт,
+// сытость и четыре вкладки и не понимает, зачем они. Уже вылупившимся раньше
+// игрокам он не нужен — показ решает флаг prefs.petTourDone, который
+// hatchPet ставит в false (у старых игроков его нет вовсе).
+// tab — какую вкладку открыть под подсказкой, чтобы было видно, о чём речь.
+const PET_TOUR = [
+  {
+    sel: '[data-tour="pet-scene"]',
+    title: 'Знакомься — Букля!',
+    text: 'Это твой питомец. Она растёт, пока ты разгадываешь слова, и помогает в игре.'
+  },
+  {
+    sel: '[data-tour="pet-xp"]',
+    title: 'Опыт и уровни',
+    text: 'Опыт Букля получает за каждое угаданное слово: чем меньше попыток, тем больше. С новыми уровнями открываются новые наряды.',
+    pad: 6
+  },
+  {
+    sel: '[data-tour="pet-hunger"]',
+    title: 'Сытость',
+    text: 'Сытая Букля ускоряет восстановление энергии — до ×2. Со временем она проголодается, не забывай кормить.',
+    pad: 6
+  },
+  {
+    sel: '[data-tour="pet-tab-cheer"]',
+    tab: 'cheer',
+    title: 'Наряды',
+    text: 'Украшения за монеты. Каждое надетое прибавляет монеты к награде за победу.'
+  },
+  {
+    sel: '[data-tour="pet-tab-feed"]',
+    tab: 'feed',
+    title: 'Покормить',
+    text: 'Угощения за монеты поднимают сытость — и энергия копится быстрее.'
+  },
+  {
+    sel: '[data-tour="pet-tab-train"]',
+    tab: 'train',
+    title: 'Обучить',
+    text: 'Мини-игры раз в день: Букля получает опыт, а ты — монеты.'
+  },
+  {
+    sel: '[data-tour="pet-tab-gifts"]',
+    tab: 'gifts',
+    title: 'Подарки',
+    text: 'Пока Букля сыта, растёт привязанность. Заполни шкалу — и она принесёт редкий фон или стиль клеток.'
+  }
+];
 
 const TABS = [
   { id: 'cheer', icon: '🎀', label: 'Наряды'     },
@@ -45,7 +95,8 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
     buyDecoration, equipDecoration, unequipDecorationSlot,
     showToast,
     petBond, petBondMax, petGiftReady, petGifts, claimPetGift,
-    setActiveBackground, setActiveCellStyle, setTheme
+    setActiveBackground, setActiveCellStyle, setTheme,
+    setPref
   } = useGameContext();
   // Rename intentionally disabled — pet is always "Букля" for now.
   const pet = stats.pet || {};
@@ -63,6 +114,11 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
   // tapped treat button to Букля's mouth. Multiple can be in-flight.
   const [flyingTreats, setFlyingTreats] = useState([]);
   const sceneRef = useRef(null);
+  // Под подсказкой про вкладку открываем саму вкладку; после ликбеза — снова
+  // «Наряды», с которых экран и начинается.
+  const onTourStep = useCallback((step) => { if (step?.tab) setTab(step.tab); }, []);
+  const onTourDone = useCallback(() => { setTab('cheer'); setPref?.('petTourDone', true); }, [setPref]);
+  const tourOn = mode === 'owl' && stats.prefs?.petTourDone === false;
 
   useEffect(() => {
     if (!open) return;
@@ -184,7 +240,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
       </header>
 
       <div className="pet-screen__body">
-        <div className="pet-screen__scene" ref={sceneRef}>
+        <div className="pet-screen__scene" ref={sceneRef} data-tour="pet-scene">
           <PetScene mode={mode} equipped={equipped} />
         </div>
 
@@ -203,7 +259,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
               </div>
 
               <div className="pet-summary__bars">
-                <div className="pet-bar">
+                <div className="pet-bar" data-tour="pet-xp">
                   <div className="pet-bar__row">
                     <span className="pet-bar__label">XP (очки опыта)</span>
                     <span className="pet-bar__value">{lvl.xpInLevel} / {lvl.xpForNext}</span>
@@ -213,7 +269,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
                   </div>
                 </div>
 
-                <div className="pet-bar">
+                <div className="pet-bar" data-tour="pet-hunger">
                   <div className="pet-bar__row">
                     <span className="pet-bar__label">Сытость</span>
                     <span className="pet-bar__value">
@@ -243,6 +299,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
                   key={t.id}
                   type="button"
                   role="tab"
+                  data-tour={`pet-tab-${t.id}`}
                   className={`pet-tab${tab === t.id ? ' pet-tab--active' : ''}`}
                   onClick={() => setTab(t.id)}
                   onMouseDown={(e) => e.preventDefault()}
@@ -283,6 +340,10 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
           </>
         )}
       </div>
+
+      {tourOn && (
+        <Tour steps={PET_TOUR} storageKey={null} onStep={onTourStep} onDone={onTourDone} className="tour--pet" />
+      )}
 
       {/* Flying-treat layer — fixed-positioned emojis traveling from the
           tapped button to Букля's mouth. Lives at the screen root so it

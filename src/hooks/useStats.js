@@ -636,6 +636,12 @@ export function useStats() {
           ...(s.pet || {}),
           hatched: true,
           bornAt: new Date().toISOString()
+        },
+        // Ликбез экрана Букли (PetScreen) ждёт именно false: у игроков,
+        // вылупивших Буклю раньше, флага нет — им он не показывается.
+        prefs: {
+          ...(s.prefs || DEFAULT_STATS.prefs),
+          petTourDone: s.prefs?.petTourDone === true
         }
       };
     });

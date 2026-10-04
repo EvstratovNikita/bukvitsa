@@ -38,23 +38,44 @@ const STEPS = [
         text: 'Магазин, достижения, статистика и настройки — всё здесь.'
       }
 ];
-export function Tour({ onDone }) {
-  const [steps] = useState(() => STEPS.filter((s) => document.querySelector(s.sel)));
+// steps — свой набор шагов (ликбез экрана Букли); storageKey — локальный
+// флаг «пройдено» (null — не писать, флаг тогда ведёт вызывающий); onStep —
+// вызывается при показе шага (например, переключить вкладку под подсказкой);
+// className — для слоя поверх полноэкранных экранов.
+export function Tour({ onDone, steps: stepsProp = STEPS, storageKey = TOUR_DONE_KEY, onStep, className = '' }) {
+  // Шаги отбираем после монтирования, а не при первом рендере: тур может
+  // появиться в одном коммите со своими целями (вкладки Букли сразу после
+  // вылупления), и до коммита их ещё нет в DOM.
+  const [steps, setSteps] = useState(null);
+  useLayoutEffect(() => {
+    setSteps(stepsProp.filter((s) => document.querySelector(s.sel)));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [i, setI] = useState(0);
   const [rect, setRect] = useState(null);
   const popRef = useRef(null);
   const [popH, setPopH] = useState(0);
 
   const measure = useCallback(() => {
-    const step = steps[i];
+    const step = steps?.[i];
     if (!step) return;
     const el = document.querySelector(step.sel);
     if (!el) { setRect(null); return; }
+    // Цель может быть ниже края прокручиваемого экрана (вкладки Букли на
+    // низком телефоне) — сначала показать её, потом мерить.
+    el.scrollIntoView?.({ block: 'nearest' });
     const r = el.getBoundingClientRect();
     setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
   }, [steps, i]);
 
+  useLayoutEffect(() => { if (steps?.[i]) onStep?.(steps[i]); }, [steps, i, onStep]);
   useLayoutEffect(() => { measure(); }, [measure]);
+  // onStep мог поменять раскладку (другая вкладка — другая высота экрана):
+  // перемерить, когда она уляжется.
+  useEffect(() => {
+    let r2 = 0;
+    const r1 = requestAnimationFrame(() => { measure(); r2 = requestAnimationFrame(measure); });
+    return () => { cancelAnimationFrame(r1); cancelAnimationFrame(r2); };
+  }, [measure]);
   useLayoutEffect(() => { if (popRef.current) setPopH(popRef.current.offsetHeight); }, [i, rect]);
 
   useEffect(() => {
@@ -68,9 +89,9 @@ export function Tour({ onDone }) {
   }, [measure]);
 
   const finish = useCallback(() => {
-    try { localStorage.setItem(TOUR_DONE_KEY, '1'); } catch { /* noop */ }
+    if (storageKey) { try { localStorage.setItem(storageKey, '1'); } catch { /* noop */ } }
     onDone();
-  }, [onDone]);
+  }, [onDone, storageKey]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') finish(); };
@@ -78,7 +99,7 @@ export function Tour({ onDone }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [finish]);
 
-  if (!steps.length) return null;
+  if (!steps?.length) return null;
 
   const step = steps[i];
   const last = i === steps.length - 1;
@@ -112,7 +133,7 @@ export function Tour({ onDone }) {
   }
 
   return (
-    <div className="tour" role="dialog" aria-modal="true" aria-label="Обучение">
+    <div className={`tour${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-label="Обучение">
       {spot && (
         <div
           className="tour__spot"

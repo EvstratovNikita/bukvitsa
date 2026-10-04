@@ -145,7 +145,10 @@ function mergePrefs(a, b, cosmeticFromA) {
     petBond: maxNum(pa.petBond, pb.petBond) ?? 0,
     petBondTickAt: later(pa.petBondTickAt, pb.petBondTickAt),
     // Обучение проходят один раз на игрока, а не на устройство.
-    tourDone: Boolean(pa.tourDone || pb.tourDone)
+    tourDone: Boolean(pa.tourDone || pb.tourDone),
+    // Ликбез Букли: пройден на любой стороне — пройден; ждёт (false) — ждёт;
+    // нет флага ни там, ни там — Букля вылуплялась до ликбеза, не показываем.
+    petTourDone: pa.petTourDone || pb.petTourDone || (pa.petTourDone ?? pb.petTourDone)
   };
 }
 
