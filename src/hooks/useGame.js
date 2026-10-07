@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
-import { showRewardedAd, showInterstitial } from '../lib/ads.js';
+import { showRewardedAd, showInterstitial, rewardedFailText } from '../lib/ads.js';
 import { isVk } from '../lib/platform.js';
 import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
 import { submitScore } from '../lib/leaderboard.js';
@@ -341,9 +341,12 @@ export function useGame() {
     isLocked.current = false;
   }, [wordLength, solution, gameMode]);
 
-  const showToast = useCallback((text) => {
-    setToast({ text, id: Date.now() });
-    setTimeout(() => setToast(null), 1600);
+  // ms — для подсказок, которые надо успеть прочесть (сетка в буфере).
+  // Таймер снимает только свой тост: короткий следующий не гасит длинный раньше.
+  const showToast = useCallback((text, ms = 1600) => {
+    const id = Date.now() + Math.random();
+    setToast({ text, id });
+    setTimeout(() => setToast((t) => (t?.id === id ? null : t)), ms);
   }, []);
 
   // Show an interstitial on every 2nd inter-game transition. Yandex throttles
@@ -964,11 +967,7 @@ export function useGame() {
       const r = await showRewardedAd();
       setDoublingAd(false);
       if (r !== 'rewarded') {
-        showToast(
-          r === 'closed' ? 'Реклама закрыта раньше'
-            : r === 'nofill' ? 'Сейчас нет рекламы — попробуйте позже'
-              : 'Реклама недоступна'
-        );
+        showToast(rewardedFailText(r), r === 'closed' ? 1600 : 4000);
         return r;
       }
       // Re-check + tally against the cap (guards against races / stale closure).

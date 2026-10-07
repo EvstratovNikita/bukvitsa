@@ -342,6 +342,16 @@ function noteAd(entry) {
 // предзагрузкой, а нет ли ролика на самом деле — скажет сам показ.
 export async function showRewardedVk() {
   if (!isVk) return 'failed';
+  const first = await showRewardedVkOnce();
+  if (first !== 'nofill' && first !== 'failed') return first;
+  // Один повтор: заново загрузить ролик и показать. Пустой ответ сети часто
+  // разовый (не успел загрузиться, сеть водопада не ответила вовремя), а у
+  // игроков с VPN заполнение и так редкое — вторая попытка заметно помогает.
+  await checkNativeAds('reward');
+  return showRewardedVkOnce();
+}
+
+async function showRewardedVkOnce() {
   try {
     await vkInit();
     const r = await sendAd('VKWebAppShowNativeAds', adParams('reward'));

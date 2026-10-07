@@ -54,7 +54,8 @@ export function GameEnd() {
     status, solution, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, stats,
     guesses, evaluations, gameMode, exitDailyMode, reset,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength,
-    nextHalloweenRiddle, riddle
+    nextHalloweenRiddle, riddle,
+    showToast
   } = useGameContext();
   // В Слове дня «бонус» — это вторая половина удвоенной награды; в обычной
   // игре раскладка приходит готовой, вычитать ничего не нужно.
@@ -94,7 +95,12 @@ export function GameEnd() {
       isDaily ? getDailyNumber() : null,
       url
     );
-    const r = await share({ title: 'Буклица — Слово дня', text, url });
+    // На vk.com окно VK шлёт только ссылку — сетка уходит в буфер, и
+    // подсказка висит, пока игрок пишет сообщение.
+    const r = await share({
+      title: 'Буклица — Слово дня', text, url,
+      onCopied: () => showToast?.('Сетка скопирована — вставь её в сообщение', 5000)
+    });
     setShareStatus(r);
     setTimeout(() => setShareStatus(null), 1600);
   };

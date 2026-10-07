@@ -19,7 +19,8 @@ export function EndPanel() {
     lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft,
     gameMode, exitDailyMode, wordLength, stats,
-    exitHalloween, nextHalloweenRiddle, riddle
+    exitHalloween, nextHalloweenRiddle, riddle,
+    showToast
   } = useGameContext();
   const [shareStatus, setShareStatus] = useState(null);
   if (status === GAME_STATUS.PLAYING) return null;
@@ -56,7 +57,12 @@ export function EndPanel() {
       dayN,
       url
     );
-    const r = await share({ title: 'Буклица — Слово дня', text, url });
+    // На vk.com окно VK шлёт только ссылку — сетка уходит в буфер, и
+    // подсказка висит, пока игрок пишет сообщение.
+    const r = await share({
+      title: 'Буклица — Слово дня', text, url,
+      onCopied: () => showToast?.('Сетка скопирована — вставь её в сообщение', 5000)
+    });
     setShareStatus(r);
     setTimeout(() => setShareStatus(null), 1600);
   };
