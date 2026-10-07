@@ -9,7 +9,7 @@ import {
   msUntilNextEnergyUnit
 } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { showRewardedAd } from '../../lib/ads.js';
+import { showRewardedAd, rewardedFailText } from '../../lib/ads.js';
 import { pluralCoins } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
@@ -66,9 +66,9 @@ export function EnergyModal({ onOpenModes }) {
   // режим 5 букв: после пополнения ведём туда, куда он и шёл.
   const needsStart = !solution || status !== 'playing' || Boolean(pendingLength);
 
-  const flash = (type, text) => {
+  const flash = (type, text, ms = 1600) => {
     setFeedback({ type, text });
-    setTimeout(() => setFeedback(null), 1600);
+    setTimeout(() => setFeedback((f) => (f?.text === text ? null : f)), ms);
   };
 
   const onBuy = () => {
@@ -96,10 +96,8 @@ export function EnergyModal({ onOpenModes }) {
       const adBonus = recordAdWatched?.() || 0;
       flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} ${pluralCoins(adBonus)}` : `+${ENERGY_AD_REWARD} энергия`);
       if (needsStart) setWantStart(true);
-    } else if (result === 'closed') {
-      flash('err', 'Реклама закрыта раньше');
     } else {
-      flash('err', result === 'nofill' ? 'Сейчас нет рекламы — попробуйте позже' : 'Реклама недоступна');
+      flash('err', rewardedFailText(result), result === 'closed' ? 1600 : 4000);
     }
   };
 

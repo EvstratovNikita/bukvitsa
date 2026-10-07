@@ -100,7 +100,21 @@ async function shareTelegram(text, url) {
   }
 }
 
-async function shareVk(text, url) {
+// Где VKWebAppShare умеет текст. По документации (dev.vk.com/ru/bridge/
+// VKWebAppShare) параметр text — только в приложениях VK для Android и iOS;
+// на vk.com и m.vk.com окно отправляет одну ссылку. Раньше мы не передавали
+// text вовсе, и сетка Слова дня не доходила никуда — друг получал только
+// ссылку на игру.
+function vkShareTakesText() {
+  const p = launchParams().vk_platform || '';
+  return p === 'mobile_android' || p === 'mobile_iphone' || p === 'mobile_ipad'
+    || p === 'mobile_android_messenger' || p === 'mobile_iphone_messenger';
+}
+
+// onCopied — там, где текст в окно не попадёт, текст кладётся в буфер, чтобы
+// игрок вставил сетку в сообщение сам; колбэк зовётся ДО открытия окна VK,
+// чтобы подсказка «вставь» была видна, пока игрок пишет сообщение.
+async function shareVk(text, url, onCopied) {
   try {
     // Мост берём из пакета, а не из window.vkBridge: при сборке из npm такого
     // глобала не существует, и эта ветка не срабатывала бы никогда.
@@ -108,7 +122,12 @@ async function shareVk(text, url) {
       // Ссылки нет — делиться нечем, кроме текста: отдаём его в буфер, а не
       // зовём мост с пустым link (он ответит ошибкой).
       if (!url) return copyToClipboard(text);
-      await vkBridge.send('VKWebAppShare', { link: url });
+      const withText = vkShareTakesText();
+      // Копируем до вызова моста — пока жест игрока ещё действует.
+      if (!withText && onCopied && (await copyText(text))) onCopied();
+      // Текст до 4000 символов; ссылка в нём уже есть, но мост добавляет её
+      // карточкой отдельно — так и задумано.
+      await vkBridge.send('VKWebAppShare', withText && text ? { link: url, text: text.slice(0, 4000) } : { link: url });
       reportShare();
       return 'shared';
     }
@@ -137,9 +156,9 @@ async function copyToClipboard(text, url) {
   return (await copyText(payload)) ? 'copied' : 'failed';
 }
 
-export async function share({ title = 'Буклица', text, url }) {
+export async function share({ title = 'Буклица', text, url, onCopied }) {
   if (isTelegram) return shareTelegram(text, url);
-  if (isVk)       return shareVk(text, url);
+  if (isVk)       return shareVk(text, url, onCopied);
   if (typeof navigator !== 'undefined' && navigator.share) {
     const r = await shareNative(title, text, url);
     if (r !== 'failed') return r;

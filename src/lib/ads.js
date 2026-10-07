@@ -13,6 +13,18 @@ import { platform, PLATFORMS } from './platform.js';
 import { getYsdk, showFullscreenAdv } from './yandex.js';
 import { showRewardedVk, showInterstitialVk } from './vk.js';
 
+// Что сказать игроку, если ролик за награду не показался. Рекламные сети
+// площадок отдают ролики в основном российскому трафику: с включённым VPN
+// игрок для них «из-за границы», и рекламы нет или она не грузится. Узнать
+// про VPN из игры нельзя — поэтому честная подсказка.
+export function rewardedFailText(result) {
+  if (result === 'closed') return 'Реклама закрыта раньше';
+  const vpn = platform === PLATFORMS.WEB ? '' : ' Если включён VPN — выключи его и попробуй снова.';
+  return result === 'nofill'
+    ? 'Сейчас нет рекламы.' + vpn
+    : 'Реклама не загрузилась.' + vpn;
+}
+
 // --- Stub adapter: used on plain web + dev. Fakes a 3s rewarded video so
 //     the energy flow stays testable without a live SDK.
 const stubAdapter = {
