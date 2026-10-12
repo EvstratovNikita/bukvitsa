@@ -9,6 +9,9 @@ import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
 import { PET_GIFTS, GIFT_IDS, getGift } from '../../data/petGifts.js';
 import { BOND_MINUTES_PER_POINT } from '../../utils/petBond.js';
+import { halloweenActive } from '../../lib/events.js';
+import { hwStepFor } from '../../data/halloween.js';
+import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 import { Tour } from '../Tour/Tour.jsx';
 
 const HATCH_DURATION_MS = 3200;
@@ -319,6 +322,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
                   coins={stats.coins || 0}
                   petLevel={lvl.level || 1}
                   onBuy={onBuyDeco}
+                  pumpkins={stats.halloween?.earned || 0}
                   onEquip={(id, slotOverride) => equipDecoration(id, slotOverride)}
                   onUnequipSlot={(slot) => unequipDecorationSlot(slot)}
                 />
@@ -402,11 +406,18 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
   );
 }
 
-function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUnequipSlot }) {
+// Хэллоуинская коллекция (награды ленты) — отдельный блок, пока идёт
+// ивент. После ивента купленные наряды стоят в своих слотах как обычные,
+// некупленные не показываются.
+const HW_DECOS = PET_DECORATIONS.filter((d) => d.event === 'halloween');
+
+function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUnequipSlot, pumpkins = 0 }) {
+  const hwOn = halloweenActive();
   const bySlot = SLOTS.map((s) => ({
     slot: s,
-    items: PET_DECORATIONS.filter((d) => d.slot === s.id)
+    items: PET_DECORATIONS.filter((d) => d.slot === s.id && (!d.event || (!hwOn && owned.includes(d.id))))
   }));
+  const hwItems = hwOn ? HW_DECOS : [];
 
   return (
     <div className="pet-decos">
@@ -415,6 +426,55 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
         можно носить два амулета (по одному на каждое крыло). Бонусы
         суммируются.
       </p>
+      {hwItems.length > 0 && (
+        <div className="pet-deco-group pet-deco-group--hw hw-frame">
+          <div className="pet-deco-group__head">
+            <span className="pet-deco-group__label">Награды ленты</span>
+            <HwBadge />
+          </div>
+          {hwItems.map((d) => {
+            const isOwned = owned.includes(d.id);
+            const isWing = d.slot === 'wing';
+            const onL = equipped.wingL === d.id;
+            const onR = equipped.wingR === d.id;
+            const worn = isWing ? (onL || onR) : equipped[d.slot] === d.id;
+            return (
+              <div key={d.id} className={`pet-deco pet-deco--hw${worn ? ' pet-deco--active' : ''}${!isOwned ? ' pet-deco--locked' : ''}`}>
+                <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
+                <span className="pet-deco__meta">
+                  <span className="pet-deco__name">{d.name}</span>
+                  <span className="pet-deco__desc">{d.desc}</span>
+                  <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)} за победу</span>
+                </span>
+                <div className="pet-deco__cta">
+                  {!isOwned ? (
+                    // Не продаётся — выдаётся лентой «Ночи тыкв» на этой отметке.
+                    <span className="pet-deco__chip pet-deco__hw-need" title="Награда ленты «Ночи тыкв»">
+                      {hwStepFor(d.id)?.need} <PumpkinIcon />
+                    </span>
+                  ) : isWing ? (
+                    <div className="pet-deco__wing-btns">
+                      <button type="button" className={`pet-deco__wing-btn${onL ? ' pet-deco__wing-btn--on' : ''}`}
+                        onClick={() => onEquip(d.id, 'wingL')} onMouseDown={(e) => e.preventDefault()}>Лев</button>
+                      <button type="button" className={`pet-deco__wing-btn${onR ? ' pet-deco__wing-btn--on' : ''}`}
+                        onClick={() => onEquip(d.id, 'wingR')} onMouseDown={(e) => e.preventDefault()}>Прав</button>
+                    </div>
+                  ) : worn ? (
+                    <button type="button" className="pet-deco__chip pet-deco__chip--btn"
+                      onClick={() => onUnequipSlot(d.slot)} onMouseDown={(e) => e.preventDefault()}>Снять</button>
+                  ) : (
+                    <button type="button" className="btn btn--primary pet-deco__btn"
+                      onClick={() => onEquip(d.id)} onMouseDown={(e) => e.preventDefault()}>Надеть</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          {hwItems.some((d) => !owned.includes(d.id)) && (
+            <p className="pet-deco-group__note">Наряды выдаёт лента наград: тыквы за «Загадки ночи». У тебя <b>{pumpkins}</b> 🎃</p>
+          )}
+        </div>
+      )}
       {bySlot.map(({ slot, items }) => {
         const isWing = slot.id === 'wing';
         const wingL = equipped.wingL;

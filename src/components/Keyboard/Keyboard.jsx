@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { KEYBOARD_ROWS, LETTER_STATUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BackspaceIcon, EnterIcon } from '../icons/Icon.jsx';
@@ -27,7 +28,7 @@ function Key({ value, status, onClick, wide }) {
   );
 }
 
-export function Keyboard() {
+function KeyboardView() {
   const { addLetter, removeLetter, submit, keyboardStatuses, stats } = useGameContext();
   const enterOnLeft = Boolean(stats?.prefs?.enterOnLeft);
 
@@ -73,3 +74,7 @@ export function Keyboard() {
     </div>
   );
 }
+
+// Открытие любого окна меняет состояние в App, и без memo это перерисовывало
+// всё дерево. Компонент берёт данные из контекста — его изменения дойдут и так.
+export const Keyboard = memo(KeyboardView);

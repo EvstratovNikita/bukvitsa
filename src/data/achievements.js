@@ -1,4 +1,6 @@
 import { isEmbedded } from '../lib/platform.js';
+import { halloweenActive } from '../lib/events.js';
+import { HW_TRACK } from './halloween.js';
 
 // Achievements catalog. Each entry is a pure descriptor — no state, no
 // mutation — so the same array drives both the listing UI and the
@@ -28,7 +30,7 @@ import { isEmbedded } from '../lib/platform.js';
 //   pet.level       — Букля's level (derived from xp)
 //   referralsCount  — verified invitees credited to this user
 
-import { PET_DECORATIONS } from './petDecorations.js';
+import { PET_DECORATIONS, REGULAR_DECORATIONS } from './petDecorations.js';
 
 const allDistributionFilled = (s) =>
   (s.distribution || []).every((n) => (n || 0) > 0);
@@ -49,13 +51,28 @@ const equippedSlotCount = (s) => {
   if (e.wingR)  n++;
   return n;
 };
-const TOTAL_DECO = PET_DECORATIONS.length;
+const TOTAL_DECO = REGULAR_DECORATIONS.length;
+// Для «Коллекционера модных вещей» считаются только обычные украшения:
+// ивентовые нельзя купить, и с ними счётчик дошёл бы до цели раньше.
+const REGULAR_DECO_IDS = new Set(REGULAR_DECORATIONS.map((d) => d.id));
+const ownedRegularDecoCount = (s) =>
+  (s.pet?.ownedDecorations || []).filter((id) => REGULAR_DECO_IDS.has(id)).length;
 
+// event — вкладка ивента: видна, пока ивент идёт, а после — только если в
+// ней что-то открыто (visibleAchievementCategories).
 export const ACHIEVEMENT_CATEGORIES = [
   { id: 'words',   label: 'Слова'    },
   { id: 'shop',    label: 'Покупки'  },
-  { id: 'pet',     label: 'Питомец'  }
+  { id: 'pet',     label: 'Питомец'  },
+  { id: 'halloween', label: 'Хэллоуин', event: 'halloween' }
 ];
+
+// Ивент «Ночь тыкв»: сколько ивентовых нарядов сейчас на Букле.
+const HW_DECO_IDS = new Set(PET_DECORATIONS.filter((d) => d.event === 'halloween').map((d) => d.id));
+const hwWornCount = (s) => Object.values(s.pet?.equipped || {}).filter((id) => HW_DECO_IDS.has(id)).length;
+const hw = (s) => s.halloween || {};
+// Сколько ступеней ленты наград пройдено (по заработанным тыквам).
+const hwStepsDone = (s) => HW_TRACK.filter((st) => (hw(s).earned || 0) >= st.need).length;
 
 export const ACHIEVEMENTS = [
   // ============ СЛОВА ============
@@ -260,8 +277,45 @@ export const ACHIEVEMENTS = [
     id: 'deco_collection', category: 'pet', tier: 'hard', icon: '🏆', reward: 200,
     title: 'Коллекционер модных вещей',
     desc: 'Купи все украшения для Букли',
-    check: (s) => ownedDecoCount(s) >= TOTAL_DECO,
-    progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedDecoCount(s)), target: TOTAL_DECO })
+    check: (s) => ownedRegularDecoCount(s) >= TOTAL_DECO,
+    progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedRegularDecoCount(s)), target: TOTAL_DECO })
+  },
+
+  // ============ ХЭЛЛОУИН 2026 (ивент «Ночь тыкв») ============
+  {
+    id: 'hw_first', category: 'halloween', tier: 'easy', icon: '🎃', reward: 10,
+    title: 'Первая тыква',
+    desc: 'Разгадай первую загадку ночи',
+    check: (s) => (hw(s).solved || 0) >= 1,
+    progress: (s) => ({ current: Math.min(1, hw(s).solved || 0), target: 1 })
+  },
+  {
+    id: 'hw_seer', category: 'halloween', tier: 'easy', icon: '🔮', reward: 30,
+    title: 'Ясновидящая сова',
+    desc: 'Разгадай загадку ночи с первой попытки',
+    check: (s) => (hw(s).firstTry || 0) >= 1,
+    progress: (s) => ({ current: Math.min(1, hw(s).firstTry || 0), target: 1 })
+  },
+  {
+    id: 'hw_solver', category: 'halloween', tier: 'hard', icon: '🕯️', reward: 40,
+    title: 'Знаток загадок',
+    desc: 'Разгадай 15 загадок ночи',
+    check: (s) => (hw(s).solved || 0) >= 15,
+    progress: (s) => ({ current: Math.min(15, hw(s).solved || 0), target: 15 })
+  },
+  {
+    id: 'hw_outfit', category: 'halloween', tier: 'hard', icon: '🧙', reward: 50,
+    title: 'Ведьмин наряд',
+    desc: 'Надень на Буклю 3 предмета из хэллоуинской коллекции',
+    check: (s) => hwWornCount(s) >= 3,
+    progress: (s) => ({ current: Math.min(3, hwWornCount(s)), target: 3 })
+  },
+  {
+    id: 'hw_path', category: 'halloween', tier: 'hard', icon: '👑', reward: 100,
+    title: 'Тыквенный король',
+    desc: 'Пройди всю ленту наград «Ночи тыкв»',
+    check: (s) => hwStepsDone(s) >= HW_TRACK.length,
+    progress: (s) => ({ current: hwStepsDone(s), target: HW_TRACK.length })
   }
   // Достижения «Друзья» (invite_1, invite_5) убраны вместе с приглашениями:
   // на Яндексе нет входа через Google/email, засчитать приглашение нечем —
@@ -277,6 +331,15 @@ export const ACHIEVEMENTS_BY_CATEGORY = ACHIEVEMENT_CATEGORIES.reduce((acc, c) =
 }, {});
 
 export const getAchievement = (id) => ACHIEVEMENTS.find((a) => a.id === id);
+
+// Вкладки, которые видит игрок: ивентовая — пока ивент идёт, а после него
+// только если в ней что-то открыто (иначе висела бы пустая вкладка с
+// недостижимыми целями).
+export function visibleAchievementCategories(stats) {
+  const unlocked = new Set(stats?.unlockedAchievements || []);
+  return ACHIEVEMENT_CATEGORIES.filter((c) => !c.event || halloweenActive()
+    || (ACHIEVEMENTS_BY_CATEGORY[c.id] || []).some((a) => unlocked.has(a.id)));
+}
 
 // Returns { current, target } for any achievement, synthesising 0/1 vs 1/1
 // for boolean-only items so the UI never needs a special-case branch.

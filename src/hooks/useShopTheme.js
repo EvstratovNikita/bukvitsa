@@ -14,7 +14,7 @@ function resolveBackgroundPayload(id) {
 }
 
 // All toggleable cell-style classes (shop + gifts), removed before applying one.
-const ALL_CELL_STYLES = ['cells-neon', 'cells-shimmer', 'cells-emerald', ...GIFT_CELL_IDS];
+const ALL_CELL_STYLES = ['cells-neon', 'cells-shimmer', 'cells-emerald', 'cells-hw-lights', ...GIFT_CELL_IDS];
 
 // Applies the user's selected cosmetic items to the document.
 export function useShopTheme() {

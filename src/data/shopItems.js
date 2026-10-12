@@ -323,7 +323,197 @@ const AUTUMN_DARK = autumnTile({
   alpha: '0.62'
 });
 
+// Хэллоуин 2026 («Ночь тыкв»). Тёмный фон — тыквы-фонари, летучие мыши и
+// искры под луной. Формы в defs,
+// раскладка через <use>, как у осенних фонов. Всё держится у краёв и в
+// углах плитки — центр закрывает поле, там пусто.
+const hwTile = (c) => enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+  <defs>
+    <radialGradient id='hpk' cx='0.38' cy='0.32' r='0.75'>
+      <stop offset='0' stop-color='${c.pk0}'/><stop offset='0.6' stop-color='${c.pk1}'/><stop offset='1' stop-color='${c.pk2}'/>
+    </radialGradient>
+    <g id='pk'>
+      <ellipse cx='-11' cy='2' rx='13' ry='16' fill='url(#hpk)'/>
+      <ellipse cx='11' cy='2' rx='13' ry='16' fill='url(#hpk)'/>
+      <ellipse cx='0' cy='1' rx='12' ry='17.5' fill='url(#hpk)'/>
+      <g stroke='${c.rib}' stroke-width='1' fill='none' opacity='0.55'>
+        <path d='M-6 -14 Q-10 2 -6 17'/><path d='M6 -14 Q10 2 6 17'/>
+      </g>
+      <path d='M-1 -16 Q0 -23 5 -25' stroke='${c.stem}' stroke-width='3.5' fill='none' stroke-linecap='round'/>
+      <g fill='${c.face}'>
+        <path d='M-9 -4 L-3 -4 L-6 -10 Z'/><path d='M3 -4 L9 -4 L6 -10 Z'/>
+        <path d='M-10 4 L-6 8 L-3 5 L0 9 L3 5 L6 8 L10 4 Q0 15 -10 4 Z'/>
+      </g>
+    </g>
+    <path id='bat' d='M0 -2 L3 -7 L4 -2 C8 -6 15 -9 24 -6 C20 -3 20 1 21 4 C17 2 14 3 12 6 C10 3 7 3 5 6 C3 8 1 9 0 9 C-1 9 -3 8 -5 6 C-7 3 -10 3 -12 6 C-14 3 -17 2 -21 4 C-20 1 -20 -3 -24 -6 C-15 -9 -8 -6 -4 -2 L-3 -7 Z'/>
+    <path id='sp' d='M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z'/>
+  </defs>
+  <g opacity='${c.alpha}'>
+    <use href='#pk' transform='translate(62 262) scale(1.1) rotate(-6)'/>
+    <use href='#pk' transform='translate(262 92) scale(0.72) rotate(8)'/>
+    <use href='#pk' transform='translate(292 300) scale(0.56) rotate(-4)'/>
+    <g fill='${c.bat}'>
+      <use href='#bat' transform='translate(70 66) scale(0.9) rotate(-10)'/>
+      <use href='#bat' transform='translate(176 176) scale(0.7) rotate(6)'/>
+      <use href='#bat' transform='translate(300 206) scale(0.6) rotate(14)'/>
+    </g>
+    <g fill='${c.spark}'>
+      <use href='#sp' transform='translate(146 40)'/>
+      <use href='#sp' transform='translate(222 262) scale(0.8)'/>
+      <use href='#sp' transform='translate(26 160) scale(0.7)'/>
+      <use href='#sp' transform='translate(320 28) scale(0.6)'/>
+      <use href='#sp' transform='translate(160 318) scale(0.9)'/>
+      <circle cx='108' cy='126' r='1.4'/><circle cx='246' cy='160' r='1.2'/>
+      <circle cx='36' cy='318' r='1.2'/><circle cx='318' cy='120' r='1.4'/>
+    </g>
+  </g>
+</svg>`);
+
+const HW_DARK = hwTile({
+  pk0: '#ffb35c', pk1: '#e8741c', pk2: '#9c3f0a',
+  rib: '#7a3005', stem: '#4a6a2a', face: '#ffe08a',
+  bat: '#4a2f78', spark: '#ffd98a', alpha: '0.6'
+});
+
+// Светлый — другая картина, а не перекрашенная ночь: туманные сиреневые
+// сумерки над тыквенной грядкой. Тыквы-фонари с вырезанными лицами на плетях,
+// паутина с паучком, голая ветка с вороном, маленькое привидение, редкие
+// листья. Всё у краёв плитки, центр пустой.
+const HW_FIELD = enc(`<svg xmlns='http://www.w3.org/2000/svg' width='340' height='340'>
+  <defs>
+    <radialGradient id='fglow' cx='0.5' cy='0.6' r='0.7'>
+      <stop offset='0' stop-color='#fff6c8'/><stop offset='1' stop-color='#ffb340'/>
+    </radialGradient>
+    <radialGradient id='fsp' cx='0.35' cy='0.3' r='0.8'>
+      <stop offset='0' stop-color='#7d6f96'/><stop offset='0.55' stop-color='#3e3352'/><stop offset='1' stop-color='#221b30'/>
+    </radialGradient>
+    <radialGradient id='fpk' cx='0.36' cy='0.3' r='0.78'>
+      <stop offset='0' stop-color='#ffc27a'/><stop offset='0.6' stop-color='#ee7c24'/><stop offset='1' stop-color='#b44a14'/>
+    </radialGradient>
+    <g id='fp'>
+      <ellipse cx='-12' cy='2' rx='13' ry='15' fill='url(#fpk)'/>
+      <ellipse cx='12' cy='2' rx='13' ry='15' fill='url(#fpk)'/>
+      <ellipse cx='0' cy='1' rx='12' ry='16.5' fill='url(#fpk)'/>
+      <g stroke='#a3461a' stroke-width='1.1' fill='none' opacity='0.5'>
+        <path d='M-6 -13 Q-10 2 -6 16'/><path d='M6 -13 Q10 2 6 16'/>
+      </g>
+      <path d='M-1 -15 Q0 -22 5 -24' stroke='#556b2f' stroke-width='3.6' fill='none' stroke-linecap='round'/>
+      <g fill='url(#fglow)' stroke='#6b2a0c' stroke-width='1.1' stroke-linejoin='round'>
+        <path d='M-10.5 -2 L-7.2 -10 Q-6.5 -11 -5.8 -10 L-2.5 -2 Q-6.5 -0.6 -10.5 -2 Z'/>
+        <path d='M2.5 -2 L5.8 -10 Q6.5 -11 7.2 -10 L10.5 -2 Q6.5 -0.6 2.5 -2 Z'/>
+        <path d='M-10.5 3.5 Q0 8 10.5 3.5 Q8 12.5 0 13 Q-8 12.5 -10.5 3.5 Z M-4 5.3 L-4 8.4 L-1.6 8.4 L-1.6 5.6 Z M2 5.6 L2 8.6 L4.4 8.4 L4.4 5.3 Z' fill-rule='evenodd'/>
+      </g>
+    </g>
+    <path id='fl' d='M0 -14 L3 -6 L10 -9 L7 -2 L13 2 L5 4 L6 11 L0 7 L-6 11 L-5 4 L-13 2 L-7 -2 L-10 -9 L-3 -6 Z'/>
+    <g id='vl'>
+      <path d='M0 0 C-7 -10 -18 -8 -20 -1 C-14 0 -9 4 -8 10 C-3 6 0 3 0 0 Z' fill='#6f8a46'/>
+      <path d='M0 0 L-14 2' stroke='#4f6630' stroke-width='1'/>
+    </g>
+    <g id='cr'>
+      <path d='M-3 6 L-19 15 L-17 11 L-21 11.5 L-18 8 L-21 7 L-6 2 Z' fill='#2c2438'/>
+      <path d='M-5 4 C-6 -4 0 -10 8 -10 C14 -10 18 -6 18 0 C18 6 13 10 6 10 C1 10 -3 8 -5 4 Z' fill='url(#fsp)'/>
+      <path d='M-3 3 C0 -3 7 -5 13 -2 C10 2 6 6 -1 7 Z' fill='#4e4363'/>
+      <path d='M1 2 C4 1 8 1 11 -1 M0 5 C4 4 7 4 10 2' stroke='#2c2438' stroke-width='0.8' fill='none'/>
+      <circle cx='15' cy='-11' r='5.6' fill='url(#fsp)'/>
+      <path d='M19.5 -12.5 L28 -10.6 L19.8 -8.6 Z' fill='#8d849c'/>
+      <path d='M19.6 -10.6 L27 -10.6' stroke='#5d546c' stroke-width='0.6'/>
+      <circle cx='16.6' cy='-12.2' r='1.5' fill='#f3eefa'/>
+      <circle cx='17' cy='-12.2' r='0.7' fill='#1c1626'/>
+      <path d='M5 9.5 L4 15 M4 15 L1.5 16.5 M4 15 L6.5 16.5 M10 9.5 L10 15 M10 15 L7.6 16.5 M10 15 L12.4 16.5' stroke='#5d546c' stroke-width='1.2' stroke-linecap='round' fill='none'/>
+    </g>
+    <g id='spd'>
+      <path d='M0 -40 L0 -7' stroke='#8d82a3' stroke-width='0.7'/>
+      <g stroke='#2c2438' stroke-width='1.1' fill='none' stroke-linecap='round'>
+        <path d='M-2 -2 Q-8 -9 -12 -4'/><path d='M-2 0 Q-10 -3 -13 2'/><path d='M-2 2 Q-10 3 -12 9'/><path d='M-2 3 Q-7 7 -8 13'/>
+        <path d='M2 -2 Q8 -9 12 -4'/><path d='M2 0 Q10 -3 13 2'/><path d='M2 2 Q10 3 12 9'/><path d='M2 3 Q7 7 8 13'/>
+      </g>
+      <ellipse cx='0' cy='4.5' rx='4.6' ry='5.6' fill='url(#fsp)'/>
+      <circle cx='0' cy='-3.4' r='3.2' fill='url(#fsp)'/>
+      <ellipse cx='-1.5' cy='2.5' rx='1.2' ry='1.8' fill='#ffffff' opacity='0.35'/>
+      <circle cx='-1.1' cy='-3.8' r='0.7' fill='#ffd36b'/><circle cx='1.1' cy='-3.8' r='0.7' fill='#ffd36b'/>
+    </g>
+    <g id='gh'>
+      <path d='M-11 12 L-11 -2 C-11 -10 -6 -15 0 -15 C6 -15 11 -10 11 -2 L11 12 L7 9 L3.5 12 L0 9 L-3.5 12 L-7 9 Z' fill='#fbf8ff' stroke='#9a8cb4' stroke-width='1.1'/>
+      <ellipse cx='-4' cy='-4' rx='1.8' ry='2.6' fill='#3d3350'/>
+      <ellipse cx='4' cy='-4' rx='1.8' ry='2.6' fill='#3d3350'/>
+      <ellipse cx='0' cy='2.5' rx='2' ry='2.6' fill='#3d3350'/>
+    </g>
+  </defs>
+  <g opacity='0.75'>
+    <g stroke='#8d82a3' stroke-width='0.9' fill='none' opacity='0.8'>
+      <path d='M0 0 L58 58 M0 0 L74 20 M0 0 L22 74 M0 0 L80 0 M0 0 L0 80'/>
+      <path d='M16 0 Q14 9 0 16'/><path d='M34 0 Q30 18 22 22 Q18 30 0 34'/>
+      <path d='M54 0 Q48 22 40 40 Q22 48 0 54'/><path d='M72 0 Q66 26 58 58 Q26 66 0 72'/>
+    </g>
+    <use href='#spd' transform='translate(44 84) scale(1.05)'/>
+    <path d='M340 112 C318 108 300 96 286 100 C272 104 262 92 246 96 M322 106 C318 94 324 84 318 76 M266 98 C268 110 262 118 266 128' stroke='#5e4f6a' stroke-width='3' fill='none' stroke-linecap='round'/>
+    <use href='#cr' transform='translate(276 82) scale(1.05)'/>
+    <use href='#cr' transform='translate(150 26) scale(0.6) rotate(-8)' opacity='0.75'/>
+    <use href='#gh' transform='translate(30 186) scale(0.95) rotate(-6)'/>
+    <use href='#gh' transform='translate(318 214) scale(0.62) rotate(8)'/>
+    <path d='M8 300 C40 284 70 300 98 288 S150 280 176 300' stroke='#5f7a36' stroke-width='2.2' fill='none'/>
+    <path d='M98 288 q6 -14 18 -10 q-8 4 -4 10' stroke='#5f7a36' stroke-width='1.3' fill='none'/>
+    <use href='#vl' transform='translate(40 290) rotate(-20)'/>
+    <use href='#vl' transform='translate(132 286) scale(0.85) rotate(160)'/>
+    <use href='#fp' transform='translate(64 300) scale(1.15)'/>
+    <use href='#fp' transform='translate(150 306) scale(0.72) rotate(6)'/>
+    <use href='#fp' transform='translate(296 300) scale(0.85) rotate(-5)'/>
+    <use href='#fl' fill='#c8642a' transform='translate(204 196) scale(0.75) rotate(-28)'/>
+    <use href='#fl' fill='#a8402a' transform='translate(232 318) scale(0.55) rotate(70)'/>
+    <use href='#fl' fill='#d0882e' transform='translate(110 150) scale(0.5) rotate(30)'/>
+  </g>
+</svg>`);
+
 export const SHOP_ITEMS = [
+  // ---------- Хэллоуин 2026 ----------
+  // event — ивентовый товар: продаётся только за тыквы и только во время
+  // ивента (цены — data/halloween.js), купленный остаётся навсегда и после
+  // ивента стоит в своей категории как обычный.
+  {
+    id: 'bg-hw-night',
+    category: 'background',
+    theme: 'dark',
+    event: 'halloween',
+    name: 'Тыквенная ночь',
+    desc: 'Лунный свет, летучие мыши и тыквы-фонари',
+    payload: {
+      gradient: [
+        HW_DARK,
+        'radial-gradient(circle at 86% 9%, #ffe6ad 0, #ffe6ad 26px, rgba(255, 230, 173, 0) 28px)',
+        'radial-gradient(420px 420px at 86% 9%, rgba(255, 214, 140, 0.34), rgba(255, 170, 80, 0.10) 45%, transparent 70%)',
+        'radial-gradient(900px 520px at 50% 115%, rgba(255, 120, 30, 0.22), transparent 70%)',
+        'linear-gradient(180deg, #0f0820 0%, #1a0d2e 55%, #24102a 100%)'
+      ].join(', '),
+      // Плитка в 340 px шире карточки — в превью виден лишь угол с мышью.
+      // В карточке магазина рисуем её вдвое мельче (Shop.jsx).
+      previewSize: '210px 210px, auto, auto, auto, auto'
+    }
+  },
+  {
+    id: 'bg-hw-field',
+    category: 'background',
+    theme: 'light',
+    event: 'halloween',
+    name: 'Тыквенное поле',
+    desc: 'Туманные сумерки, тыквы-фонари и паутина',
+    payload: {
+      gradient: [
+        HW_FIELD,
+        'radial-gradient(1300px 360px at 50% 116%, rgba(232, 128, 50, 0.28), transparent 70%)',
+        'radial-gradient(900px 300px at 50% 62%, rgba(255, 255, 255, 0.35), transparent 70%)',
+        'linear-gradient(180deg, #e6deef 0%, #efe3e6 50%, #efd6c4 100%)'
+      ].join(', '),
+      previewSize: '210px 210px, auto, auto, auto'
+    }
+  },
+  {
+    id: 'cells-hw-lights',
+    category: 'cells',
+    event: 'halloween',
+    name: 'Тыквенные огоньки',
+    desc: 'Буквы не на месте горят тыквой, верные — ведьминым зельем'
+  },
+
   // ---------- Backgrounds ----------
   // Порядок в каталоге = порядок карточек в магазине. Новые фоны добавляем
   // В НАЧАЛО своей темы, чтобы свежее было видно сразу, без прокрутки.

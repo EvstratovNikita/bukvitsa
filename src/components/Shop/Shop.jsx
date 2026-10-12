@@ -4,6 +4,9 @@ import { boostRunning, formatDuration } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
+import { halloweenActive } from '../../lib/events.js';
+import { hwStepFor } from '../../data/halloween.js';
+import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 
 const BOOST_EMOJI = {
   'boost-double': '×2',
@@ -69,8 +72,24 @@ const ERROR_LABEL = {
   not_enough_coins: 'Не хватает монет',
   already_owned: 'Уже куплено',
   already_active: 'Бонус ещё работает',
-  unknown_item: 'Товар не найден'
+  unknown_item: 'Товар не найден',
+  not_enough: 'Не хватает тыкв',
+  closed: 'Ивент закончился'
 };
+
+// Ивентовый товар виден, пока идёт ивент, и навсегда — у того, кто его уже
+// купил. Некупленный после ивента не показывается.
+function visibleInShop(item, inventory) {
+  if (!item.event) return true;
+  return halloweenActive() || inventory.includes(item.id);
+}
+
+// Во время ивента его товары — первыми и в ивентовом оформлении. После —
+// купленные встают в конец своей категории обычными карточками.
+function orderForShop(list) {
+  if (halloweenActive()) return list;
+  return [...list.filter((i) => !i.event), ...list.filter((i) => i.event)];
+}
 
 export function Shop({ open, onClose }) {
   const { stats, buyItem, setActiveBackground, setActiveCellStyle, setPref } = useGameContext();
@@ -79,8 +98,9 @@ export function Shop({ open, onClose }) {
   const [bgTheme, setBgTheme] = useState('dark');
   const [feedback, setFeedback] = useState(null); // { id, type: 'ok'|'err', text }
 
+  const inventory = stats.inventory || [];
   const items = useMemo(() => {
-    const cataloged = itemsByCategory(activeCat);
+    const cataloged = orderForShop(itemsByCategory(activeCat).filter((i) => visibleInShop(i, inventory)));
     if (activeCat === 'background') {
       const filtered = cataloged.filter((i) => (i.theme || 'dark') === bgTheme);
       // Each sub-tab leads with its own "Стандартный" card (dark / light).
@@ -89,7 +109,8 @@ export function Shop({ open, onClose }) {
     }
     const defaultItem = DEFAULT_ITEM[activeCat];
     return defaultItem ? [defaultItem, ...cataloged] : cataloged;
-  }, [activeCat, bgTheme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCat, bgTheme, inventory.length]);
 
   const flash = (id, type, text) => {
     setFeedback({ id, type, text });
@@ -195,6 +216,8 @@ export function Shop({ open, onClose }) {
 }
 
 function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
+  // Ивентовое оформление и отметка ленты — только пока ивент идёт.
+  const isHw = item.event === 'halloween' && halloweenActive();
   const owned = item.isDefault || (stats.inventory || []).includes(item.id);
   const curTheme = stats.prefs?.theme === 'light' ? 'light' : 'dark';
   const active = item.isDefault
@@ -208,7 +231,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
 
   const previewStyle =
     item.category === 'background' && item.payload?.gradient
-      ? { backgroundImage: item.payload.gradient }
+      ? { backgroundImage: item.payload.gradient, backgroundSize: item.payload.previewSize }
       : undefined;
 
   const previewClasses = ['shop-card__preview'];
@@ -219,7 +242,8 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
   if (item.isDefault && item.theme === 'light') previewClasses.push('shop-card__preview--default-light');
 
   return (
-    <div className={`shop-card${active ? ' shop-card--active' : ''}`}>
+    <div className={`shop-card${active ? ' shop-card--active' : ''}${isHw ? ' shop-card--hw hw-frame' : ''}`}>
+      {isHw && <HwBadge className="shop-card__hw-badge" till={!owned} />}
       <div className={previewClasses.join(' ')} style={previewStyle}>
         {item.category === 'cells' && !item.isDefault && (
           <span className="shop-card__preview-letter">А</span>
@@ -286,6 +310,12 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
           >
             Применить
           </button>
+        ) : isHw ? (
+          // Не продаётся — выдаётся лентой «Ночи тыкв» на этой отметке.
+          <span className="shop-card__hw-need" title="Награда ленты «Ночи тыкв»">
+            <PumpkinIcon />
+            <span>{hwStepFor(item.id)?.need} · лента</span>
+          </span>
         ) : (
           <button
             type="button"

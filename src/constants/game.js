@@ -50,7 +50,10 @@ export const rewardFor = (attemptsUsed) =>
 
 export const HINT_COST = {
   RANDOM: 10,
-  PICK: 15
+  PICK: 15,
+  // Загадка ночи (ивент «Ночь тыкв»): с ней слово угадывается почти сразу,
+  // поэтому она — подсказка, а не бесплатный текст над полем.
+  RIDDLE: 15
 };
 
 // Energy budget. One unit is consumed per started puzzle.

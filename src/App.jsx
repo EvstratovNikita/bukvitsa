@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AchievementsModal } from './components/Achievements/Achievements.jsx';
 import { AchievementToast } from './components/Achievements/AchievementToast.jsx';
 import { NotifyAsk } from './components/Notify/NotifyAsk.jsx';
@@ -31,6 +31,9 @@ import { SideMenu } from './components/Menu/Menu.jsx';
 import { Shop } from './components/Shop/Shop.jsx';
 import { AuthModal } from './components/Auth/Auth.jsx';
 import { StartMenu } from './components/StartMenu/StartMenu.jsx';
+import { HalloweenModal } from './components/Halloween/HalloweenModal.jsx';
+import { PumpkinBadge, RiddleCard } from './components/Halloween/HalloweenGame.jsx';
+import { halloweenActive } from './lib/events.js';
 import { isVk } from './lib/platform.js';
 import { GAME_STATUS } from './constants/game.js';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
@@ -52,7 +55,7 @@ function GameShell() {
   useKeyboard(!homeOpen);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref } = useGameContext();
+  const { stats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref, startHalloween } = useGameContext();
 
   // VK ждёт VKWebAppInit сразу после загрузки: без него площадка считает, что
   // приложение не стартовало, и не убирает свой лоадер. Вызов идемпотентный и
@@ -91,14 +94,32 @@ function GameShell() {
   const [modesOpen, setModesOpen] = useState(false);
   // Слово дня — одна попытка в сутки. Уход в доп. режимы посреди партии
   // сжигает её, поэтому сначала спрашиваем.
+  // Куда игрок шёл, когда спросили про Слово дня: в режимы или в загадки.
   const [dailyLeaveOpen, setDailyLeaveOpen] = useState(false);
+  const [dailyLeaveTo, setDailyLeaveTo] = useState('modes');
   const dailyInProgress = gameMode === 'daily' && status === GAME_STATUS.PLAYING;
-  const openModes = () => {
-    if (dailyInProgress) setDailyLeaveOpen(true);
+  const openModes = useCallback(() => {
+    if (dailyInProgress) { setDailyLeaveTo('modes'); setDailyLeaveOpen(true); }
     else setModesOpen(true);
+  }, [dailyInProgress]);
+  // Ивент «Ночь тыкв»: окно с тропой и вход в «Загадки ночи». Из Слова дня
+  // в загадки — через то же подтверждение (сегодняшнее слово сгорит).
+  const [hwOpen, setHwOpen] = useState(false);
+  const hwOn = halloweenActive();
+  const playHalloween = () => {
+    setHwOpen(false);
+    setModesOpen(false);
+    if (dailyInProgress) { setDailyLeaveTo('halloween'); setDailyLeaveOpen(true); return; }
+    if (startHalloween?.()) setHomeOpen(false);
   };
   const confirmDailyLeave = () => {
     setDailyLeaveOpen(false);
+    if (dailyLeaveTo === 'halloween') {
+      // Без exitDailyMode: он списал бы энергию за обычную партию, которую
+      // игрок не увидит. startHalloween сам пометит день пропущенным.
+      if (startHalloween?.()) setHomeOpen(false);
+      return;
+    }
     leaveDailyMode?.();
     setModesOpen(true);
   };
@@ -110,7 +131,23 @@ function GameShell() {
   // API, у VK — наш сервер, потому что общего рейтинга площадка не даёт вовсе
   // (нативное окно сравнивает только с друзьями, оно осталось кнопкой внутри
   // модалки). Метрика одна: сколько слов отгадано.
-  const openLeaderboard = () => setLbOpen(true);
+  const openLeaderboard = useCallback(() => setLbOpen(true), []);
+
+  // Стабильные обработчики для шапки и главного меню: они обёрнуты в memo, и
+  // новые стрелки на каждый рендер App сводили бы memo на нет — открытие любого
+  // окна перерисовывало сову и всё меню.
+  const nav = useMemo(() => ({
+    menu: () => setMenuOpen(true),
+    pet: () => setPetOpen(true),
+    home: () => setHomeOpen(true),
+    shop: () => setShopOpen(true),
+    ach: () => setAchOpen(true),
+    stats: () => setStatsOpen(true),
+    help: () => setHelpOpen(true),
+    settings: () => setSettingsOpen(true),
+    feedback: () => setFeedbackOpen(true),
+    hw: () => setHwOpen(true)
+  }), []);
 
   // First-run coachmarks: once the game is ready and the daily-reward (or any)
   // modal is dismissed, start the tour. Один раз на игрока: флаг живёт и в
@@ -148,22 +185,25 @@ function GameShell() {
     const t = setTimeout(() => setPetCovers(true), 360);
     return () => clearTimeout(t);
   }, [petOpen, homeOpen]);
-  const appClass = `app${homeOpen ? ' app--home' : ''}${petCovers && petOpen ? ' app--pet' : ''}`;
+  const appClass = `app${homeOpen ? ' app--home' : ''}${petCovers && petOpen ? ' app--pet' : ''}${gameMode === 'halloween' ? ' app--hw' : ''}`;
 
   return (
     <div className={appClass}>
       <Header
-        onOpenMenu={() => setMenuOpen(true)}
-        onOpenPet={() => setPetOpen(true)}
+        onOpenMenu={nav.menu}
+        onOpenPet={nav.pet}
         onOpenModes={openModes}
-        onOpenHome={isVk ? () => setHomeOpen(true) : undefined}
+        onOpenHome={isVk ? nav.home : undefined}
       />
       <div className="topbar">
         <Coins />
-        {gameMode === 'daily' ? <DailyBadge /> : <EnergyBadge />}
+        {gameMode === 'daily' ? <DailyBadge />
+          : gameMode === 'halloween' ? <PumpkinBadge onClick={() => setHwOpen(true)} />
+          : <EnergyBadge />}
         <HintButton />
       </div>
       <main className="main" data-tour="board">
+        {gameMode === 'halloween' && <RiddleCard />}
         <Board />
         <GameEnd />
       </main>
@@ -175,14 +215,15 @@ function GameShell() {
       {homeOpen && (
         <StartMenu
           onPlay={closeHome}
-          onOpenShop={() => setShopOpen(true)}
-          onOpenPet={() => setPetOpen(true)}
-          onOpenAchievements={() => setAchOpen(true)}
+          onOpenShop={nav.shop}
+          onOpenPet={nav.pet}
+          onOpenAchievements={nav.ach}
           onOpenLeaderboard={openLeaderboard}
-          onOpenStats={() => setStatsOpen(true)}
-          onOpenHelp={() => setHelpOpen(true)}
-          onOpenSettings={() => setSettingsOpen(true)}
-          onOpenFeedback={() => setFeedbackOpen(true)}
+          onOpenStats={nav.stats}
+          onOpenHelp={nav.help}
+          onOpenSettings={nav.settings}
+          onOpenFeedback={nav.feedback}
+          onOpenHalloween={hwOn ? nav.hw : undefined}
         />
       )}
       {tourOn && <Tour onDone={() => { setTourOn(false); setPref?.('tourDone', true); }} />}
@@ -214,7 +255,18 @@ function GameShell() {
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       <LeaderboardModal open={lbOpen} onClose={() => setLbOpen(false)} missionPoints={missionPoints(stats.unlockedAchievements)} showToast={showToast} />
-      <GameModesModal open={modesOpen} onClose={() => setModesOpen(false)} onPicked={closeHome} />
+      <GameModesModal
+        open={modesOpen}
+        onClose={() => setModesOpen(false)}
+        onPicked={closeHome}
+        onPlayHalloween={hwOn ? playHalloween : undefined}
+      />
+      <HalloweenModal
+        open={hwOpen && hwOn}
+        onClose={() => setHwOpen(false)}
+        onPlay={playHalloween}
+        onOpenAchievements={() => { setHwOpen(false); setAchOpen(true); }}
+      />
 
       <Modal
         open={dailyLeaveOpen}
@@ -246,7 +298,7 @@ function GameShell() {
           </div>
         </div>
       </Modal>
-      <EnergyModal onOpenModes={openModes} />
+      <EnergyModal onOpenModes={openModes} onPlayHalloween={hwOn ? playHalloween : undefined} />
 
       <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
         <Stats stats={stats} />

@@ -5,8 +5,11 @@ import {
   ACHIEVEMENT_CATEGORIES,
   getProgress,
   unclaimedAchievementIds,
-  unlockedCountIn
+  unlockedCountIn,
+  visibleAchievementCategories
 } from '../../data/achievements.js';
+import { HwBadge } from '../Halloween/HwIcons.jsx';
+import { halloweenActive } from '../../lib/events.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
@@ -20,9 +23,12 @@ export function AchievementsModal({ open, onClose }) {
   );
 
   const [tab, setTab] = useState(ACHIEVEMENT_CATEGORIES[0].id);
-
-  const total = ACHIEVEMENTS.length;
-  const done = ACHIEVEMENTS.filter((a) => unlocked.has(a.id)).length;
+  // Итог и вкладки — только по видимым категориям (ивентовая после конца
+  // ивента пропадает, если в ней ничего не открыто).
+  const cats = visibleAchievementCategories(stats);
+  const shown = cats.flatMap((c) => ACHIEVEMENTS_BY_CATEGORY[c.id] || []);
+  const total = shown.length;
+  const done = shown.filter((a) => unlocked.has(a.id)).length;
   const pct = Math.round((done / total) * 100);
 
   const items = ACHIEVEMENTS_BY_CATEGORY[tab] || [];
@@ -46,7 +52,7 @@ export function AchievementsModal({ open, onClose }) {
         </div>
 
         <div className="ach-tabs" role="tablist">
-          {ACHIEVEMENT_CATEGORIES.map((c) => {
+          {cats.map((c) => {
             const catTotal = (ACHIEVEMENTS_BY_CATEGORY[c.id] || []).length;
             const catDone  = unlockedCountIn(c.id, unlocked);
             const catClaim = (ACHIEVEMENTS_BY_CATEGORY[c.id] || []).some((a) => unclaimed.has(a.id));
@@ -56,7 +62,7 @@ export function AchievementsModal({ open, onClose }) {
                 key={c.id}
                 type="button"
                 role="tab"
-                className={`ach-tab${isActive ? ' ach-tab--active' : ''}`}
+                className={`ach-tab${isActive ? ' ach-tab--active' : ''}${c.event ? ' ach-tab--hw' : ''}`}
                 onClick={() => setTab(c.id)}
                 onMouseDown={(e) => e.preventDefault()}
               >
@@ -69,6 +75,12 @@ export function AchievementsModal({ open, onClose }) {
         </div>
 
         <div className="ach-list">
+          {tab === 'halloween' && (
+            <div className="ach-hw-note">
+              <HwBadge till={halloweenActive()} />
+              <span>Награды ивента «Ночь тыкв» — только в Хэллоуин</span>
+            </div>
+          )}
           {items.map((a) => (
             <AchCard
               key={a.id}
@@ -89,7 +101,7 @@ function AchCard({ ach, stats, unlocked, claimable, onClaim }) {
   const prog = getProgress(ach, stats);
   const pct = Math.min(100, Math.round((prog.current / prog.target) * 100));
   return (
-    <div className={`ach-card${unlocked ? ' ach-card--unlocked' : ''}${claimable ? ' ach-card--claim' : ''}`}>
+    <div className={`ach-card${unlocked ? ' ach-card--unlocked' : ''}${claimable ? ' ach-card--claim' : ''}${ach.category === 'halloween' ? ' ach-card--hw hw-frame' : ''}`}>
       <div className="ach-card__icon" aria-hidden="true">{ach.icon}</div>
       <div className="ach-card__body">
         <div className="ach-card__row">

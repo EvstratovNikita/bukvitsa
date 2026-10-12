@@ -5,6 +5,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CoinIcon, PlayIcon, RefreshIcon, ShareIcon } from '../icons/Icon.jsx';
 import { SHARE_BASE_URL, buildWordleShareText, lastShareError, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
+import { HwRoundResult } from '../Halloween/HalloweenGame.jsx';
 
 // Bottom panel that swaps in for the keyboard once a round ends. Vertical
 // stack on the left (title + word + reward lines); action buttons on the
@@ -18,13 +19,15 @@ export function EndPanel() {
     lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft,
     gameMode, exitDailyMode, wordLength, stats,
+    exitHalloween, nextHalloweenRiddle, riddle,
     showToast
   } = useGameContext();
   const [shareStatus, setShareStatus] = useState(null);
   if (status === GAME_STATUS.PLAYING) return null;
   const isWin = status === GAME_STATUS.WON;
   const isDaily = gameMode === 'daily';
-  const isAlt = !isDaily && wordLength !== 5;
+  const isHw = gameMode === 'halloween';
+  const isAlt = !isDaily && !isHw && wordLength !== 5;
   // Alt-mode (4/6) series toward the next +1 energy refund. plays counts
   // completed rounds in the current local day; every 5 grants energy (≤3/day).
   const altPlays = (stats?.altMode?.plays || 0) % 5;
@@ -41,7 +44,7 @@ export function EndPanel() {
   const played = stats?.played || 0;
   const petLeft = stats?.pet?.hatched ? 0 : Math.max(0, PET_UNLOCK_GAMES - played);
   const petReady = !stats?.pet?.hatched && played >= PET_UNLOCK_GAMES;
-  const showPet = !isAlt && (petLeft > 0 || petReady);
+  const showPet = !isAlt && !isHw && (petLeft > 0 || petReady);
   // Первые партии новичка бесплатны (VK и Яндекс) — так и пишем на кнопке.
   const freeNext = isFreeStartGame(stats);
 
@@ -70,7 +73,9 @@ export function EndPanel() {
       <div className="end-panel__inner">
         <div className="end-panel__meta">
           <div className="end-panel__title">
-            {isDaily && '📅 '}{isWin ? '🎉 Победа!' : '😕 Не угадал'}
+            {isHw
+              ? (isWin ? '🎃 Разгадано!' : '🕯️ Не разгадано')
+              : <>{isDaily && '📅 '}{isWin ? '🎉 Победа!' : '😕 Не угадал'}</>}
           </div>
           <div className="end-panel__word">
             Слово: <b>{(solution || '').toUpperCase()}</b>
@@ -95,6 +100,10 @@ export function EndPanel() {
               ) : null}
             </>
           )}
+          {isHw && !isWin && riddle && (
+            <div className="end-panel__breakdown">{riddle.riddle}</div>
+          )}
+          {isHw && <HwRoundResult compact />}
           {isDaily && (
             <div className="end-panel__breakdown">
               Слово дня #{dayN} · {isWin ? `${guesses?.length || 0}/${MAX_ATTEMPTS}` : `X/${MAX_ATTEMPTS}`}
@@ -169,6 +178,27 @@ export function EndPanel() {
                      'Поделиться сеткой'}</span>
             </button>
           )}
+          {isHw ? (
+            <>
+              <button
+                type="button"
+                className="btn btn--ghost end-panel__double"
+                onClick={exitHalloween}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <span>К обычной игре</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn--primary end-panel__cta hw-next-btn"
+                onClick={nextHalloweenRiddle}
+                onMouseDown={(e) => e.preventDefault()}
+              >
+                <RefreshIcon />
+                <span>Следующая загадка</span>
+              </button>
+            </>
+          ) : (
           <button
             type="button"
             className="btn btn--primary end-panel__cta"
@@ -183,6 +213,7 @@ export function EndPanel() {
               ? <span className="end-panel__cost end-panel__cost--free">бесплатно</span>
               : <span className="end-panel__cost"><BoltIcon />1</span>)}
           </button>
+          )}
         </div>
       </div>
     </div>

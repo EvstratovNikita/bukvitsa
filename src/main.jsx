@@ -6,6 +6,8 @@ import { isYandex } from './lib/yandex.js';
 // на них ссылаются. Лежат в архиве, а не на Google Fonts (см. fonts.css).
 import './styles/fonts.css';
 import './styles/index.css';
+// Ивент «Ночь тыкв» — отдельным файлом после основных стилей.
+import './styles/halloween.css';
 
 // Метка платформы в DOM — удобна для отладки и ручных проверок.
 // Место под липкий баннер резервировать не нужно: площадка сама ужимает
