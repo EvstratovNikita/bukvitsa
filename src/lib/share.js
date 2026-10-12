@@ -13,7 +13,7 @@
 //   Clipboard fallback →  copy "text\nurl" to clipboard
 
 import { isTelegram, isVk } from './platform.js';
-import { vkBridge, launchParams, isOk } from './vk.js';
+import { vkBridge, launchParams, isOk, cloudStatus } from './vk.js';
 import { copyText } from '../utils/clipboard.js';
 import { refTag, reportShare } from './referral.js';
 
@@ -114,7 +114,48 @@ function vkShareTakesText() {
 // onCopied — там, где текст в окно не попадёт, текст кладётся в буфер, чтобы
 // игрок вставил сетку в сообщение сам; колбэк зовётся ДО открытия окна VK,
 // чтобы подсказка «вставь» была видна, пока игрок пишет сообщение.
-async function shareVk(text, url, onCopied) {
+// Последний ответ VK на «Поделиться» — для разбора без консоли игрока:
+// window.__buklitsaCloud.share.
+function noteShare(entry) {
+  cloudStatus.share = { ...entry, platform: launchParams().vk_platform || null, at: new Date().toLocaleTimeString('ru-RU') };
+}
+
+// Код последнего отказа VK — показываем игроку в тосте, чтобы причину было
+// видно без консоли (иначе от игрока приходит только «не работает»).
+export function lastShareError() {
+  const d = cloudStatus.share?.error_data;
+  return d ? String(d.error_code ?? d.error_reason ?? '') : '';
+}
+
+const isCancel = (e) => {
+  const reason = String(e?.error_data?.error_reason || e?.error_data?.error_msg || '');
+  return /denied|cancel|clos/i.test(reason) || e?.error_data?.error_code === 4;
+};
+
+// Сетка Слова дня — записью на стене (VKWebAppShowWallPostBox): у записи есть
+// поле message, и текст доходит на всех платформах — в приложениях VK и на
+// сайте. Окно «Поделиться» (VKWebAppShare) текст сетки так и не донесло:
+// параметр text по документации только для Android/iOS в личных сообщениях,
+// а на деле, по отзыву игрока, друг получал одну ссылку. Ссылка на игру
+// прикреплена к записи карточкой.
+async function shareVkWall(text, url) {
+  try {
+    const r = await vkBridge.send('VKWebAppShowWallPostBox', url ? { message: text, attachments: url } : { message: text });
+    noteShare({ method: 'wall', result: r || null });
+    reportShare();
+    return 'shared';
+  } catch (e) {
+    noteShare({ method: 'wall', error_type: e?.error_type || null, error_data: e?.error_data || null });
+    return isCancel(e) ? 'cancelled' : 'failed';
+  }
+}
+
+async function shareVk(text, url, onCopied, wall) {
+  if (isVk && wall && text) {
+    const r = await shareVkWall(text, url);
+    // Стена недоступна (старый клиент, ОК-сайт и т.п.) — прежнее окно.
+    if (r !== 'failed') return r;
+  }
   try {
     // Мост берём из пакета, а не из window.vkBridge: при сборке из npm такого
     // глобала не существует, и эта ветка не срабатывала бы никогда.
@@ -127,7 +168,8 @@ async function shareVk(text, url, onCopied) {
       if (!withText && onCopied && (await copyText(text))) onCopied();
       // Текст до 4000 символов; ссылка в нём уже есть, но мост добавляет её
       // карточкой отдельно — так и задумано.
-      await vkBridge.send('VKWebAppShare', withText && text ? { link: url, text: text.slice(0, 4000) } : { link: url });
+      const res = await vkBridge.send('VKWebAppShare', withText && text ? { link: url, text: text.slice(0, 4000) } : { link: url });
+      noteShare({ method: 'share', withText, result: res || null });
       reportShare();
       return 'shared';
     }
@@ -156,9 +198,10 @@ async function copyToClipboard(text, url) {
   return (await copyText(payload)) ? 'copied' : 'failed';
 }
 
-export async function share({ title = 'Буклица', text, url, onCopied }) {
+// wall — в VK делиться записью на стене (текст с сеткой доходит везде).
+export async function share({ title = 'Буклица', text, url, onCopied, wall = false }) {
   if (isTelegram) return shareTelegram(text, url);
-  if (isVk)       return shareVk(text, url, onCopied);
+  if (isVk)       return shareVk(text, url, onCopied, wall);
   if (typeof navigator !== 'undefined' && navigator.share) {
     const r = await shareNative(title, text, url);
     if (r !== 'failed') return r;
