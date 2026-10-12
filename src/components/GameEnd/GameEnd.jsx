@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
-import { SHARE_BASE_URL, buildWordleShareText, share } from '../../lib/share.js';
+import { SHARE_BASE_URL, buildWordleShareText, lastShareError, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
 import { HwRoundResult } from '../Halloween/HalloweenGame.jsx';
 
@@ -98,9 +98,10 @@ export function GameEnd() {
     // На vk.com окно VK шлёт только ссылку — сетка уходит в буфер, и
     // подсказка висит, пока игрок пишет сообщение.
     const r = await share({
-      title: 'Буклица — Слово дня', text, url,
+      title: 'Буклица — Слово дня', text, url, wall: true,
       onCopied: () => showToast?.('Сетка скопирована — вставь её в сообщение', 5000)
     });
+    if (r === 'failed' && lastShareError()) showToast?.(`Не удалось поделиться (код ${lastShareError()})`, 4000);
     setShareStatus(r);
     setTimeout(() => setShareStatus(null), 1600);
   };
