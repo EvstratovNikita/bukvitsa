@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useGameContext } from '../context/GameContext.jsx';
+import { getPack } from '../data/pack.js';
 
 export function useKeyboard(enabled = true) {
   const { addLetter, removeLetter, submit } = useGameContext();
@@ -15,7 +16,7 @@ export function useKeyboard(enabled = true) {
       } else if (k === 'Backspace') {
         e.preventDefault();
         removeLetter();
-      } else if (k.length === 1 && /[а-яёА-ЯЁ]/.test(k)) {
+      } else if (k.length === 1 && getPack().letter.test(k)) {
         e.preventDefault();
         addLetter(k);
       }

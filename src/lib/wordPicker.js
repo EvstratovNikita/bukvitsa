@@ -14,11 +14,11 @@
 // в облако: на другом устройстве повтор возможен, но не подряд.
 
 import { normalizeWord, poolForLength } from '../data/words.js';
-import { wordTier } from '../data/wordTiers.js';
+import { getPack } from '../data/pack.js';
 import { getDailyWord } from '../data/dailyWord.js';
 import { storage } from '../utils/storage.js';
 
-const HISTORY_KEY = 'wordle-ru:word-history';
+const historyKey = () => `wordle-ru:word-history${getPack().historySuffix}`;
 // Сколько последних слов не повторять — доля пула.
 const NO_REPEAT_SHARE = 0.75;
 // Столько первых партий — только лёгкие слова.
@@ -58,7 +58,7 @@ function modeResults(entry, length, player) {
 // источник для 5 букв, см. modeResults. rng — для тестов.
 export function pickNextWord(length = 5, player = null, rng = Math.random) {
   const pool = poolForLength(length);
-  const all = storage.get(HISTORY_KEY, {}) || {};
+  const all = storage.get(historyKey(), {}) || {};
   const entry = all[length] || {};
   const recent = Array.isArray(entry.words) ? entry.words : [];
 
@@ -67,11 +67,11 @@ export function pickNextWord(length = 5, player = null, rng = Math.random) {
   const fresh = pool.filter((w) => !blocked.has(normalizeWord(w)));
 
   const tier = chooseTier(modeResults(entry, length, player), entry.lastTier, rng);
-  const ofTier = (t) => fresh.filter((w) => wordTier(normalizeWord(w), length) === t);
+  const ofTier = (t) => fresh.filter((w) => getPack().tier(normalizeWord(w), length) === t);
   // Нужный уровень весь недавно был — берём соседний (для лёгкого и
   // сложного это средний), потом любой, кроме сложного после сложного;
   // и уж совсем на крайний случай (не бывает при доле < 1) — весь пул.
-  const noHard = (list) => (entry.lastTier === 'hard' ? list.filter((w) => wordTier(normalizeWord(w), length) !== 'hard') : list);
+  const noHard = (list) => (entry.lastTier === 'hard' ? list.filter((w) => getPack().tier(normalizeWord(w), length) !== 'hard') : list);
   const candidates = [ofTier(tier), ofTier('medium'), noHard(fresh), fresh, pool].find((l) => l.length);
   return candidates[Math.floor(rng() * candidates.length)];
 }
@@ -86,7 +86,7 @@ export function rememberWord(word, won = false, player = null) {
   if (!w) return;
   const length = w.length;
   const pool = poolForLength(length);
-  const all = storage.get(HISTORY_KEY, {}) || {};
+  const all = storage.get(historyKey(), {}) || {};
   const entry = all[length] || {};
   const recent = Array.isArray(entry.words) ? entry.words : [];
   // Уже записано: доигранная партия восстановилась после перезагрузки —
@@ -101,8 +101,8 @@ export function rememberWord(word, won = false, player = null) {
   const prev = modeResults(entry, length, player);
   const played = seeded ? Math.max(1, prev.played) : prev.played + 1;
   const streak = !won ? 0 : seeded ? Math.max(1, prev.currentStreak) : prev.currentStreak + 1;
-  storage.set(HISTORY_KEY, {
+  storage.set(historyKey(), {
     ...all,
-    [length]: { words, lastTier: wordTier(w, length), played, streak }
+    [length]: { words, lastTier: getPack().tier(w, length), played, streak }
   });
 }

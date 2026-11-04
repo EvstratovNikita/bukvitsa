@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.jsx';
-import { isYandex } from './lib/yandex.js';
+import { initLang } from './lib/lang.js';
 // Шрифты — до index.css, чтобы @font-face объявились раньше правил, которые
 // на них ссылаются. Лежат в архиве, а не на Google Fonts (см. fonts.css).
 import './styles/fonts.css';
@@ -12,7 +11,20 @@ import './styles/halloween.css';
 // Метка платформы в DOM — удобна для отладки и ручных проверок.
 // Место под липкий баннер резервировать не нужно: площадка сама ужимает
 // кадр игры, и dvh уже отдаёт высоту без его полосы.
-if (isYandex) document.documentElement.classList.add('is-yandex');
+// Язык — до импорта приложения: от него зависят данные на уровне модулей.
+async function start() {
+  await initLang();
+  const [{ default: App }, { isYandex }] = await Promise.all([
+    import('./App.jsx'),
+    import('./lib/yandex.js')
+  ]);
+  if (isYandex) document.documentElement.classList.add('is-yandex');
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+}
 
 // Yandex req 1.6.2.7 (desktop) & 1.6.1.8 (mobile): interacting with the game
 // field must never open the context menu / long-press callout. CSS handles
@@ -22,8 +34,4 @@ document.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 });
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+start();

@@ -1,4 +1,5 @@
 import { isEmbedded } from '../lib/platform.js';
+import { isEn } from '../lib/lang.js';
 
 export const WORD_LENGTH = 5;
 export const MAX_ATTEMPTS = 6;
@@ -19,14 +20,19 @@ export const GAME_STATUS = {
 
 export const STORAGE_KEYS = {
   STATS: 'wordle-ru:stats',
-  GAME_STATE: 'wordle-ru:game',
+  // Партия в процессе — у каждого языка своя: слово другого языка не доиграть.
+  GAME_STATE: isEn() ? 'wordle-ru:game:en' : 'wordle-ru:game',
   // День, в который игрок сам ушёл из Слова дня. Пока ключ совпадает с
   // сегодняшним, Слово дня больше не предлагается — иначе предупреждение
   // «вернуться не получится» было бы неправдой после перезагрузки.
   DAILY_SKIPPED: 'wordle-ru:daily-skipped'
 };
 
-export const KEYBOARD_ROWS = [
+export const KEYBOARD_ROWS = isEn() ? [
+  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+  ['BACK', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'ENTER']
+] : [
   ['Й', 'Ц', 'У', 'К', 'Е', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ'],
   ['Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э'],
   ['BACK', 'Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю', 'ENTER']

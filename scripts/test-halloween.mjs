@@ -12,9 +12,12 @@ import {
   nextRiddle, normalizeHalloween, pumpkinsFor, restoreEventItems
 } from '../src/lib/halloweenProgress.js';
 import { isValidWord } from '../src/data/words.js';
+import { loadPack } from '../src/data/pack.js';
 import { mergeProgress } from '../src/utils/mergeProgress.js';
 import { PET_DECORATIONS } from '../src/data/petDecorations.js';
 import { getItem } from '../src/data/shopItems.js';
+
+await loadPack('ru');
 
 let passed = 0;
 const test = (name, fn) => {

@@ -1,4 +1,5 @@
 import { isEmbedded } from './platform.js';
+import { isEn } from './lang.js';
 
 // Сезонные ивенты. Сейчас один — «Ночь тыкв» к Хэллоуину 2026.
 //
@@ -59,6 +60,8 @@ const ENV = (typeof import.meta !== 'undefined' && import.meta.env) || {};
 const preview = ENV.VITE_EVENT_PREVIEW === 'halloween' || readPreviewFlag();
 
 export function halloweenActive(now = Date.now()) {
+  // Ивент — только на русском: его слова и загадки не переведены.
+  if (isEn()) return false;
   return preview || (isEmbedded && halloweenWindowOpen(now));
 }
 

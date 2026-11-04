@@ -6,7 +6,8 @@ import { isVk } from '../lib/platform.js';
 import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
 import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
-import { isValidWord, normalizeWord } from '../data/words.js';
+import { isValidWord, isWordOfLang, normalizeWord } from '../data/words.js';
+import { getPack } from '../data/pack.js';
 import { pickNextWord, rememberWord } from '../lib/wordPicker.js';
 import { halloweenActive } from '../lib/events.js';
 import { HW_CAP_XP_PER_PUMPKIN, getRiddle } from '../data/halloween.js';
@@ -15,7 +16,7 @@ import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
 
-const isCyrillicLetter = (ch) => /^[а-яё]$/i.test(ch);
+const isGameLetter = (ch) => getPack().letter.test(ch);
 
 // Сколько ждать межстраничный ролик перед новой партией. Ролик идёт до
 // полуминуты; дольше мост не отвечает только если завис.
@@ -122,6 +123,11 @@ export function useGame() {
   const savedGame = useMemo(() => {
     const raw = storage.get(STORAGE_KEYS.GAME_STATE, null);
     if (!raw || !raw.solution) return raw;
+    // Партия другого языка (доска приехала из облака) не доигрывается.
+    if (!isWordOfLang(raw.solution)) {
+      storage.remove(STORAGE_KEYS.GAME_STATE);
+      return null;
+    }
     // Загадка ночи после конца ивента (или с чужим словом) не восстанавливается.
     if (raw.gameMode === 'halloween' && !isLiveHalloween(raw)) {
       storage.remove(STORAGE_KEYS.GAME_STATE);
@@ -405,7 +411,7 @@ export function useGame() {
   const addLetter = useCallback((letter) => {
     if (explainEmptyBoard()) return;
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
-    if (!isCyrillicLetter(letter)) return;
+    if (!isGameLetter(letter)) return;
     setCurrent((c) => (c.length >= wordLength ? c : c + letter.toLowerCase()));
   }, [status, solution, explainEmptyBoard]);
 

@@ -1,8 +1,11 @@
+import { enPlural, isEn } from '../lib/lang.js';
+
 // Russian plural form picker. Returns one of three forms based on n:
 //   one   — 1, 21, 31…   (монета)
 //   few   — 2–4, 22–24…  (монеты)
 //   many  — 0, 5–20…     (монет)
 export function plural(n, one, few, many) {
+  if (isEn()) return enPlural(n, one);
   const abs = Math.abs(n);
   const m10 = abs % 10;
   const m100 = abs % 100;

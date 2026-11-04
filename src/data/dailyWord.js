@@ -1,8 +1,7 @@
-import { WORDS } from './words.js';
+import { getPack } from './pack.js';
 
 // Day #1 — the day the feature ships. From there, day N = days since the
 // epoch + 1, so the numbering is global, deterministic, and starts at 1.
-const EPOCH_ISO = '2026-05-26';
 
 // The daily word MUST be identical for every player worldwide. Anchoring the
 // "day" to each device's LOCAL calendar breaks that: Russia alone spans 11
@@ -10,12 +9,11 @@ const EPOCH_ISO = '2026-05-26';
 // different calendar dates and would see different words. We anchor to a
 // single fixed zone — Moscow (UTC+3, no DST since 2014) — so the day (and the
 // "played today?" key) flips at the same instant for everyone.
-const MSK_OFFSET_MS = 3 * 60 * 60 * 1000;
 
 // Moscow calendar parts for an instant: shift the UTC epoch by +3h and read
 // the UTC fields (avoids relying on the host's Intl timezone data).
 function moscowParts(date = new Date()) {
-  const shifted = new Date(date.getTime() + MSK_OFFSET_MS);
+  const shifted = new Date(date.getTime() + getPack().dayOffsetMs);
   return { y: shifted.getUTCFullYear(), m: shifted.getUTCMonth(), d: shifted.getUTCDate() };
 }
 
@@ -32,7 +30,9 @@ function lcgShuffle(arr, seed) {
   return out;
 }
 
-const PERMUTED = lcgShuffle(WORDS, 0xBE110A);
+// Порядок считаем один раз и не при импорте: пакет языка грузится позже.
+let permuted = null;
+const getPermuted = () => (permuted ||= lcgShuffle(getPack().dailyPool, 0xBE110A));
 
 // Moscow-calendar 'YYYY-MM-DD' for "have they played today?" comparisons.
 // Same value for every player at any given instant.
@@ -45,7 +45,7 @@ export function getDailyKey(date = new Date()) {
 // to ≥ 1. Global and identical for all players.
 export function getDailyNumber(date = new Date()) {
   const dayMs = 86400000;
-  const [ey, em, ed] = EPOCH_ISO.split('-').map(Number);
+  const [ey, em, ed] = getPack().epoch.split('-').map(Number);
   const start = Date.UTC(ey, em - 1, ed);
   const { y, m, d } = moscowParts(date);
   const today = Date.UTC(y, m, d);
@@ -54,5 +54,6 @@ export function getDailyNumber(date = new Date()) {
 
 export function getDailyWord(date = new Date()) {
   const n = getDailyNumber(date);
-  return PERMUTED[(n - 1) % PERMUTED.length];
+  const order = getPermuted();
+  return order[(n - 1) % order.length];
 }
