@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { CloseIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Сколько окон открыто сейчас. Пока есть хоть одно, на <html> висит
 // modal-open: анимации главного меню под затемнением встают на паузу
@@ -36,7 +37,7 @@ export function Modal({ open, onClose, title, headerRight, children }) {
           {/* Слот справа от заголовка: сюда уезжает то, что иначе заняло бы
               целую строку в теле окна (баланс монет в магазине). */}
           {headerRight ? <div className="modal__header-extra">{headerRight}</div> : null}
-          <button className="modal__close" onClick={onClose} aria-label="Закрыть">
+          <button className="modal__close" onClick={onClose} aria-label={tr('Закрыть')}>
             <CloseIcon />
           </button>
         </div>

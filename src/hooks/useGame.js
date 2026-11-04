@@ -3,7 +3,8 @@ import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial, rewardedFailText } from '../lib/ads.js';
 import { isVk } from '../lib/platform.js';
-import { gameplayStart, gameplayStop, requestReview } from '../lib/yandex.js';
+import { requestReview } from '../lib/yandex.js';
+import { gameplayStart, gameplayStop } from '../lib/lifecycle.js';
 import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, isWordOfLang, normalizeWord } from '../data/words.js';
@@ -15,6 +16,7 @@ import { nextRiddle, pumpkinsFor } from '../lib/halloweenProgress.js';
 import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
+import { tr } from '../lib/lang.js';
 
 const isGameLetter = (ch) => getPack().letter.test(ch);
 
@@ -426,7 +428,7 @@ export function useGame() {
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (current.length !== wordLength) {
       setShakeRow(true);
-      showToast('Слишком короткое слово');
+      showToast(tr('Слишком короткое слово'));
       setTimeout(() => setShakeRow(false), 450);
       return;
     }
@@ -438,7 +440,7 @@ export function useGame() {
     // they can't actually submit.
     if (guess !== solNorm && !isValidWord(guess, wordLength)) {
       setShakeRow(true);
-      showToast('Нет такого слова в словаре');
+      showToast(tr('Нет такого слова в словаре'));
       setTimeout(() => setShakeRow(false), 450);
       return;
     }
@@ -513,8 +515,8 @@ export function useGame() {
           setDoubledLastWin(false);
           const petResult = stats.recordPetXp(petXpForWin(nextGuesses.length) + bonusXp);
           if (petResult.levelAfter > petResult.levelBefore) {
-            const petName = stats.stats.pet?.name || 'Букля';
-            showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
+            const petName = tr(stats.stats.pet?.name || 'Букля');
+            showToast(tr('{petName} выросла! Уровень {levelAfter}', { petName, levelAfter: petResult.levelAfter }));
           }
         } else {
           // 4 + 6-letter modes earn no coins (only XP, half) and feed into
@@ -534,7 +536,7 @@ export function useGame() {
             setLastEarnedDeco(0);
             setBoostedLastWin(false);
             const r = stats.recordAltModePlay?.();
-            if (r?.grantedEnergy) showToast('+1 энергия за 5 побед в режимах 4/6!');
+            if (r?.grantedEnergy) showToast(tr('+1 энергия за 5 побед в режимах 4/6!'));
           } else {
             // Ничего не пересчитываем: показываем ровно ту раскладку, по
             // которой монеты и начислены.
@@ -547,8 +549,8 @@ export function useGame() {
           const petXp = Math.round(petXpForWin(nextGuesses.length) * lengthMul);
           const petResult = stats.recordPetXp(petXp);
           if (petResult.levelAfter > petResult.levelBefore) {
-            const petName = stats.stats.pet?.name || 'Букля';
-            showToast(`${petName} выросла! Уровень ${petResult.levelAfter}`);
+            const petName = tr(stats.stats.pet?.name || 'Букля');
+            showToast(tr('{petName} выросла! Уровень {levelAfter}', { petName, levelAfter: petResult.levelAfter }));
           }
         }
       } else if (lost) {
@@ -966,7 +968,7 @@ export function useGame() {
       if (!lastEarned || lastEarned <= 0) return 'nothing';
       // Soft daily cap on ad-doubling — protects the coin economy.
       if ((stats.adsDoubleLeft ?? 0) <= 0) {
-        showToast('Лимит удвоений за рекламу на сегодня исчерпан');
+        showToast(tr('Лимит удвоений за рекламу на сегодня исчерпан'));
         return 'limit';
       }
       setDoublingAd(true);
@@ -978,7 +980,7 @@ export function useGame() {
       }
       // Re-check + tally against the cap (guards against races / stale closure).
       if (!stats.recordAdDouble?.()) {
-        showToast('Лимит удвоений за рекламу на сегодня исчерпан');
+        showToast(tr('Лимит удвоений за рекламу на сегодня исчерпан'));
         return 'limit';
       }
       stats.addCoins(lastEarned);
@@ -987,7 +989,7 @@ export function useGame() {
       // to reward-doubling — otherwise doubling pays twice.)
       stats.redeemAdDoubleServer?.();
       setDoubledLastWin(true);
-      showToast(`+${lastEarned} ${pluralCoins(lastEarned)} за просмотр!`);
+      showToast(tr('+{lastEarned} {v1} за просмотр!', { lastEarned, v1: pluralCoins(lastEarned) }));
       return 'ok';
     } finally {
       adBusyRef.current = false;
@@ -1016,8 +1018,8 @@ export function useGame() {
     for (let i = 0; i < wordLength; i++) {
       if (!hints[i] && !known.has(i)) stalePool.push(i);
     }
-    if (stalePool.length === 0) { showToast('Все буквы уже открыты'); return false; }
-    if (!stats.spendCoins(HINT_COST.RANDOM)) { showToast('Недостаточно монет'); return false; }
+    if (stalePool.length === 0) { showToast(tr('Все буквы уже открыты')); return false; }
+    if (!stats.spendCoins(HINT_COST.RANDOM)) { showToast(tr('Недостаточно монет')); return false; }
     // Recompute candidates inside the functional updater so back-to-back
     // clicks don't race on a stale `hints` snapshot and pick the same slot
     // twice (which would leave the row inconsistent with the solution).
@@ -1038,9 +1040,9 @@ export function useGame() {
   const revealPositionHint = useCallback((idx) => {
     if (status !== GAME_STATUS.PLAYING) return false;
     if (idx < 0 || idx >= wordLength) return false;
-    if (hints[idx]) { showToast('Эта буква уже открыта'); return false; }
-    if (correctSlots().has(idx)) { showToast('Эта буква уже угадана'); return false; }
-    if (!stats.spendCoins(HINT_COST.PICK)) { showToast('Недостаточно монет'); return false; }
+    if (hints[idx]) { showToast(tr('Эта буква уже открыта')); return false; }
+    if (correctSlots().has(idx)) { showToast(tr('Эта буква уже угадана')); return false; }
+    if (!stats.spendCoins(HINT_COST.PICK)) { showToast(tr('Недостаточно монет')); return false; }
     const sol = normalizeWord(solution);
     setHints((h) => h.map((c, i) => (i === idx ? sol[i] : c)));
     setHintPickMode(false);
@@ -1052,11 +1054,11 @@ export function useGame() {
   const startHintPick = useCallback(() => {
     if (status !== GAME_STATUS.PLAYING) return;
     if ((stats.stats.coins || 0) < HINT_COST.PICK) {
-      showToast('Недостаточно монет');
+      showToast(tr('Недостаточно монет'));
       return;
     }
     if (hints.every(Boolean)) {
-      showToast('Все буквы уже открыты');
+      showToast(tr('Все буквы уже открыты'));
       return;
     }
     setHintPickMode(true);
@@ -1072,7 +1074,7 @@ export function useGame() {
   // Открыть загадку ночи — платная подсказка, один раз на слово.
   const revealRiddle = useCallback(() => {
     if (gameMode !== 'halloween' || riddleShown || status !== GAME_STATUS.PLAYING) return false;
-    if (!stats.spendCoins(HINT_COST.RIDDLE)) { showToast('Недостаточно монет'); return false; }
+    if (!stats.spendCoins(HINT_COST.RIDDLE)) { showToast(tr('Недостаточно монет')); return false; }
     setRiddleShown(true);
     stats.recordHintUsed();
     return true;

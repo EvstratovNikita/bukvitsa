@@ -3,6 +3,7 @@ import { HINT_COST } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, HintIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 export function HintButton() {
   const { hintPickMode, startHintPick, cancelHintPick, revealRandomHint, stats, hints, status, gameMode } =
@@ -30,18 +31,16 @@ export function HintButton() {
         data-tour="hint"
         onClick={() => (hintPickMode ? cancelHintPick() : setOpen(true))}
         disabled={disabled}
-        aria-label={isDaily ? 'Подсказки недоступны в Слове дня' : 'Подсказка'}
-        title={isDaily ? 'В Слове дня подсказки отключены — у всех равные условия' : 'Подсказка'}
+        aria-label={isDaily ? tr('Подсказки недоступны в Слове дня') : tr('Подсказка')}
+        title={isDaily ? tr('В Слове дня подсказки отключены — у всех равные условия') : tr('Подсказка')}
       >
         <HintIcon />
-        <span>{hintPickMode ? 'Отмена' : 'Подсказка'}</span>
+        <span>{hintPickMode ? tr('Отмена') : tr('Подсказка')}</span>
       </button>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="Подсказки">
+      <Modal open={open} onClose={() => setOpen(false)} title={tr('Подсказки')}>
         <div className="hint-menu">
-          <p className="hint-menu__intro">
-            Открой одну букву загаданного слова. Чем выше цена — тем больше контроля.
-          </p>
+          <p className="hint-menu__intro">{tr('Открой одну букву загаданного слова. Чем выше цена — тем больше контроля.')}</p>
 
           <button
             type="button"
@@ -53,8 +52,8 @@ export function HintButton() {
               <HintIcon />
             </div>
             <div className="hint-option__body">
-              <div className="hint-option__title">Случайная буква</div>
-              <div className="hint-option__sub">Откроется любая ещё не открытая позиция</div>
+              <div className="hint-option__title">{tr('Случайная буква')}</div>
+              <div className="hint-option__sub">{tr('Откроется любая ещё не открытая позиция')}</div>
             </div>
             <div className="hint-option__price">
               <CoinIcon />
@@ -72,8 +71,8 @@ export function HintButton() {
               <HintIcon />
             </div>
             <div className="hint-option__body">
-              <div className="hint-option__title">Выбрать позицию</div>
-              <div className="hint-option__sub">Сам укажешь, какую букву раскрыть</div>
+              <div className="hint-option__title">{tr('Выбрать позицию')}</div>
+              <div className="hint-option__sub">{tr('Сам укажешь, какую букву раскрыть')}</div>
             </div>
             <div className="hint-option__price">
               <CoinIcon />
@@ -81,8 +80,7 @@ export function HintButton() {
             </div>
           </button>
 
-          <p className="hint-menu__balance">
-            Твой баланс: <CoinIcon /> <b>{stats.coins || 0}</b>
+          <p className="hint-menu__balance">{tr('Твой баланс: ')}<CoinIcon /> <b>{stats.coins || 0}</b>
           </p>
         </div>
       </Modal>
@@ -112,7 +110,7 @@ export function HintsStrip() {
             ].filter(Boolean).join(' ')}
             disabled={!isPickable}
             onClick={() => isPickable && revealPositionHint(i)}
-            aria-label={isFilled ? `Открыта буква ${ch}` : `Позиция ${i + 1}`}
+            aria-label={isFilled ? tr('Открыта буква {ch}', { ch }) : tr('Позиция {v0}', { v0: i + 1 })}
           >
             {isFilled ? ch.toUpperCase() : isPickable ? '?' : ''}
           </button>

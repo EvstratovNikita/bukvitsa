@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { pickRandomWord, normalizeWord } from '../../data/words.js';
+import { tr } from '../../lib/lang.js';
 
 const ROUND_MS = 60_000;
 const XP_PER_WORD = 8;
@@ -166,7 +167,7 @@ export function AnagramGame({ onExit }) {
       const r = recordPetXp(xpReward);
       addCoins(coinReward);
       if (r?.levelAfter > r?.levelBefore) {
-        showToast?.(`Букля выросла! Уровень ${r.levelAfter}`);
+        showToast?.(tr('Букля выросла! Уровень {levelAfter}', { levelAfter: r.levelAfter }));
       }
     }
     recordMiniGamePlay?.('anagram', xpReward, coinReward);
@@ -177,9 +178,7 @@ export function AnagramGame({ onExit }) {
   if (playedToday && phase === 'idle') {
     return (
       <div className="anagram anagram--done">
-        <p className="pet-tab__hint">
-          На сегодня Букля уже потренировалась. Возвращайся завтра!
-        </p>
+        <p className="pet-tab__hint">{tr('На сегодня Букля уже потренировалась. Возвращайся завтра!')}</p>
       </div>
     );
   }
@@ -187,19 +186,13 @@ export function AnagramGame({ onExit }) {
   if (phase === 'idle') {
     return (
       <div className="anagram">
-        <p className="pet-tab__hint">
-          У тебя одна минута. Перемешанные буквы — собери из них слово. Тапни
-          букву внизу, чтобы поставить её в слот. Тапни слот, чтобы вернуть.
-          Чем больше слов соберёшь — тем больше опыта и монет.
-        </p>
+        <p className="pet-tab__hint">{tr('У тебя одна минута. Перемешанные буквы — собери из них слово. Тапни букву внизу, чтобы поставить её в слот. Тапни слот, чтобы вернуть. Чем больше слов соберёшь — тем больше опыта и монет.')}</p>
         <button
           type="button"
           className="btn btn--primary anagram__start"
           onClick={onStart}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          Начать (60 сек)
-        </button>
+        >{tr('Начать (60 сек)')}</button>
       </div>
     );
   }
@@ -207,9 +200,8 @@ export function AnagramGame({ onExit }) {
   if (phase === 'done') {
     return (
       <div className="anagram anagram--result">
-        <div className="anagram__result-title">⏱ Время вышло!</div>
-        <div className="anagram__result-stats">
-          Слов угадано: <b>{solved}</b>
+        <div className="anagram__result-title">{tr('⏱ Время вышло!')}</div>
+        <div className="anagram__result-stats">{tr('Слов угадано: ')}<b>{solved}</b>
         </div>
         <div className="anagram__result-rewards">
           <span className="memory__reward">+{xpReward} XP</span>
@@ -218,17 +210,13 @@ export function AnagramGame({ onExit }) {
             +{coinReward}
           </span>
         </div>
-        <p className="memory__cooldown-note">
-          Возвращайся завтра — следующая тренировка после полуночи.
-        </p>
+        <p className="memory__cooldown-note">{tr('Возвращайся завтра — следующая тренировка после полуночи.')}</p>
         <button
           type="button"
           className="btn btn--primary memory__result-exit"
           onClick={onExit}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          К списку игр
-        </button>
+        >{tr('К списку игр')}</button>
       </div>
     );
   }
@@ -237,8 +225,8 @@ export function AnagramGame({ onExit }) {
   return (
     <div className={`anagram${shake ? ' anagram--shake' : ''}${justSolved ? ' anagram--solved' : ''}`}>
       <div className="anagram__hud">
-        <span className="anagram__stat">⏱ <b>{remainSec}</b> сек</span>
-        <span className="anagram__stat">Угадано: <b>{solved}</b></span>
+        <span className="anagram__stat">⏱ <b>{remainSec}</b>{tr(' сек')}</span>
+        <span className="anagram__stat">{tr('Угадано: ')}<b>{solved}</b></span>
       </div>
 
       <div className="anagram__slots">
@@ -249,7 +237,7 @@ export function AnagramGame({ onExit }) {
             className={`anagram-slot${s ? ' anagram-slot--filled' : ''}`}
             onClick={() => returnFromSlot(i)}
             onMouseDown={(e) => e.preventDefault()}
-            aria-label={s ? `Буква ${s.ch}` : `Пустой слот ${i + 1}`}
+            aria-label={s ? tr('Буква {ch}', { ch: s.ch }) : tr('Пустой слот {v0}', { v0: i + 1 })}
           >
             {s ? s.ch.toUpperCase() : ''}
           </button>
@@ -264,7 +252,7 @@ export function AnagramGame({ onExit }) {
             className="anagram-tile"
             onClick={() => placeFromBank(i)}
             onMouseDown={(e) => e.preventDefault()}
-            aria-label={`Буква ${b.ch}`}
+            aria-label={tr('Буква {ch}', { ch: b.ch })}
           >
             {b.ch.toUpperCase()}
           </button>
@@ -277,17 +265,13 @@ export function AnagramGame({ onExit }) {
           className="btn btn--ghost anagram__action"
           onClick={onShuffleBank}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          🔀 Перемешать
-        </button>
+        >{tr('🔀 Перемешать')}</button>
         <button
           type="button"
           className="btn btn--ghost anagram__action"
           onClick={onSkip}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          Пропустить →
-        </button>
+        >{tr('Пропустить →')}</button>
       </div>
     </div>
   );

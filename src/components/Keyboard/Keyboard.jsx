@@ -2,11 +2,12 @@ import { memo } from 'react';
 import { KEYBOARD_ROWS, LETTER_STATUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BackspaceIcon, EnterIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 function Key({ value, status, onClick, wide }) {
   const isEnter = value === 'ENTER';
   const isBack = value === 'BACK';
-  const label = isEnter ? 'Ввод' : isBack ? 'Удалить' : value;
+  const label = isEnter ? tr('Ввод') : isBack ? tr('Удалить') : value;
   const classes = [
     'key',
     wide && 'key--wide',
@@ -23,7 +24,7 @@ function Key({ value, status, onClick, wide }) {
       aria-label={label}
       title={label}
     >
-      {isEnter ? 'Ввод' : isBack ? <BackspaceIcon /> : value}
+      {isEnter ? tr('Ввод') : isBack ? <BackspaceIcon /> : value}
     </button>
   );
 }

@@ -12,7 +12,10 @@
 //   save(obj)   → boolean
 //   identity()  → строка вида 'режим:id' или null
 //   status      → объект диагностики (window.__buklitsaCloud)
-import { isYandexGames, isVk } from './platform.js';
+import { isGameMonetize, isPlaygama, isTelegram, isYandexGames, isVk } from './platform.js';
+import { pgCloud } from './playgama.js';
+import { localCloud } from './gamemonetize.js';
+import { tgCloud } from './telegram.js';
 import { cloudLoad as yaLoad, cloudSave as yaSave, playerIdentity as yaIdentity, cloudStatus as yaStatus } from './yandex.js';
 import { cloudLoad as vkLoad, cloudSave as vkSave, playerIdentity as vkIdentity, cloudStatus as vkStatus, isOk } from './vk.js';
 import { okLoad, okSave, okIdentity } from './okCloud.js';
@@ -26,6 +29,9 @@ const offline = {
 };
 
 function pick() {
+  if (isPlaygama) return pgCloud;
+  if (isTelegram) return tgCloud;
+  if (isGameMonetize) return localCloud;
   if (isYandexGames) return { load: yaLoad, save: yaSave, identity: yaIdentity, status: yaStatus };
   // ОК — наш сервер (lib/okCloud.js). Без адреса сервера в сборке играем без
   // облака: подменить его VK Storage нельзя — прогресс смешался бы с VK.

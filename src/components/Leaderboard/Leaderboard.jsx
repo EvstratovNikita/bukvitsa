@@ -3,6 +3,7 @@ import { fetchLeaderboard, hasFriendsBoard, showFriendsBoard } from '../../lib/l
 import { isYandexGames } from '../../lib/platform.js';
 import { TrophyIcon } from '../icons/Icon.jsx';
 import { Modal } from '../Modal/Modal.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Последний удачный ответ площадки. Живёт вне компонента, поэтому второе и
 // последующие открытия рисуют таблицу мгновенно, а свежие данные подменяют её
@@ -42,20 +43,20 @@ export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }
   const loading = !res && !failed;
 
   return (
-    <Modal open={open} onClose={onClose} title="Лучшие игроки">
+    <Modal open={open} onClose={onClose} title={tr('Лучшие игроки')}>
       <div className="lb">
         {/* Подписи колонок: без них числа справа — просто числа. Словами, а
             не «#», и обычным текстом, а не мелкими блёклыми капслоком. */}
         {(loading || entries.length > 0) && (
           <div className="lb__head">
-            <span className="lb__hcell lb__hcell--rank">Место</span>
-            <span className="lb__hcell">Игрок</span>
-            <span className="lb__hcell lb__hcell--num">Слов</span>
+            <span className="lb__hcell lb__hcell--rank">{tr('Место')}</span>
+            <span className="lb__hcell">{tr('Игрок')}</span>
+            <span className="lb__hcell lb__hcell--num">{tr('Слов')}</span>
           </div>
         )}
 
         {loading && (
-          <ol className="lb__list" aria-busy="true" aria-label="Загрузка таблицы">
+          <ol className="lb__list" aria-busy="true" aria-label={tr('Загрузка таблицы')}>
             {Array.from({ length: 6 }, (_, i) => (
               <li key={i} className="lb__row lb__row--skeleton" />
             ))}
@@ -65,16 +66,16 @@ export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }
         {failed && (
           <div className="lb__empty">
             <span className="lb__empty-icon"><TrophyIcon /></span>
-            <p className="lb__empty-title">Таблица недоступна</p>
-            <p className="lb__empty-text">Попробуй заглянуть чуть позже.</p>
+            <p className="lb__empty-title">{tr('Таблица недоступна')}</p>
+            <p className="lb__empty-text">{tr('Попробуй заглянуть чуть позже.')}</p>
           </div>
         )}
 
         {!loading && !failed && entries.length === 0 && (
           <div className="lb__empty">
             <span className="lb__empty-icon"><TrophyIcon /></span>
-            <p className="lb__empty-title">Здесь пока пусто</p>
-            <p className="lb__empty-text">Отгадай слово — и займёшь первое место.</p>
+            <p className="lb__empty-title">{tr('Здесь пока пусто')}</p>
+            <p className="lb__empty-text">{tr('Отгадай слово — и займёшь первое место.')}</p>
           </div>
         )}
 
@@ -82,7 +83,7 @@ export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }
           <ol className="lb__list">
             {entries.map((e) => {
               const me = userRank != null && e.rank === userRank;
-              const name = e.player?.publicName || 'Игрок';
+              const name = e.player?.publicName || tr('Игрок');
               // Тройке призёров — свои цвета медалей, остальным обычный номер.
               const medal = e.rank <= 3 ? ` lb__row--medal lb__row--medal${e.rank}` : '';
               return (
@@ -90,7 +91,7 @@ export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }
                   <span className="lb__rank">{e.rank}</span>
                   <span className="lb__name" title={name}>
                     {name}
-                    {me && <span className="lb__you">вы</span>}
+                    {me && <span className="lb__you">{tr('вы')}</span>}
                   </span>
                   <span className="lb__score">{e.formattedScore ?? e.score}</span>
                 </li>
@@ -99,14 +100,12 @@ export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }
           </ol>
         )}
 
-        <p className="lb__hint">
-          Место — по числу отгаданных слов.
-          {/* У Яндекса гостю объясняем, почему его нет в таблице; вошедшему это
+        <p className="lb__hint">{tr('Место — по числу отгаданных слов.')}{/* У Яндекса гостю объясняем, почему его нет в таблице; вошедшему это
               не нужно. В VK вход не при чём: строки нет, пока нет побед. */}
-          {!failed && userRank == null && isYandexGames && ' Войди в аккаунт, чтобы попасть в таблицу под своим именем.'}
+          {!failed && userRank == null && isYandexGames && tr(' Войди в аккаунт, чтобы попасть в таблицу под своим именем.')}
           {/* В пустой таблице этот же призыв уже стоит крупно посередине —
               второй раз мелким шрифтом он выглядит заеданием пластинки. */}
-          {!failed && userRank == null && !isYandexGames && entries.length > 0 && ' Отгадай слово — и появишься в списке.'}
+          {!failed && userRank == null && !isYandexGames && entries.length > 0 && tr(' Отгадай слово — и появишься в списке.')}
         </p>
 
         {/* В VK поверх общей таблицы есть нативное окно: там площадка
@@ -120,12 +119,10 @@ export function LeaderboardModal({ open, onClose, missionPoints = 0, showToast }
               const r = await showFriendsBoard(missionPoints);
               if (r.startsWith('failed')) {
                 const code = r.split(':')[1];
-                showToast?.(`Список друзей сейчас недоступен${code ? ` (${code})` : ''}`);
+                showToast?.(tr('Список друзей сейчас недоступен{v0}', { v0: code ? ` (${code})` : '' }));
               }
             }}
-          >
-            Среди друзей
-          </button>
+          >{tr('Среди друзей')}</button>
         )}
       </div>
     </Modal>

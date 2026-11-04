@@ -9,11 +9,12 @@ import {
   msUntilNextEnergyUnit
 } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { showRewardedAd, rewardedFailText } from '../../lib/ads.js';
+import { rewardedAdsAvailable, showRewardedAd, rewardedFailText } from '../../lib/ads.js';
 import { pluralCoins } from '../../utils/plural.js';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon, PlayIcon } from '../icons/Icon.jsx';
 import { PumpkinIcon } from '../Halloween/HwIcons.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Сколько энергии за день дают режимы 4/6 (серия «5 побед → +1», до 3 раз) —
 // то же правило, что в EndPanel и GameEnd.
@@ -80,27 +81,27 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
   const onBuy = () => {
     const r = buyEnergy();
     if (r === 'ok') {
-      flash('ok', `+1 энергия (−${ENERGY_REFILL_COST})`);
+      flash('ok', tr('+1 энергия (−{ENERGY_REFILL_COST})', { ENERGY_REFILL_COST }));
       if (needsStart) setWantStart(true);
     } else if (r === 'full') {
-      flash('err', 'Энергия уже полная');
+      flash('err', tr('Энергия уже полная'));
     } else {
-      flash('err', 'Недостаточно монет');
+      flash('err', tr('Недостаточно монет'));
     }
   };
 
   const onAd = async () => {
     if (adRunning) return;
-    if (adsEnergyLeft <= 0) { flash('err', 'Лимит рекламы на сегодня исчерпан'); return; }
+    if (adsEnergyLeft <= 0) { flash('err', tr('Лимит рекламы на сегодня исчерпан')); return; }
     setAdRunning(true);
-    flash('info', 'Реклама…');
+    flash('info', tr('Реклама…'));
     const result = await showRewardedAd();
     setAdRunning(false);
     if (result === 'rewarded') {
       // grantAdEnergy enforces the daily cap and returns false if reached.
-      if (!grantAdEnergy()) { flash('err', 'Лимит рекламы на сегодня исчерпан'); return; }
+      if (!grantAdEnergy()) { flash('err', tr('Лимит рекламы на сегодня исчерпан')); return; }
       const adBonus = recordAdWatched?.() || 0;
-      flash('ok', adBonus > 0 ? `+${ENERGY_AD_REWARD} энергия и +${adBonus} ${pluralCoins(adBonus)}` : `+${ENERGY_AD_REWARD} энергия`);
+      flash('ok', adBonus > 0 ? tr('+{ENERGY_AD_REWARD} энергия и +{adBonus} {v2}', { ENERGY_AD_REWARD, adBonus, v2: pluralCoins(adBonus) }) : tr('+{ENERGY_AD_REWARD} энергия', { ENERGY_AD_REWARD }));
       if (needsStart) setWantStart(true);
     } else {
       flash('err', rewardedFailText(result), result === 'closed' ? 1600 : 4000);
@@ -121,7 +122,7 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
   const onHw = () => { closeEnergyModal(); onPlayHalloween(); };
 
   return (
-    <Modal open onClose={closeEnergyModal} title="Энергия">
+    <Modal open onClose={closeEnergyModal} title={tr('Энергия')}>
       <div className="energy-modal">
         <div className="energy-modal__hero">
           <div className="energy-modal__bolt">
@@ -130,13 +131,12 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
           <div className="energy-modal__count">{energy} / {cap}</div>
           <div className="energy-modal__desc">
             {full
-              ? 'Энергия полная — можно играть!'
-              : `Каждая новая игра тратит 1 энергию. Восстановление — раз в ${ENERGY_REGEN_INTERVAL_MS >= 2 * 3600000 ? '2 часа' : 'час'}.`}
+              ? tr('Энергия полная — можно играть!')
+              : tr('Каждая новая игра тратит 1 энергию. Восстановление — раз в {v0}.', { v0: ENERGY_REGEN_INTERVAL_MS >= 2 * 3600000 ? tr('2 часа') : tr('час') })}
           </div>
           {!full && (
-            <div className="energy-modal__timer">
-              Следующая через <b>{formatDuration(msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger: petHunger, maxEnergy: cap }))}</b>
-              {' '}<span className="energy-modal__speed">×{energySpeedFromHunger(petHunger).toFixed(1)} от Букли</span>
+            <div className="energy-modal__timer">{tr('Следующая через ')}<b>{formatDuration(msUntilNextEnergyUnit({ energy, lastEnergyTickAt, hunger: petHunger, maxEnergy: cap }))}</b>
+              {' '}<span className="energy-modal__speed">×{energySpeedFromHunger(petHunger).toFixed(1)}{tr(' от Букли')}</span>
             </div>
           )}
         </div>
@@ -151,8 +151,8 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
           >
             <span className="energy-option__icon"><CoinIcon /></span>
             <span className="energy-option__body">
-              <span className="energy-option__title">Купить за монеты</span>
-              <span className="energy-option__sub">+1 энергия</span>
+              <span className="energy-option__title">{tr('Купить за монеты')}</span>
+              <span className="energy-option__sub">{tr('+1 энергия')}</span>
             </span>
             <span className="energy-option__price">
               <CoinIcon />
@@ -160,7 +160,7 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
             </span>
           </button>
 
-          <button
+          {rewardedAdsAvailable() && (<button
             type="button"
             className="energy-option energy-option--ad"
             onClick={onAd}
@@ -170,18 +170,18 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
             <span className="energy-option__icon"><PlayIcon /></span>
             <span className="energy-option__body">
               <span className="energy-option__title">
-                {adRunning ? 'Смотрим рекламу…' : 'Посмотреть рекламу'}
+                {adRunning ? tr('Смотрим рекламу…') : tr('Посмотреть рекламу')}
               </span>
               <span className="energy-option__sub">
                 {adCapReached
-                  ? 'Лимит на сегодня исчерпан'
-                  : `+${ENERGY_AD_REWARD} энергия, бесплатно${Number.isFinite(adsEnergyLeft) ? ` · осталось ${adsEnergyLeft}` : ''}`}
+                  ? tr('Лимит на сегодня исчерпан')
+                  : tr('+{ENERGY_AD_REWARD} энергия, бесплатно{v1}', { ENERGY_AD_REWARD, v1: Number.isFinite(adsEnergyLeft) ? tr(' · осталось {adsEnergyLeft}', { adsEnergyLeft }) : '' })}
               </span>
             </span>
             <span className="energy-option__price energy-option__price--ad">
-              {adRunning ? '…' : (<><PlayIcon /><span>Смотреть</span></>)}
+              {adRunning ? '…' : (<><PlayIcon /><span>{tr('Смотреть')}</span></>)}
             </span>
-          </button>
+          </button>)}
 
           {showHw && (
             <button
@@ -193,11 +193,11 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
             >
               <span className="energy-option__icon" aria-hidden="true"><PumpkinIcon /></span>
               <span className="energy-option__body">
-                <span className="energy-option__title">Загадки ночи</span>
-                <span className="energy-option__sub">Хэллоуин · без энергии, награда — тыквы</span>
+                <span className="energy-option__title">{tr('Загадки ночи')}</span>
+                <span className="energy-option__sub">{tr('Хэллоуин · без энергии, награда — тыквы')}</span>
               </span>
               <span className="energy-option__price energy-option__price--hw">
-                <span>Играть</span>
+                <span>{tr('Играть')}</span>
               </span>
             </button>
           )}
@@ -212,15 +212,15 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
             >
               <span className="energy-option__icon" aria-hidden="true">4·6</span>
               <span className="energy-option__body">
-                <span className="energy-option__title">Режимы 4 и 6 букв</span>
+                <span className="energy-option__title">{tr('Режимы 4 и 6 букв')}</span>
                 <span className="energy-option__sub">
                   {altCapped
-                    ? 'Без энергии — играй сколько хочешь'
-                    : <>Без энергии · ещё {altLeft} {altLeft === 1 ? 'победа' : altLeft < 5 ? 'победы' : 'побед'} до <BoltIcon /> +1</>}
+                    ? tr('Без энергии — играй сколько хочешь')
+                    : <>{tr('Без энергии · ещё ')}{altLeft} {altLeft === 1 ? tr('победа') : altLeft < 5 ? tr('победы') : tr('побед')}{tr(' до ')}<BoltIcon /> +1</>}
                 </span>
               </span>
               <span className="energy-option__price energy-option__price--modes">
-                <span>Играть</span>
+                <span>{tr('Играть')}</span>
               </span>
             </button>
           )}

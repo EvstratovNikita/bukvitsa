@@ -1,20 +1,26 @@
 import { useMemo, useState } from 'react';
 import { callRpc } from '../../lib/economy.js';
 import { isEmbedded, isVk } from '../../lib/platform.js';
+import { isEn } from '../../lib/lang.js';
 import { copyText } from '../../utils/clipboard.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { MailIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 // В VK — почта не на домене Яндекса: модерация площадки придирается к чужим
 // брендам. На Яндексе и в вебе адрес прежний.
-const DEV_EMAIL = isVk ? 'relagames@mail.ru' : 'relagames@yandex.com';
+const ENV = (typeof import.meta !== 'undefined' && import.meta.env) || {};
+const DEV_EMAIL = ENV.VITE_SUPPORT_EMAIL || (isVk ? 'relagames@mail.ru' : 'relagames@yandex.com');
+// На площадках нет сервера, принимающего сообщения: форма могла только выдать
+// ошибку. В английской версии — один адрес с кнопкой «Копировать».
+const FORM_WORKS = !isEn();
 
 const CATEGORIES = [
-  { id: 'question', label: 'Вопрос',      subject: 'Вопрос' },
-  { id: 'bug',      label: 'Ошибка',      subject: 'Сообщение об ошибке' },
-  { id: 'idea',     label: 'Предложение', subject: 'Предложение' },
-  { id: 'other',    label: 'Другое',      subject: 'Сообщение' }
+  { id: 'question', label: tr('Вопрос'),      subject: tr('Вопрос') },
+  { id: 'bug',      label: tr('Ошибка'),      subject: tr('Сообщение об ошибке') },
+  { id: 'idea',     label: tr('Предложение'), subject: tr('Предложение') },
+  { id: 'other',    label: tr('Другое'),      subject: tr('Сообщение') }
 ];
 
 // Feedback / "write to the developer" screen. Submits straight from the app
@@ -36,8 +42,8 @@ export function FeedbackModal({ open, onClose }) {
 
   const mailtoHref = useMemo(() => {
     const cat = CATEGORIES.find((c) => c.id === category);
-    const subject = `Буклица — ${cat?.subject || 'Сообщение'}`;
-    const body = trimmed ? `${trimmed}\n\n—\nОтправлено из игры «Буклица»` : '';
+    const subject = tr('Буклица — {v0}', { v0: cat?.subject || tr('Сообщение') });
+    const body = trimmed ? tr('{trimmed}\n\n—\nОтправлено из игры «Буклица»', { trimmed }) : '';
     return `mailto:${DEV_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }, [category, trimmed]);
 
@@ -60,11 +66,11 @@ export function FeedbackModal({ open, onClose }) {
       setMessage('');
       setContact('');
     } else if (r && r.reason === 'rate_limited') {
-      showToast?.('Слишком много сообщений за час. Попробуйте позже.');
+      showToast?.(tr('Слишком много сообщений за час. Попробуйте позже.'));
     } else if (r && r.reason === 'too_short') {
-      showToast?.('Сообщение слишком короткое');
+      showToast?.(tr('Сообщение слишком короткое'));
     } else {
-      showToast?.('Не удалось отправить — напишите на почту напрямую');
+      showToast?.(tr('Не удалось отправить — напишите на почту напрямую'));
     }
   };
 
@@ -79,31 +85,25 @@ export function FeedbackModal({ open, onClose }) {
   };
 
   return (
-    <Modal open={open} onClose={handleClose} title="Обратная связь">
+    <Modal open={open} onClose={handleClose} title={tr('Обратная связь')}>
       <div className="feedback">
         {sent ? (
           <div className="feedback__done">
             <div className="feedback__done-mark">✓</div>
-            <p className="feedback__done-text">
-              Спасибо! Сообщение получено — мы обязательно его прочитаем
-              {linkedEmail || contact ? ' и постараемся ответить' : ''}.
+            <p className="feedback__done-text">{tr('Спасибо! Сообщение получено — мы обязательно его прочитаем')}{linkedEmail || contact ? tr(' и постараемся ответить') : ''}.
             </p>
             <button
               type="button"
               className="btn btn--ghost feedback__again"
               onClick={() => setSent(false)}
               onMouseDown={(e) => e.preventDefault()}
-            >
-              Написать ещё
-            </button>
+            >{tr('Написать ещё')}</button>
           </div>
         ) : (
           <>
-            <p className="feedback__lead">
-              Нашли ошибку, есть вопрос или идея? Напишите нам — это помогает
-              делать игру лучше.
-            </p>
+            <p className="feedback__lead">{tr('Нашли ошибку, есть вопрос или идея? Напишите нам — это помогает делать игру лучше.')}</p>
 
+            {FORM_WORKS && (<>
             <div className="feedback__cats" role="tablist">
               {CATEGORIES.map((c) => (
                 <button
@@ -123,7 +123,7 @@ export function FeedbackModal({ open, onClose }) {
               className="feedback__textarea"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ваше сообщение…"
+              placeholder={tr('Ваше сообщение…')}
               rows={5}
               maxLength={4000}
             />
@@ -133,7 +133,7 @@ export function FeedbackModal({ open, onClose }) {
               type="email"
               value={contact}
               onChange={(e) => setContact(e.target.value)}
-              placeholder={linkedEmail ? `Для ответа: ${linkedEmail}` : 'E-mail для ответа (необязательно)'}
+              placeholder={linkedEmail ? tr('Для ответа: {linkedEmail}', { linkedEmail }) : tr('E-mail для ответа (необязательно)')}
             />
 
             <button
@@ -143,10 +143,11 @@ export function FeedbackModal({ open, onClose }) {
               onMouseDown={(e) => e.preventDefault()}
               disabled={!canSend}
             >
-              {sending ? 'Отправка…' : 'Отправить'}
+              {sending ? tr('Отправка…') : tr('Отправить')}
             </button>
 
-            <div className="feedback__divider"><span>или напрямую</span></div>
+            <div className="feedback__divider"><span>{tr('или напрямую')}</span></div>
+            </>)}
 
             <div className="feedback__direct">
               <MailIcon className="feedback__direct-icon" />
@@ -165,7 +166,7 @@ export function FeedbackModal({ open, onClose }) {
                 onClick={onCopy}
                 onMouseDown={(e) => e.preventDefault()}
               >
-                {copied ? 'Скопировано ✓' : 'Копировать'}
+                {copied ? tr('Скопировано ✓') : tr('Копировать')}
               </button>
             </div>
           </>

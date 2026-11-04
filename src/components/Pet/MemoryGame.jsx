@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
+import { plural } from '../../utils/plural.js';
 
 // 8 pairs → 16 cards. Pet-themed icons stay visually distinct and don't
 // lean on the Cyrillic alphabet (which would feel like a Wordle session).
@@ -43,10 +45,7 @@ function isSameLocalDay(iso) {
 }
 
 function pluralMoves(n) {
-  const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return 'ход';
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'хода';
-  return 'ходов';
+  return plural(n, tr('ход'), tr('хода'), tr('ходов'));
 }
 
 // Mini-game: 4×4 memory — tap two cards, match the pair. Time-based reward
@@ -139,7 +138,7 @@ export function MemoryGame({ onExit }) {
     addCoins(coinReward);
     recordMiniGamePlay?.('memory', xpReward, coinReward);
     if (r?.levelAfter > r?.levelBefore) {
-      showToast?.(`Букля выросла! Уровень ${r.levelAfter}`);
+      showToast?.(tr('Букля выросла! Уровень {levelAfter}', { levelAfter: r.levelAfter }));
     }
   }, [won, rewardClaimed, xpReward, coinReward, recordPetXp, addCoins, recordMiniGamePlay, showToast]);
 
@@ -169,14 +168,11 @@ export function MemoryGame({ onExit }) {
 
   return (
     <div className="memory">
-      <p className="pet-tab__hint">
-        Открой две карточки. Совпали — остаются открытыми. Не совпали —
-        переворачиваются. Собери все 8 пар за минимум времени!
-      </p>
+      <p className="pet-tab__hint">{tr('Открой две карточки. Совпали — остаются открытыми. Не совпали — переворачиваются. Собери все 8 пар за минимум времени!')}</p>
 
       <div className="memory__hud">
         <span className="memory__stat">⏱ <b>{formatMs(elapsedMs)}</b></span>
-        <span className="memory__stat">Ходов: <b>{moves}</b></span>
+        <span className="memory__stat">{tr('Ходов: ')}<b>{moves}</b></span>
       </div>
 
       <div className="memory__grid" role="grid">
@@ -192,7 +188,7 @@ export function MemoryGame({ onExit }) {
             onClick={() => onFlip(i)}
             onMouseDown={(e) => e.preventDefault()}
             disabled={c.matched || won}
-            aria-label={c.flipped ? c.symbol : 'Закрытая карточка'}
+            aria-label={c.flipped ? c.symbol : tr('Закрытая карточка')}
           >
             <span className="memory-card__inner">
               <span className="memory-card__face memory-card__face--back" aria-hidden="true">?</span>
@@ -204,7 +200,7 @@ export function MemoryGame({ onExit }) {
 
       {won ? (
         <div className="memory__result">
-          <div className="memory__result-title">🎉 Все пары собраны!</div>
+          <div className="memory__result-title">{tr('🎉 Все пары собраны!')}</div>
           <div className="memory__result-stats">
             {formatMs(elapsedMs)} · {moves} {pluralMoves(moves)}
           </div>
@@ -215,17 +211,13 @@ export function MemoryGame({ onExit }) {
               +{coinReward}
             </span>
           </div>
-          <p className="memory__cooldown-note">
-            Возвращайся завтра — следующая игра будет доступна после полуночи.
-          </p>
+          <p className="memory__cooldown-note">{tr('Возвращайся завтра — следующая игра будет доступна после полуночи.')}</p>
           <button
             type="button"
             className="btn btn--primary memory__result-exit"
             onClick={onExit}
             onMouseDown={(e) => e.preventDefault()}
-          >
-            К списку игр
-          </button>
+          >{tr('К списку игр')}</button>
         </div>
       ) : startedAt ? (
         <button
@@ -233,9 +225,7 @@ export function MemoryGame({ onExit }) {
           className="btn btn--ghost memory__restart"
           onClick={onReset}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          Перезапустить
-        </button>
+        >{tr('Перезапустить')}</button>
       ) : null}
     </div>
   );

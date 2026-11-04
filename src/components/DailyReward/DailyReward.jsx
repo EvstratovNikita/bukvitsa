@@ -3,6 +3,7 @@ import { DAILY_CYCLE_DAYS, DAILY_ENERGY_BONUS } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 export function DailyReward() {
   const { pendingDailyReward, claimDailyReward, ready, stats } = useGameContext();
@@ -59,10 +60,9 @@ export function DailyReward() {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Ежедневная награда">
+    <Modal open={open} onClose={onClose} title={tr('Ежедневная награда')}>
       <div className="daily">
-        <div className="daily__lead">
-          День <b>{streak}</b> из {DAILY_CYCLE_DAYS}
+        <div className="daily__lead">{tr('День ')}<b>{streak}</b>{tr(' из ')}{DAILY_CYCLE_DAYS}
         </div>
 
         <div className="daily__week">
@@ -81,7 +81,7 @@ export function DailyReward() {
                 ].filter(Boolean).join(' ')}
                 style={{ animationDelay: `${80 + i * 60}ms` }}
               >
-                <div className="daily__day-num">День {d}</div>
+                <div className="daily__day-num">{tr('День ')}{d}</div>
                 <div className="daily__day-coin">
                   <CoinIcon />
                   <span>+{d}</span>
@@ -113,8 +113,8 @@ export function DailyReward() {
           <div className="daily__welcome">
             <span className="daily__welcome-gift" aria-hidden="true">🎁</span>
             <span className="daily__welcome-text">
-              <b>Подарок новичку <span className="daily__welcome-amount"><CoinIcon />+{welcome}</span></b>
-              <span>Хватит на первый фон в магазине</span>
+              <b>{tr('Подарок новичку ')}<span className="daily__welcome-amount"><CoinIcon />+{welcome}</span></b>
+              <span>{tr('Хватит на первый фон в магазине')}</span>
             </span>
           </div>
         )}
@@ -126,12 +126,10 @@ export function DailyReward() {
           onMouseDown={(e) => e.preventDefault()}
           disabled={claimed}
         >
-          {claimed ? 'Забрано!' : 'Забрать'}
+          {claimed ? tr('Забрано!') : tr('Забрать')}
         </button>
 
-        <p className="daily__hint">
-          Заходи каждый день — награда растёт. Пропустишь день — счёт начнётся заново.
-        </p>
+        <p className="daily__hint">{tr('Заходи каждый день — награда растёт. Пропустишь день — счёт начнётся заново.')}</p>
       </div>
     </Modal>
   );

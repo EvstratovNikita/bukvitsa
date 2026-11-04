@@ -19,6 +19,7 @@ import {
   TrophyIcon,
   UserIcon
 } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 export function MenuButton({ onClick }) {
   return (
@@ -28,8 +29,8 @@ export function MenuButton({ onClick }) {
       data-tour="menu"
       onClick={onClick}
       onMouseDown={(e) => e.preventDefault()}
-      aria-label="Меню"
-      title="Меню"
+      aria-label={tr('Меню')}
+      title={tr('Меню')}
     >
       <MenuIcon />
     </button>
@@ -61,8 +62,8 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
   }, [open, onClose]);
 
   const isLinked = auth?.user && auth.isAnonymous === false;
-  const accountLabel = isLinked ? (auth.user.email || 'Аккаунт') : 'Войти';
-  const accountSub = isLinked ? 'Прогресс сохранён' : 'Сохрани прогресс';
+  const accountLabel = isLinked ? (auth.user.email || tr('Аккаунт')) : tr('Войти');
+  const accountSub = isLinked ? tr('Прогресс сохранён') : tr('Сохрани прогресс');
   const initial = (isLinked ? (auth.user.email || '?')[0] : '?').toUpperCase();
 
   const handle = (fn) => () => { onClose(); fn(); };
@@ -90,13 +91,13 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         aria-hidden={!open}
       >
         <header className="menu__head">
-          <h2 className="menu__title">Меню</h2>
+          <h2 className="menu__title">{tr('Меню')}</h2>
           <button
             type="button"
             className="menu__close"
             onClick={onClose}
             onMouseDown={(e) => e.preventDefault()}
-            aria-label="Закрыть"
+            aria-label={tr('Закрыть')}
           >
             <CloseIcon />
           </button>
@@ -122,7 +123,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
             <div className="menu__user-name" title={accountLabel}>{accountLabel}</div>
             <div className="menu__user-sub">{accountSub}</div>
           </div>
-          <div className="menu__balance" title="Монеты">
+          <div className="menu__balance" title={tr('Монеты')}>
             <CoinIcon />
             <span>{stats.coins || 0}</span>
           </div>
@@ -134,28 +135,28 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
           {/* У каждого пункта свой цвет плитки (tint) — иначе меню читается
               как один серый список, а «премиальным» в нём выглядит только
               магазин. Палитра — в index.css, .menu-item--*. */}
-          <MenuItem icon={<ShopIcon />} label="Магазин" onClick={handle(onOpenShop)} tint="shop" />
+          <MenuItem icon={<ShopIcon />} label={tr('Магазин')} onClick={handle(onOpenShop)} tint="shop" />
           {/* Таблица лидеров есть на обеих площадках: у Яндекса данные даёт
               его API, у VK — наш сервер. Если сервер не настроен, пункт не
               показываем — пустое окно хуже отсутствующего пункта. */}
           {hasLeaderboard && (
-            <MenuItem icon={<TrophyIcon />} label="Лучшие игроки" onClick={handle(onOpenLeaderboard)} tint="rating" />
+            <MenuItem icon={<TrophyIcon />} label={tr('Лучшие игроки')} onClick={handle(onOpenLeaderboard)} tint="rating" />
           )}
           <MenuItem
             icon={<AwardIcon />}
-            label="Достижения"
+            label={tr('Достижения')}
             badge={unlockedCount > 0 ? unlockedCount : undefined}
             onClick={handle(onOpenAchievements)}
             tint="awards"
           />
-          <MenuItem icon={<StatsIcon />} label="Статистика" onClick={handle(onOpenStats)} tint="stats" />
-          <MenuItem icon={<SettingsIcon />} label="Настройки" onClick={handle(onOpenSettings)} tint="settings" />
-          <MenuItem icon={<HelpIcon />} label="Как играть" onClick={handle(onOpenHelp)} tint="help" />
-          <MenuItem icon={<MailIcon />} label="Обратная связь" onClick={handle(onOpenFeedback)} tint="mail" />
+          <MenuItem icon={<StatsIcon />} label={tr('Статистика')} onClick={handle(onOpenStats)} tint="stats" />
+          <MenuItem icon={<SettingsIcon />} label={tr('Настройки')} onClick={handle(onOpenSettings)} tint="settings" />
+          <MenuItem icon={<HelpIcon />} label={tr('Как играть')} onClick={handle(onOpenHelp)} tint="help" />
+          <MenuItem icon={<MailIcon />} label={tr('Обратная связь')} onClick={handle(onOpenFeedback)} tint="mail" />
           {isLinked && (
             <MenuItem
               icon={<LogoutIcon />}
-              label="Выйти"
+              label={tr('Выйти')}
               onClick={onLogout}
               danger
             />
@@ -163,7 +164,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
         </nav>
 
         <footer className="menu__foot">
-          <span className="menu__brand">Буклица</span>
+          <span className="menu__brand">{tr('Буклица')}</span>
         </footer>
       </aside>
     </>
@@ -203,12 +204,12 @@ function YandexAuthRow({ onClose, open }) {
       await adoptYandexAccount();
       const next = await getPlayerInfo();
       setInfo(next);
-      showToast?.('Вход выполнен — прогресс объединён с аккаунтом');
+      showToast?.(tr('Вход выполнен — прогресс объединён с аккаунтом'));
       onClose();
     } else {
       // Failed / declined. Most common in the device "draft preview" where the
       // auth popup has no opener; works in the real published player.
-      showToast?.('Не удалось открыть вход. Попробуйте в опубликованной версии.');
+      showToast?.(tr('Не удалось открыть вход. Попробуйте в опубликованной версии.'));
     }
   };
 
@@ -216,7 +217,7 @@ function YandexAuthRow({ onClose, open }) {
     return (
       <div className="menu-item menu-item--static">
         <span className="menu-item__icon"><UserIcon /></span>
-        <span className="menu-item__label">{info.name || 'Аккаунт'}</span>
+        <span className="menu-item__label">{info.name || tr('Аккаунт')}</span>
       </div>
     );
   }
@@ -231,8 +232,8 @@ function YandexAuthRow({ onClose, open }) {
     >
       <span className="menu-item__icon"><UserIcon /></span>
       <span className="menu-item__login-body">
-        <span className="menu-item__label">Войти</span>
-        <span className="menu-item__login-sub">Сохранить прогресс на всех устройствах</span>
+        <span className="menu-item__label">{tr('Войти')}</span>
+        <span className="menu-item__login-sub">{tr('Сохранить прогресс на всех устройствах')}</span>
       </span>
     </button>
   );

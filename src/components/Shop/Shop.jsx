@@ -5,8 +5,10 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon, ShopIcon } from '../icons/Icon.jsx';
 import { halloweenActive } from '../../lib/events.js';
+import { rewardedAdsAvailable } from '../../lib/ads.js';
 import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
+import { tr } from '../../lib/lang.js';
 
 const BOOST_EMOJI = {
   'boost-double': '×2',
@@ -21,13 +23,13 @@ function boostStatus(item, stats) {
   const now = Date.now();
   if (!boostRunning(item.id, stats, now)) return null;
   if (item.id === 'boost-double') {
-    return `Активно ещё ${formatDuration(new Date(stats.boostDoubleUntil).getTime() - now)}`;
+    return tr('Активно ещё {v0}', { v0: formatDuration(new Date(stats.boostDoubleUntil).getTime() - now) });
   }
   if (item.id === 'boost-energy-cap') {
-    return `Активно ещё ${formatDuration(new Date(stats.energyCapUntil).getTime() - now)}`;
+    return tr('Активно ещё {v0}', { v0: formatDuration(new Date(stats.energyCapUntil).getTime() - now) });
   }
   if (item.id === 'boost-ad-coins') {
-    return `Осталось просмотров: ${stats.adBonusLeft}`;
+    return tr('Осталось просмотров: {adBonusLeft}', { adBonusLeft: stats.adBonusLeft });
   }
   return null;
 }
@@ -40,16 +42,16 @@ const DEFAULT_ITEM = {
     id: '__default-bg',
     category: 'background',
     theme: 'dark',
-    name: 'Стандартный',
-    desc: 'Базовый тёмный фон по умолчанию',
+    name: tr('Стандартный'),
+    desc: tr('Базовый тёмный фон по умолчанию'),
     price: 0,
     isDefault: true
   },
   cells: {
     id: '__default-cells',
     category: 'cells',
-    name: 'Стандартный',
-    desc: 'Базовый стиль букв в клетках',
+    name: tr('Стандартный'),
+    desc: tr('Базовый стиль букв в клетках'),
     price: 0,
     isDefault: true
   }
@@ -62,24 +64,26 @@ const DEFAULT_BG_LIGHT = {
   id: '__default-bg-light',
   category: 'background',
   theme: 'light',
-  name: 'Стандартный',
-  desc: 'Базовый светлый фон',
+  name: tr('Стандартный'),
+  desc: tr('Базовый светлый фон'),
   price: 0,
   isDefault: true
 };
 
 const ERROR_LABEL = {
-  not_enough_coins: 'Не хватает монет',
-  already_owned: 'Уже куплено',
-  already_active: 'Бонус ещё работает',
-  unknown_item: 'Товар не найден',
-  not_enough: 'Не хватает тыкв',
-  closed: 'Ивент закончился'
+  not_enough_coins: tr('Не хватает монет'),
+  already_owned: tr('Уже куплено'),
+  already_active: tr('Бонус ещё работает'),
+  unknown_item: tr('Товар не найден'),
+  not_enough: tr('Не хватает тыкв'),
+  closed: tr('Ивент закончился')
 };
 
 // Ивентовый товар виден, пока идёт ивент, и навсегда — у того, кто его уже
 // купил. Некупленный после ивента не показывается.
 function visibleInShop(item, inventory) {
+  // Бонус к просмотрам рекламы — там, где ролики за награду есть.
+  if (item.id === 'boost-ad-coins' && !rewardedAdsAvailable()) return false;
   if (!item.event) return true;
   return halloweenActive() || inventory.includes(item.id);
 }
@@ -120,9 +124,9 @@ export function Shop({ open, onClose }) {
   const onBuy = (item) => {
     const result = buyItem(item.id);
     if (result === 'ok') {
-      flash(item.id, 'ok', item.consumable ? 'Активировано' : 'Куплено');
+      flash(item.id, 'ok', item.consumable ? tr('Активировано') : tr('Куплено'));
     } else {
-      flash(item.id, 'err', ERROR_LABEL[result] || 'Ошибка');
+      flash(item.id, 'err', ERROR_LABEL[result] || tr('Ошибка'));
     }
   };
 
@@ -145,11 +149,11 @@ export function Shop({ open, onClose }) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Магазин"
+      title={tr('Магазин')}
       // Баланс — компактной плашкой в шапке рядом с заголовком: в теле окна
       // он занимал целую строку ради одной цифры.
       headerRight={(
-        <div className="shop__balance" title="Монет на счету">
+        <div className="shop__balance" title={tr('Монет на счету')}>
           <CoinIcon />
           <span>{stats.coins || 0}</span>
         </div>
@@ -173,7 +177,7 @@ export function Shop({ open, onClose }) {
 
         {activeCat === 'background' && (
           <div className="shop__subtabs" role="tablist">
-            {[['dark', 'Тёмные'], ['light', 'Светлые']].map(([id, label]) => (
+            {[['dark', tr('Тёмные')], ['light', tr('Светлые')]].map(([id, label]) => (
               <button
                 key={id}
                 role="tab"
@@ -203,12 +207,7 @@ export function Shop({ open, onClose }) {
         </div>
 
         {activeCat === 'boost' && (
-          <p className="shop__hint">
-            «Двойные монеты» удваивают монеты за победы на 1 день. «Щедрая
-            реклама» добавляет +4 монеты к 10 следующим просмотрам. «Запас
-            энергии» поднимает лимит до 7 на 2 дня. Пока бонус работает,
-            купить его второй раз нельзя — дождитесь окончания.
-          </p>
+          <p className="shop__hint">{tr('«Двойные монеты» удваивают монеты за победы на 1 день. «Щедрая реклама» добавляет +4 монеты к 10 следующим просмотрам. «Запас энергии» поднимает лимит до 7 на 2 дня. Пока бонус работает, купить его второй раз нельзя — дождитесь окончания.')}</p>
         )}
       </div>
     </Modal>
@@ -246,16 +245,16 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
       {isHw && <HwBadge className="shop-card__hw-badge" till={!owned} />}
       <div className={previewClasses.join(' ')} style={previewStyle}>
         {item.category === 'cells' && !item.isDefault && (
-          <span className="shop-card__preview-letter">А</span>
+          <span className="shop-card__preview-letter">{tr('А')}</span>
         )}
         {item.category === 'cells' && item.isDefault && (
-          <span className="shop-card__preview-letter shop-card__preview-letter--plain">А</span>
+          <span className="shop-card__preview-letter shop-card__preview-letter--plain">{tr('А')}</span>
         )}
         {item.category === 'boost' && (
           <span className="shop-card__preview-emoji">{BOOST_EMOJI[item.id] || '×2'}</span>
         )}
         {item.isDefault && item.category === 'background' && (
-          <span className="shop-card__preview-default-label">по умолчанию</span>
+          <span className="shop-card__preview-default-label">{tr('по умолчанию')}</span>
         )}
       </div>
 
@@ -275,9 +274,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
             {boostActive ? (
               // Бонус уже работает — кнопку гасим, чтобы не купить второй раз
               // по инерции. Докупить можно, когда текущий закончится.
-              <button type="button" className="btn shop-card__btn shop-card__btn--active" disabled>
-                Активно ✓
-              </button>
+              <button type="button" className="btn shop-card__btn shop-card__btn--active" disabled>{tr('Активно ✓')}</button>
             ) : (
               <button
                 type="button"
@@ -298,23 +295,19 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
             onClick={item.isDefault ? undefined : onUnequip}
             onMouseDown={(e) => e.preventDefault()}
             disabled={item.isDefault}
-          >
-            Активно ✓
-          </button>
+          >{tr('Активно ✓')}</button>
         ) : owned ? (
           <button
             type="button"
             className="btn btn--primary shop-card__btn"
             onClick={onEquip}
             onMouseDown={(e) => e.preventDefault()}
-          >
-            Применить
-          </button>
+          >{tr('Применить')}</button>
         ) : isHw ? (
           // Не продаётся — выдаётся лентой «Ночи тыкв» на этой отметке.
-          <span className="shop-card__hw-need" title="Награда ленты «Ночи тыкв»">
+          <span className="shop-card__hw-need" title={tr('Награда ленты «Ночи тыкв»')}>
             <PumpkinIcon />
-            <span>{hwStepFor(item.id)?.need} · лента</span>
+            <span>{hwStepFor(item.id)?.need}{tr(' · лента')}</span>
           </span>
         ) : (
           <button

@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { initLang } from './lib/lang.js';
+import { initPlatformSdk } from './lib/lifecycle.js';
 // Шрифты — до index.css, чтобы @font-face объявились раньше правил, которые
 // на них ссылаются. Лежат в архиве, а не на Google Fonts (см. fonts.css).
 import './styles/fonts.css';
@@ -13,6 +14,7 @@ import './styles/halloween.css';
 // кадр игры, и dvh уже отдаёт высоту без его полосы.
 // Язык — до импорта приложения: от него зависят данные на уровне модулей.
 async function start() {
+  await initPlatformSdk();
   await initLang();
   const [{ default: App }, { isYandex }] = await Promise.all([
     import('./App.jsx'),

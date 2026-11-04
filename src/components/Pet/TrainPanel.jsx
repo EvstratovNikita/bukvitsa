@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { MemoryGame } from './MemoryGame.jsx';
 import { AnagramGame } from './AnagramGame.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Catalog of available mini-games. Extend this list when new games ship —
 // each entry needs an id, label, short description, icon, and a Component
@@ -10,15 +11,15 @@ const MINI_GAMES = [
   {
     id: 'memory',
     icon: '🧠',
-    name: 'Память',
-    desc: 'Открой пары одинаковых карточек на поле 4×4.',
+    name: tr('Память'),
+    desc: tr('Открой пары одинаковых карточек на поле 4×4.'),
     Component: MemoryGame
   },
   {
     id: 'anagram',
     icon: '🔤',
-    name: 'Анаграмма',
-    desc: 'Собери слово из перемешанных букв. У тебя 60 секунд.',
+    name: tr('Анаграмма'),
+    desc: tr('Собери слово из перемешанных букв. У тебя 60 секунд.'),
     Component: AnagramGame
   }
   // Future: simon, fast-letter, …
@@ -100,9 +101,7 @@ export function TrainPanel() {
           className="btn btn--ghost mini-host__back"
           onClick={() => setActiveId(null)}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          ← К списку
-        </button>
+        >{tr('← К списку')}</button>
         <game.Component onExit={() => setActiveId(null)} />
       </div>
     );
@@ -112,10 +111,7 @@ export function TrainPanel() {
 
   return (
     <div className="mini-list" ref={hostRef}>
-      <p className="pet-tab__hint">
-        Мини-игры тренируют Буклю и приносят опыт и монеты. В каждую можно
-        играть один раз в сутки.
-      </p>
+      <p className="pet-tab__hint">{tr('Мини-игры тренируют Буклю и приносят опыт и монеты. В каждую можно играть один раз в сутки.')}</p>
       {MINI_GAMES.map((g) => {
         const lastIso = lastTrainAt[g.id];
         const onCd = isSameLocalDay(lastIso);
@@ -127,8 +123,7 @@ export function TrainPanel() {
               <div className="mini-card__name">{g.name}</div>
               <div className="mini-card__desc">{g.desc}</div>
               {onCd && (
-                <div className="mini-card__cd">
-                  Сыграть ещё через: <b>{formatCountdown(cdMs)}</b>
+                <div className="mini-card__cd">{tr('Сыграть ещё через: ')}<b>{formatCountdown(cdMs)}</b>
                 </div>
               )}
             </div>
@@ -139,7 +134,7 @@ export function TrainPanel() {
               onMouseDown={(e) => e.preventDefault()}
               disabled={onCd}
             >
-              {onCd ? 'Готово' : 'Играть'}
+              {onCd ? tr('Готово') : tr('Играть')}
             </button>
           </div>
         );

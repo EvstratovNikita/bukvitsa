@@ -1,3 +1,4 @@
+import { tr } from '../lib/lang.js';
 // Exclusive cosmetic gifts Букля brings as the player keeps her fed (bond
 // mechanic). NOT buyable in the shop. Ordered: gifts are awarded top-to-bottom.
 // Live-ops: append new items here and the loop keeps giving them out.
@@ -10,8 +11,8 @@ export const PET_GIFTS = [
     id: 'gift-night',
     type: 'background',
     icon: '🌙',
-    name: 'Совиная ночь',
-    desc: 'Подарок Букли — глубокая ночь под луной',
+    name: tr('Совиная ночь'),
+    desc: tr('Подарок Букли — глубокая ночь под луной'),
     payload: {
       gradient: [
         'radial-gradient(55% 38% at 76% 20%, rgba(220,226,255,0.30), transparent 60%)',
@@ -24,8 +25,8 @@ export const PET_GIFTS = [
     id: 'gift-feather',
     type: 'background',
     icon: '🪶',
-    name: 'Перо Букли',
-    desc: 'Подарок Букли — мягкое сиреневое перо',
+    name: tr('Перо Букли'),
+    desc: tr('Подарок Букли — мягкое сиреневое перо'),
     payload: {
       gradient: [
         'radial-gradient(800px 500px at 50% -10%, rgba(200,170,255,0.20), transparent 70%)',
@@ -38,15 +39,15 @@ export const PET_GIFTS = [
     id: 'gift-moonsilver',
     type: 'cells',
     icon: '✨',
-    name: 'Лунное серебро',
-    desc: 'Подарок Букли — серебристый блик на верных клетках'
+    name: tr('Лунное серебро'),
+    desc: tr('Подарок Букли — серебристый блик на верных клетках')
   },
   {
     id: 'gift-owleye',
     type: 'cells',
     icon: '🦉',
-    name: 'Совиный глаз',
-    desc: 'Подарок Букли — тёплое янтарное свечение верных клеток'
+    name: tr('Совиный глаз'),
+    desc: tr('Подарок Букли — тёплое янтарное свечение верных клеток')
   }
 ];
 

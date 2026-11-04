@@ -22,7 +22,6 @@ export const toGameLang = (code) => (RU_FAMILY.has(String(code || '').toLowerCas
 
 let lang = 'ru';
 let dict = null;
-let plurals = null;
 
 export const getLang = () => lang;
 export const isEn = () => lang === 'en';
@@ -54,12 +53,14 @@ async function detect() {
 
 export async function initLang() {
   lang = await detect();
-  if (typeof document !== 'undefined') document.documentElement.lang = lang;
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = lang;
+    if (lang === 'en') document.title = 'Hootword';
+  }
   await loadPack(lang);
   if (lang === 'en') {
     const m = await import('../i18n/en.js');
     dict = m.EN;
-    plurals = m.EN_PLURALS;
   }
   return lang;
 }
@@ -73,9 +74,3 @@ export function tr(s, params) {
   return fill(out, params);
 }
 
-// Английская форма для русской тройки: ключ — форма для единицы («монета»).
-export function enPlural(n, oneRu) {
-  const e = plurals?.[oneRu];
-  if (!e) return oneRu;
-  return Math.abs(n) === 1 ? e[0] : e[1];
-}

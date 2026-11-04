@@ -3,6 +3,7 @@ import { getAchievement } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { isEmbedded } from '../../lib/platform.js';
+import { tr } from '../../lib/lang.js';
 
 // 3,2 с было мало: всплывашка появляется в момент победы, когда взгляд на
 // поле и окне итога, и её просто не успевали заметить.
@@ -36,7 +37,7 @@ export function AchievementToast({ onOpen }) {
     >
       <div className="ach-toast__icon" aria-hidden="true">{ach.icon}</div>
       <div className="ach-toast__body">
-        <div className="ach-toast__label">{isEmbedded && ach.reward > 0 ? 'Достижение · забери награду' : 'Достижение'}</div>
+        <div className="ach-toast__label">{isEmbedded && ach.reward > 0 ? tr('Достижение · забери награду') : tr('Достижение')}</div>
         <div className="ach-toast__title">{ach.title}</div>
       </div>
       {ach.reward > 0 && (

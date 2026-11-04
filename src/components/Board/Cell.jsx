@@ -1,4 +1,5 @@
 import { ANIM, LETTER_STATUS } from '../../constants/game.js';
+import { tr } from '../../lib/lang.js';
 
 export function Cell({
   letter,
@@ -36,7 +37,7 @@ export function Cell({
         className={classes}
         onClick={onPick}
         onMouseDown={(e) => e.preventDefault()}
-        aria-label="Раскрыть букву"
+        aria-label={tr('Раскрыть букву')}
       >
         <span className="cell__face cell__face--front">?</span>
         <span className="cell__face cell__face--back">?</span>

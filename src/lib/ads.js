@@ -12,17 +12,21 @@
 import { platform, PLATFORMS } from './platform.js';
 import { getYsdk, showFullscreenAdv } from './yandex.js';
 import { showRewardedVk, showInterstitialVk } from './vk.js';
+import { pgRewardedSupported, pgShowInterstitial, pgShowRewarded } from './playgama.js';
+import { gmShowInterstitial } from './gamemonetize.js';
+import { tgRewardedSupported, tgShowInterstitial, tgShowRewarded } from './telegram.js';
+import { tr } from './lang.js';
 
 // Что сказать игроку, если ролик за награду не показался. Рекламные сети
 // площадок отдают ролики в основном российскому трафику: с включённым VPN
 // игрок для них «из-за границы», и рекламы нет или она не грузится. Узнать
 // про VPN из игры нельзя — поэтому честная подсказка.
 export function rewardedFailText(result) {
-  if (result === 'closed') return 'Реклама закрыта раньше';
-  const vpn = platform === PLATFORMS.WEB ? '' : ' Если включён VPN — выключи его и попробуй снова.';
+  if (result === 'closed') return tr('Реклама закрыта раньше');
+  const vpn = platform === PLATFORMS.WEB ? '' : tr(' Если включён VPN — выключи его и попробуй снова.');
   return result === 'nofill'
-    ? 'Сейчас нет рекламы.' + vpn
-    : 'Реклама не загрузилась.' + vpn;
+    ? tr('Сейчас нет рекламы.') + vpn
+    : tr('Реклама не загрузилась.') + vpn;
 }
 
 // --- Stub adapter: used on plain web + dev. Fakes a 3s rewarded video so
@@ -67,19 +71,27 @@ const vkAdapter = {
   showInterstitial: showInterstitialVk
 };
 
-// --- Placeholder slot for Telegram (Adsgram). Пока падает в заглушку.
-// const telegramAdapter = { async showRewarded() { /* Adsgram.init({blockId}).show() ... */ } };
+const playgamaAdapter = { showRewarded: pgShowRewarded, showInterstitial: pgShowInterstitial, rewardedSupported: pgRewardedSupported };
+const telegramAdapter = { showRewarded: tgShowRewarded, showInterstitial: tgShowInterstitial, rewardedSupported: tgRewardedSupported };
+// Ролика за награду в SDK GameMonetize нет — кнопки рекламы в этой сборке скрыты.
+const gameMonetizeAdapter = { showRewarded: async () => 'failed', showInterstitial: gmShowInterstitial, rewardedSupported: () => false };
 
 function pickAdapter() {
   switch (platform) {
     case PLATFORMS.YANDEX:   return yandexAdapter;
     case PLATFORMS.VK:       return vkAdapter;
-    // case PLATFORMS.TELEGRAM: return telegramAdapter;
+    case PLATFORMS.TELEGRAM: return telegramAdapter;
+    case PLATFORMS.PLAYGAMA: return playgamaAdapter;
+    case PLATFORMS.GAMEMONETIZE: return gameMonetizeAdapter;
     default:                 return stubAdapter;
   }
 }
 
 const adapter = pickAdapter();
+
+// Показывать ли кнопки «посмотреть рекламу». На площадке без роликов за награду
+// кнопка только разочаровала бы игрока.
+export const rewardedAdsAvailable = () => (adapter.rewardedSupported ? adapter.rewardedSupported() : true);
 
 export async function showRewardedAd() {
   return adapter.showRewarded();

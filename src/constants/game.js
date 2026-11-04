@@ -1,5 +1,6 @@
 import { isEmbedded } from '../lib/platform.js';
 import { isEn } from '../lib/lang.js';
+import { tr } from '../lib/lang.js';
 
 export const WORD_LENGTH = 5;
 export const MAX_ATTEMPTS = 6;
@@ -264,9 +265,9 @@ export function formatDuration(ms) {
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  if (h > 0) return `${h}ч ${String(m).padStart(2, '0')}м`;
-  if (m > 0) return `${m}м ${String(s).padStart(2, '0')}с`;
-  return `${s}с`;
+  if (h > 0) return tr('{h}ч {v1}м', { h, v1: String(m).padStart(2, '0') });
+  if (m > 0) return tr('{m}м {v1}с', { m, v1: String(s).padStart(2, '0') });
+  return tr('{s}с', { s });
 }
 
 export const DAILY_CYCLE_DAYS = 6;

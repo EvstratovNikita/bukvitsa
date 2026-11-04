@@ -3,6 +3,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { isVk } from '../../lib/platform.js';
 import { notificationsEnabled, setNotifications } from '../../lib/vk.js';
 import { Modal } from '../Modal/Modal.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Время сборки по Москве (vite.config.js → define).
 const BUILD_LABEL = typeof __BUILD_TIME__ === 'string'
@@ -23,34 +24,34 @@ export function SettingsModal({ open, onClose }) {
   const onNotify = async (on) => {
     const r = await setNotifications(on);
     if (r === 'ok') setNotify(on);
-    else if (r === 'failed') showToast?.(on ? 'Не получилось включить напоминания' : 'Не получилось выключить напоминания');
+    else if (r === 'failed') showToast?.(on ? tr('Не получилось включить напоминания') : tr('Не получилось выключить напоминания'));
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Настройки">
+    <Modal open={open} onClose={onClose} title={tr('Настройки')}>
       <div className="settings">
         <Setting
-          label="Тёмная тема"
-          desc="Выключи — игра станет светлой"
+          label={tr('Тёмная тема')}
+          desc={tr('Выключи — игра станет светлой')}
           value={prefs.theme === 'dark'}
           onChange={(v) => setPref('theme', v ? 'dark' : 'light')}
         />
         <Setting
-          label="Ввод слева"
-          desc="Поменять местами «Ввод» и «Удалить» в нижнем ряду клавиатуры"
+          label={tr('Ввод слева')}
+          desc={tr('Поменять местами «Ввод» и «Удалить» в нижнем ряду клавиатуры')}
           value={Boolean(prefs.enterOnLeft)}
           onChange={(v) => setPref('enterOnLeft', v)}
         />
         {isVk && (
           <Setting
-            label="Напоминания"
-            desc="Напомним о слове дня, если пропустишь день"
+            label={tr('Напоминания')}
+            desc={tr('Напомним о слове дня, если пропустишь день')}
             value={notify}
             onChange={onNotify}
           />
         )}
       </div>
-      <p className="settings__build">сборка {BUILD_LABEL}</p>
+      <p className="settings__build">{tr('сборка ')}{BUILD_LABEL}</p>
     </Modal>
   );
 }

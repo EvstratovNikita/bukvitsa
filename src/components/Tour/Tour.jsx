@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { isVk } from '../../lib/platform.js';
+import { hasHomeMenu } from '../../lib/platform.js';
+import { tr } from '../../lib/lang.js';
 
 // First-run coachmarks: dim the screen, spotlight one UI element at a time and
 // describe it in a couple of words. Показывается один раз на ИГРОКА: флаг
@@ -16,26 +17,26 @@ export const TOUR_DONE_KEY = 'wordle-ru:tour-done';
 const STEPS = [
   {
     sel: '[data-tour="board"]',
-    title: 'Угадай слово',
-    text: 'Слово из 5 букв, 6 попыток. После хода клетки подскажут: зелёная — буква на месте, жёлтая — есть, но в другом месте, серая — такой буквы нет.',
+    title: tr('Угадай слово'),
+    text: tr('Слово из 5 букв, 6 попыток. После хода клетки подскажут: зелёная — буква на месте, жёлтая — есть, но в другом месте, серая — такой буквы нет.'),
     pad: 4
   },
   {
     sel: '[data-tour="hint"]',
-    title: 'Застрял?',
-    text: 'Подсказка откроет букву за монеты. Монеты дают за победы.'
+    title: tr('Застрял?'),
+    text: tr('Подсказка откроет букву за монеты. Монеты дают за победы.')
   },
   // В VK на этом месте кнопка «Домой» — главное меню со всеми разделами.
-  isVk
+  hasHomeMenu
     ? {
         sel: '[data-tour="menu"]',
-        title: 'Главное меню',
-        text: 'Магазин, питомец Букля, достижения и рейтинг. Вернуться сюда можно в любой момент — кнопкой с домиком.'
+        title: tr('Главное меню'),
+        text: tr('Магазин, питомец Букля, достижения и рейтинг. Вернуться сюда можно в любой момент — кнопкой с домиком.')
       }
     : {
         sel: '[data-tour="menu"]',
-        title: 'Меню',
-        text: 'Магазин, достижения, статистика и настройки — всё здесь.'
+        title: tr('Меню'),
+        text: tr('Магазин, достижения, статистика и настройки — всё здесь.')
       }
 ];
 // steps — свой набор шагов (ликбез экрана Букли); storageKey — локальный
@@ -133,7 +134,7 @@ export function Tour({ onDone, steps: stepsProp = STEPS, storageKey = TOUR_DONE_
   }
 
   return (
-    <div className={`tour${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-label="Обучение">
+    <div className={`tour${className ? ` ${className}` : ''}`} role="dialog" aria-modal="true" aria-label={tr('Обучение')}>
       {spot && (
         <div
           className="tour__spot"
@@ -150,16 +151,14 @@ export function Tour({ onDone, steps: stepsProp = STEPS, storageKey = TOUR_DONE_
             className="tour__skip"
             onClick={finish}
             onMouseDown={(e) => e.preventDefault()}
-          >
-            Пропустить
-          </button>
+          >{tr('Пропустить')}</button>
           <button
             type="button"
             className="tour__next"
             onClick={next}
             onMouseDown={(e) => e.preventDefault()}
           >
-            {last ? 'Понятно' : 'Далее'}
+            {last ? tr('Понятно') : tr('Далее')}
           </button>
         </div>
       </div>

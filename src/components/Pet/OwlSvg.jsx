@@ -24,6 +24,7 @@
 
 import { useId, useRef, useState, memo } from 'react';
 import { getDecoration } from '../../data/petDecorations.js';
+import { tr } from '../../lib/lang.js';
 
 const JUMP_MS = 700;
 
@@ -329,7 +330,7 @@ function OwlSvgView({ className = '', equipped = {}, perch = false }) {
       className={`owl ${jumping ? 'owl--jump ' : ''}${className}`.trim()}
       onClick={onClick}
       role="button"
-      aria-label="Букля"
+      aria-label={tr('Букля')}
     >
       <svg className="owl-svg owl-svg--base" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>

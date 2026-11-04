@@ -4,7 +4,9 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon, CloseIcon, CoinIcon, CrownIcon, PlayIcon, RefreshIcon, SadIcon, ShareIcon } from '../icons/Icon.jsx';
 import { SHARE_BASE_URL, buildWordleShareText, lastShareError, share } from '../../lib/share.js';
 import { getDailyNumber } from '../../data/dailyWord.js';
+import { rewardedAdsAvailable } from '../../lib/ads.js';
 import { HwRoundResult } from '../Halloween/HalloweenGame.jsx';
+import { tr } from '../../lib/lang.js';
 
 const CONFETTI_PALETTE = ['#f7c948', '#ffd864', '#6c8cff', '#b388ff', '#e9ecf3'];
 // В загадках ночи — тыквенно-лиловое конфетти.
@@ -84,7 +86,7 @@ export function GameEnd() {
   const attempts = guesses?.length || 0;
   const percentile = isWin ? PERCENTILE_BY_ATTEMPTS[attempts] : null;
   const streak = isDaily ? (stats.daily?.streak || 0) : (stats.currentStreak || 0);
-  const streakLabel = isDaily ? 'Серия Слова дня' : 'Серия побед';
+  const streakLabel = isDaily ? tr('Серия Слова дня') : tr('Серия побед');
 
   const onShare = async () => {
     const url = SHARE_BASE_URL;
@@ -98,10 +100,10 @@ export function GameEnd() {
     // На vk.com окно VK шлёт только ссылку — сетка уходит в буфер, и
     // подсказка висит, пока игрок пишет сообщение.
     const r = await share({
-      title: 'Буклица — Слово дня', text, url, wall: true,
-      onCopied: () => showToast?.('Сетка скопирована — вставь её в сообщение', 5000)
+      title: tr('Буклица — Слово дня'), text, url, wall: true,
+      onCopied: () => showToast?.(tr('Сетка скопирована — вставь её в сообщение'), 5000)
     });
-    if (r === 'failed' && lastShareError()) showToast?.(`Не удалось поделиться (код ${lastShareError()})`, 4000);
+    if (r === 'failed' && lastShareError()) showToast?.(tr('Не удалось поделиться (код {v0})', { v0: lastShareError() }), 4000);
     setShareStatus(r);
     setTimeout(() => setShareStatus(null), 1600);
   };
@@ -125,8 +127,8 @@ export function GameEnd() {
           type="button"
           className="gameend__close"
           onClick={() => setClosed(true)}
-          aria-label="Закрыть"
-          title="Закрыть"
+          aria-label={tr('Закрыть')}
+          title={tr('Закрыть')}
         >
           <CloseIcon />
         </button>
@@ -136,11 +138,11 @@ export function GameEnd() {
         </div>
 
         <h2 className="gameend__title">
-          {isHw ? (isWin ? 'Загадка разгадана!' : 'Загадка не далась') : (isWin ? 'Победа!' : 'Не угадал')}
+          {isHw ? (isWin ? tr('Загадка разгадана!') : tr('Загадка не далась')) : (isWin ? tr('Победа!') : tr('Не угадал'))}
         </h2>
         {isHw && riddle && <p className="gameend__riddle">{riddle.riddle}</p>}
 
-        <div className="gameend__label">Слово</div>
+        <div className="gameend__label">{tr('Слово')}</div>
         <div className="gameend__word">
           {letters.map((c, i) => (
             <span key={i} style={{ animationDelay: `${300 + i * 70}ms` }}>
@@ -158,13 +160,11 @@ export function GameEnd() {
             </div>
             {isDaily ? (
               <div className="gameend__bonus">
-                {lastEarnedBase} основная + {bonus} за Слово дня
-              </div>
+                {lastEarnedBase}{tr(' основная + ')}{bonus}{tr(' за Слово дня')}</div>
             ) : (lastEarnedDeco > 0 || boostedLastWin) ? (
               <div className="gameend__bonus">
-                {lastEarnedBase} базовых
-                {lastEarnedDeco > 0 && <> + {lastEarnedDeco} от Букли</>}
-                {boostedLastWin && <>, всё ×2 по бонусу</>}
+                {lastEarnedBase}{tr(' базовых')}{lastEarnedDeco > 0 && <> + {lastEarnedDeco}{tr(' от Букли')}</>}
+                {boostedLastWin && <>{tr(', всё ×2 по бонусу')}</>}
               </div>
             ) : null}
           </div>
@@ -179,15 +179,11 @@ export function GameEnd() {
         )}
 
         {!isWin && !isHw && (
-          <div className="gameend__streak">
-            Серия прервана. Попробуй ещё.
-          </div>
+          <div className="gameend__streak">{tr('Серия прервана. Попробуй ещё.')}</div>
         )}
 
         {isDaily && isWin && percentile != null && (
-          <div className="gameend__percentile">
-            Вы справились лучше, чем <b>{percentile}%</b> игроков!
-          </div>
+          <div className="gameend__percentile">{tr('Вы справились лучше, чем ')}<b>{percentile}%</b>{tr(' игроков!')}</div>
         )}
 
         {isAlt && (
@@ -199,8 +195,8 @@ export function GameEnd() {
             </div>
             <div className="gameend__alt-text">
               {altCapped
-                ? 'Лимит энергии за режимы достигнут (3/3 сегодня)'
-                : <>Серия {altPlays}/5 — ещё <b>{altLeft}</b> {altLeft === 1 ? 'победа' : 'побед'} до <BoltIcon /> +1 энергии</>}
+                ? tr('Лимит энергии за режимы достигнут (3/3 сегодня)')
+                : <>{tr('Серия ')}{altPlays}{tr('/5 — ещё ')}<b>{altLeft}</b> {altLeft === 1 ? tr('победа') : tr('побед')}{tr(' до ')}<BoltIcon />{tr(' +1 энергии')}</>}
             </div>
           </div>
         )}
@@ -214,13 +210,13 @@ export function GameEnd() {
               onMouseDown={(e) => e.preventDefault()}
             >
               <ShareIcon />
-              <span>{shareStatus === 'copied' ? 'Скопировано' :
-                     shareStatus === 'shared' ? 'Готово' :
-                     shareStatus === 'failed' ? 'Не вышло' :
-                     'Поделиться сеткой'}</span>
+              <span>{shareStatus === 'copied' ? tr('Скопировано') :
+                     shareStatus === 'shared' ? tr('Готово') :
+                     shareStatus === 'failed' ? tr('Не вышло') :
+                     tr('Поделиться сеткой')}</span>
             </button>
           )}
-          {!isDaily && isWin && lastEarned > 0 && !doubledLastWin && (adsDoubleLeft ?? 0) > 0 && (
+          {!isDaily && isWin && lastEarned > 0 && !doubledLastWin && (adsDoubleLeft ?? 0) > 0 && rewardedAdsAvailable() && (
             <button
               type="button"
               className="btn btn--ad-double gameend__btn"
@@ -228,7 +224,7 @@ export function GameEnd() {
               onMouseDown={(e) => e.preventDefault()}
               disabled={doublingAd}
             >
-              <span className="btn-ad__text">{doublingAd ? 'Реклама…' : 'Удвоить награду'}</span>
+              <span className="btn-ad__text">{doublingAd ? tr('Реклама…') : tr('Удвоить награду')}</span>
               {!doublingAd && (
                 <span className="btn-ad__amount">
                   <CoinIcon />
@@ -247,7 +243,7 @@ export function GameEnd() {
             onMouseDown={(e) => e.preventDefault()}
           >
             <RefreshIcon />
-            <span>{isHw ? 'Следующая загадка' : 'Играем дальше'}</span>
+            <span>{isHw ? tr('Следующая загадка') : tr('Играем дальше')}</span>
           </button>
         </div>
       </div>

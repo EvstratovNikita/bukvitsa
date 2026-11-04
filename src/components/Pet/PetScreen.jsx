@@ -3,7 +3,7 @@ import { HUNGER_MAX, PET_UNLOCK_GAMES, energySpeedFromHunger, petComputeLevel } 
 import { PET_DECORATIONS, SLOTS, SLOT_LABEL, equippedDecorationsBonus } from '../../data/petDecorations.js';
 import { PET_TREATS } from '../../data/petTreats.js';
 import { useGameContext } from '../../context/GameContext.jsx';
-import { pluralCoins } from '../../utils/plural.js';
+import { plural, pluralCoins } from '../../utils/plural.js';
 import { CloseIcon, CoinIcon, HomeIcon } from '../icons/Icon.jsx';
 import { PetScene } from './PetScene.jsx';
 import { TrainPanel } from './TrainPanel.jsx';
@@ -13,6 +13,7 @@ import { halloweenActive } from '../../lib/events.js';
 import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 import { Tour } from '../Tour/Tour.jsx';
+import { tr } from '../../lib/lang.js';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -24,52 +25,52 @@ const HATCH_DURATION_MS = 3200;
 const PET_TOUR = [
   {
     sel: '[data-tour="pet-scene"]',
-    title: 'Знакомься — Букля!',
-    text: 'Это твой питомец. Она растёт, пока ты разгадываешь слова, и помогает в игре.'
+    title: tr('Знакомься — Букля!'),
+    text: tr('Это твой питомец. Она растёт, пока ты разгадываешь слова, и помогает в игре.')
   },
   {
     sel: '[data-tour="pet-xp"]',
-    title: 'Опыт и уровни',
-    text: 'Опыт Букля получает за каждое угаданное слово: чем меньше попыток, тем больше. С новыми уровнями открываются новые наряды.',
+    title: tr('Опыт и уровни'),
+    text: tr('Опыт Букля получает за каждое угаданное слово: чем меньше попыток, тем больше. С новыми уровнями открываются новые наряды.'),
     pad: 6
   },
   {
     sel: '[data-tour="pet-hunger"]',
-    title: 'Сытость',
-    text: 'Сытая Букля ускоряет восстановление энергии — до ×2. Со временем она проголодается, не забывай кормить.',
+    title: tr('Сытость'),
+    text: tr('Сытая Букля ускоряет восстановление энергии — до ×2. Со временем она проголодается, не забывай кормить.'),
     pad: 6
   },
   {
     sel: '[data-tour="pet-tab-cheer"]',
     tab: 'cheer',
-    title: 'Наряды',
-    text: 'Украшения за монеты. Каждое надетое прибавляет монеты к награде за победу.'
+    title: tr('Наряды'),
+    text: tr('Украшения за монеты. Каждое надетое прибавляет монеты к награде за победу.')
   },
   {
     sel: '[data-tour="pet-tab-feed"]',
     tab: 'feed',
-    title: 'Покормить',
-    text: 'Угощения за монеты поднимают сытость — и энергия копится быстрее.'
+    title: tr('Покормить'),
+    text: tr('Угощения за монеты поднимают сытость — и энергия копится быстрее.')
   },
   {
     sel: '[data-tour="pet-tab-train"]',
     tab: 'train',
-    title: 'Обучить',
-    text: 'Мини-игры раз в день: Букля получает опыт, а ты — монеты.'
+    title: tr('Обучить'),
+    text: tr('Мини-игры раз в день: Букля получает опыт, а ты — монеты.')
   },
   {
     sel: '[data-tour="pet-tab-gifts"]',
     tab: 'gifts',
-    title: 'Подарки',
-    text: 'Пока Букля сыта, растёт привязанность. Заполни шкалу — и она принесёт редкий фон или стиль клеток.'
+    title: tr('Подарки'),
+    text: tr('Пока Букля сыта, растёт привязанность. Заполни шкалу — и она принесёт редкий фон или стиль клеток.')
   }
 ];
 
 const TABS = [
-  { id: 'cheer', icon: '🎀', label: 'Наряды'     },
-  { id: 'feed',  icon: '🍖', label: 'Покормить' },
-  { id: 'train', icon: '🎓', label: 'Обучить'    },
-  { id: 'gifts', icon: '🎁', label: 'Подарки'    }
+  { id: 'cheer', icon: '🎀', label: tr('Наряды')     },
+  { id: 'feed',  icon: '🍖', label: tr('Покормить') },
+  { id: 'train', icon: '🎓', label: tr('Обучить')    },
+  { id: 'gifts', icon: '🎁', label: tr('Подарки')    }
 ];
 
 function ageInDays(iso) {
@@ -79,10 +80,7 @@ function ageInDays(iso) {
 }
 
 function pluralDays(n) {
-  const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return 'день';
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'дня';
-  return 'дней';
+  return plural(n, tr('день'), tr('дня'), tr('дней'));
 }
 
 // overHome — экран открыт из главного меню VK: рисуется поверх меню, и
@@ -155,7 +153,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
   const onFeed = (treat, ev) => {
     const r = feedPet(treat.id);
     if (r === 'ok') {
-      showToast?.(`+${treat.hungerGain} сытости`);
+      showToast?.(tr('+{hungerGain} сытости', { hungerGain: treat.hungerGain }));
       // Compute fly-from (treat button center) and fly-to (owl mouth).
       // Mouth in scene coords: roughly 50% across, 56% down.
       const btn = ev?.currentTarget?.getBoundingClientRect?.();
@@ -170,22 +168,22 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
         }, 700);
       }
     }
-    else if (r === 'not_enough_coins') showToast?.('Недостаточно монет');
-    else if (r === 'full') showToast?.('Букля уже сыта');
+    else if (r === 'not_enough_coins') showToast?.(tr('Недостаточно монет'));
+    else if (r === 'full') showToast?.(tr('Букля уже сыта'));
   };
 
   const onBuyDeco = (d) => {
     const r = buyDecoration(d.id);
-    if (r === 'ok') showToast?.(`${d.name} — куплено и надето`);
-    else if (r === 'not_enough_coins') showToast?.('Недостаточно монет');
-    else if (r === 'locked') showToast?.(`Доступно с ${d.minLevel} уровня Букли`);
+    if (r === 'ok') showToast?.(tr('{name} — куплено и надето', { name: d.name }));
+    else if (r === 'not_enough_coins') showToast?.(tr('Недостаточно монет'));
+    else if (r === 'locked') showToast?.(tr('Доступно с {minLevel} уровня Букли', { minLevel: d.minLevel }));
   };
 
   const onClaimGift = () => {
     const id = claimPetGift();
     if (id) {
       const g = getGift(id);
-      showToast?.(`Букля принесла подарок: ${g?.name || 'сюрприз'}!`);
+      showToast?.(tr('Букля принесла подарок: {v0}!', { v0: g?.name || tr('сюрприз') }));
     }
   };
 
@@ -196,11 +194,11 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
       // Подарочные фоны нарисованы тёмными — включаем тёмную тему, иначе
       // светлая палитра ляжет на тёмные обои (так же ведёт себя магазин).
       if (!isOn) setTheme?.('dark');
-      showToast?.(isOn ? 'Фон снят' : `Применён фон: ${g.name}`);
+      showToast?.(isOn ? tr('Фон снят') : tr('Применён фон: {name}', { name: g.name }));
     } else {
       const isOn = stats.activeCellStyle === g.id;
       setActiveCellStyle?.(isOn ? null : g.id);
-      showToast?.(isOn ? 'Стиль снят' : `Применён стиль: ${g.name}`);
+      showToast?.(isOn ? tr('Стиль снят') : tr('Применён стиль: {name}', { name: g.name }));
     }
   };
 
@@ -215,8 +213,8 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
             className="iconbtn"
             onClick={onClose}
             onMouseDown={(e) => e.preventDefault()}
-            aria-label="Назад"
-            title="Назад"
+            aria-label={tr('Назад')}
+            title={tr('Назад')}
           >
             <CloseIcon />
           </button>
@@ -226,17 +224,17 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
               className="pet-home-btn"
               onClick={onHome}
               onMouseDown={(e) => e.preventDefault()}
-              aria-label="Главное меню"
-              title="Главное меню"
+              aria-label={tr('Главное меню')}
+              title={tr('Главное меню')}
             >
               <HomeIcon />
             </button>
           )}
         </div>
         <h2 className="pet-screen__title">
-          {!unlocked && !pet.hatched ? 'Дупло' : (pet.name || 'Букля')}
+          {!unlocked && !pet.hatched ? tr('Дупло') : tr(pet.name || 'Букля')}
         </h2>
-        <div className="pet-screen__balance" title="Монеты">
+        <div className="pet-screen__balance" title={tr('Монеты')}>
           <CoinIcon />
           <span>{stats.coins || 0}</span>
         </div>
@@ -251,20 +249,20 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
           <LockedStub gamesLeft={gamesLeft} played={played} />
         ) : mode !== 'owl' ? (
           <div className="pet-screen__caption">
-            {mode === 'hatching' ? 'Скорлупа трескается!' : 'В дупле что-то шевелится…'}
+            {mode === 'hatching' ? tr('Скорлупа трескается!') : tr('В дупле что-то шевелится…')}
           </div>
         ) : (
           <>
             <section className="pet-summary">
               <div className="pet-summary__row">
-                <div className="pet-summary__name">{pet.name || 'Букля'}</div>
-                <div className="pet-summary__badge">Ур. {lvl.level}</div>
+                <div className="pet-summary__name">{tr(pet.name || 'Букля')}</div>
+                <div className="pet-summary__badge">{tr('Ур. ')}{lvl.level}</div>
               </div>
 
               <div className="pet-summary__bars">
                 <div className="pet-bar" data-tour="pet-xp">
                   <div className="pet-bar__row">
-                    <span className="pet-bar__label">XP (очки опыта)</span>
+                    <span className="pet-bar__label">{tr('XP (очки опыта)')}</span>
                     <span className="pet-bar__value">{lvl.xpInLevel} / {lvl.xpForNext}</span>
                   </div>
                   <div className="pet-bar__track">
@@ -274,10 +272,10 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
 
                 <div className="pet-bar" data-tour="pet-hunger">
                   <div className="pet-bar__row">
-                    <span className="pet-bar__label">Сытость</span>
+                    <span className="pet-bar__label">{tr('Сытость')}</span>
                     <span className="pet-bar__value">
                       {hunger} / {HUNGER_MAX}
-                      {' '}<span className="pet-bar__chip">×{speedMul.toFixed(1)} энергия</span>
+                      {' '}<span className="pet-bar__chip">×{speedMul.toFixed(1)}{tr(' энергия')}</span>
                     </span>
                   </div>
                   <div className="pet-bar__track">
@@ -286,12 +284,9 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
                 </div>
 
                 {decoBonus > 0 && (
-                  <div className="pet-deco-active">
-                    На Букле: <b>+{decoBonus} {pluralCoins(decoBonus)}</b> к награде за победы
-                  </div>
+                  <div className="pet-deco-active">{tr('На Букле: ')}<b>+{decoBonus} {pluralCoins(decoBonus)}</b>{tr(' к награде за победы')}</div>
                 )}
-                <div className="pet-summary__meta">
-                  Возраст: {age} {pluralDays(age)}
+                <div className="pet-summary__meta">{tr('Возраст: ')}{age} {pluralDays(age)}
                 </div>
               </div>
             </section>
@@ -374,10 +369,7 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
   const full = hunger >= HUNGER_MAX - 0.5;
   return (
     <div className="pet-treats">
-      <p className="pet-tab__hint">
-        Чем сытнее Букля, тем быстрее восстанавливается твоя энергия.
-        Сытость со временем расходуется.
-      </p>
+      <p className="pet-tab__hint">{tr('Чем сытнее Букля, тем быстрее восстанавливается твоя энергия. Сытость со временем расходуется.')}</p>
       {treats.map((t) => {
         const cantAfford = coins < t.price;
         return (
@@ -393,7 +385,7 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
             <span className="pet-treat__meta">
               <span className="pet-treat__name">{t.name}</span>
               <span className="pet-treat__desc">{t.desc}</span>
-              <span className="pet-treat__gain">+{t.hungerGain} сытости</span>
+              <span className="pet-treat__gain">+{t.hungerGain}{tr(' сытости')}</span>
             </span>
             <span className="pet-treat__price">
               <CoinIcon />
@@ -421,15 +413,11 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
 
   return (
     <div className="pet-decos">
-      <p className="pet-tab__hint">
-        В каждом слоте — одно украшение, но слоты складываются. На крыльях
-        можно носить два амулета (по одному на каждое крыло). Бонусы
-        суммируются.
-      </p>
+      <p className="pet-tab__hint">{tr('В каждом слоте — одно украшение, но слоты складываются. На крыльях можно носить два амулета (по одному на каждое крыло). Бонусы суммируются.')}</p>
       {hwItems.length > 0 && (
         <div className="pet-deco-group pet-deco-group--hw hw-frame">
           <div className="pet-deco-group__head">
-            <span className="pet-deco-group__label">Награды ленты</span>
+            <span className="pet-deco-group__label">{tr('Награды ленты')}</span>
             <HwBadge />
           </div>
           {hwItems.map((d) => {
@@ -444,34 +432,34 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                 <span className="pet-deco__meta">
                   <span className="pet-deco__name">{d.name}</span>
                   <span className="pet-deco__desc">{d.desc}</span>
-                  <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)} за победу</span>
+                  <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)}{tr(' за победу')}</span>
                 </span>
                 <div className="pet-deco__cta">
                   {!isOwned ? (
                     // Не продаётся — выдаётся лентой «Ночи тыкв» на этой отметке.
-                    <span className="pet-deco__chip pet-deco__hw-need" title="Награда ленты «Ночи тыкв»">
+                    <span className="pet-deco__chip pet-deco__hw-need" title={tr('Награда ленты «Ночи тыкв»')}>
                       {hwStepFor(d.id)?.need} <PumpkinIcon />
                     </span>
                   ) : isWing ? (
                     <div className="pet-deco__wing-btns">
                       <button type="button" className={`pet-deco__wing-btn${onL ? ' pet-deco__wing-btn--on' : ''}`}
-                        onClick={() => onEquip(d.id, 'wingL')} onMouseDown={(e) => e.preventDefault()}>Лев</button>
+                        onClick={() => onEquip(d.id, 'wingL')} onMouseDown={(e) => e.preventDefault()}>{tr('Лев')}</button>
                       <button type="button" className={`pet-deco__wing-btn${onR ? ' pet-deco__wing-btn--on' : ''}`}
-                        onClick={() => onEquip(d.id, 'wingR')} onMouseDown={(e) => e.preventDefault()}>Прав</button>
+                        onClick={() => onEquip(d.id, 'wingR')} onMouseDown={(e) => e.preventDefault()}>{tr('Прав')}</button>
                     </div>
                   ) : worn ? (
                     <button type="button" className="pet-deco__chip pet-deco__chip--btn"
-                      onClick={() => onUnequipSlot(d.slot)} onMouseDown={(e) => e.preventDefault()}>Снять</button>
+                      onClick={() => onUnequipSlot(d.slot)} onMouseDown={(e) => e.preventDefault()}>{tr('Снять')}</button>
                   ) : (
                     <button type="button" className="btn btn--primary pet-deco__btn"
-                      onClick={() => onEquip(d.id)} onMouseDown={(e) => e.preventDefault()}>Надеть</button>
+                      onClick={() => onEquip(d.id)} onMouseDown={(e) => e.preventDefault()}>{tr('Надеть')}</button>
                   )}
                 </div>
               </div>
             );
           })}
           {hwItems.some((d) => !owned.includes(d.id)) && (
-            <p className="pet-deco-group__note">Наряды выдаёт лента наград: тыквы за «Загадки ночи». У тебя <b>{pumpkins}</b> 🎃</p>
+            <p className="pet-deco-group__note">{tr('Наряды выдаёт лента наград: тыквы за «Загадки ночи». У тебя ')}<b>{pumpkins}</b> 🎃</p>
           )}
         </div>
       )}
@@ -487,9 +475,9 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
               {isWing ? (
                 <div className="pet-deco-group__wings">
                   {wingL && <button type="button" className="pet-deco-group__clear"
-                    onClick={() => onUnequipSlot('wingL')}>Снять лев.</button>}
+                    onClick={() => onUnequipSlot('wingL')}>{tr('Снять лев.')}</button>}
                   {wingR && <button type="button" className="pet-deco-group__clear"
-                    onClick={() => onUnequipSlot('wingR')}>Снять прав.</button>}
+                    onClick={() => onUnequipSlot('wingR')}>{tr('Снять прав.')}</button>}
                 </div>
               ) : equippedId && (
                 <button
@@ -497,7 +485,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                   className="pet-deco-group__clear"
                   onClick={() => onUnequipSlot(slot.id)}
                   onMouseDown={(e) => e.preventDefault()}
-                >Снять</button>
+                >{tr('Снять')}</button>
               )}
             </div>
             {items.map((d) => {
@@ -514,12 +502,11 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                   <span className="pet-deco__meta">
                     <span className="pet-deco__name">{d.name}</span>
                     <span className="pet-deco__desc">{d.desc}</span>
-                    <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)} за победу</span>
+                    <span className="pet-deco__bonus">+{d.bonusCoins} {pluralCoins(d.bonusCoins)}{tr(' за победу')}</span>
                   </span>
                   <div className="pet-deco__cta">
                     {isLocked ? (
-                      <span className="pet-deco__lock" title={`Доступно с ${d.minLevel} уровня Букли`}>
-                        🔒 Ур. {d.minLevel}
+                      <span className="pet-deco__lock" title={tr('Доступно с {minLevel} уровня Букли', { minLevel: d.minLevel })}>{tr('🔒 Ур. ')}{d.minLevel}
                       </span>
                     ) : !isOwned ? (
                       <button
@@ -539,23 +526,23 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                           className={`pet-deco__wing-btn${onL ? ' pet-deco__wing-btn--on' : ''}`}
                           onClick={() => onEquip(d.id, 'wingL')}
                           onMouseDown={(e) => e.preventDefault()}
-                        >Лев</button>
+                        >{tr('Лев')}</button>
                         <button
                           type="button"
                           className={`pet-deco__wing-btn${onR ? ' pet-deco__wing-btn--on' : ''}`}
                           onClick={() => onEquip(d.id, 'wingR')}
                           onMouseDown={(e) => e.preventDefault()}
-                        >Прав</button>
+                        >{tr('Прав')}</button>
                       </div>
                     ) : isActiveSingle ? (
-                      <span className="pet-deco__chip">Надето</span>
+                      <span className="pet-deco__chip">{tr('Надето')}</span>
                     ) : (
                       <button
                         type="button"
                         className="btn btn--primary pet-deco__btn"
                         onClick={() => onEquip(d.id)}
                         onMouseDown={(e) => e.preventDefault()}
-                      >Надеть</button>
+                      >{tr('Надеть')}</button>
                     )}
                   </div>
                 </div>
@@ -573,12 +560,8 @@ function LockedStub({ gamesLeft, played }) {
   return (
     <section className="pet-locked">
       <div className="pet-locked__lock" aria-hidden="true">🔒</div>
-      <h3 className="pet-locked__title">
-        Совсем скоро тут кое-кто появится…
-      </h3>
-      <p className="pet-locked__desc">
-        Сыграй {gamesLeft} {pluralGames(gamesLeft)}, и в дупле начнётся что-то интересное.
-      </p>
+      <h3 className="pet-locked__title">{tr('Совсем скоро тут кое-кто появится…')}</h3>
+      <p className="pet-locked__desc">{tr('Сыграй ')}{gamesLeft} {pluralGames(gamesLeft)}{tr(', и в дупле начнётся что-то интересное.')}</p>
       <div className="pet-locked__bar">
         <div className="pet-locked__bar-fill" style={{ width: `${pct}%` }} />
       </div>
@@ -588,10 +571,7 @@ function LockedStub({ gamesLeft, played }) {
 }
 
 function pluralGames(n) {
-  const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return 'игру';
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'игры';
-  return 'игр';
+  return plural(n, tr('игру'), tr('игры'), tr('игр'));
 }
 
 function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onClaim, onApply }) {
@@ -600,10 +580,7 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
   const allClaimed = claimed.length >= GIFT_IDS.length;
   return (
     <div className="pet-gifts">
-      <p className="pet-tab__hint">
-        Пока Букля сыта, привязанность растёт на <b>+1 очко каждые {BOND_MINUTES_PER_POINT} минут</b>.
-        Набери {bondMax} очков — и Букля принесёт эксклюзивный подарок (применить можно здесь).
-      </p>
+      <p className="pet-tab__hint">{tr('Пока Букля сыта, привязанность растёт на ')}<b>{tr('+1 очко каждые ')}{BOND_MINUTES_PER_POINT}{tr(' минут')}</b>{tr('. Набери ')}{bondMax}{tr(' очков — и Букля принесёт эксклюзивный подарок (применить можно здесь).')}</p>
 
       {ready ? (
         <button
@@ -611,21 +588,19 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
           className="btn btn--primary pet-gift-claim"
           onClick={onClaim}
           onMouseDown={(e) => e.preventDefault()}
-        >
-          🎁 Букля что-то принесла! Забрать
-        </button>
+        >{tr('🎁 Букля что-то принесла! Забрать')}</button>
       ) : (
         <div className="pet-bar pet-gift-bar">
           <div className="pet-bar__row">
-            <span className="pet-bar__label">Привязанность</span>
+            <span className="pet-bar__label">{tr('Привязанность')}</span>
             <span className="pet-bar__value">
-              {allClaimed ? 'Все подарки собраны' : `${Math.floor(bond)} / ${bondMax}`}
+              {allClaimed ? tr('Все подарки собраны') : `${Math.floor(bond)} / ${bondMax}`}
             </span>
           </div>
           <div className="pet-bar__track">
             <div className="pet-bar__fill pet-bar__fill--bond" style={{ width: `${allClaimed ? 100 : pct}%` }} />
           </div>
-          {allClaimed && <div className="pet-gifts__soon">Скоро новые подарки ✨</div>}
+          {allClaimed && <div className="pet-gifts__soon">{tr('Скоро новые подарки ✨')}</div>}
         </div>
       )}
 
@@ -641,12 +616,12 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
               onClick={owned ? () => onApply(g) : undefined}
               onMouseDown={(e) => e.preventDefault()}
               disabled={!owned}
-              title={owned ? g.name : 'Ещё не получен'}
+              title={owned ? g.name : tr('Ещё не получен')}
             >
               <span className="pet-gift-card__icon" aria-hidden="true">{owned ? g.icon : '?'}</span>
               <span className="pet-gift-card__name">{owned ? g.name : '???'}</span>
               <span className="pet-gift-card__cta">
-                {!owned ? 'Не получен' : isActive ? 'Применён ✓' : 'Применить'}
+                {!owned ? tr('Не получен') : isActive ? tr('Применён ✓') : tr('Применить')}
               </span>
             </button>
           );

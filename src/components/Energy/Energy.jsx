@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ENERGY_MAX, formatDuration, msUntilNextEnergyUnit } from '../../constants/game.js';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon } from '../icons/Icon.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Pill badge sitting alongside the coin counter. Shows "X / 5" and a small
 // countdown when not full. Ticking is local (1s setInterval) — it's just
@@ -37,8 +38,8 @@ export function EnergyBadge() {
       className={`energy${empty ? ' energy--empty' : ''}`}
       onClick={openEnergyModal}
       onMouseDown={(e) => e.preventDefault()}
-      title={`Энергия ${energy} / ${cap}${countdown ? `, до +1: ${countdown}` : ''}`}
-      aria-label={`Энергия ${energy} из ${cap}`}
+      title={tr('Энергия {energy} / {cap}{v2}', { energy, cap, v2: countdown ? tr(', до +1: {countdown}', { countdown }) : '' })}
+      aria-label={tr('Энергия {energy} из {cap}', { energy, cap })}
       key={pulseId}
       data-tick={tick}
     >

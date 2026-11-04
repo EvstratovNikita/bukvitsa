@@ -1,4 +1,5 @@
 import { useGameContext } from '../../context/GameContext.jsx';
+import { tr } from '../../lib/lang.js';
 
 // Floating button anchored to the right edge of the game area. Always visible.
 // Shows an egg icon until the user opens the section the first time (when the
@@ -6,7 +7,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 export function PetFab({ onOpen }) {
   const { stats } = useGameContext();
   const hatched = Boolean(stats.pet?.hatched);
-  const name = stats.pet?.name || 'Букля';
+  const name = tr(stats.pet?.name || 'Букля');
 
   return (
     <button
@@ -14,8 +15,8 @@ export function PetFab({ onOpen }) {
       className={`pet-fab${hatched ? ' pet-fab--hatched' : ' pet-fab--egg'}`}
       onClick={onOpen}
       onMouseDown={(e) => e.preventDefault()}
-      aria-label={hatched ? name : 'Загадочное яйцо'}
-      title={hatched ? name : 'Загадочное яйцо'}
+      aria-label={hatched ? name : tr('Загадочное яйцо')}
+      title={hatched ? name : tr('Загадочное яйцо')}
     >
       <span className="pet-fab__glyph" aria-hidden="true">
         {hatched ? <MiniOwl /> : <MiniEgg />}

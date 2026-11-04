@@ -31,6 +31,7 @@ import { HW_TRACK } from './halloween.js';
 //   referralsCount  — verified invitees credited to this user
 
 import { PET_DECORATIONS, REGULAR_DECORATIONS } from './petDecorations.js';
+import { tr } from '../lib/lang.js';
 
 const allDistributionFilled = (s) =>
   (s.distribution || []).every((n) => (n || 0) > 0);
@@ -61,10 +62,10 @@ const ownedRegularDecoCount = (s) =>
 // event — вкладка ивента: видна, пока ивент идёт, а после — только если в
 // ней что-то открыто (visibleAchievementCategories).
 export const ACHIEVEMENT_CATEGORIES = [
-  { id: 'words',   label: 'Слова'    },
-  { id: 'shop',    label: 'Покупки'  },
-  { id: 'pet',     label: 'Питомец'  },
-  { id: 'halloween', label: 'Хэллоуин', event: 'halloween' }
+  { id: 'words',   label: tr('Слова')    },
+  { id: 'shop',    label: tr('Покупки')  },
+  { id: 'pet',     label: tr('Питомец')  },
+  { id: 'halloween', label: tr('Хэллоуин'), event: 'halloween' }
 ];
 
 // Ивент «Ночь тыкв»: сколько ивентовых нарядов сейчас на Букле.
@@ -78,117 +79,117 @@ export const ACHIEVEMENTS = [
   // ============ СЛОВА ============
   {
     id: 'first_win', category: 'words', tier: 'easy', icon: '🌱', reward: 5,
-    title: 'Первый успех',
-    desc: 'Угадай первое слово',
+    title: tr('Первый успех'),
+    desc: tr('Угадай первое слово'),
     check: (s) => (s.won || 0) >= 1
   },
   {
     id: 'first_try', category: 'words', tier: 'easy', icon: '🎯', reward: 10,
-    title: 'С первого раза',
-    desc: 'Угадай слово с первой попытки',
+    title: tr('С первого раза'),
+    desc: tr('Угадай слово с первой попытки'),
     check: (s) => (s.distribution?.[0] || 0) >= 1,
     progress: (s) => ({ current: Math.min(1, s.distribution?.[0] || 0), target: 1 })
   },
   {
     id: 'streak_3', category: 'words', tier: 'easy', icon: '🔥', reward: 10,
-    title: 'Тройка',
-    desc: 'Собери серию из 3 побед подряд',
+    title: tr('Тройка'),
+    desc: tr('Собери серию из 3 побед подряд'),
     check: (s) => (s.maxStreak || 0) >= 3,
     progress: (s) => ({ current: Math.min(3, s.maxStreak || 0), target: 3 })
   },
   {
     id: 'play_5', category: 'words', tier: 'easy', icon: '🎲', reward: 5,
-    title: 'Разминка',
-    desc: 'Сыграй 5 партий',
+    title: tr('Разминка'),
+    desc: tr('Сыграй 5 партий'),
     check: (s) => (s.played || 0) >= 5,
     progress: (s) => ({ current: Math.min(5, s.played || 0), target: 5 })
   },
   {
     id: 'won_10', category: 'words', tier: 'easy', icon: '🥉', reward: 15,
-    title: 'Десятка',
-    desc: 'Угадай 10 слов',
+    title: tr('Десятка'),
+    desc: tr('Угадай 10 слов'),
     check: (s) => (s.won || 0) >= 10,
     progress: (s) => ({ current: Math.min(10, s.won || 0), target: 10 })
   },
   {
     id: 'daily_2', category: 'words', tier: 'easy', icon: '📅', reward: 10,
-    title: 'Завтрак с буквами',
-    desc: 'Зайди в игру 2 дня подряд',
+    title: tr('Завтрак с буквами'),
+    desc: tr('Зайди в игру 2 дня подряд'),
     check: (s) => (s.dailyStreak || 0) >= 2,
     progress: (s) => ({ current: Math.min(2, s.dailyStreak || 0), target: 2 })
   },
   {
     id: 'first_hint', category: 'words', tier: 'easy', icon: '💡', reward: 5,
-    title: 'Подсмотрел',
-    desc: 'Используй любую подсказку',
+    title: tr('Подсмотрел'),
+    desc: tr('Используй любую подсказку'),
     check: (s) => (s.hintsUsed || 0) >= 1,
     progress: (s) => ({ current: Math.min(1, s.hintsUsed || 0), target: 1 })
   },
   {
     id: 'streak_10', category: 'words', tier: 'hard', icon: '🚀', reward: 40,
-    title: 'Огонь',
-    desc: 'Серия из 10 побед подряд',
+    title: tr('Огонь'),
+    desc: tr('Серия из 10 побед подряд'),
     check: (s) => (s.maxStreak || 0) >= 10,
     progress: (s) => ({ current: Math.min(10, s.maxStreak || 0), target: 10 })
   },
   {
     id: 'won_50', category: 'words', tier: 'hard', icon: '🥈', reward: 50,
-    title: 'Знаток',
-    desc: 'Угадай 50 слов',
+    title: tr('Знаток'),
+    desc: tr('Угадай 50 слов'),
     check: (s) => (s.won || 0) >= 50,
     progress: (s) => ({ current: Math.min(50, s.won || 0), target: 50 })
   },
   {
     id: 'won_200', category: 'words', tier: 'hard', icon: '🥇', reward: 150,
-    title: 'Мастер',
-    desc: 'Угадай 200 слов',
+    title: tr('Мастер'),
+    desc: tr('Угадай 200 слов'),
     check: (s) => (s.won || 0) >= 200,
     progress: (s) => ({ current: Math.min(200, s.won || 0), target: 200 })
   },
   {
     id: 'played_100', category: 'words', tier: 'hard', icon: '🏟️', reward: 40,
-    title: 'Завсегдатай',
-    desc: 'Сыграй 100 партий',
+    title: tr('Завсегдатай'),
+    desc: tr('Сыграй 100 партий'),
     check: (s) => (s.played || 0) >= 100,
     progress: (s) => ({ current: Math.min(100, s.played || 0), target: 100 })
   },
   {
     id: 'first_try_5', category: 'words', tier: 'hard', icon: '🏹', reward: 40,
-    title: 'Снайпер',
-    desc: '5 раз угадай слово с первой попытки',
+    title: tr('Снайпер'),
+    desc: tr('5 раз угадай слово с первой попытки'),
     check: (s) => (s.distribution?.[0] || 0) >= 5,
     progress: (s) => ({ current: Math.min(5, s.distribution?.[0] || 0), target: 5 })
   },
   {
     id: 'hints_used_20', category: 'words', tier: 'hard', icon: '🧠', reward: 20,
-    title: 'Помощник зала',
-    desc: 'Используй 20 подсказок',
+    title: tr('Помощник зала'),
+    desc: tr('Используй 20 подсказок'),
     check: (s) => (s.hintsUsed || 0) >= 20,
     progress: (s) => ({ current: Math.min(20, s.hintsUsed || 0), target: 20 })
   },
   {
     id: 'daily_6', category: 'words', tier: 'hard', icon: '🗓️', reward: 30,
-    title: 'Неделя верности',
-    desc: 'Пройди полный 6-дневный цикл входов',
+    title: tr('Неделя верности'),
+    desc: tr('Пройди полный 6-дневный цикл входов'),
     check: (s) => (s.dailyStreak || 0) >= 6,
     progress: (s) => ({ current: Math.min(6, s.dailyStreak || 0), target: 6 })
   },
   {
     id: 'fast_30', category: 'words', tier: 'hard', icon: '⏱️', reward: 20,
-    title: 'Спринтер',
-    desc: 'Угадай слово быстрее, чем за 30 секунд',
+    title: tr('Спринтер'),
+    desc: tr('Угадай слово быстрее, чем за 30 секунд'),
     check: (s) => Boolean(s.fastestWinMs) && s.fastestWinMs <= 30000
   },
   {
     id: 'fast_15', category: 'words', tier: 'hard', icon: '⚡', reward: 50,
-    title: 'Молниеносный',
-    desc: 'Угадай слово быстрее, чем за 15 секунд',
+    title: tr('Молниеносный'),
+    desc: tr('Угадай слово быстрее, чем за 15 секунд'),
     check: (s) => Boolean(s.fastestWinMs) && s.fastestWinMs <= 15000
   },
   {
     id: 'all_attempts', category: 'words', tier: 'hard', icon: '🎓', reward: 60,
-    title: 'Универсал',
-    desc: 'Победи, использовав каждое число попыток (1–6) хотя бы раз',
+    title: tr('Универсал'),
+    desc: tr('Победи, использовав каждое число попыток (1–6) хотя бы раз'),
     check: allDistributionFilled,
     progress: (s) => ({ current: distributionFilledCount(s), target: 6 })
   },
@@ -196,42 +197,42 @@ export const ACHIEVEMENTS = [
   // ============ ПОКУПКИ ============
   {
     id: 'first_purchase', category: 'shop', tier: 'easy', icon: '🛍️', reward: 5,
-    title: 'Первая покупка',
-    desc: 'Купи любой товар в магазине',
+    title: tr('Первая покупка'),
+    desc: tr('Купи любой товар в магазине'),
     check: (s) => (s.itemsBought || 0) >= 1,
     progress: (s) => ({ current: Math.min(1, s.itemsBought || 0), target: 1 })
   },
   {
     id: 'change_bg', category: 'shop', tier: 'easy', icon: '🎨', reward: 5,
-    title: 'Смена обстановки',
-    desc: 'Поставь новый фон',
+    title: tr('Смена обстановки'),
+    desc: tr('Поставь новый фон'),
     check: (s) => Boolean(s.activeBackground)
   },
   {
     id: 'coins_50', category: 'shop', tier: 'easy', icon: '🪙', reward: 10,
-    title: 'Кошелёк',
-    desc: 'Заработай 50 монет за всё время',
+    title: tr('Кошелёк'),
+    desc: tr('Заработай 50 монет за всё время'),
     check: (s) => (s.coinsEarned || 0) >= 50,
     progress: (s) => ({ current: Math.min(50, s.coinsEarned || 0), target: 50 })
   },
   {
     id: 'inventory_5', category: 'shop', tier: 'hard', icon: '🎁', reward: 30,
-    title: 'Коллекционер',
-    desc: 'Имей 5 предметов в инвентаре',
+    title: tr('Коллекционер'),
+    desc: tr('Имей 5 предметов в инвентаре'),
     check: (s) => (s.inventory?.length || 0) >= 5,
     progress: (s) => ({ current: Math.min(5, s.inventory?.length || 0), target: 5 })
   },
   {
     id: 'purchases_10', category: 'shop', tier: 'hard', icon: '🛒', reward: 40,
-    title: 'Транжира',
-    desc: 'Соверши 10 покупок в магазине',
+    title: tr('Транжира'),
+    desc: tr('Соверши 10 покупок в магазине'),
     check: (s) => (s.itemsBought || 0) >= 10,
     progress: (s) => ({ current: Math.min(10, s.itemsBought || 0), target: 10 })
   },
   {
     id: 'coins_500', category: 'shop', tier: 'hard', icon: '💰', reward: 60,
-    title: 'Капитал',
-    desc: 'Заработай 500 монет за всё время',
+    title: tr('Капитал'),
+    desc: tr('Заработай 500 монет за всё время'),
     check: (s) => (s.coinsEarned || 0) >= 500,
     progress: (s) => ({ current: Math.min(500, s.coinsEarned || 0), target: 500 })
   },
@@ -239,44 +240,44 @@ export const ACHIEVEMENTS = [
   // ============ ПИТОМЕЦ ============
   {
     id: 'pet_lvl_5', category: 'pet', tier: 'easy', icon: '🦉', reward: 30,
-    title: 'Птенец подрос',
-    desc: 'Прокачай Буклю до 5 уровня',
+    title: tr('Птенец подрос'),
+    desc: tr('Прокачай Буклю до 5 уровня'),
     check: (s) => (s.pet?.level || 1) >= 5,
     progress: (s) => ({ current: Math.min(5, s.pet?.level || 1), target: 5 })
   },
   {
     id: 'pet_lvl_10', category: 'pet', tier: 'hard', icon: '🌟', reward: 120,
-    title: 'Учёная сова',
-    desc: 'Прокачай Буклю до 10 уровня',
+    title: tr('Учёная сова'),
+    desc: tr('Прокачай Буклю до 10 уровня'),
     check: (s) => (s.pet?.level || 1) >= 10,
     progress: (s) => ({ current: Math.min(10, s.pet?.level || 1), target: 10 })
   },
   // ---- pet decorations (purchases + equipping) ----
   {
     id: 'deco_first', category: 'pet', tier: 'easy', icon: '🎀', reward: 10,
-    title: 'Первое украшение',
-    desc: 'Купи любое украшение для Букли',
+    title: tr('Первое украшение'),
+    desc: tr('Купи любое украшение для Букли'),
     check: (s) => ownedDecoCount(s) >= 1,
     progress: (s) => ({ current: Math.min(1, ownedDecoCount(s)), target: 1 })
   },
   {
     id: 'deco_5', category: 'pet', tier: 'easy', icon: '👗', reward: 30,
-    title: 'Гардероб',
-    desc: 'Купи 5 украшений для Букли',
+    title: tr('Гардероб'),
+    desc: tr('Купи 5 украшений для Букли'),
     check: (s) => ownedDecoCount(s) >= 5,
     progress: (s) => ({ current: Math.min(5, ownedDecoCount(s)), target: 5 })
   },
   {
     id: 'deco_full_outfit', category: 'pet', tier: 'hard', icon: '🎩', reward: 60,
-    title: 'Полный наряд',
-    desc: 'Надень украшения во все слоты (голова, глаза, брошь, оба крыла)',
+    title: tr('Полный наряд'),
+    desc: tr('Надень украшения во все слоты (голова, глаза, брошь, оба крыла)'),
     check: (s) => equippedSlotCount(s) >= 5,
     progress: (s) => ({ current: equippedSlotCount(s), target: 5 })
   },
   {
     id: 'deco_collection', category: 'pet', tier: 'hard', icon: '🏆', reward: 200,
-    title: 'Коллекционер модных вещей',
-    desc: 'Купи все украшения для Букли',
+    title: tr('Коллекционер модных вещей'),
+    desc: tr('Купи все украшения для Букли'),
     check: (s) => ownedRegularDecoCount(s) >= TOTAL_DECO,
     progress: (s) => ({ current: Math.min(TOTAL_DECO, ownedRegularDecoCount(s)), target: TOTAL_DECO })
   },
@@ -284,36 +285,36 @@ export const ACHIEVEMENTS = [
   // ============ ХЭЛЛОУИН 2026 (ивент «Ночь тыкв») ============
   {
     id: 'hw_first', category: 'halloween', tier: 'easy', icon: '🎃', reward: 10,
-    title: 'Первая тыква',
-    desc: 'Разгадай первую загадку ночи',
+    title: tr('Первая тыква'),
+    desc: tr('Разгадай первую загадку ночи'),
     check: (s) => (hw(s).solved || 0) >= 1,
     progress: (s) => ({ current: Math.min(1, hw(s).solved || 0), target: 1 })
   },
   {
     id: 'hw_seer', category: 'halloween', tier: 'easy', icon: '🔮', reward: 30,
-    title: 'Ясновидящая сова',
-    desc: 'Разгадай загадку ночи с первой попытки',
+    title: tr('Ясновидящая сова'),
+    desc: tr('Разгадай загадку ночи с первой попытки'),
     check: (s) => (hw(s).firstTry || 0) >= 1,
     progress: (s) => ({ current: Math.min(1, hw(s).firstTry || 0), target: 1 })
   },
   {
     id: 'hw_solver', category: 'halloween', tier: 'hard', icon: '🕯️', reward: 40,
-    title: 'Знаток загадок',
-    desc: 'Разгадай 15 загадок ночи',
+    title: tr('Знаток загадок'),
+    desc: tr('Разгадай 15 загадок ночи'),
     check: (s) => (hw(s).solved || 0) >= 15,
     progress: (s) => ({ current: Math.min(15, hw(s).solved || 0), target: 15 })
   },
   {
     id: 'hw_outfit', category: 'halloween', tier: 'hard', icon: '🧙', reward: 50,
-    title: 'Ведьмин наряд',
-    desc: 'Надень на Буклю 3 предмета из хэллоуинской коллекции',
+    title: tr('Ведьмин наряд'),
+    desc: tr('Надень на Буклю 3 предмета из хэллоуинской коллекции'),
     check: (s) => hwWornCount(s) >= 3,
     progress: (s) => ({ current: Math.min(3, hwWornCount(s)), target: 3 })
   },
   {
     id: 'hw_path', category: 'halloween', tier: 'hard', icon: '👑', reward: 100,
-    title: 'Тыквенный король',
-    desc: 'Пройди всю ленту наград «Ночи тыкв»',
+    title: tr('Тыквенный король'),
+    desc: tr('Пройди всю ленту наград «Ночи тыкв»'),
     check: (s) => hwStepsDone(s) >= HW_TRACK.length,
     progress: (s) => ({ current: hwStepsDone(s), target: HW_TRACK.length })
   }

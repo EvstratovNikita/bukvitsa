@@ -1,4 +1,5 @@
 import { isEmbedded } from '../lib/platform.js';
+import { tr } from '../lib/lang.js';
 
 // Бонусы в VK и Яндексе вдвое дешевле: за победу выходит 4–5 монет, и за 120
 // новичок до «Двойных монет» просто не дотягивался. На вебе цену держит сервер.
@@ -15,9 +16,9 @@ const boostPrice = (embedded, web) => (isEmbedded ? embedded : web);
 // owned forever once purchased. Boost items are consumables — spent on use.
 
 export const SHOP_CATEGORIES = [
-  { id: 'background', label: 'Фоны' },
-  { id: 'cells', label: 'Стиль клеток' },
-  { id: 'boost', label: 'Бонусы' }
+  { id: 'background', label: tr('Фоны') },
+  { id: 'cells', label: tr('Стиль клеток') },
+  { id: 'boost', label: tr('Бонусы') }
 ];
 
 // SVG patterns encoded as data URIs. Subtle, non-distracting. We escape
@@ -474,8 +475,8 @@ export const SHOP_ITEMS = [
     category: 'background',
     theme: 'dark',
     event: 'halloween',
-    name: 'Тыквенная ночь',
-    desc: 'Лунный свет, летучие мыши и тыквы-фонари',
+    name: tr('Тыквенная ночь'),
+    desc: tr('Лунный свет, летучие мыши и тыквы-фонари'),
     payload: {
       gradient: [
         HW_DARK,
@@ -494,8 +495,8 @@ export const SHOP_ITEMS = [
     category: 'background',
     theme: 'light',
     event: 'halloween',
-    name: 'Тыквенное поле',
-    desc: 'Туманные сумерки, тыквы-фонари и паутина',
+    name: tr('Тыквенное поле'),
+    desc: tr('Туманные сумерки, тыквы-фонари и паутина'),
     payload: {
       gradient: [
         HW_FIELD,
@@ -510,8 +511,8 @@ export const SHOP_ITEMS = [
     id: 'cells-hw-lights',
     category: 'cells',
     event: 'halloween',
-    name: 'Тыквенные огоньки',
-    desc: 'Буквы не на месте горят тыквой, верные — ведьминым зельем'
+    name: tr('Тыквенные огоньки'),
+    desc: tr('Буквы не на месте горят тыквой, верные — ведьминым зельем')
   },
 
   // ---------- Backgrounds ----------
@@ -521,8 +522,8 @@ export const SHOP_ITEMS = [
     id: 'bg-autumn-night',
     category: 'background',
     theme: 'dark',
-    name: 'Ночной листопад',
-    desc: 'Медная листва в тёплой темноте октября',
+    name: tr('Ночной листопад'),
+    desc: tr('Медная листва в тёплой темноте октября'),
     price: 120,
     payload: {
       gradient: [
@@ -536,8 +537,8 @@ export const SHOP_ITEMS = [
     id: 'bg-sunset',
     category: 'background',
     theme: 'dark',
-    name: 'Закат',
-    desc: 'Тёплый закат сквозь пелену облаков',
+    name: tr('Закат'),
+    desc: tr('Тёплый закат сквозь пелену облаков'),
     price: 50,
     payload: {
       gradient: [
@@ -552,8 +553,8 @@ export const SHOP_ITEMS = [
     id: 'bg-ocean',
     category: 'background',
     theme: 'dark',
-    name: 'Океан',
-    desc: 'Спокойные волны в глубокой воде',
+    name: tr('Океан'),
+    desc: tr('Спокойные волны в глубокой воде'),
     price: 50,
     payload: {
       gradient: [
@@ -567,8 +568,8 @@ export const SHOP_ITEMS = [
     id: 'bg-forest',
     category: 'background',
     theme: 'dark',
-    name: 'Лес',
-    desc: 'Хвойный лес на закатном горизонте',
+    name: tr('Лес'),
+    desc: tr('Хвойный лес на закатном горизонте'),
     price: 50,
     payload: {
       gradient: [
@@ -582,8 +583,8 @@ export const SHOP_ITEMS = [
     id: 'bg-rose',
     category: 'background',
     theme: 'dark',
-    name: 'Лепестки',
-    desc: 'Падающие розовые лепестки на тёплом фоне',
+    name: tr('Лепестки'),
+    desc: tr('Падающие розовые лепестки на тёплом фоне'),
     price: 50,
     payload: {
       gradient: [
@@ -598,8 +599,8 @@ export const SHOP_ITEMS = [
     id: 'bg-stars',
     category: 'background',
     theme: 'dark',
-    name: 'Звёздное небо',
-    desc: 'Россыпь звёзд над глубоким космосом',
+    name: tr('Звёздное небо'),
+    desc: tr('Россыпь звёзд над глубоким космосом'),
     price: 80,
     payload: {
       gradient: [
@@ -614,8 +615,8 @@ export const SHOP_ITEMS = [
     id: 'bg-aurora',
     category: 'background',
     theme: 'dark',
-    name: 'Северное сияние',
-    desc: 'Зелёно-фиолетовые волны полярного света',
+    name: tr('Северное сияние'),
+    desc: tr('Зелёно-фиолетовые волны полярного света'),
     price: 80,
     payload: {
       gradient: [
@@ -630,8 +631,8 @@ export const SHOP_ITEMS = [
     id: 'bg-diamonds',
     category: 'background',
     theme: 'dark',
-    name: 'Аметист',
-    desc: 'Гранёный узор на фиолетовом фоне',
+    name: tr('Аметист'),
+    desc: tr('Гранёный узор на фиолетовом фоне'),
     price: 80,
     payload: {
       gradient: [
@@ -647,8 +648,8 @@ export const SHOP_ITEMS = [
     id: 'bg-autumn-park',
     category: 'background',
     theme: 'light',
-    name: 'Золотая осень',
-    desc: 'Кленовые листья, жёлуди и рябина в тёплом свете',
+    name: tr('Золотая осень'),
+    desc: tr('Кленовые листья, жёлуди и рябина в тёплом свете'),
     price: 120,
     payload: {
       gradient: [
@@ -662,8 +663,8 @@ export const SHOP_ITEMS = [
     id: 'bg-summer-sky',
     category: 'background',
     theme: 'light',
-    name: 'Летнее небо',
-    desc: 'Голубое небо с пушистыми облаками',
+    name: tr('Летнее небо'),
+    desc: tr('Голубое небо с пушистыми облаками'),
     price: 80,
     payload: {
       gradient: [
@@ -677,8 +678,8 @@ export const SHOP_ITEMS = [
     id: 'bg-berries',
     category: 'background',
     theme: 'light',
-    name: 'Ягоды',
-    desc: 'Сладкие ягоды на кремовом фоне',
+    name: tr('Ягоды'),
+    desc: tr('Сладкие ягоды на кремовом фоне'),
     price: 80,
     payload: {
       gradient: [
@@ -692,8 +693,8 @@ export const SHOP_ITEMS = [
     id: 'bg-meadow',
     category: 'background',
     theme: 'light',
-    name: 'Ромашковый луг',
-    desc: 'Полевые ромашки в траве на свежем ветру',
+    name: tr('Ромашковый луг'),
+    desc: tr('Полевые ромашки в траве на свежем ветру'),
     price: 80,
     payload: {
       gradient: [
@@ -708,22 +709,22 @@ export const SHOP_ITEMS = [
   {
     id: 'cells-neon',
     category: 'cells',
-    name: 'Неоновые буквы',
-    desc: 'Светящиеся буквы в клетках, как на вывеске',
+    name: tr('Неоновые буквы'),
+    desc: tr('Светящиеся буквы в клетках, как на вывеске'),
     price: 80
   },
   {
     id: 'cells-emerald',
     category: 'cells',
-    name: 'Изумрудные победы',
-    desc: 'Верные клетки сияют живым изумрудом',
+    name: tr('Изумрудные победы'),
+    desc: tr('Верные клетки сияют живым изумрудом'),
     price: 80
   },
   {
     id: 'cells-shimmer',
     category: 'cells',
-    name: 'Золотое мерцание',
-    desc: 'Клетки «не на месте» переливаются золотом',
+    name: tr('Золотое мерцание'),
+    desc: tr('Клетки «не на месте» переливаются золотом'),
     price: 80
   },
 
@@ -731,24 +732,24 @@ export const SHOP_ITEMS = [
   {
     id: 'boost-double',
     category: 'boost',
-    name: 'Двойные монеты',
-    desc: 'Удваивает монеты за победы (база + бонус Букли) в течение 1 дня',
+    name: tr('Двойные монеты'),
+    desc: tr('Удваивает монеты за победы (база + бонус Букли) в течение 1 дня'),
     price: boostPrice(60, 120),
     consumable: true
   },
   {
     id: 'boost-ad-coins',
     category: 'boost',
-    name: 'Щедрая реклама',
-    desc: '+4 монеты к каждому просмотру рекламы — на следующие 10 просмотров',
+    name: tr('Щедрая реклама'),
+    desc: tr('+4 монеты к каждому просмотру рекламы — на следующие 10 просмотров'),
     price: boostPrice(20, 30),
     consumable: true
   },
   {
     id: 'boost-energy-cap',
     category: 'boost',
-    name: 'Запас энергии',
-    desc: 'Лимит энергии повышается до 7 на 2 дня',
+    name: tr('Запас энергии'),
+    desc: tr('Лимит энергии повышается до 7 на 2 дня'),
     price: boostPrice(50, 100),
     consumable: true
   }

@@ -13,9 +13,12 @@
 //   Clipboard fallback →  copy "text\nurl" to clipboard
 
 import { isTelegram, isVk } from './platform.js';
+import { TG_APP_LINK, tgShareLink } from './telegram.js';
+import { isEn } from './lang.js';
 import { vkBridge, launchParams, isOk, cloudStatus } from './vk.js';
 import { copyText } from '../utils/clipboard.js';
 import { refTag, reportShare } from './referral.js';
+import { tr } from './lang.js';
 
 // Канонический адрес, которым делимся.
 //
@@ -31,6 +34,10 @@ const WEB_SHARE_URL =
   'https://bukvitsa.vercel.app';
 
 function canonicalShareUrl() {
+  if (isTelegram) return TG_APP_LINK;
+  // Веб-версия bukvitsa — русская, а порталы запрещают внешние ссылки: в
+  // английской версии делимся одним текстом с сеткой, без адреса.
+  if (isEn()) return '';
   if (!isVk) return WEB_SHARE_URL;
   // В Одноклассниках ссылка ведёт на игру в ОК: их правила требуют, чтобы
   // шеринг не звал во ВКонтакте. Номер игры в ОК приходит в vk_ok_app_id.
@@ -57,13 +64,13 @@ export const SHARE_BASE_URL = canonicalShareUrl();
 const SLY_FACES = ['😉', '😏', '🤓', '😎', '🦉', '🤭', '🫣'];
 function ordinal(n) {
   const last2 = n % 100;
-  if (last2 >= 11 && last2 <= 14) return `${n}-й`;
+  if (last2 >= 11 && last2 <= 14) return tr('{n}-й', { n });
   switch (n % 10) {
-    case 1: return `${n}-й`;
+    case 1: return tr('{n}-й', { n });
     case 2:
     case 3:
-    case 4: return `${n}-й`;
-    default: return `${n}-й`;
+    case 4: return tr('{n}-й', { n });
+    default: return tr('{n}-й', { n });
   }
 }
 
@@ -79,21 +86,15 @@ export function buildWordleShareText(evaluations, attempts, max, dayN, inviteUrl
   const face = SLY_FACES[Math.floor(Math.random() * SLY_FACES.length)];
   const dayLabel = dayN != null ? ` #${dayN}` : '';
   const intro = attempts > 0 && attempts <= max
-    ? `Смотри, слово дня${dayLabel} в Буклице отгадано с ${ordinal(attempts)} попытки! Попробуй так же ${face}`
-    : `Слово дня${dayLabel} в Буклице меня обыграло… а ты сможешь? ${face}`;
+    ? tr('Смотри, слово дня{dayLabel} в Буклице отгадано с {v1} попытки! Попробуй так же {face}', { dayLabel, v1: ordinal(attempts), face })
+    : tr('Слово дня{dayLabel} в Буклице меня обыграло… а ты сможешь? {face}', { dayLabel, face });
   const linkLine = inviteUrl ? `\n${inviteUrl}` : '';
   return `${intro}${linkLine}\n\n${grid}`;
 }
 
 async function shareTelegram(text, url) {
   try {
-    const tg = window.Telegram?.WebApp;
-    const shareLink = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-    if (tg?.openTelegramLink) {
-      tg.openTelegramLink(shareLink);
-    } else {
-      window.open(shareLink, '_blank', 'noopener');
-    }
+    tgShareLink(text, url);
     return 'shared';
   } catch {
     return 'failed';
@@ -199,7 +200,7 @@ async function copyToClipboard(text, url) {
 }
 
 // wall — в VK делиться записью на стене (текст с сеткой доходит везде).
-export async function share({ title = 'Буклица', text, url, onCopied, wall = false }) {
+export async function share({ title = tr('Буклица'), text, url, onCopied, wall = false }) {
   if (isTelegram) return shareTelegram(text, url);
   if (isVk)       return shareVk(text, url, onCopied, wall);
   if (typeof navigator !== 'undefined' && navigator.share) {

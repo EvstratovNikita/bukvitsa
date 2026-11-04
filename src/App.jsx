@@ -11,7 +11,7 @@ import { LeaderboardModal } from './components/Leaderboard/Leaderboard.jsx';
 import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
-import { loadingReady } from './lib/yandex.js';
+import { gameIsReady } from './lib/lifecycle.js';
 import { vkInit, preloadRewardedVk, preloadInterstitialVk, fitToVisibleFrame } from './lib/vk.js';
 import { reportArrival } from './lib/referral.js';
 import { missionPoints, reportMissions } from './lib/missions.js';
@@ -34,12 +34,13 @@ import { StartMenu } from './components/StartMenu/StartMenu.jsx';
 import { HalloweenModal } from './components/Halloween/HalloweenModal.jsx';
 import { PumpkinBadge, RiddleCard } from './components/Halloween/HalloweenGame.jsx';
 import { halloweenActive } from './lib/events.js';
-import { isVk } from './lib/platform.js';
+import { hasHomeMenu } from './lib/platform.js';
 import { GAME_STATUS } from './constants/game.js';
 import { GameProvider, useGameContext } from './context/GameContext.jsx';
 import { useKeyboard } from './hooks/useKeyboard.js';
 import { useAuthRedirectFallback } from './hooks/useAuthRedirectFallback.js';
 import { useShopTheme } from './hooks/useShopTheme.js';
+import { tr } from './lib/lang.js';
 
 function Toast() {
   const { toast } = useGameContext();
@@ -50,7 +51,7 @@ function Toast() {
 function GameShell() {
   // Главное меню VK (правила, п. 4.2.10): открыто при запуске и по кнопке
   // «Домой» в шапке. Пока оно на экране, физическая клавиатура не пишет в поле.
-  const [homeOpen, setHomeOpen] = useState(isVk);
+  const [homeOpen, setHomeOpen] = useState(hasHomeMenu);
   const closeHome = useCallback(() => setHomeOpen(false), []);
   useKeyboard(!homeOpen);
   useAuthRedirectFallback();
@@ -74,7 +75,7 @@ function GameShell() {
   useEffect(() => {
     if (!ready) return;
     hideSplash();
-    loadingReady();
+    gameIsReady();
   }, [ready]);
 
   // Миссии VK: открытые достижения → лента друзей и баллы (lib/missions.js).
@@ -193,7 +194,7 @@ function GameShell() {
         onOpenMenu={nav.menu}
         onOpenPet={nav.pet}
         onOpenModes={openModes}
-        onOpenHome={isVk ? nav.home : undefined}
+        onOpenHome={hasHomeMenu ? nav.home : undefined}
       />
       <div className="topbar">
         <Coins />
@@ -250,7 +251,7 @@ function GameShell() {
         open={petOpen}
         onClose={() => setPetOpen(false)}
         overHome={homeOpen}
-        onHome={isVk ? () => { setHomeOpen(true); setPetOpen(false); } : undefined}
+        onHome={hasHomeMenu ? () => { setHomeOpen(true); setPetOpen(false); } : undefined}
       />
       <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
@@ -271,39 +272,32 @@ function GameShell() {
       <Modal
         open={dailyLeaveOpen}
         onClose={() => setDailyLeaveOpen(false)}
-        title="Выйти из Слова дня?"
+        title={tr('Выйти из Слова дня?')}
       >
         <div className="confirm">
-          <p className="confirm__text">
-            Слово дня даётся раз в сутки. Если сейчас перейти в другой режим,
-            вернуться к сегодняшнему Слову дня уже не получится.
-          </p>
+          <p className="confirm__text">{tr('Слово дня даётся раз в сутки. Если сейчас перейти в другой режим, вернуться к сегодняшнему Слову дня уже не получится.')}</p>
           <div className="confirm__actions">
             <button
               type="button"
               className="btn btn--ghost"
               onClick={() => setDailyLeaveOpen(false)}
               onMouseDown={(e) => e.preventDefault()}
-            >
-              Отмена
-            </button>
+            >{tr('Отмена')}</button>
             <button
               type="button"
               className="btn btn--primary"
               onClick={confirmDailyLeave}
               onMouseDown={(e) => e.preventDefault()}
-            >
-              Подтвердить
-            </button>
+            >{tr('Подтвердить')}</button>
           </div>
         </div>
       </Modal>
       <EnergyModal onOpenModes={openModes} onPlayHalloween={hwOn ? playHalloween : undefined} />
 
-      <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title="Статистика">
+      <Modal open={statsOpen} onClose={() => setStatsOpen(false)} title={tr('Статистика')}>
         <Stats stats={stats} />
       </Modal>
-      <Modal open={helpOpen} onClose={closeHelp} title="Как играть">
+      <Modal open={helpOpen} onClose={closeHelp} title={tr('Как играть')}>
         <HowToPlay />
       </Modal>
     </div>

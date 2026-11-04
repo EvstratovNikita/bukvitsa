@@ -4,6 +4,7 @@ import { PET_UNLOCK_GAMES } from '../../constants/game.js';
 import { PetHeaderButton } from '../Pet/PetHeaderButton.jsx';
 import { SunIcon, MoonIcon, PlusIcon, HomeIcon } from '../icons/Icon.jsx';
 import { MenuButton } from '../Menu/Menu.jsx';
+import { tr } from '../../lib/lang.js';
 
 // onOpenHome есть только в VK: там вместо бокового меню кнопка «Домой» ведёт в
 // главное меню (правила VK, п. 4.2.10 — вернуться в меню можно в любой момент).
@@ -30,8 +31,8 @@ function HeaderView({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
           data-tour="theme"
           onClick={toggleTheme}
           onMouseDown={(e) => e.preventDefault()}
-          aria-label={isLight ? 'Тёмная тема' : 'Светлая тема'}
-          title={isLight ? 'Тёмная тема' : 'Светлая тема'}
+          aria-label={isLight ? tr('Тёмная тема') : tr('Светлая тема')}
+          title={isLight ? tr('Тёмная тема') : tr('Светлая тема')}
         >
           {isLight ? <MoonIcon /> : <SunIcon />}
         </button>
@@ -41,16 +42,16 @@ function HeaderView({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
           data-tour="modes"
           onClick={onOpenModes}
           onMouseDown={(e) => e.preventDefault()}
-          aria-label="Режимы игры"
-          title="Режимы игры"
+          aria-label={tr('Режимы игры')}
+          title={tr('Режимы игры')}
         >
           <PlusIcon />
         </button>
       </div>
 
       <div className="brand">
-        <span className="brand__mark" aria-hidden="true">Б</span>
-        <h1 className="brand__title">Буклица</h1>
+        <span className="brand__mark" aria-hidden="true">{tr('Б')}</span>
+        <h1 className="brand__title">{tr('Буклица')}</h1>
       </div>
 
       <div className="header__actions">
@@ -62,8 +63,8 @@ function HeaderView({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
             data-tour="menu"
             onClick={onOpenHome}
             onMouseDown={(e) => e.preventDefault()}
-            aria-label="Главное меню"
-            title="Главное меню"
+            aria-label={tr('Главное меню')}
+            title={tr('Главное меню')}
           >
             <HomeIcon />
           </button>

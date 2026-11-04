@@ -1,4 +1,5 @@
 import { MAX_ATTEMPTS } from '../../constants/game.js';
+import { tr } from '../../lib/lang.js';
 
 function Metric({ label, value }) {
   return (
@@ -18,19 +19,19 @@ export function Stats({ stats, onReset }) {
   return (
     <div className="stats">
       <div className="stats__grid">
-        <Metric label="Сыграно" value={stats.played} />
-        <Metric label="Победы" value={stats.won} />
-        <Metric label="Поражения" value={stats.lost} />
-        <Metric label="% побед" value={`${winRate}%`} />
-        <Metric label="Серия" value={stats.currentStreak} />
-        <Metric label="Рекорд серии" value={stats.maxStreak} />
-        <Metric label="Лучшая попытка" value={best} />
-        <Metric label="Среднее попыток" value={avg} />
-        <Metric label="Монеты" value={stats.coins || 0} />
-        <Metric label="Всего заработано" value={stats.coinsEarned || 0} />
+        <Metric label={tr('Сыграно')} value={stats.played} />
+        <Metric label={tr('Победы')} value={stats.won} />
+        <Metric label={tr('Поражения')} value={stats.lost} />
+        <Metric label={tr('% побед')} value={`${winRate}%`} />
+        <Metric label={tr('Серия')} value={stats.currentStreak} />
+        <Metric label={tr('Рекорд серии')} value={stats.maxStreak} />
+        <Metric label={tr('Лучшая попытка')} value={best} />
+        <Metric label={tr('Среднее попыток')} value={avg} />
+        <Metric label={tr('Монеты')} value={stats.coins || 0} />
+        <Metric label={tr('Всего заработано')} value={stats.coinsEarned || 0} />
       </div>
 
-      <h3 className="stats__heading">Распределение попыток</h3>
+      <h3 className="stats__heading">{tr('Распределение попыток')}</h3>
       <div className="distribution">
         {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => {
           const v = stats.distribution[i] || 0;

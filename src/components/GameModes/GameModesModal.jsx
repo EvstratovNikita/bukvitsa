@@ -2,18 +2,19 @@ import { Modal } from '../Modal/Modal.jsx';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { BoltIcon } from '../icons/Icon.jsx';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
+import { tr } from '../../lib/lang.js';
 
 const MODES = [
   {
     length: 4,
-    title: '4 буквы',
-    sample: 'ВАЗА',
+    title: tr('4 буквы'),
+    sample: tr('ВАЗА'),
     accent: 'mode--four'
   },
   {
     length: 6,
-    title: '6 букв',
-    sample: 'РАКЕТА',
+    title: tr('6 букв'),
+    sample: tr('РАКЕТА'),
     accent: 'mode--six'
   }
 ];
@@ -37,12 +38,9 @@ export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Режимы игры">
+    <Modal open={open} onClose={onClose} title={tr('Режимы игры')}>
       <div className="modes">
-        <p className="modes__hint">
-          Без траты энергии, только опыт питомцу. Каждые 5 побед —
-          +1 энергия (до 3 в день).
-        </p>
+        <p className="modes__hint">{tr('Без траты энергии, только опыт питомцу. Каждые 5 побед — +1 энергия (до 3 в день).')}</p>
 
         {inHw ? (
           <button
@@ -50,24 +48,20 @@ export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
             className="btn modes__back"
             onClick={() => { exitHalloween(); onClose(); onPicked?.(); }}
             onMouseDown={(e) => e.preventDefault()}
-          >
-            ← Вернуться к обычной игре
-          </button>
+          >{tr('← Вернуться к обычной игре')}</button>
         ) : wordLength !== 5 && (
           <button
             type="button"
             className="btn modes__back"
             onClick={() => onPick(5)}
             onMouseDown={(e) => e.preventDefault()}
-          >
-            ← Вернуться на 5 букв
-          </button>
+          >{tr('← Вернуться на 5 букв')}</button>
         )}
 
         {onPlayHalloween && (inHw ? (
           <div className="mode-now hw-frame hw-mode-now">
-            <span className="mode-now__title"><PumpkinIcon /> Загадки ночи</span>
-            <span className="mode-now__badge">Сейчас играешь</span>
+            <span className="mode-now__title"><PumpkinIcon />{tr(' Загадки ночи')}</span>
+            <span className="mode-now__badge">{tr('Сейчас играешь')}</span>
           </div>
         ) : (
           <button
@@ -77,17 +71,15 @@ export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
             onMouseDown={(e) => e.preventDefault()}
           >
             <span className="hw-mode-card__top">
-              <span className="hw-mode-card__title">Загадки ночи</span>
+              <span className="hw-mode-card__title">{tr('Загадки ночи')}</span>
               <HwBadge />
             </span>
-            <span className="hw-mode-card__desc">
-              Жуткие слова по загадкам. Тыквы за победы — наряды для Букли.
-            </span>
+            <span className="hw-mode-card__desc">{tr('Жуткие слова по загадкам. Тыквы за победы — наряды для Букли.')}</span>
             <span className="hw-mode-card__foot">
               <span className="hw-mode-card__sample" aria-hidden="true">
-                {[...'ТЫКВА'].map((ch, i) => <span key={i} className="hw-mode-card__cell">{ch}</span>)}
+                {[...tr('ТЫКВА')].map((ch, i) => <span key={i} className="hw-mode-card__cell">{ch}</span>)}
               </span>
-              <span className="mode-card__free"><BoltIcon /><span>бесплатно</span></span>
+              <span className="mode-card__free"><BoltIcon /><span>{tr('бесплатно')}</span></span>
             </span>
           </button>
         ))}
@@ -101,7 +93,7 @@ export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
             return (
               <div key={m.length} className={`mode-now ${m.accent}`}>
                 <span className="mode-now__title">{m.title}</span>
-                <span className="mode-now__badge">Сейчас играешь</span>
+                <span className="mode-now__badge">{tr('Сейчас играешь')}</span>
               </div>
             );
           }
@@ -119,17 +111,16 @@ export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
                   <span key={i} className="mode-card__cell">{ch}</span>
                 ))}
               </div>
-              <span className="mode-card__half mode-card__free" aria-label="бесплатно">
+              <span className="mode-card__half mode-card__free" aria-label={tr('бесплатно')}>
                 <BoltIcon />
-                <span>бесплатно</span>
+                <span>{tr('бесплатно')}</span>
               </span>
             </button>
           );
         })}
 
         {!inHw && wordLength === 5 && (
-          <p className="modes__foot">
-            Сейчас: <b>основной режим, 5 букв</b>.
+          <p className="modes__foot">{tr('Сейчас: ')}<b>{tr('основной режим, 5 букв')}</b>.
           </p>
         )}
       </div>

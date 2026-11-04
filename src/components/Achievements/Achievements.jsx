@@ -14,6 +14,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { coinsLabel } from '../../utils/plural.js';
+import { tr } from '../../lib/lang.js';
 
 export function AchievementsModal({ open, onClose }) {
   const { stats, claimAchievement, showToast } = useGameContext();
@@ -36,18 +37,17 @@ export function AchievementsModal({ open, onClose }) {
   const unclaimed = useMemo(() => new Set(unclaimedAchievementIds(stats)), [stats]);
   const claim = (id) => {
     const got = claimAchievement?.(id) || 0;
-    if (got) showToast?.(`+${coinsLabel(got)} за достижение`);
+    if (got) showToast?.(tr('+{v0} за достижение', { v0: coinsLabel(got) }));
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Достижения">
+    <Modal open={open} onClose={onClose} title={tr('Достижения')}>
       <div className="ach">
         <div className="ach__summary">
           <div className="ach__summary-bar">
             <div className="ach__summary-fill" style={{ width: `${pct}%` }} />
           </div>
-          <div className="ach__summary-text">
-            Открыто <b>{done}</b> из <b>{total}</b>
+          <div className="ach__summary-text">{tr('Открыто ')}<b>{done}</b>{tr(' из ')}<b>{total}</b>
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export function AchievementsModal({ open, onClose }) {
               >
                 <span className="ach-tab__label">{c.label}</span>
                 <span className="ach-tab__count">{catDone}/{catTotal}</span>
-                {catClaim && <span className="ach-tab__dot" aria-label="Есть награда" />}
+                {catClaim && <span className="ach-tab__dot" aria-label={tr('Есть награда')} />}
               </button>
             );
           })}
@@ -78,7 +78,7 @@ export function AchievementsModal({ open, onClose }) {
           {tab === 'halloween' && (
             <div className="ach-hw-note">
               <HwBadge till={halloweenActive()} />
-              <span>Награды ивента «Ночь тыкв» — только в Хэллоуин</span>
+              <span>{tr('Награды ивента «Ночь тыкв» — только в Хэллоуин')}</span>
             </div>
           )}
           {items.map((a) => (
@@ -107,7 +107,7 @@ function AchCard({ ach, stats, unlocked, claimable, onClaim }) {
         <div className="ach-card__row">
           <div className="ach-card__title">{ach.title}</div>
           {ach.reward > 0 && (
-            <div className="ach-card__reward" title="Награда">
+            <div className="ach-card__reward" title={tr('Награда')}>
               <CoinIcon />
               <span>+{ach.reward}</span>
             </div>
@@ -131,13 +131,12 @@ function AchCard({ ach, stats, unlocked, claimable, onClaim }) {
               className="ach-card__claim"
               onClick={onClaim}
               onMouseDown={(e) => e.preventDefault()}
-            >
-              Забрать <CoinIcon /> +{ach.reward}
+            >{tr('Забрать ')}<CoinIcon /> +{ach.reward}
             </button>
           </div>
         ) : unlocked && (
           <div className="ach-card__status-row">
-            <span className="ach-card__status">Получено</span>
+            <span className="ach-card__status">{tr('Получено')}</span>
           </div>
         )}
       </div>

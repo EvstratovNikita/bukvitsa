@@ -12,6 +12,7 @@ import {
   PlayIcon, PlusIcon, SettingsIcon, ShareIcon, ShopIcon, StarIcon, StatsIcon, SunIcon,
   TrophyIcon, UsersIcon
 } from '../icons/Icon.jsx';
+import { isEn, tr } from '../../lib/lang.js';
 
 // Главное меню — стартовый экран игры в VK (правила площадки, п. 4.2.10:
 // «полноценное стартовое меню» и «возможность вернуться в главное меню в любой
@@ -22,13 +23,15 @@ import {
 // состоянии, в каком оно есть. Начало партии, трата энергии и правила Слова дня
 // остаются там, где жили, — меню не должно их обходить.
 
-const LOGO = [['Б', 'gold'], ['У', 'dark'], ['К', 'green'], ['Л', 'gold'], ['И', 'dark'], ['Ц', 'green'], ['А', 'gold']];
+const LOGO = isEn()
+  ? [['H', 'gold'], ['O', 'dark'], ['O', 'green'], ['T', 'gold'], ['W', 'dark'], ['O', 'green'], ['R', 'gold'], ['D', 'dark']]
+  : [['Б', 'gold'], ['У', 'dark'], ['К', 'green'], ['Л', 'gold'], ['И', 'dark'], ['Ц', 'green'], ['А', 'gold']];
 
 // Один и тот же пустой наряд — новый {} на каждый рендер ломал memo совы.
 const NO_DECO = {};
 
 function lettersLabel(n) {
-  return n === 4 ? '4 буквы' : `${n} букв`;
+  return n === 4 ? tr('4 буквы') : tr('{n} букв', { n });
 }
 
 function StartMenuView({
@@ -80,12 +83,12 @@ function StartMenuView({
   const playing = status === GAME_STATUS.PLAYING;
   const tries = guesses?.length || 0;
   const continuing = playing && tries > 0;
-  const modeLabel = gameMode === 'daily' ? 'Слово дня'
-    : gameMode === 'halloween' ? `Загадки ночи · ${lettersLabel(wordLength || 5)}`
-    : `Обычная игра · ${lettersLabel(wordLength || 5)}`;
+  const modeLabel = gameMode === 'daily' ? tr('Слово дня')
+    : gameMode === 'halloween' ? tr('Загадки ночи · {v0}', { v0: lettersLabel(wordLength || 5) })
+    : tr('Обычная игра · {v0}', { v0: lettersLabel(wordLength || 5) });
   const playSub = !playing
-    ? 'Партия сыграна — впереди новое слово'
-    : continuing ? `${modeLabel} · попытка ${Math.min(tries + 1, MAX_ATTEMPTS)} из ${MAX_ATTEMPTS}` : modeLabel;
+    ? tr('Партия сыграна — впереди новое слово')
+    : continuing ? tr('{modeLabel} · попытка {v1} из {MAX_ATTEMPTS}', { modeLabel, v1: Math.min(tries + 1, MAX_ATTEMPTS), MAX_ATTEMPTS }) : modeLabel;
 
   const cap = energyMax || ENERGY_MAX;
   const isLight = (stats.prefs?.theme || 'dark') === 'light';
@@ -97,23 +100,23 @@ function StartMenuView({
 
   const onInvite = async () => {
     const r = await inviteFriends();
-    if (r === 'ok') showToast?.('Приглашения отправлены');
-    else if (r === 'failed') showToast?.('Не получилось открыть приглашения');
+    if (r === 'ok') showToast?.(tr('Приглашения отправлены'));
+    else if (r === 'failed') showToast?.(tr('Не получилось открыть приглашения'));
   };
   const onFavorites = async () => {
-    if (favorite) { showToast?.('Буклица уже в избранном'); return; }
+    if (favorite) { showToast?.(tr('Буклица уже в избранном')); return; }
     const r = await addToFavorites();
-    if (r === 'ok') { setFavorite(true); showToast?.('Буклица в избранном'); }
-    else if (r === 'failed') showToast?.('Не получилось добавить в избранное');
+    if (r === 'ok') { setFavorite(true); showToast?.(tr('Буклица в избранном')); }
+    else if (r === 'failed') showToast?.(tr('Не получилось добавить в избранное'));
   };
   const onShare = async () => {
-    const r = await share({ text: 'Буклица — угадай слово из пяти букв за шесть попыток', url: SHARE_BASE_URL });
-    if (r === 'copied') showToast?.('Ссылка скопирована');
-    else if (r === 'failed') showToast?.('Не получилось поделиться');
+    const r = await share({ text: tr('Буклица — угадай слово из пяти букв за шесть попыток'), url: SHARE_BASE_URL });
+    if (r === 'copied') showToast?.(tr('Ссылка скопирована'));
+    else if (r === 'failed') showToast?.(tr('Не получилось поделиться'));
   };
 
   return (
-    <div className="home" role="dialog" aria-modal="true" aria-label="Главное меню">
+    <div className="home" role="dialog" aria-modal="true" aria-label={tr('Главное меню')}>
       <div className="home__sky" aria-hidden="true">
         <i className="home__stars" />
         <i className="home__glow home__glow--a" />
@@ -130,8 +133,8 @@ function StartMenuView({
               ? <img className="home__avatar" src={player.avatar} alt="" />
               : <span className="home__avatar home__avatar--ph"><OwlIcon /></span>}
             <span className="home__hello-text">
-              <span className="home__hello-hi">Привет,</span>
-              <b className="home__hello-name">{firstName || 'игрок'}</b>
+              <span className="home__hello-hi">{tr('Привет,')}</span>
+              <b className="home__hello-name">{firstName || tr('игрок')}</b>
             </span>
           </div>
           {/* Ресурсы — кнопки, как в играх: монета ведёт в магазин, энергия
@@ -142,7 +145,7 @@ function StartMenuView({
               className="home-res home-res--coin"
               onClick={onOpenShop}
               onMouseDown={noSteal}
-              aria-label={`Монеты: ${stats.coins || 0}. Открыть магазин`}
+              aria-label={tr('Монеты: {v0}. Открыть магазин', { v0: stats.coins || 0 })}
             >
               <span className="home-res__ic"><CoinIcon /></span>
               <span className="home-res__val">{stats.coins || 0}</span>
@@ -153,7 +156,7 @@ function StartMenuView({
               className={`home-res home-res--bolt${energy <= 0 ? ' home-res--empty' : ''}`}
               onClick={openEnergyModal}
               onMouseDown={noSteal}
-              aria-label={`Энергия ${energy} из ${cap}`}
+              aria-label={tr('Энергия {energy} из {cap}', { energy, cap })}
             >
               <span className="home-res__ic"><BoltIcon /></span>
               <span className="home-res__val">{energy}<small>/{cap}</small></span>
@@ -163,7 +166,7 @@ function StartMenuView({
         </header>
 
         <section className="home__hero">
-          <div className="home__logo" role="img" aria-label="Буклица">
+          <div className="home__logo" role="img" aria-label={tr('Буклица')}>
             {LOGO.map(([ch, tone], i) => (
               // Падение при появлении — на слоте, волна — на самой плитке: две
               // анимации transform на одном элементе браузер не отдаёт
@@ -183,7 +186,7 @@ function StartMenuView({
               <OwlSvg equipped={hatched ? (stats.pet?.equipped || NO_DECO) : NO_DECO} perch />
             </div>
           </div>
-          <p className="home__tagline" style={{ '--d': 3 }}><b>✦</b> Игра в слова <b>✦</b></p>
+          <p className="home__tagline" style={{ '--d': 3 }}><b>✦</b>{tr(' Игра в слова ')}<b>✦</b></p>
         </section>
 
         {/* На телефоне панель «прозрачна» (display: contents) и всё идёт одной
@@ -196,7 +199,7 @@ function StartMenuView({
           <button ref={playRef} type="button" className="home__play" onClick={onPlay} onMouseDown={noSteal}>
             <span className="home__play-badge" aria-hidden="true"><PlayIcon /></span>
             <span className="home__play-text">
-              <span className="home__play-label">{continuing ? 'Продолжить' : 'Играть'}</span>
+              <span className="home__play-label">{continuing ? tr('Продолжить') : tr('Играть')}</span>
               <span className="home__play-sub">{playSub}</span>
             </span>
             <i className="home__play-shine" aria-hidden="true" />
@@ -209,25 +212,25 @@ function StartMenuView({
           </div>
         )}
 
-        <nav className="home__grid" aria-label="Разделы" style={{ '--d': 5 }}>
-          <Tile icon={<ShopIcon />} label="Магазин" tint="shop" onClick={onOpenShop} />
-          <Tile icon={<OwlIcon />} label={hatched ? (stats.pet?.name || 'Букля') : 'Питомец'} tint="pet" onClick={onOpenPet} dot={petAlert} />
-          <Tile icon={<AwardIcon />} label="Достижения" tint="awards" onClick={onOpenAchievements} badge={achCount || undefined} />
+        <nav className="home__grid" aria-label={tr('Разделы')} style={{ '--d': 5 }}>
+          <Tile icon={<ShopIcon />} label={tr('Магазин')} tint="shop" onClick={onOpenShop} />
+          <Tile icon={<OwlIcon />} label={hatched ? tr(stats.pet?.name || 'Букля') : tr('Питомец')} tint="pet" onClick={onOpenPet} dot={petAlert} />
+          <Tile icon={<AwardIcon />} label={tr('Достижения')} tint="awards" onClick={onOpenAchievements} badge={achCount || undefined} />
           {hasLeaderboard
-            ? <Tile icon={<TrophyIcon />} label="Лучшие игроки" tint="rating" onClick={onOpenLeaderboard} />
-            : <Tile icon={<SettingsIcon />} label="Настройки" tint="settings" onClick={onOpenSettings} />}
-          <Tile icon={<StatsIcon />} label="Статистика" tint="stats" onClick={onOpenStats} />
-          <Tile icon={<HelpIcon />} label="Как играть" tint="help" onClick={onOpenHelp} />
+            ? <Tile icon={<TrophyIcon />} label={tr('Лучшие игроки')} tint="rating" onClick={onOpenLeaderboard} />
+            : <Tile icon={<SettingsIcon />} label={tr('Настройки')} tint="settings" onClick={onOpenSettings} />}
+          <Tile icon={<StatsIcon />} label={tr('Статистика')} tint="stats" onClick={onOpenStats} />
+          <Tile icon={<HelpIcon />} label={tr('Как играть')} tint="help" onClick={onOpenHelp} />
         </nav>
 
         {(social.invite || social.share || social.favorites) && (
           <div className="home__social" style={{ '--d': 6 }}>
-            {social.invite && <Pill icon={<UsersIcon />} label="Пригласить друзей" onClick={onInvite} strong />}
-            {social.share && <Pill icon={<ShareIcon />} label="Поделиться" onClick={onShare} iconOnly={social.invite} tint="share" />}
+            {social.invite && <Pill icon={<UsersIcon />} label={tr('Пригласить друзей')} onClick={onInvite} strong />}
+            {social.share && <Pill icon={<ShareIcon />} label={tr('Поделиться')} onClick={onShare} iconOnly={social.invite} tint="share" />}
             {social.favorites && (
               <Pill
                 icon={<StarIcon fill={favorite ? 'currentColor' : 'none'} />}
-                label={favorite ? 'В избранном' : 'В избранное'}
+                label={favorite ? tr('В избранном') : tr('В избранное')}
                 onClick={onFavorites}
                 iconOnly={social.invite}
                 tint="fav"
@@ -241,11 +244,11 @@ function StartMenuView({
             пилюлями. Тема — круглым значком: три подписанные кнопки в строку
             на телефоне не влезают, а перенос отнимал место у совы. */}
         <footer className="home__util" style={{ '--d': 7 }}>
-          {hasLeaderboard && <Pill icon={<SettingsIcon />} label="Настройки" onClick={onOpenSettings} tint="settings" />}
-          <Pill icon={<MailIcon />} label="Написать нам" onClick={onOpenFeedback} tint="mail" />
+          {hasLeaderboard && <Pill icon={<SettingsIcon />} label={tr('Настройки')} onClick={onOpenSettings} tint="settings" />}
+          <Pill icon={<MailIcon />} label={tr('Написать нам')} onClick={onOpenFeedback} tint="mail" />
           <Pill
             icon={isLight ? <MoonIcon /> : <SunIcon />}
-            label={isLight ? 'Тёмная тема' : 'Светлая тема'}
+            label={isLight ? tr('Тёмная тема') : tr('Светлая тема')}
             onClick={() => setTheme(isLight ? 'dark' : 'light')}
             tint={isLight ? 'moon' : 'sun'}
             iconOnly
@@ -263,7 +266,7 @@ function Tile({ icon, label, tint, onClick, badge, dot }) {
       <span className="home-tile__icon">{icon}</span>
       <span className="home-tile__label">{label}</span>
       {badge !== undefined && <span className="home-tile__badge">{badge}</span>}
-      {dot && <span className="home-tile__dot" aria-label="Есть новое" />}
+      {dot && <span className="home-tile__dot" aria-label={tr('Есть новое')} />}
     </button>
   );
 }

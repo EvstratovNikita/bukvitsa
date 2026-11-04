@@ -1,4 +1,5 @@
 import { petPrice } from '../constants/game.js';
+import { tr } from '../lib/lang.js';
 
 // Catalog of treats the player can buy to feed Букля. Each treat is a coin
 // → hunger trade with a different price-per-point. Bigger treats are
@@ -10,40 +11,40 @@ const RAW_TREATS = [
   {
     id: 'worm',
     icon: '🐛',
-    name: 'Червячок',
-    desc: 'Маленький, но вкусный',
+    name: tr('Червячок'),
+    desc: tr('Маленький, но вкусный'),
     price: 8,
     hungerGain: 10
   },
   {
     id: 'egg',
     icon: '🥚',
-    name: 'Перепелиное яичко',
-    desc: 'Сытный завтрак для совёнка',
+    name: tr('Перепелиное яичко'),
+    desc: tr('Сытный завтрак для совёнка'),
     price: 18,
     hungerGain: 25
   },
   {
     id: 'mouse',
     icon: '🐭',
-    name: 'Мышка',
-    desc: 'Классическое лакомство ночной охотницы',
+    name: tr('Мышка'),
+    desc: tr('Классическое лакомство ночной охотницы'),
     price: 32,
     hungerGain: 50
   },
   {
     id: 'meat',
     icon: '🍖',
-    name: 'Кусочек мяса',
-    desc: 'Большая порция — наестся надолго',
+    name: tr('Кусочек мяса'),
+    desc: tr('Большая порция — наестся надолго'),
     price: 48,
     hungerGain: 80
   },
   {
     id: 'nectar',
     icon: '🌟',
-    name: 'Звёздный нектар',
-    desc: 'Сразу до полного! Тает на язычке',
+    name: tr('Звёздный нектар'),
+    desc: tr('Сразу до полного! Тает на язычке'),
     price: 85,
     hungerGain: 100
   }
