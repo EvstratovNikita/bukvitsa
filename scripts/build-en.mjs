@@ -31,7 +31,8 @@ const problems = auditFiles(files, [
   [/GoTrueClient|RealtimeClient/, 'клиент Supabase в архиве (потерян алиас на заглушку в vite.config.js)'],
   [/service_role|sb_secret_/, 'служебный ключ Supabase'],
   [/src="\/sdk\.js"/, 'тег SDK Яндекса в index.html', /^index\.html$/],
-  [/Буклица|Загрузка/, 'русский текст в index.html', /^index\.html$/]
+  // В Telegram архив на два языка, заставку переводит скрипт на лету.
+  ...(mode === 'telegram' ? [] : [[/Буклица|Загрузка/, 'русский текст в index.html', /^index\.html$/]])
 ]);
 if (mode === 'gamemonetize' && !process.env.VITE_GM_GAME_ID) {
   console.warn('⚠ без VITE_GM_GAME_ID реклама не заработает: номер игры выдаёт кабинет GameMonetize (.env.gamemonetize.local)');

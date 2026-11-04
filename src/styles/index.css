@@ -354,7 +354,6 @@ button { font-family: inherit; }
   width: min(340px, 100vw);
   background: var(--bg-1);
   border-left: 1px solid var(--line);
-  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
@@ -363,7 +362,7 @@ button { font-family: inherit; }
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.menu--open { transform: translateX(0); }
+.menu--open { box-shadow: -20px 0 50px rgba(0, 0, 0, 0.4); transform: translateX(0); }
 
 .menu__head {
   display: flex;
@@ -6592,6 +6591,9 @@ body.has-bg .cell--hinted .cell__face--back {
 /* поверх лучей совы: сова идёт в разметке позже и со своим слоем (анимация),
    поэтому без z-index её лучи ложились на плитки */
 .home__logo { position: relative; z-index: 1; display: flex; gap: clamp(4px, 1.3vw, 7px); padding-bottom: 6px; }
+/* Восемь плиток (HOOTWORD): середина дуги между четвёртой и пятой, и чуть мельче,
+   чтобы слово не упиралось в края и в соседнюю колонку широкого экрана. */
+.home__logo--long { --mid: 3.5; scale: 0.9; }
 .home__tile {
   /* и по высоте экрана, и по ширине: семь плиток с наклоном должны влезть с полями */
   --ts: clamp(28px, min(calc(var(--hh) * 0.062), calc((100vw - 84px) / 7.6)), 48px);
@@ -6607,8 +6609,8 @@ body.has-bg .cell--hinted .cell__face--back {
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.22);
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.36), inset 0 -5px 0 rgba(0, 0, 0, 0.2), 0 8px 18px rgba(3, 8, 44, 0.35);
   /* дуга логотипа — отдельными translate/rotate, чтобы анимация transform её не стирала */
-  translate: 0 calc((var(--i) - 3) * (var(--i) - 3) * 1.7px);
-  rotate: calc((var(--i) - 3) * 3.4deg);
+  translate: 0 calc((var(--i) - var(--mid, 3)) * (var(--i) - var(--mid, 3)) * 1.7px);
+  rotate: calc((var(--i) - var(--mid, 3)) * 3.4deg);
   /* после падения по слову раз в несколько секунд пробегает «волна» */
   animation: home-wave 5.5s ease-in-out infinite;
   animation-delay: calc(1.8s + var(--i) * 90ms);
@@ -7026,6 +7028,7 @@ body.has-bg .cell--hinted .cell__face--back {
     gap: calc(var(--hh) * 0.018);
   }
   .home__tile { --ts: clamp(34px, calc(var(--hh) * 0.08), 58px); }
+  .home__logo--long { scale: 0.76; }
   .home__owl { width: clamp(56px, min(calc(var(--hh) * 0.36), calc(100cqh - 130px)), 250px); }
 }
 

@@ -166,7 +166,7 @@ function StartMenuView({
         </header>
 
         <section className="home__hero">
-          <div className="home__logo" role="img" aria-label={tr('Буклица')}>
+          <div className={`home__logo${LOGO.length > 7 ? ' home__logo--long' : ''}`} role="img" aria-label={tr('Буклица')}>
             {LOGO.map(([ch, tone], i) => (
               // Падение при появлении — на слоте, волна — на самой плитке: две
               // анимации transform на одном элементе браузер не отдаёт
