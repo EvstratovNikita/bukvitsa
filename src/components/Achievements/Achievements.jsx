@@ -15,6 +15,7 @@ import { Modal } from '../Modal/Modal.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { coinsLabel } from '../../utils/plural.js';
 import { tr } from '../../lib/lang.js';
+import { playSfx } from '../../lib/sound.js';
 
 export function AchievementsModal({ open, onClose }) {
   const { stats, claimAchievement, showToast } = useGameContext();
@@ -88,7 +89,7 @@ export function AchievementsModal({ open, onClose }) {
               stats={stats}
               unlocked={unlocked.has(a.id)}
               claimable={unclaimed.has(a.id)}
-              onClaim={() => claim(a.id)}
+              onClaim={() => { playSfx('claim'); claim(a.id); }}
             />
           ))}
         </div>

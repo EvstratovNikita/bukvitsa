@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { CloseIcon } from '../icons/Icon.jsx';
+import { escAllowed } from '../../lib/platform.js';
+import { playSfx } from '../../lib/sound.js';
 import { tr } from '../../lib/lang.js';
 
 // Сколько окон открыто сейчас. Пока есть хоть одно, на <html> висит
@@ -12,13 +14,14 @@ let openCount = 0;
 export function Modal({ open, onClose, title, headerRight, children }) {
   useEffect(() => {
     if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e) => { if (e.key === 'Escape' && escAllowed) onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
   useLayoutEffect(() => {
     if (!open) return undefined;
+    playSfx('open');
     openCount += 1;
     document.documentElement.classList.add('modal-open');
     return () => {

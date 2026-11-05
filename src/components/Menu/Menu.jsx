@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../lib/supabase.js';
 import { isYandex, openAuth, getPlayerInfo } from '../../lib/yandex.js';
-import { isEmbedded } from '../../lib/platform.js';
+import { escAllowed, isEmbedded } from '../../lib/platform.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
 import { ACHIEVEMENT_IDS, unclaimedAchievementIds } from '../../data/achievements.js';
 import { useGameContext } from '../../context/GameContext.jsx';
@@ -51,7 +51,7 @@ export function SideMenu({ open, onClose, onOpenShop, onOpenStats, onOpenHelp, o
   // Close with ESC, lock body scroll while open.
   useEffect(() => {
     if (!open) return;
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e) => { if (e.key === 'Escape' && escAllowed) onClose(); };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';

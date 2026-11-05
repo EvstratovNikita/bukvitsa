@@ -12,7 +12,7 @@
 //   Web Share API      →  navigator.share()
 //   Clipboard fallback →  copy "text\nurl" to clipboard
 
-import { isTelegram, isVk } from './platform.js';
+import { isPlaygama, isTelegram, isVk } from './platform.js';
 import { TG_APP_LINK, tgShareLink } from './telegram.js';
 import { isEn } from './lang.js';
 import { vkBridge, launchParams, isOk, cloudStatus } from './vk.js';
@@ -203,6 +203,7 @@ async function copyToClipboard(text, url) {
 export async function share({ title = tr('Буклица'), text, url, onCopied, wall = false }) {
   if (isTelegram) return shareTelegram(text, url);
   if (isVk)       return shareVk(text, url, onCopied, wall);
+  if (isPlaygama) return copyToClipboard(text, url);
   if (typeof navigator !== 'undefined' && navigator.share) {
     const r = await shareNative(title, text, url);
     if (r !== 'failed') return r;

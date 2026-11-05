@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { tr } from '../../lib/lang.js';
+import { gameNow } from '../../lib/gameClock.js';
 import { plural } from '../../utils/plural.js';
 
 // 8 pairs → 16 cards. Pet-themed icons stay visually distinct and don't
@@ -106,11 +107,11 @@ export function MemoryGame({ onExit }) {
   useEffect(() => {
     if (!startedAt || finishedAt) return;
     if (cards.every((c) => c.matched)) {
-      setFinishedAt(Date.now());
+      setFinishedAt(gameNow());
     }
   }, [cards, startedAt, finishedAt]);
 
-  const elapsedMs = startedAt ? (finishedAt || Date.now()) - startedAt : 0;
+  const elapsedMs = startedAt ? (finishedAt || gameNow()) - startedAt : 0;
   const won = finishedAt != null;
 
   // Reward formula: base 40 XP minus 1 XP per 3 seconds, floored at 15 —
@@ -147,7 +148,7 @@ export function MemoryGame({ onExit }) {
     if (busy || won) return;
     const c = cards[i];
     if (c.matched || c.flipped) return;
-    if (!startedAt) setStartedAt(Date.now());
+    if (!startedAt) setStartedAt(gameNow());
     setCards((cs) => cs.map((x, j) => (j === i ? { ...x, flipped: true } : x)));
     if (first == null) setFirst(i);
     else {

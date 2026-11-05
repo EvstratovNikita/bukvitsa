@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=xlasjwwmljpdrtiofytg"
     },
-    "playgama-developer-cabinet": {
+    "playgama-developer-console": {
       "type": "http",
       "url": "https://developer.playgama.com/api/mcp"
     }

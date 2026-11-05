@@ -53,4 +53,7 @@ export const isEmbedded = isYandexGames || isVk || isTelegram || isPlaygama || i
 // Главный экран: требование VK (п. 4.2.10), и он же — лицо английской версии.
 // На Яндексе остаётся боковое меню: в нём вход в аккаунт Яндекса, которого на
 // главном экране нет. ?lang=en на обычном вебе — только для проверки вёрстки.
+// Playgama: Esc браузер оставляет себе для выхода из полного экрана (п. 1.5.2).
+export const escAllowed = !isPlaygama;
+
 export const hasHomeMenu = isVk || isTelegram || isPlaygama || isGameMonetize || (isEn() && isWeb);

@@ -71,7 +71,7 @@ const vkAdapter = {
   showInterstitial: showInterstitialVk
 };
 
-const playgamaAdapter = { showRewarded: pgShowRewarded, showInterstitial: pgShowInterstitial, rewardedSupported: pgRewardedSupported };
+const playgamaAdapter = { showRewarded: pgShowRewarded, showInterstitial: pgShowInterstitial, rewardedSupported: pgRewardedSupported, ownTiming: false };
 const telegramAdapter = { showRewarded: tgShowRewarded, showInterstitial: tgShowInterstitial, rewardedSupported: tgRewardedSupported };
 // Ролика за награду в SDK GameMonetize нет — кнопки рекламы в этой сборке скрыты.
 const gameMonetizeAdapter = { showRewarded: async () => 'failed', showInterstitial: gmShowInterstitial, rewardedSupported: () => false };
@@ -110,6 +110,8 @@ let lastInterstitialAt = 0;
 // Resolves true only if an ad was actually displayed; вне площадок — no-op.
 export async function showInterstitial() {
   if (!adapter.showInterstitial) return false;
+  // Площадка сама решает, когда показывать: своих таймеров быть не должно.
+  if (adapter.ownTiming === false) return adapter.showInterstitial();
 
   const now = Date.now();
   if (now - lastInterstitialAt < INTERSTITIAL_GAP_MS) return false;

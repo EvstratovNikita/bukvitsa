@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ANIM, GAME_STATUS, HINT_COST, LETTER_STATUS, MAX_ATTEMPTS, STORAGE_KEYS, petXpForWin, rewardFor } from '../constants/game.js';
 import { getDailyKey, getDailyNumber, getDailyWord } from '../data/dailyWord.js';
 import { showRewardedAd, showInterstitial, rewardedFailText } from '../lib/ads.js';
-import { isVk } from '../lib/platform.js';
+import { isPlaygama, isVk } from '../lib/platform.js';
+import { playSfx } from '../lib/sound.js';
 import { requestReview } from '../lib/yandex.js';
 import { gameplayStart, gameplayStop } from '../lib/lifecycle.js';
 import { submitScore } from '../lib/leaderboard.js';
@@ -370,9 +371,12 @@ export function useGame() {
   const maybeInterstitial = useCallback(() => {
     // Never show an interstitial before the player has finished at least one
     // game — no ads ahead of the first round of actual gameplay.
-    if (sessionGamesRef.current < 1) return Promise.resolve(false);
-    adTransitionRef.current += 1;
-    if (adTransitionRef.current % INTERSTITIAL_EVERY !== 0) return Promise.resolve(false);
+    // На Playgama счётчиков нет: игра только отмечает паузу (требование Bridge).
+    if (!isPlaygama) {
+      if (sessionGamesRef.current < 1) return Promise.resolve(false);
+      adTransitionRef.current += 1;
+      if (adTransitionRef.current % INTERSTITIAL_EVERY !== 0) return Promise.resolve(false);
+    }
     return Promise.race([
       showInterstitial().catch(() => false),
       new Promise((r) => setTimeout(() => r(false), AD_WAIT_MAX_MS))
@@ -414,12 +418,14 @@ export function useGame() {
     if (explainEmptyBoard()) return;
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (!isGameLetter(letter)) return;
+    playSfx('key');
     setCurrent((c) => (c.length >= wordLength ? c : c + letter.toLowerCase()));
   }, [status, solution, explainEmptyBoard]);
 
   const removeLetter = useCallback(() => {
     if (explainEmptyBoard()) return;
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
+    playSfx('back');
     setCurrent((c) => c.slice(0, -1));
   }, [status, solution, explainEmptyBoard]);
 
@@ -428,6 +434,7 @@ export function useGame() {
     if (!solution || status !== GAME_STATUS.PLAYING || isLocked.current) return;
     if (current.length !== wordLength) {
       setShakeRow(true);
+      playSfx('error');
       showToast(tr('Слишком короткое слово'));
       setTimeout(() => setShakeRow(false), 450);
       return;
@@ -440,6 +447,7 @@ export function useGame() {
     // they can't actually submit.
     if (guess !== solNorm && !isValidWord(guess, wordLength)) {
       setShakeRow(true);
+      playSfx('error');
       showToast(tr('Нет такого слова в словаре'));
       setTimeout(() => setShakeRow(false), 450);
       return;
@@ -450,6 +458,8 @@ export function useGame() {
     const rowIdx = guesses.length;
 
     isLocked.current = true;
+    playSfx('enter');
+    for (let i = 0; i < guess.length; i += 1) setTimeout(() => playSfx('flip'), 120 + i * ANIM.FLIP_STAGGER_MS);
     setRevealRow(rowIdx);
     setGuesses(nextGuesses);
     setEvaluations(nextEvals);
@@ -462,6 +472,7 @@ export function useGame() {
       const lost = !won && nextGuesses.length >= MAX_ATTEMPTS;
       const elapsedMs = Date.now() - gameStartRef.current;
       if (won) {
+        playSfx('win');
         setStatus(GAME_STATUS.WON);
         // Ask for a native rating once per session, on a win, once the player
         // has finished at least 4 games (let them feel the game first). Yandex
@@ -554,6 +565,7 @@ export function useGame() {
           }
         }
       } else if (lost) {
+        playSfx('lose');
         setStatus(GAME_STATUS.LOST);
         sessionGamesRef.current += 1;
         if (gameMode === 'daily') {

@@ -42,3 +42,6 @@ bukvitsa-gameplay.mp4
 bukvitsa-promo.mp4
 buklitsa-promo.mp4
 buklitsa-promo-premium.mp4
+
+# Исходники звука (CC0, см. scripts/build-audio.mjs)
+design/audio/raw/

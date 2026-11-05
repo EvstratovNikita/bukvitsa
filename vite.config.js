@@ -81,6 +81,9 @@ const platformHtml = (mode, env) => ({
       }
       if (scripts.length) out = out.replace('</head>', `  ${scripts.join('\n    ')}\n  </head>`);
       if (mode === 'playgama' || mode === 'gamemonetize') out = toEnglishHtml(out);
+      // Playgama запрещает браузерное хранилище: заставка всегда в тёмной теме.
+      if (mode === 'playgama') out = out.replace(/<script>\s*\/\/ Match the splash[\s\S]*?<\/script>/, '<script>window.__splashStart = Date.now();</script>').replace(/\(function \(\) \{\s*\/\/ Default theme[\s\S]*?\}\)\(\);/, 'window.__splashStart = Date.now();');
+      if (mode === 'playgama') out = out.replace(/\s*<script src="https:\/\/bridge\.playgama\.com[^>]*><\/script>/, '').replace('<meta charset="UTF-8" />', '<script src="https://bridge.playgama.com/v2/stable/playgama-bridge.js"></script>\n    <meta charset="UTF-8" />');
       const guess = mode === 'yandex' || mode === 'telegram' ? SPLASH_GUESS : '';
       return out.replace('/*SPLASH_LANG*/', guess);
     }
@@ -96,12 +99,22 @@ export default defineConfig(({ mode }) => {
   base: './',
   // Время сборки — мелкой строкой в настройках: по телефону видно, какая
   // версия реально открылась (площадки любят отдавать старую из кэша).
-  define: { __BUILD_TIME__: JSON.stringify(new Date().toISOString()) },
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+    __PLAYGAMA__: JSON.stringify(mode === 'playgama'),
+    // Звук пока только там, где он обязателен: файлы не попадают в другие архивы.
+    __SOUND__: JSON.stringify(mode === 'playgama')
+  },
   plugins: [react(), platformHtml(mode, env), ...(mode === 'vk' ? [dropYandexSdk()] : [])],
   resolve: {
-    alias: EMBEDDED_MODES.includes(mode)
-      ? { '@supabase/supabase-js': fileURLToPath(new URL('./src/lib/supabase-stub.js', import.meta.url)) }
-      : {}
+    alias: [
+      ...(EMBEDDED_MODES.includes(mode)
+        ? [{ find: '@supabase/supabase-js', replacement: fileURLToPath(new URL('./src/lib/supabase-stub.js', import.meta.url)) }]
+        : []),
+      ...(mode === 'playgama'
+        ? []
+        : [{ find: /^\.\/soundEngine\.js$/, replacement: fileURLToPath(new URL('./src/lib/soundEngine.stub.js', import.meta.url)) }])
+    ]
   },
   server: { port: 5173, open: true }
   };

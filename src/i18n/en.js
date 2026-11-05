@@ -154,7 +154,7 @@ export const EN = {
   ' +1 энергии': ' +1 energy',
   'Не вышло': 'Failed',
   'Поделиться сеткой': 'Share result',
-  'Удвоить награду': 'Double reward',
+  'Удвоить награду': 'Watch ad: ×2 coins',
   'Следующая загадка': 'Next riddle',
   'Играем дальше': 'Keep playing',
   'Конец раунда': 'End of round',
@@ -671,6 +671,9 @@ export const EN = {
   '{n}-й': '{n}',
   'Смотри, слово дня{dayLabel} в Буклице отгадано с {v1} попытки! Попробуй так же {face}': 'I solved the Daily Word{dayLabel} in Hootword on try {v1}! Can you match it? {face}',
   'Слово дня{dayLabel} в Буклице меня обыграло… а ты сможешь? {face}': 'The Daily Word{dayLabel} in Hootword beat me… can you solve it? {face}',
+
+  'Включить звук': 'Turn sound on',
+  'Выключить звук': 'Turn sound off',
 
   // Склонения монет (utils/plural.js)
   'монета': 'coin',

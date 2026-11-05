@@ -8,10 +8,12 @@ const SAFETY_MS = 12000;      // never trap the user if "ready" never fires
 
 let done = false;
 
-export function hideSplash() {
-  if (done || typeof document === 'undefined') return;
+// onGone — заставки больше нет на экране: игрок видит игру (Playgama: game_ready
+// нельзя слать, пока виден экран загрузки).
+export function hideSplash(onGone) {
+  if (typeof document === 'undefined') return;
   const el = document.getElementById('splash');
-  if (!el) { done = true; return; }
+  if (done || !el) { done = true; onGone?.(); return; }
   done = true;
 
   const start = window.__splashStart || Date.now();
@@ -19,7 +21,7 @@ export function hideSplash() {
 
   setTimeout(() => {
     el.classList.add('splash--hide');
-    setTimeout(() => { el.remove(); }, FADE_MS);
+    setTimeout(() => { el.remove(); onGone?.(); }, FADE_MS);
   }, wait);
 }
 

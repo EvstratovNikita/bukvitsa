@@ -5,6 +5,7 @@ import { PetHeaderButton } from '../Pet/PetHeaderButton.jsx';
 import { SunIcon, MoonIcon, PlusIcon, HomeIcon } from '../icons/Icon.jsx';
 import { MenuButton } from '../Menu/Menu.jsx';
 import { tr } from '../../lib/lang.js';
+import { SoundButton } from '../Sound/SoundButton.jsx';
 
 // onOpenHome есть только в VK: там вместо бокового меню кнопка «Домой» ведёт в
 // главное меню (правила VK, п. 4.2.10 — вернуться в меню можно в любой момент).
@@ -47,6 +48,7 @@ function HeaderView({ onOpenMenu, onOpenPet, onOpenModes, onOpenHome }) {
         >
           <PlusIcon />
         </button>
+        <SoundButton variant="header" />
       </div>
 
       <div className="brand">

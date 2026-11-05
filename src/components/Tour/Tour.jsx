@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { hasHomeMenu } from '../../lib/platform.js';
+import { escAllowed, hasHomeMenu } from '../../lib/platform.js';
+import { storage } from '../../utils/storage.js';
 import { tr } from '../../lib/lang.js';
 
 // First-run coachmarks: dim the screen, spotlight one UI element at a time and
@@ -90,12 +91,12 @@ export function Tour({ onDone, steps: stepsProp = STEPS, storageKey = TOUR_DONE_
   }, [measure]);
 
   const finish = useCallback(() => {
-    if (storageKey) { try { localStorage.setItem(storageKey, '1'); } catch { /* noop */ } }
+    if (storageKey) storage.set(storageKey, 1);
     onDone();
   }, [onDone, storageKey]);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') finish(); };
+    const onKey = (e) => { if (e.key === 'Escape' && escAllowed) finish(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [finish]);

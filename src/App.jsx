@@ -12,6 +12,9 @@ import { DailyBadge } from './components/Daily/DailyBadge.jsx';
 import { GameModesModal } from './components/GameModes/GameModesModal.jsx';
 import { hideSplash } from './lib/splash.js';
 import { gameIsReady } from './lib/lifecycle.js';
+import { pgReady } from './lib/playgama.js';
+import { initSound, playMusic } from './lib/sound.js';
+import { storage } from './utils/storage.js';
 import { vkInit, preloadRewardedVk, preloadInterstitialVk, fitToVisibleFrame } from './lib/vk.js';
 import { reportArrival } from './lib/referral.js';
 import { missionPoints, reportMissions } from './lib/missions.js';
@@ -52,6 +55,9 @@ function GameShell() {
   // Главное меню VK (правила, п. 4.2.10): открыто при запуске и по кнопке
   // «Домой» в шапке. Пока оно на экране, физическая клавиатура не пишет в поле.
   const [homeOpen, setHomeOpen] = useState(hasHomeMenu);
+  // Музыка: своя у меню и у партии. Файлы качаются только после первого жеста.
+  useEffect(() => { initSound(storage); }, []);
+  useEffect(() => { playMusic(homeOpen ? 'menu' : 'game'); }, [homeOpen]);
   const closeHome = useCallback(() => setHomeOpen(false), []);
   useKeyboard(!homeOpen);
   useAuthRedirectFallback();
@@ -74,7 +80,7 @@ function GameShell() {
   // the Yandex platform.
   useEffect(() => {
     if (!ready) return;
-    hideSplash();
+    hideSplash(pgReady);
     gameIsReady();
   }, [ready]);
 
@@ -160,7 +166,7 @@ function GameShell() {
     if (!ready || homeOpen) return;
     if (stats.prefs?.tourDone) return;
     let skip = false;
-    try { skip = Boolean(localStorage.getItem(TOUR_DONE_KEY)); } catch { /* noop */ }
+    skip = Boolean(storage.get(TOUR_DONE_KEY, null));
     if (skip) {
       // Старое устройство: поднимаем локальный флаг в prefs, чтобы он уехал
       // в облако и больше не зависел от чистки данных браузера.

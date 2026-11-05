@@ -6975,6 +6975,8 @@ body.has-bg .cell--hinted .cell__face--back {
 .home-pill--mail { --mi: 20 190 140; }
 .home-pill--sun { --mi: 255 170 20; }
 .home-pill--moon { --mi: 125 95 245; }
+.home-pill--sound { --mi: 40 170 200; }
+.home-pill--muted { --mi: 130 136 160; }
 .home-pill--share { --mi: 20 175 235; }
 .home-pill--fav { --mi: 255 170 20; }
 /* «В избранном»: звезда залита, на круге зелёная галочка — видно, что

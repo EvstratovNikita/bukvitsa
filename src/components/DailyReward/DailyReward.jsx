@@ -4,6 +4,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon } from '../icons/Icon.jsx';
 import { tr } from '../../lib/lang.js';
+import { playSfx } from '../../lib/sound.js';
 
 export function DailyReward() {
   const { pendingDailyReward, claimDailyReward, ready, stats } = useGameContext();
@@ -47,6 +48,7 @@ export function DailyReward() {
   const { streak, amount, energy: energyBonus = 0, welcome = 0 } = reward;
 
   const onClaim = () => {
+    playSfx('claim');
     claimDailyReward();
     setClaimed(true);
     // brief delay so the user sees the press feedback before close

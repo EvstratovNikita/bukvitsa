@@ -3,6 +3,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
 import { pickRandomWord, normalizeWord } from '../../data/words.js';
 import { tr } from '../../lib/lang.js';
+import { gameNow } from '../../lib/gameClock.js';
 
 const ROUND_MS = 60_000;
 const XP_PER_WORD = 8;
@@ -69,7 +70,7 @@ export function AnagramGame({ onExit }) {
   }, [phase]);
 
   // End condition.
-  const elapsed = startedAt ? Date.now() - startedAt : 0;
+  const elapsed = startedAt ? gameNow() - startedAt : 0;
   const remaining = Math.max(0, ROUND_MS - elapsed);
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -133,7 +134,7 @@ export function AnagramGame({ onExit }) {
     setSlots(Array(fresh.word.length).fill(null));
     setBank(fresh.bank);
     setSolved(0);
-    setStartedAt(Date.now());
+    setStartedAt(gameNow());
     setPhase('playing');
     setRewardClaimed(false);
   };

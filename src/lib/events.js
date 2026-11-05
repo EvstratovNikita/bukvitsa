@@ -35,7 +35,7 @@ export const daysLeftAt = (now = Date.now()) =>
 // Читается один раз при загрузке модуля: хэш потом может смениться (VK
 // меняет его при навигации), а ивент не должен то появляться, то пропадать.
 function readPreviewFlag() {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined' || (typeof __PLAYGAMA__ !== 'undefined' && __PLAYGAMA__)) return false;
   try {
     const { hash, search } = window.location;
     const params = new URLSearchParams(search);

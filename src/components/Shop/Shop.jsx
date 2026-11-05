@@ -9,6 +9,7 @@ import { rewardedAdsAvailable } from '../../lib/ads.js';
 import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 import { tr } from '../../lib/lang.js';
+import { playSfx } from '../../lib/sound.js';
 
 const BOOST_EMOJI = {
   'boost-double': '×2',
@@ -124,7 +125,7 @@ export function Shop({ open, onClose }) {
   const onBuy = (item) => {
     const result = buyItem(item.id);
     if (result === 'ok') {
-      flash(item.id, 'ok', item.consumable ? tr('Активировано') : tr('Куплено'));
+      flash(item.id, 'ok', item.consumable ? tr('Активировано') : tr('Куплено')); playSfx('buy');
     } else {
       flash(item.id, 'err', ERROR_LABEL[result] || tr('Ошибка'));
     }

@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, memo } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS, PET_UNLOCK_GAMES, ENERGY_MAX } from '../../constants/game.js';
 import { unclaimedAchievementIds } from '../../data/achievements.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
+import { escAllowed } from '../../lib/platform.js';
+import { SoundButton } from '../Sound/SoundButton.jsx';
 import { getPlayerInfo, inviteFriends, addToFavorites, vkSupports, launchParams } from '../../lib/vk.js';
 import { share, SHARE_BASE_URL } from '../../lib/share.js';
 import { useGameContext } from '../../context/GameContext.jsx';
@@ -74,7 +76,7 @@ function StartMenuView({
     const onKey = (e) => {
       if (document.querySelector('.modal-backdrop, .pet-screen')) return;
       const onButton = document.activeElement?.tagName === 'BUTTON' && document.activeElement !== playRef.current;
-      if (e.key === 'Escape' || (e.key === 'Enter' && !onButton)) { e.preventDefault(); onPlay(); }
+      if ((e.key === 'Escape' && escAllowed) || (e.key === 'Enter' && !onButton)) { e.preventDefault(); onPlay(); }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -245,6 +247,7 @@ function StartMenuView({
             на телефоне не влезают, а перенос отнимал место у совы. */}
         <footer className="home__util" style={{ '--d': 7 }}>
           {hasLeaderboard && <Pill icon={<SettingsIcon />} label={tr('Настройки')} onClick={onOpenSettings} tint="settings" />}
+          <SoundButton variant="home" />
           <Pill icon={<MailIcon />} label={tr('Написать нам')} onClick={onOpenFeedback} tint="mail" />
           <Pill
             icon={isLight ? <MoonIcon /> : <SunIcon />}
