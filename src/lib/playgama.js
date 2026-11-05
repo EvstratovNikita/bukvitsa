@@ -75,6 +75,9 @@ export async function initPlaygama() {
     inited = true;
     await hydrate();
     const { EVENT_NAME, platform } = b();
+    // Шаг 3: язык берём у площадки. В заявке и в архиве только английский, а он же
+    // запасной язык (п. 3.4.1), поэтому любой ответ сейчас ведёт к нему.
+    console.info('[playgama] platform language:', platform.language);
     blockSound('platform', platform.isAudioEnabled === false);
     platform.on?.(EVENT_NAME.AUDIO_STATE_CHANGED, (on) => blockSound('platform', !on));
     platform.on?.(EVENT_NAME.PAUSE_STATE_CHANGED, (paused) => {
@@ -93,9 +96,25 @@ export async function initPlaygama() {
 const send = (m) => {
   if (inited) { try { b().platform.sendMessage(m); } catch { /* площадка не поддерживает */ } }
 };
-export const pgReady = () => send('game_ready');
-export const pgGameplayStart = () => send('gameplay_started');
-export const pgGameplayStop = () => send('gameplay_stopped');
+// Сначала game_ready, потом состояние партии: первое поле игра показывает ещё под
+// заставкой, и без этой очереди gameplay_started уходил раньше готовности.
+let ready = false;
+let playing = false;
+export const pgReady = () => {
+  ready = true;
+  send('game_ready');
+  if (playing) send('gameplay_started');
+};
+export const pgGameplayStart = () => {
+  if (playing) return;
+  playing = true;
+  if (ready) send('gameplay_started');
+};
+export const pgGameplayStop = () => {
+  if (!playing) return;
+  playing = false;
+  if (ready) send('gameplay_stopped');
+};
 
 export const pgRewardedSupported = () => Boolean(inited && b().advertisement?.isRewardedSupported);
 
