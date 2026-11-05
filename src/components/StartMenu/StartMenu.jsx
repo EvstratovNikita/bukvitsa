@@ -137,7 +137,7 @@ function StartMenuView({
           <div className="home__hello">
             {player?.avatar
               ? <img className="home__avatar" src={player.avatar} alt="" />
-              : <span className="home__avatar home__avatar--ph"><OwlIcon /></span>}
+              : <span className="home__avatar home__avatar--ph">{tileIcon(OwlIcon, '🦉', 'orange')}</span>}
             <span className="home__hello-text">
               <span className="home__hello-hi">{tr('Привет,')}</span>
               <b className="home__hello-name">{firstName || tr('игрок')}</b>

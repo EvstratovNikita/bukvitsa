@@ -47,9 +47,9 @@ for (const [name, m] of Object.entries(MUSIC)) {
 }
 
 const SFX = {
-  key: 'tick_002', back: 'scroll_002', enter: 'select_002', flip: 'tick_004', error: 'error_004',
-  click: 'click_002', open: 'open_002', close: 'close_002', coin: 'confirmation_001',
-  claim: 'confirmation_002', buy: 'maximize_003', hint: 'question_001', toggle: 'toggle_002', pet: 'pluck_001'
+  key: 'tick_002', back: 'drop_002', enter: 'select_002', flip: 'tick_004', error: 'error_004',
+  click: 'click_002', open: 'drop_004', close: 'close_002', coin: 'confirmation_001',
+  claim: 'confirmation_002', buy: 'confirmation_001', hint: 'question_001', toggle: 'toggle_002', pet: 'pluck_001'
 };
 for (const [name, src] of Object.entries(SFX)) {
   run(['-i', `${K}/${src}.ogg`, '-af', 'loudnorm=I=-18:TP=-2', '-ar', '44100', '-ac', '1', '-c:a', 'libmp3lame', '-b:a', '64k', `${OUT}/sfx-${name}.mp3`]);

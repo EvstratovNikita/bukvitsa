@@ -7336,6 +7336,7 @@ body.has-bg .cell--hinted .cell__face--back {
 /* Рисованные значки вместо эмодзи (components/icons/GameIcon.jsx). */
 .game-icon { display: inline-block; vertical-align: -0.22em; flex: none; }
 /* У значка своя плашка: подложка места под эмодзи стала бы рамкой вокруг неё. */
+.home__avatar--ph:has(.game-icon),
 .home-tile__icon:has(.game-icon),
 .help-topic__icon:has(.game-icon),
 .ach-card__icon:has(.game-icon),
@@ -7351,6 +7352,7 @@ body.has-bg .cell--hinted .cell__face--back {
   border: 0;
   box-shadow: none;
 }
+.home__avatar--ph > .game-icon,
 .home-tile__icon > .game-icon,
 .help-topic__icon > .game-icon,
 .ach-card__icon > .game-icon,

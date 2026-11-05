@@ -7,7 +7,7 @@ const url = (name) => FILES[`../assets/audio/${name}.mp3`];
 // поэтому цикл задаём сами, иначе на стыке слышна пауза.
 const LOOPS = { menu: 150, game: 150 };
 const MUSIC_VOLUME = 0.4;
-const SFX_VOLUME = { key: 0.35, flip: 0.3, click: 0.4, back: 0.35 };
+const SFX_VOLUME = { key: 0.35, flip: 0.3, click: 0.4, back: 0.45, open: 0.4 };
 // Смена меню и партии: плавной музыке короткий переход режет слух.
 const FADE = 1.5;
 

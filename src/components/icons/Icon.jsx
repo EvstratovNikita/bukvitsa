@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { isEn } from '../../lib/lang.js';
 
 // Inline SVG icons — single shared sizing, currentColor-driven, no dependency.
 const base = {
@@ -11,6 +12,25 @@ const base = {
   strokeLinecap: 'round',
   strokeLinejoin: 'round'
 };
+
+// Залитые значки английской версии: контурные на вид слишком похожи на символы
+// шрифта. Русская версия пока на контурных.
+const solid = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'currentColor' };
+const solidLine = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.4, strokeLinecap: 'round', strokeLinejoin: 'round' };
+const SPEAKER = 'M3 9.8v4.4c0 .7.5 1.2 1.2 1.2h2.9l4.2 3.6c.8.7 2 .1 2-.9V5.9c0-1-1.2-1.6-2-.9L7.1 8.6H4.2C3.5 8.6 3 9.1 3 9.8z';
+
+function SolidBackspace(props) {
+  const id = useId();
+  return (
+    <svg {...solid} width="24" height="24" {...props} aria-hidden="true">
+      <mask id={id}>
+        <rect width="24" height="24" fill="#fff" />
+        <path d="M11.3 9.2l5.4 5.6M16.7 9.2l-5.4 5.6" stroke="#000" strokeWidth="2.4" strokeLinecap="round" />
+      </mask>
+      <path mask={`url(#${id})`} d="M10.4 4.5h9.8a2.8 2.8 0 0 1 2.8 2.8v9.4a2.8 2.8 0 0 1-2.8 2.8h-9.8a2.8 2.8 0 0 1-2-.8l-6.6-6.7a1.4 1.4 0 0 1 0-2l6.6-6.7a2.8 2.8 0 0 1 2-.8z" />
+    </svg>
+  );
+}
 
 export function PlusIcon(props) {
   return (
@@ -48,6 +68,14 @@ export function HelpIcon(props) {
 }
 
 export function SunIcon(props) {
+  if (isEn()) {
+    return (
+      <svg {...solid} {...props} aria-hidden="true">
+        <circle cx="12" cy="12" r="5.2" />
+        <path {...solidLine} d="M12 2.6v1.4M12 20v1.4M5.4 5.4l1 1M17.6 17.6l1 1M2.6 12H4M20 12h1.4M5.4 18.6l1-1M17.6 6.4l1-1" />
+      </svg>
+    );
+  }
   return (
     <svg {...base} {...props} aria-hidden="true">
       <circle cx="12" cy="12" r="4.2" />
@@ -64,6 +92,14 @@ export function SunIcon(props) {
 }
 
 export function SoundOnIcon(props) {
+  if (isEn()) {
+    return (
+      <svg {...solid} {...props} aria-hidden="true">
+        <path d={SPEAKER} />
+        <path {...solidLine} d="M16.5 9.2a4 4 0 0 1 0 5.6M19.2 6.6a7.7 7.7 0 0 1 0 10.8" />
+      </svg>
+    );
+  }
   return (
     <svg {...base} {...props} aria-hidden="true">
       <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" />
@@ -74,6 +110,14 @@ export function SoundOnIcon(props) {
 }
 
 export function SoundOffIcon(props) {
+  if (isEn()) {
+    return (
+      <svg {...solid} {...props} aria-hidden="true">
+        <path d={SPEAKER} />
+        <path {...solidLine} d="M16.5 9.5l5 5M21.5 9.5l-5 5" />
+      </svg>
+    );
+  }
   return (
     <svg {...base} {...props} aria-hidden="true">
       <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4z" />
@@ -84,6 +128,13 @@ export function SoundOffIcon(props) {
 }
 
 export function MoonIcon(props) {
+  if (isEn()) {
+    return (
+      <svg {...solid} {...props} aria-hidden="true">
+        <path d="M21 14.3A9 9 0 1 1 9.7 3c.8-.2 1.4.6 1 1.3a6.8 6.8 0 0 0 9 9c.7-.4 1.5.2 1.3 1z" />
+      </svg>
+    );
+  }
   return (
     <svg {...base} {...props} aria-hidden="true">
       <path d="M20.5 14.5A8.5 8.5 0 1 1 9.5 3.5a6.6 6.6 0 0 0 11 11z" />
@@ -120,6 +171,7 @@ export function RefreshIcon(props) {
 }
 
 export function BackspaceIcon(props) {
+  if (isEn()) return <SolidBackspace {...props} />;
   return (
     <svg
       width="22"
@@ -483,6 +535,13 @@ export function CloseIcon(props) {
 // ---- Главное меню VK ----
 
 export function HomeIcon(props) {
+  if (isEn()) {
+    return (
+      <svg {...solid} {...props} aria-hidden="true">
+        <path d="M13.1 3.4a1.7 1.7 0 0 0-2.2 0l-8 6.9c-.8.7-.3 2 .7 2H5v6.9c0 1 .8 1.8 1.8 1.8h2.7v-5c0-.8.6-1.4 1.4-1.4h2.2c.8 0 1.4.6 1.4 1.4v5h2.7c1 0 1.8-.8 1.8-1.8v-6.9h1.4c1 0 1.5-1.3.7-2z" />
+      </svg>
+    );
+  }
   return (
     <svg {...base} {...props} aria-hidden="true">
       <path d="M4 11.2 12 4.5l8 6.7" />

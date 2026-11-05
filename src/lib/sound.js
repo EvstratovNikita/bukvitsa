@@ -29,7 +29,8 @@ export function initSound(storage) {
   document.addEventListener('visibilitychange', () => blockSound('hidden', document.hidden));
   // Браузер разрешает звук только после жеста игрока.
   const unlock = () => {
-    loadEngine().then((e) => e.unlock());
+    // Выключенный звук жест не включает: unlock возобновил бы и его.
+    loadEngine().then((e) => { if (!silent()) e.unlock(); });
   };
   window.addEventListener('pointerdown', unlock, { capture: true });
   window.addEventListener('keydown', unlock, { capture: true });
