@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { initLang } from './lib/lang.js';
 import { initPlatformSdk } from './lib/lifecycle.js';
+import { initUiScale } from './lib/uiScale.js';
 // Шрифты — до index.css, чтобы @font-face объявились раньше правил, которые
 // на них ссылаются. Лежат в архиве, а не на Google Fonts (см. fonts.css).
 import './styles/fonts.css';
@@ -21,6 +22,7 @@ async function start() {
     import('./lib/yandex.js')
   ]);
   if (isYandex) document.documentElement.classList.add('is-yandex');
+  if (typeof __PLAYGAMA__ !== 'undefined' && __PLAYGAMA__) initUiScale();
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
       <App />

@@ -15,6 +15,7 @@ import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 import { Tour } from '../Tour/Tour.jsx';
 import { tr } from '../../lib/lang.js';
 import { Emoji, EmojiText } from '../icons/GameIcon.jsx';
+import { uiZoom } from '../../lib/uiScale.js';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -160,8 +161,9 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
       const btn = ev?.currentTarget?.getBoundingClientRect?.();
       const scene = sceneRef.current?.getBoundingClientRect?.();
       if (btn && scene) {
-        const from = { x: btn.left + btn.width / 2, y: btn.top + btn.height / 2 };
-        const to   = { x: scene.left + scene.width / 2, y: scene.top + scene.height * 0.56 };
+        const z = uiZoom();
+        const from = { x: (btn.left + btn.width / 2) / z, y: (btn.top + btn.height / 2) / z };
+        const to   = { x: (scene.left + scene.width / 2) / z, y: (scene.top + scene.height * 0.56) / z };
         const id = Date.now() + Math.random();
         setFlyingTreats((q) => [...q, { id, icon: treat.icon, from, to }]);
         setTimeout(() => {

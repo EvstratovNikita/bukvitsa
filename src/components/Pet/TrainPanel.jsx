@@ -4,6 +4,7 @@ import { MemoryGame } from './MemoryGame.jsx';
 import { AnagramGame } from './AnagramGame.jsx';
 import { tr } from '../../lib/lang.js';
 import { Emoji } from '../icons/GameIcon.jsx';
+import { uiZoom } from '../../lib/uiScale.js';
 
 // Catalog of available mini-games. Extend this list when new games ship —
 // each entry needs an id, label, short description, icon, and a Component
@@ -80,7 +81,7 @@ export function TrainPanel() {
       const delta = fits
         ? (r.top - s.top) - (s.height - r.height) / 2
         : (r.top - s.top) - pad;
-      scroller.scrollBy({ top: delta, behavior: 'smooth' });
+      scroller.scrollBy({ top: delta / uiZoom(), behavior: 'smooth' });
     });
     return () => cancelAnimationFrame(raf);
   }, [activeId]);

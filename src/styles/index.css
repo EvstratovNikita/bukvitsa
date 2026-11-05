@@ -2593,7 +2593,7 @@ body.cell-style-gift-owleye .cell--correct .cell__face--back {
 }
 .modal {
   width: min(440px, calc(100vw - 24px));
-  max-height: 86dvh;
+  max-height: calc(var(--app-h, 100dvh) * 0.86);
   overflow: auto;
   background: var(--bg-1);
   border: 1px solid var(--line);

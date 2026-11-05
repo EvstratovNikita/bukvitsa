@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { escAllowed, hasHomeMenu } from '../../lib/platform.js';
 import { storage } from '../../utils/storage.js';
 import { tr } from '../../lib/lang.js';
+import { uiZoom } from '../../lib/uiScale.js';
 
 // First-run coachmarks: dim the screen, spotlight one UI element at a time and
 // describe it in a couple of words. Показывается один раз на ИГРОКА: флаг
@@ -66,7 +67,8 @@ export function Tour({ onDone, steps: stepsProp = STEPS, storageKey = TOUR_DONE_
     // низком телефоне) — сначала показать её, потом мерить.
     el.scrollIntoView?.({ block: 'nearest' });
     const r = el.getBoundingClientRect();
-    setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
+    const z = uiZoom();
+    setRect({ top: r.top / z, left: r.left / z, width: r.width / z, height: r.height / z });
   }, [steps, i]);
 
   useLayoutEffect(() => { if (steps?.[i]) onStep?.(steps[i]); }, [steps, i, onStep]);
@@ -120,8 +122,8 @@ export function Tour({ onDone, steps: stepsProp = STEPS, storageKey = TOUR_DONE_
   // whole bubble — and its button — stays on screen. Clamp horizontally.
   let popStyle = { top: 70, left: '50%', transform: 'translateX(-50%)' };
   if (rect) {
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    const vw = window.innerWidth / uiZoom();
+    const vh = window.innerHeight / uiZoom();
     const W = 300;
     const center = rect.left + rect.width / 2;
     const left = Math.max(12, Math.min(center - W / 2, vw - W - 12));

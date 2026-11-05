@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, memo } from 'react';
 import { GAME_STATUS, MAX_ATTEMPTS, PET_UNLOCK_GAMES, ENERGY_MAX } from '../../constants/game.js';
 import { unclaimedAchievementIds } from '../../data/achievements.js';
 import { hasLeaderboard } from '../../lib/leaderboard.js';
-import { escAllowed } from '../../lib/platform.js';
+import { escAllowed, isPlaygama } from '../../lib/platform.js';
 import { SoundButton } from '../Sound/SoundButton.jsx';
 import { getPlayerInfo, inviteFriends, addToFavorites, vkSupports, launchParams } from '../../lib/vk.js';
 import { share, SHARE_BASE_URL } from '../../lib/share.js';
@@ -248,7 +248,8 @@ function StartMenuView({
         <footer className="home__util" style={{ '--d': 7 }}>
           {hasLeaderboard && <Pill icon={<SettingsIcon />} label={tr('Настройки')} onClick={onOpenSettings} tint="settings" />}
           <SoundButton variant="home" />
-          <Pill icon={<MailIcon />} label={tr('Написать нам')} onClick={onOpenFeedback} tint="mail" />
+          {/* Playgama: связь с разработчиком идёт через площадку, своя почта в игре ни к чему (п. 1.2.6). */}
+          {!isPlaygama && <Pill icon={<MailIcon />} label={tr('Написать нам')} onClick={onOpenFeedback} tint="mail" />}
           <Pill
             icon={isLight ? <MoonIcon /> : <SunIcon />}
             label={isLight ? tr('Тёмная тема') : tr('Светлая тема')}

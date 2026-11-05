@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Hootword cover</title>
+<style>
+  html, body { margin: 0; padding: 0; overflow: hidden; background: #14246e; }
+  * { animation: none !important; transition: none !important; }
+  .stage { position: relative; overflow: hidden; font-family: Manrope, system-ui, sans-serif;
+    background:
+      radial-gradient(60% 55% at var(--ox) var(--oy), rgba(255, 214, 130, .55) 0%, rgba(120, 150, 255, .22) 42%, transparent 72%),
+      radial-gradient(70% 50% at 85% 100%, rgba(150, 70, 220, .75), transparent 70%),
+      linear-gradient(160deg, #18307f 0%, #17247c 55%, #33228c 100%); }
+  .rays { position: absolute; left: var(--ox); top: var(--oy); width: var(--rs); height: var(--rs); margin: calc(var(--rs) / -2) 0 0 calc(var(--rs) / -2); border-radius: 50%;
+    background: repeating-conic-gradient(from 4deg, rgba(255, 228, 160, .2) 0deg 7deg, transparent 7deg 20deg);
+    -webkit-mask: radial-gradient(circle, #000 0%, rgba(0,0,0,.55) 34%, transparent 68%); mask: radial-gradient(circle, #000 0%, rgba(0,0,0,.55) 34%, transparent 68%); }
+  .star { position: absolute; color: #ffe39a; filter: drop-shadow(0 0 calc(var(--u) * .18) rgba(255, 220, 130, .9)); }
+  .dot { position: absolute; border-radius: 50%; background: #cfe0ff; opacity: .7; }
+  .owl-box { position: absolute; }
+  .owl-box > .owl { position: relative; width: 100%; height: 100%; }
+  .shadow { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, rgba(0, 0, 30, .5), transparent); }
+  .logo { position: absolute; display: flex; justify-content: center; }
+  .tile { display: grid; place-items: center; color: #fff; font-weight: 800; line-height: 1; text-shadow: 0 calc(var(--t) * .03) 0 rgba(0,0,0,.25);
+    width: var(--t); height: var(--t); border-radius: calc(var(--t) * .22); font-size: calc(var(--t) * .58);
+    box-shadow: inset 0 calc(var(--t) * .06) 0 rgba(255,255,255,.38), inset 0 calc(var(--t) * -.09) 0 rgba(0,0,0,.22), 0 calc(var(--t) * .14) calc(var(--t) * .3) rgba(3,8,44,.5); }
+  .gold { background: linear-gradient(180deg, #ffd766 0%, #f7b21c 50%, #dc860b 100%); }
+  .green { background: linear-gradient(180deg, #93d655 0%, #5aa82b 50%, #3b771a 100%); }
+  .dark { background: linear-gradient(180deg, #62666f 0%, #3c3f47 50%, #23252b 100%); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="module">
+  import React from 'react';
+  import { createRoot } from 'react-dom/client';
+  import '/src/styles/fonts.css';
+  import '/src/styles/index.css';
+  import { OwlSvg } from '/src/components/Pet/OwlSvg.jsx';
+  const h = React.createElement;
+  const LOGO = [['H', 'gold'], ['O', 'dark'], ['O', 'green'], ['T', 'gold'], ['W', 'dark'], ['O', 'green'], ['R', 'gold'], ['D', 'dark']];
+  const SIZES = {
+    square: { w: 800, h: 800, t: 82, logoY: 66, logoX: 400, arc: 0.0048, gap: 7, owl: 610, owlX: 400, owlY: 500, u: 40,
+      stars: [[.04, .3, 1], [.88, .3, .8], [.1, .74, .8], [.88, .66, 1.1]] },
+    portrait: { w: 1080, h: 1920, t: 116, logoY: 170, logoX: 540, arc: 0.0034, gap: 10, owl: 900, owlX: 540, owlY: 790, u: 60,
+      stars: [[.06, .06, 1], [.86, .05, .8], [.05, .4, .9], [.88, .42, 1.1], [.04, .76, .8], [.91, .8, .9]],
+      rows: { t: 136, y: 1300, x: 540, gap: 14 } },
+    landscape: { w: 1920, h: 1080, t: 112, logoY: 110, logoX: 1290, arc: 0.0034, gap: 10, owl: 880, owlX: 470, owlY: 560, u: 56,
+      stars: [[.06, .14, 1.2], [.95, .42, 1.1], [.5, .9, .8], [.95, .9, .9]],
+      rows: { t: 158, y: 340, x: 1290, gap: 16 } }
+  };
+  const mode = new URLSearchParams(location.search).get('s') || 'square';
+  const s = SIZES[mode];
+  const stars = s.stars;
+  // Настоящая партия: загадано WORDS, две попытки и верный ответ.
+  const GUESSES = [
+    [['B', 'dark'], ['R', 'gold'], ['O', 'gold'], ['W', 'gold'], ['N', 'dark']],
+    [['S', 'gold'], ['W', 'gold'], ['O', 'gold'], ['R', 'gold'], ['D', 'gold']],
+    [['W', 'green'], ['O', 'green'], ['R', 'green'], ['D', 'green'], ['S', 'green']]
+  ];
+  const rows = (r) => h('div', { style: { position: 'absolute', left: r.x - (5 * r.t + 4 * r.gap) / 2, top: r.y, display: 'grid', gap: r.gap, gridTemplateColumns: `repeat(5, ${r.t}px)`, '--t': `${r.t}px` } },
+    GUESSES.flat().map(([c, tone], i) => h('span', { key: i, className: `tile ${tone}` }, c)));
+  const dots = Array.from({ length: 28 }, (_, i) => [((i * 37) % 100) / 100, ((i * 61 + 13) % 100) / 100, 2 + (i % 3) * (s.u / 30)]);
+  const mid = (LOGO.length - 1) / 2;
+  const App = () => h('div', { className: 'stage', style: { width: s.w, height: s.h, '--ox': `${(s.owlX / s.w) * 100}%`, '--oy': `${(s.owlY / s.h) * 100}%`, '--rs': `${s.owl * 2.4}px`, '--u': `${s.u}px` } },
+    dots.map(([x, y, r], i) => h('i', { key: i, className: 'dot', style: { left: `${x * 100}%`, top: `${y * 100}%`, width: r, height: r } })),
+    h('div', { className: 'rays' }),
+    stars.map(([x, y, k], i) => h('svg', { key: i, className: 'star', viewBox: '0 0 24 24', style: { left: `${x * 100}%`, top: `${y * 100}%`, width: s.u * k, height: s.u * k } },
+      h('path', { fill: 'currentColor', d: 'M12 0c1 7.5 4.5 11 12 12-7.5 1-11 4.5-12 12-1-7.5-4.5-11-12-12 7.5-1 11-4.5 12-12z' }))),
+    h('div', { className: 'shadow', style: { left: s.owlX - s.owl * .34, top: s.owlY + s.owl * .4, width: s.owl * .68, height: s.owl * .1 } }),
+    h('div', { className: 'owl-box', style: { left: s.owlX - s.owl / 2, top: s.owlY - s.owl / 2, width: s.owl, height: s.owl } },
+      h(OwlSvg, { equipped: { head: 'academic', eyes: 'glasses' }, perch: true })),
+    h('div', { className: 'logo', style: { left: 0, width: s.logoX * 2, top: s.logoY, gap: s.gap, '--t': `${s.t}px` } },
+      LOGO.map(([c, tone], i) => {
+        const d = i - mid;
+        const y = d * d * s.arc * s.t * 2.4;
+        return h('span', { key: i, className: `tile ${tone}`, style: { transform: `translateY(${y}px) rotate(${d * 3}deg)` } }, c);
+      })),
+    s.rows && rows(s.rows));
+  createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>
