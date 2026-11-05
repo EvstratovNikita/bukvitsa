@@ -14,6 +14,7 @@ import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 import { Tour } from '../Tour/Tour.jsx';
 import { tr } from '../../lib/lang.js';
+import { Emoji, EmojiText } from '../icons/GameIcon.jsx';
 
 const HATCH_DURATION_MS = 3200;
 
@@ -302,7 +303,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
                   onClick={() => setTab(t.id)}
                   onMouseDown={(e) => e.preventDefault()}
                 >
-                  <span className="pet-tab__icon" aria-hidden="true">{t.icon}</span>
+                  <span className="pet-tab__icon" aria-hidden="true"><Emoji e={t.icon} /></span>
                   <span className="pet-tab__label">{t.label}</span>
                 </button>
               ))}
@@ -359,7 +360,7 @@ export function PetScreen({ open, onClose, overHome = false, onHome }) {
             '--mid-y':  `${Math.min(f.from.y, f.to.y) - 80}px`
           }}
           aria-hidden="true"
-        >{f.icon}</div>
+        ><Emoji e={f.icon} /></div>
       ))}
     </div>
   );
@@ -381,7 +382,7 @@ function FeedPanel({ hunger, treats, coins, onFeed }) {
             onMouseDown={(e) => e.preventDefault()}
             disabled={cantAfford || full}
           >
-            <span className="pet-treat__icon" aria-hidden="true">{t.icon}</span>
+            <span className="pet-treat__icon" aria-hidden="true"><Emoji e={t.icon} /></span>
             <span className="pet-treat__meta">
               <span className="pet-treat__name">{t.name}</span>
               <span className="pet-treat__desc">{t.desc}</span>
@@ -428,7 +429,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
             const worn = isWing ? (onL || onR) : equipped[d.slot] === d.id;
             return (
               <div key={d.id} className={`pet-deco pet-deco--hw${worn ? ' pet-deco--active' : ''}${!isOwned ? ' pet-deco--locked' : ''}`}>
-                <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
+                <span className="pet-deco__icon" aria-hidden="true"><Emoji e={d.icon} /></span>
                 <span className="pet-deco__meta">
                   <span className="pet-deco__name">{d.name}</span>
                   <span className="pet-deco__desc">{d.desc}</span>
@@ -498,7 +499,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
 
               return (
                 <div key={d.id} className={`pet-deco${isActiveSingle || onL || onR ? ' pet-deco--active' : ''}${isLocked ? ' pet-deco--locked' : ''}`}>
-                  <span className="pet-deco__icon" aria-hidden="true">{d.icon}</span>
+                  <span className="pet-deco__icon" aria-hidden="true"><Emoji e={d.icon} /></span>
                   <span className="pet-deco__meta">
                     <span className="pet-deco__name">{d.name}</span>
                     <span className="pet-deco__desc">{d.desc}</span>
@@ -506,7 +507,7 @@ function CheerPanel({ owned, equipped, coins, petLevel = 1, onBuy, onEquip, onUn
                   </span>
                   <div className="pet-deco__cta">
                     {isLocked ? (
-                      <span className="pet-deco__lock" title={tr('Доступно с {minLevel} уровня Букли', { minLevel: d.minLevel })}>{tr('🔒 Ур. ')}{d.minLevel}
+                      <span className="pet-deco__lock" title={tr('Доступно с {minLevel} уровня Букли', { minLevel: d.minLevel })}><EmojiText text={tr('🔒 Ур. ')} />{d.minLevel}
                       </span>
                     ) : !isOwned ? (
                       <button
@@ -559,7 +560,7 @@ function LockedStub({ gamesLeft, played }) {
   const pct = Math.min(100, Math.round((played / PET_UNLOCK_GAMES) * 100));
   return (
     <section className="pet-locked">
-      <div className="pet-locked__lock" aria-hidden="true">🔒</div>
+      <div className="pet-locked__lock" aria-hidden="true"><Emoji e="🔒" /></div>
       <h3 className="pet-locked__title">{tr('Совсем скоро тут кое-кто появится…')}</h3>
       <p className="pet-locked__desc">{tr('Сыграй ')}{gamesLeft} {pluralGames(gamesLeft)}{tr(', и в дупле начнётся что-то интересное.')}</p>
       <div className="pet-locked__bar">
@@ -588,7 +589,7 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
           className="btn btn--primary pet-gift-claim"
           onClick={onClaim}
           onMouseDown={(e) => e.preventDefault()}
-        >{tr('🎁 Букля что-то принесла! Забрать')}</button>
+        ><EmojiText text={tr('🎁 Букля что-то принесла! Забрать')} /></button>
       ) : (
         <div className="pet-bar pet-gift-bar">
           <div className="pet-bar__row">
@@ -600,7 +601,7 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
           <div className="pet-bar__track">
             <div className="pet-bar__fill pet-bar__fill--bond" style={{ width: `${allClaimed ? 100 : pct}%` }} />
           </div>
-          {allClaimed && <div className="pet-gifts__soon">{tr('Скоро новые подарки ✨')}</div>}
+          {allClaimed && <div className="pet-gifts__soon"><EmojiText text={tr('Скоро новые подарки ✨')} /></div>}
         </div>
       )}
 
@@ -618,7 +619,7 @@ function GiftsPanel({ bond, bondMax, ready, claimed, activeBg, activeCells, onCl
               disabled={!owned}
               title={owned ? g.name : tr('Ещё не получен')}
             >
-              <span className="pet-gift-card__icon" aria-hidden="true">{owned ? g.icon : '?'}</span>
+              <span className="pet-gift-card__icon" aria-hidden="true">{owned ? <Emoji e={g.icon} /> : '?'}</span>
               <span className="pet-gift-card__name">{owned ? g.name : '???'}</span>
               <span className="pet-gift-card__cta">
                 {!owned ? tr('Не получен') : isActive ? tr('Применён ✓') : tr('Применить')}

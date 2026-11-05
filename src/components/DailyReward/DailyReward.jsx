@@ -5,6 +5,7 @@ import { Modal } from '../Modal/Modal.jsx';
 import { BoltIcon, CoinIcon } from '../icons/Icon.jsx';
 import { tr } from '../../lib/lang.js';
 import { playSfx } from '../../lib/sound.js';
+import { Emoji } from '../icons/GameIcon.jsx';
 
 export function DailyReward() {
   const { pendingDailyReward, claimDailyReward, ready, stats } = useGameContext();
@@ -113,7 +114,7 @@ export function DailyReward() {
 
         {welcome > 0 && (
           <div className="daily__welcome">
-            <span className="daily__welcome-gift" aria-hidden="true">🎁</span>
+            <span className="daily__welcome-gift" aria-hidden="true"><Emoji e="🎁" /></span>
             <span className="daily__welcome-text">
               <b>{tr('Подарок новичку ')}<span className="daily__welcome-amount"><CoinIcon />+{welcome}</span></b>
               <span>{tr('Хватит на первый фон в магазине')}</span>

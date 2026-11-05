@@ -4,6 +4,7 @@ import { CoinIcon } from '../icons/Icon.jsx';
 import { pickRandomWord, normalizeWord } from '../../data/words.js';
 import { tr } from '../../lib/lang.js';
 import { gameNow } from '../../lib/gameClock.js';
+import { Emoji, EmojiText } from '../icons/GameIcon.jsx';
 
 const ROUND_MS = 60_000;
 const XP_PER_WORD = 8;
@@ -201,7 +202,7 @@ export function AnagramGame({ onExit }) {
   if (phase === 'done') {
     return (
       <div className="anagram anagram--result">
-        <div className="anagram__result-title">{tr('⏱ Время вышло!')}</div>
+        <div className="anagram__result-title"><EmojiText text={tr('⏱ Время вышло!')} /></div>
         <div className="anagram__result-stats">{tr('Слов угадано: ')}<b>{solved}</b>
         </div>
         <div className="anagram__result-rewards">
@@ -226,7 +227,7 @@ export function AnagramGame({ onExit }) {
   return (
     <div className={`anagram${shake ? ' anagram--shake' : ''}${justSolved ? ' anagram--solved' : ''}`}>
       <div className="anagram__hud">
-        <span className="anagram__stat">⏱ <b>{remainSec}</b>{tr(' сек')}</span>
+        <span className="anagram__stat"><Emoji e="⏱" /> <b>{remainSec}</b>{tr(' сек')}</span>
         <span className="anagram__stat">{tr('Угадано: ')}<b>{solved}</b></span>
       </div>
 
@@ -266,7 +267,7 @@ export function AnagramGame({ onExit }) {
           className="btn btn--ghost anagram__action"
           onClick={onShuffleBank}
           onMouseDown={(e) => e.preventDefault()}
-        >{tr('🔀 Перемешать')}</button>
+        ><EmojiText text={tr('🔀 Перемешать')} /></button>
         <button
           type="button"
           className="btn btn--ghost anagram__action"

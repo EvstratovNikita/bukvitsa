@@ -4,6 +4,7 @@ import { CoinIcon } from '../icons/Icon.jsx';
 import { tr } from '../../lib/lang.js';
 import { gameNow } from '../../lib/gameClock.js';
 import { plural } from '../../utils/plural.js';
+import { Emoji, EmojiText } from '../icons/GameIcon.jsx';
 
 // 8 pairs → 16 cards. Pet-themed icons stay visually distinct and don't
 // lean on the Cyrillic alphabet (which would feel like a Wordle session).
@@ -172,7 +173,7 @@ export function MemoryGame({ onExit }) {
       <p className="pet-tab__hint">{tr('Открой две карточки. Совпали — остаются открытыми. Не совпали — переворачиваются. Собери все 8 пар за минимум времени!')}</p>
 
       <div className="memory__hud">
-        <span className="memory__stat">⏱ <b>{formatMs(elapsedMs)}</b></span>
+        <span className="memory__stat"><Emoji e="⏱" /> <b>{formatMs(elapsedMs)}</b></span>
         <span className="memory__stat">{tr('Ходов: ')}<b>{moves}</b></span>
       </div>
 
@@ -193,7 +194,7 @@ export function MemoryGame({ onExit }) {
           >
             <span className="memory-card__inner">
               <span className="memory-card__face memory-card__face--back" aria-hidden="true">?</span>
-              <span className="memory-card__face memory-card__face--front" aria-hidden="true">{c.symbol}</span>
+              <span className="memory-card__face memory-card__face--front" aria-hidden="true"><Emoji e={c.symbol} /></span>
             </span>
           </button>
         ))}
@@ -201,7 +202,7 @@ export function MemoryGame({ onExit }) {
 
       {won ? (
         <div className="memory__result">
-          <div className="memory__result-title">{tr('🎉 Все пары собраны!')}</div>
+          <div className="memory__result-title"><EmojiText text={tr('🎉 Все пары собраны!')} /></div>
           <div className="memory__result-stats">
             {formatMs(elapsedMs)} · {moves} {pluralMoves(moves)}
           </div>

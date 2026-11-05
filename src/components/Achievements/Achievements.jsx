@@ -16,6 +16,7 @@ import { CoinIcon } from '../icons/Icon.jsx';
 import { coinsLabel } from '../../utils/plural.js';
 import { tr } from '../../lib/lang.js';
 import { playSfx } from '../../lib/sound.js';
+import { Emoji } from '../icons/GameIcon.jsx';
 
 export function AchievementsModal({ open, onClose }) {
   const { stats, claimAchievement, showToast } = useGameContext();
@@ -103,7 +104,7 @@ function AchCard({ ach, stats, unlocked, claimable, onClaim }) {
   const pct = Math.min(100, Math.round((prog.current / prog.target) * 100));
   return (
     <div className={`ach-card${unlocked ? ' ach-card--unlocked' : ''}${claimable ? ' ach-card--claim' : ''}${ach.category === 'halloween' ? ' ach-card--hw hw-frame' : ''}`}>
-      <div className="ach-card__icon" aria-hidden="true">{ach.icon}</div>
+      <div className="ach-card__icon" aria-hidden="true"><Emoji e={ach.icon} /></div>
       <div className="ach-card__body">
         <div className="ach-card__row">
           <div className="ach-card__title">{ach.title}</div>

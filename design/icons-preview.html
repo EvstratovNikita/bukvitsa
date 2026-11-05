@@ -23,7 +23,7 @@
   import { GameIcon } from '/src/components/icons/GameIcon.jsx';
   import { HomeIcon, SoundOnIcon, PlusIcon } from '/src/components/icons/Icon.jsx';
   const h = React.createElement;
-  const ICONS = ['🎯', '🔥', '📅', '🧠', '⏱️', '⚡', '🪙', '🎁', '🦉', '🏆'];
+  const ICONS = ['🎯','🔥','📅','🧠','⏱️','⚡','🪙','🎁','🦉','🏆','🥇','🥈','🥉','⭐','🌟','🌠','✨','🌙','🌱','🌸','🌹','❤️','🍎','🥚','🐛','🐭','🍖','🪶','🎲','💡','🚀','🏟️','🏹','🗓️','🎓','🛍️','🎨','🛒','💰','🎀','👗','🎩','🧢','👑','👓','🕶️','🧐','🔮','💎','🔤','🖼️','🟩','👛','📺','🎉','😕','🔒','🔀'];
   const sheet = (cls, title) => h('div', { className: `sheet ${cls}` },
     h('h2', null, title),
     h('div', { className: 'row' }, ICONS.map((i) => h(GameIcon, { key: i, icon: i, size: 96 }))),

@@ -3,6 +3,7 @@ import { useGameContext } from '../../context/GameContext.jsx';
 import { MemoryGame } from './MemoryGame.jsx';
 import { AnagramGame } from './AnagramGame.jsx';
 import { tr } from '../../lib/lang.js';
+import { Emoji } from '../icons/GameIcon.jsx';
 
 // Catalog of available mini-games. Extend this list when new games ship —
 // each entry needs an id, label, short description, icon, and a Component
@@ -118,7 +119,7 @@ export function TrainPanel() {
         const cdMs = onCd ? nextMs - Date.now() : 0;
         return (
           <div key={g.id} className={`mini-card${onCd ? ' mini-card--done' : ''}`}>
-            <div className="mini-card__icon" aria-hidden="true">{g.icon}</div>
+            <div className="mini-card__icon" aria-hidden="true"><Emoji e={g.icon} /></div>
             <div className="mini-card__meta">
               <div className="mini-card__name">{g.name}</div>
               <div className="mini-card__desc">{g.desc}</div>

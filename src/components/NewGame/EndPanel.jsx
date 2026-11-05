@@ -7,7 +7,8 @@ import { SHARE_BASE_URL, buildWordleShareText, lastShareError, share } from '../
 import { getDailyNumber } from '../../data/dailyWord.js';
 import { rewardedAdsAvailable } from '../../lib/ads.js';
 import { HwRoundResult } from '../Halloween/HalloweenGame.jsx';
-import { tr } from '../../lib/lang.js';
+import { tr, isEn } from '../../lib/lang.js';
+import { Emoji, EmojiText } from '../icons/GameIcon.jsx';
 
 // Bottom panel that swaps in for the keyboard once a round ends. Vertical
 // stack on the left (title + word + reward lines); action buttons on the
@@ -76,8 +77,8 @@ export function EndPanel() {
         <div className="end-panel__meta">
           <div className="end-panel__title">
             {isHw
-              ? (isWin ? tr('🎃 Разгадано!') : tr('🕯️ Не разгадано'))
-              : <>{isDaily && '📅 '}{isWin ? tr('🎉 Победа!') : tr('😕 Не угадал')}</>}
+              ? <EmojiText text={isWin ? tr('🎃 Разгадано!') : tr('🕯️ Не разгадано')} />
+              : <>{isDaily && !isEn() && <><Emoji e="📅" />{' '}</>}<EmojiText text={isWin ? tr('🎉 Победа!') : tr('😕 Не угадал')} /></>}
           </div>
           <div className="end-panel__word">{tr('Слово: ')}<b>{(solution || '').toUpperCase()}</b>
           </div>
@@ -134,8 +135,8 @@ export function EndPanel() {
               )}
               <div className="end-panel__alt-text">
                 {petReady
-                  ? <>{tr('🥚 Яйцо Букли готово — загляни в дупло!')}</>
-                  : <>{tr('🥚 До питомца Букли ещё ')}<b>{petLeft}</b> {plural(petLeft, tr('партия'), tr('партии'), tr('партий'))}</>}
+                  ? <EmojiText text={tr('🥚 Яйцо Букли готово — загляни в дупло!')} />
+                  : <><EmojiText text={tr('🥚 До питомца Букли ещё ')} /><b>{petLeft}</b> {plural(petLeft, tr('партия'), tr('партии'), tr('партий'))}</>}
               </div>
             </div>
           )}

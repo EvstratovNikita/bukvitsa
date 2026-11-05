@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { hasHomeMenu, isEmbedded } from '../../lib/platform.js';
 import { ENERGY_REGEN_INTERVAL_MS, FREE_START_GAMES, PET_UNLOCK_GAMES } from '../../constants/game.js';
 import { tr } from '../../lib/lang.js';
+import { Emoji } from '../icons/GameIcon.jsx';
 
 // "Как играть" — a compact, tabbed reference. Three categories:
 //   • Игра    — core loop (shown first): mechanics, coins, hints, energy,
@@ -20,7 +21,7 @@ const TABS = [
 function Topic({ icon, title, children }) {
   return (
     <div className="help-topic">
-      <span className="help-topic__icon" aria-hidden="true">{icon}</span>
+      <span className="help-topic__icon" aria-hidden="true"><Emoji e={icon} /></span>
       <div className="help-topic__body">
         <div className="help-topic__title">{title}</div>
         <div className="help-topic__text">{children}</div>
@@ -101,7 +102,7 @@ export function HowToPlay() {
               onClick={() => setTab(t.id)}
               onMouseDown={(e) => e.preventDefault()}
             >
-              <span className="help-tab__icon" aria-hidden="true">{t.icon}</span>
+              <span className="help-tab__icon" aria-hidden="true"><Emoji e={t.icon} /></span>
               <span>{t.label}</span>
             </button>
           ))}

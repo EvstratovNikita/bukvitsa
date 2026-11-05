@@ -7332,3 +7332,33 @@ body.has-bg .cell--hinted .cell__face--back {
   color: var(--text-muted, currentColor);
   opacity: 0.45;
 }
+
+/* Рисованные значки вместо эмодзи (components/icons/GameIcon.jsx). */
+.game-icon { display: inline-block; vertical-align: -0.22em; flex: none; }
+/* У значка своя плашка: подложка места под эмодзи стала бы рамкой вокруг неё. */
+.help-topic__icon:has(.game-icon),
+.ach-card__icon:has(.game-icon),
+.ach-card--unlocked .ach-card__icon:has(.game-icon),
+.ach-toast__icon:has(.game-icon),
+.pet-treat__icon:has(.game-icon),
+.pet-deco__icon:has(.game-icon),
+.pet-tab__icon:has(.game-icon),
+.pet-tab--active .pet-tab__icon:has(.game-icon),
+.mini-card__icon:has(.game-icon),
+.mini-card--done .mini-card__icon:has(.game-icon) {
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.help-topic__icon > .game-icon,
+.ach-card__icon > .game-icon,
+.ach-toast__icon > .game-icon,
+.pet-treat__icon > .game-icon,
+.pet-deco__icon > .game-icon,
+.pet-tab__icon > .game-icon,
+.mini-card__icon > .game-icon {
+  width: 100%;
+  height: 100%;
+}
+.ach-card:not(.ach-card--unlocked) .game-icon { filter: grayscale(0.85); opacity: 0.6; }
+.memory-card__face .game-icon { width: 62%; height: auto; }

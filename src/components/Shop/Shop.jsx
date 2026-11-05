@@ -10,6 +10,7 @@ import { hwStepFor } from '../../data/halloween.js';
 import { HwBadge, PumpkinIcon } from '../Halloween/HwIcons.jsx';
 import { tr } from '../../lib/lang.js';
 import { playSfx } from '../../lib/sound.js';
+import { Emoji } from '../icons/GameIcon.jsx';
 
 const BOOST_EMOJI = {
   'boost-double': '×2',
@@ -252,7 +253,7 @@ function ShopCard({ item, stats, feedback, onBuy, onEquip, onUnequip }) {
           <span className="shop-card__preview-letter shop-card__preview-letter--plain">{tr('А')}</span>
         )}
         {item.category === 'boost' && (
-          <span className="shop-card__preview-emoji">{BOOST_EMOJI[item.id] || '×2'}</span>
+          <span className="shop-card__preview-emoji"><Emoji e={BOOST_EMOJI[item.id] || '×2'} /></span>
         )}
         {item.isDefault && item.category === 'background' && (
           <span className="shop-card__preview-default-label">{tr('по умолчанию')}</span>

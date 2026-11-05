@@ -1,4 +1,5 @@
 import { tr } from '../../lib/lang.js';
+import { Emoji } from '../icons/GameIcon.jsx';
 // Compact pet icon for the header — owl glyph after hatch, egg before.
 // When `ready` (unlock threshold reached, not yet hatched) the button gets a
 // pulsing glow + "!" badge so the player notices the egg is ready to hatch.
@@ -16,7 +17,7 @@ export function PetHeaderButton({ onClick, hatched, ready, giftReady }) {
       {ready
         ? <span className="pet-headerbtn__badge" aria-hidden="true">!</span>
         : giftReady
-          ? <span className="pet-headerbtn__gift" aria-hidden="true">🎁</span>
+          ? <span className="pet-headerbtn__gift" aria-hidden="true"><Emoji e="🎁" /></span>
           : !hatched && <span className="pet-headerbtn__dot" aria-hidden="true" />}
     </button>
   );
