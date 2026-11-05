@@ -7,6 +7,7 @@
 //   эффекты — Kenney, «Interface Sounds» (opengameart.org/content/interface-sounds)
 // У плавной музыки нет тактов, по которым резать: конец цикла плавно перетекает в
 // его начало. Громкость — одна поправка на весь файл, иначе на стыке слышен скачок.
+// Музыка в моно: декодированный трек лежит в памяти целиком, стерео занимало под 60 МБ.
 // ffmpeg нужен только здесь, в игру он не попадает.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -25,23 +26,26 @@ const run = (args) => execFileSync(ff, ['-hide_banner', '-loglevel', 'error', '-
 // Длина цикла (LOOP) и начало в исходнике: длины те же, что в LOOPS в lib/soundEngine.js.
 const LOOP = 150;
 const OVERLAP = 5;
-const TARGET_DB = -23;
+const TARGET_DB = -21.5;
+// Сведение в моно внутри фильтра, до ограничителя: при сведении на выходе пики
+// доходили почти до 0 дБ, а это уже риск искажений при воспроизведении.
+const TO_MONO = 'pan=mono|c0=0.5*c0+0.5*c1';
 const MUSIC = {
   menu: { src: `${RAW}/calm/lifewave.mp3`, from: 8 },
   game: { src: `${RAW}/calm/vaporware.mp3`, from: 8 }
 };
 const meanVolume = (src, from) => {
-  const r = spawnSync(ff, ['-hide_banner', '-ss', String(from), '-t', String(LOOP + OVERLAP), '-i', src, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' });
+  const r = spawnSync(ff, ['-hide_banner', '-ss', String(from), '-t', String(LOOP + OVERLAP), '-i', src, '-af', `${TO_MONO},volumedetect`, '-f', 'null', '-'], { encoding: 'utf8' });
   return Number(/mean_volume: (-?[\d.]+) dB/.exec(r.stderr)[1]);
 };
 for (const [name, m] of Object.entries(MUSIC)) {
   const gain = (TARGET_DB - meanVolume(m.src, m.from)).toFixed(2);
   // Хвост цикла перетекает в его начало: первые OVERLAP секунд идут только в наложение.
-  const fc = `[0:a][1:a]acrossfade=d=${OVERLAP}:c1=tri:c2=tri,volume=${gain}dB,alimiter=limit=0.8[out]`;
+  const fc = `[0:a][1:a]acrossfade=d=${OVERLAP}:c1=tri:c2=tri,${TO_MONO},volume=${gain}dB,alimiter=limit=0.8[out]`;
   run([
     '-ss', String(m.from + OVERLAP), '-t', String(LOOP), '-i', m.src,
     '-ss', String(m.from), '-t', String(OVERLAP), '-i', m.src,
-    '-filter_complex', fc, '-map', '[out]', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '96k', `${OUT}/music-${name}.mp3`
+    '-filter_complex', fc, '-map', '[out]', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '64k', `${OUT}/music-${name}.mp3`
   ]);
   console.log('музыка', name, LOOP, 'с, поправка', gain, 'дБ');
 }
