@@ -56,7 +56,6 @@ function GameShell() {
   // «Домой» в шапке. Пока оно на экране, физическая клавиатура не пишет в поле.
   const [homeOpen, setHomeOpen] = useState(hasHomeMenu);
   // Музыка: своя у меню и у партии. Файлы качаются только после первого жеста.
-  useEffect(() => { initSound(storage); }, []);
   useEffect(() => { playMusic(homeOpen ? 'menu' : 'game'); }, [homeOpen]);
   const closeHome = useCallback(() => setHomeOpen(false), []);
   useKeyboard(!homeOpen);
@@ -309,6 +308,10 @@ function GameShell() {
     </div>
   );
 }
+
+// Сохранения к этому моменту уже загружены (main.jsx импортирует App после
+// инициализации), а кнопка звука читает выбор игрока при первой отрисовке.
+initSound(storage);
 
 export default function App() {
   return (
