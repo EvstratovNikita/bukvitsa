@@ -28,7 +28,7 @@ export function SoundButton({ variant }) {
   return (
     <button
       type="button"
-      className="iconbtn iconbtn--sound"
+      className={`iconbtn iconbtn--sound${muted ? ' iconbtn--muted' : ''}`}
       onClick={() => setMuted(!muted)}
       onMouseDown={(e) => e.preventDefault()}
       aria-label={label}

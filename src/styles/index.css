@@ -6069,6 +6069,34 @@ body.has-bg .cell--hinted .cell__face--back {
   box-shadow: 0 3px 12px rgba(30, 120, 60, 0.22);
 }
 
+/* Кнопка звука (сборки со звуком). Слева стало три кнопки: на телефоне шапка
+   держится за счёт названия — оно сжимается, а значок логотипа убирается. */
+.iconbtn--sound {
+  background: linear-gradient(135deg, rgba(60, 200, 225, 0.40), rgba(60, 200, 225, 0.12));
+  border-color: rgba(110, 225, 245, 0.85);
+  color: #92ecff;
+  box-shadow: 0 3px 12px rgba(50, 180, 210, 0.26);
+}
+[data-theme="light"] .iconbtn--sound {
+  background: linear-gradient(135deg, rgba(20, 140, 170, 0.32), rgba(20, 140, 170, 0.12));
+  border-color: rgba(10, 100, 125, 0.9);
+  color: #0a5f78;
+  box-shadow: 0 3px 12px rgba(20, 120, 150, 0.22);
+}
+.iconbtn--sound.iconbtn--muted {
+  background: var(--bg-2);
+  border-color: var(--line);
+  color: var(--text-dim);
+  box-shadow: none;
+}
+.header:has(.iconbtn--sound) { grid-template-columns: auto minmax(0, 1fr) auto; }
+@media (max-width: 560px) {
+  .header:has(.iconbtn--sound) .brand__mark { display: none; }
+  .header:has(.iconbtn--sound) .brand__title { font-size: min(clamp(17px, 3.6vh, 28px), 6.2vw); }
+  .header:has(.iconbtn--sound) .header__lead,
+  .header:has(.iconbtn--sound) .header__actions { gap: 6px; }
+}
+
 /* Тёмная тема: на кнопке солнце (переключит на светлую) — тёплое золото. */
 .iconbtn--theme {
   background: linear-gradient(135deg, rgba(247, 201, 72, 0.40), rgba(247, 201, 72, 0.12));
