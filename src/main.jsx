@@ -38,4 +38,8 @@ document.addEventListener('contextmenu', (e) => {
   e.preventDefault();
 });
 
+// Игра во фрейме площадки: кнопки гасят mousedown, чтобы не забирать фокус у поля,
+// и фрейм от такого клика фокус не получал — буквы с клавиатуры не доходили до игры.
+window.addEventListener('pointerdown', () => window.focus(), { capture: true });
+
 start();
