@@ -5,10 +5,11 @@ const url = (name) => FILES[`../assets/audio/${name}.mp3`];
 
 // Точная длина цикла (scripts/build-audio.mjs): mp3 дополняет конец тишиной,
 // поэтому цикл задаём сами, иначе на стыке слышна пауза.
-const LOOPS = { menu: (96 * 60) / 95, game: (224 * 60) / 108 };
+const LOOPS = { menu: 150, game: 150 };
 const MUSIC_VOLUME = 0.4;
 const SFX_VOLUME = { key: 0.35, flip: 0.3, click: 0.4, back: 0.35 };
-const FADE = 0.5;
+// Смена меню и партии: плавной музыке короткий переход режет слух.
+const FADE = 1.5;
 
 export function createEngine() {
   const Ctx = window.AudioContext || window.webkitAudioContext;

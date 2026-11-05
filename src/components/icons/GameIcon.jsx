@@ -37,6 +37,39 @@ const medal = (tint, digit) => ({
 });
 
 const GLYPHS = {
+  // Разделы главного меню: у них нет своего эмодзи, ключ — имя раздела.
+  settings: {
+    tint: 'indigo',
+    draw: ({ w, a }) => (
+      <>
+        {[0, 45, 90, 135, 180, 225, 270, 315].map((r) => (
+          <rect key={r} x="20.8" y="9.5" width="6.4" height="8" rx="1.8" fill={w} transform={`rotate(${r} 24 24)`} />
+        ))}
+        <circle cx="24" cy="24" r="11" fill={w} />
+        <circle cx="24" cy="24" r="4.6" fill={a} />
+      </>
+    )
+  },
+  stats: {
+    tint: 'teal',
+    draw: ({ w }) => (
+      <>
+        <rect x="11.5" y="25" width="7" height="12" rx="2.2" fill={w} />
+        <rect x="20.5" y="17" width="7" height="20" rx="2.2" fill={w} />
+        <rect x="29.5" y="10" width="7" height="27" rx="2.2" fill={w} />
+      </>
+    )
+  },
+  help: {
+    tint: 'blue',
+    draw: ({ w, a }) => (
+      <>
+        <path d="M23.2 15.5c-3.7-3-9-3.7-14.2-2.5-.8.2-1.3.8-1.3 1.6v18.3c0 1 1 1.7 2 1.5 4.7-1 9.5-.5 13.5 2.3z" fill={w} />
+        <path d="M24.8 15.5c3.7-3 9-3.7 14.2-2.5.8.2 1.3.8 1.3 1.6v18.3c0 1-1 1.7-2 1.5-4.7-1-9.5-.5-13.5 2.3z" fill={w} />
+        <path d="M12 19c2.8-.5 5.5-.2 8 .9M12 24c2.8-.5 5.5-.2 8 .9M36 19c-2.8-.5-5.5-.2-8 .9M36 24c-2.8-.5-5.5-.2-8 .9" fill="none" stroke={a} strokeWidth="1.8" strokeLinecap="round" />
+      </>
+    )
+  },
   '🎯': {
     tint: 'rose',
     draw: ({ w, d, a }) => (
@@ -686,11 +719,11 @@ const WHITE = [255, 255, 255];
 const BLACK = [0, 0, 0];
 
 
-export function GameIcon({ icon, size = 40, className }) {
+export function GameIcon({ icon, size = 40, className, tint }) {
   const id = useId();
   const glyph = GLYPHS[icon.replace('️', '')];
   if (!glyph) return null;
-  const c = TINT[glyph.tint];
+  const c = TINT[tint || glyph.tint];
   const dark = mix(c, BLACK, 0.34);
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">

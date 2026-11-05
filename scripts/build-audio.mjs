@@ -1,11 +1,14 @@
 // Готовит звук игры: node scripts/build-audio.mjs <путь к ffmpeg>
 //
 // Источники (все под CC0) лежат в design/audio/raw, готовое — в src/assets/audio:
-//   музыка и джинглы — MintoDog, «Cozy Puzzle» (opengameart.org)
+//   музыка — The Cynic Project, «Lifewave 2k» и «Vaporware» (opengameart.org/content/calm-ambient-3-lifewave-2k,
+//            opengameart.org/content/calm-piano-1-vaporware); запасной — «Yoiyami Core Theme»
+//   джинглы — MintoDog, «Cozy Puzzle» (opengameart.org)
 //   эффекты — Kenney, «Interface Sounds» (opengameart.org/content/interface-sounds)
-// Музыка обрезается ровно по тактам: цикл без щелчка. Громкость выравнивается.
+// У плавной музыки нет тактов, по которым резать: конец цикла плавно перетекает в
+// его начало. Громкость — одна поправка на весь файл, иначе на стыке слышен скачок.
 // ffmpeg нужен только здесь, в игру он не попадает.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 
 const ff = process.argv[2];
@@ -19,14 +22,28 @@ const K = `${RAW}/kenney/Audio`;
 
 const run = (args) => execFileSync(ff, ['-hide_banner', '-loglevel', 'error', '-y', ...args]);
 
-// Точная длина цикла: число долей × 60 / BPM.
+// Длина цикла (LOOP) и начало в исходнике: длины те же, что в LOOPS в lib/soundEngine.js.
+const LOOP = 150;
+const OVERLAP = 5;
+const TARGET_DB = -23;
 const MUSIC = {
-  menu: { src: `${RAW}/cozy_puzzle_title_bpm95.mp3`, dur: (96 * 60) / 95 },
-  game: { src: `${RAW}/cozy_puzzle_in-game_3_bpm108.mp3`, dur: (224 * 60) / 108 }
+  menu: { src: `${RAW}/calm/lifewave.mp3`, from: 8 },
+  game: { src: `${RAW}/calm/vaporware.mp3`, from: 8 }
+};
+const meanVolume = (src, from) => {
+  const r = spawnSync(ff, ['-hide_banner', '-ss', String(from), '-t', String(LOOP + OVERLAP), '-i', src, '-af', 'volumedetect', '-f', 'null', '-'], { encoding: 'utf8' });
+  return Number(/mean_volume: (-?[\d.]+) dB/.exec(r.stderr)[1]);
 };
 for (const [name, m] of Object.entries(MUSIC)) {
-  run(['-i', m.src, '-t', m.dur.toFixed(5), '-af', 'loudnorm=I=-20:TP=-2:LRA=11', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '96k', `${OUT}/music-${name}.mp3`]);
-  console.log('музыка', name, m.dur.toFixed(2), 'с');
+  const gain = (TARGET_DB - meanVolume(m.src, m.from)).toFixed(2);
+  // Хвост цикла перетекает в его начало: первые OVERLAP секунд идут только в наложение.
+  const fc = `[0:a][1:a]acrossfade=d=${OVERLAP}:c1=tri:c2=tri,volume=${gain}dB,alimiter=limit=0.8[out]`;
+  run([
+    '-ss', String(m.from + OVERLAP), '-t', String(LOOP), '-i', m.src,
+    '-ss', String(m.from), '-t', String(OVERLAP), '-i', m.src,
+    '-filter_complex', fc, '-map', '[out]', '-ar', '44100', '-c:a', 'libmp3lame', '-b:a', '96k', `${OUT}/music-${name}.mp3`
+  ]);
+  console.log('музыка', name, LOOP, 'с, поправка', gain, 'дБ');
 }
 
 const SFX = {

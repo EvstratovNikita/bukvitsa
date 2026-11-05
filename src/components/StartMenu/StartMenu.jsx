@@ -15,6 +15,7 @@ import {
   TrophyIcon, UsersIcon
 } from '../icons/Icon.jsx';
 import { isEn, tr } from '../../lib/lang.js';
+import { GameIcon } from '../icons/GameIcon.jsx';
 
 // Главное меню — стартовый экран игры в VK (правила площадки, п. 4.2.10:
 // «полноценное стартовое меню» и «возможность вернуться в главное меню в любой
@@ -24,6 +25,9 @@ import { isEn, tr } from '../../lib/lang.js';
 // Меню ничего не запускает само: «Играть» просто возвращает к полю в том
 // состоянии, в каком оно есть. Начало партии, трата энергии и правила Слова дня
 // остаются там, где жили, — меню не должно их обходить.
+
+// Значок раздела: в английской версии — залитый, как все рисованные значки игры.
+const tileIcon = (Line, key, tint) => (isEn() ? <GameIcon icon={key} tint={tint} size="100%" className="game-icon" /> : <Line />);
 
 const LOGO = isEn()
   ? [['H', 'gold'], ['O', 'dark'], ['O', 'green'], ['T', 'gold'], ['W', 'dark'], ['O', 'green'], ['R', 'gold'], ['D', 'dark']]
@@ -215,14 +219,14 @@ function StartMenuView({
         )}
 
         <nav className="home__grid" aria-label={tr('Разделы')} style={{ '--d': 5 }}>
-          <Tile icon={<ShopIcon />} label={tr('Магазин')} tint="shop" onClick={onOpenShop} />
-          <Tile icon={<OwlIcon />} label={hatched ? tr(stats.pet?.name || 'Букля') : tr('Питомец')} tint="pet" onClick={onOpenPet} dot={petAlert} />
-          <Tile icon={<AwardIcon />} label={tr('Достижения')} tint="awards" onClick={onOpenAchievements} badge={achCount || undefined} />
+          <Tile icon={tileIcon(ShopIcon, '🛍', 'violet')} label={tr('Магазин')} tint="shop" onClick={onOpenShop} />
+          <Tile icon={tileIcon(OwlIcon, '🦉', 'orange')} label={hatched ? tr(stats.pet?.name || 'Букля') : tr('Питомец')} tint="pet" onClick={onOpenPet} dot={petAlert} />
+          <Tile icon={tileIcon(AwardIcon, '🏆', 'rose')} label={tr('Достижения')} tint="awards" onClick={onOpenAchievements} badge={achCount || undefined} />
           {hasLeaderboard
             ? <Tile icon={<TrophyIcon />} label={tr('Лучшие игроки')} tint="rating" onClick={onOpenLeaderboard} />
-            : <Tile icon={<SettingsIcon />} label={tr('Настройки')} tint="settings" onClick={onOpenSettings} />}
-          <Tile icon={<StatsIcon />} label={tr('Статистика')} tint="stats" onClick={onOpenStats} />
-          <Tile icon={<HelpIcon />} label={tr('Как играть')} tint="help" onClick={onOpenHelp} />
+            : <Tile icon={tileIcon(SettingsIcon, 'settings', 'indigo')} label={tr('Настройки')} tint="settings" onClick={onOpenSettings} />}
+          <Tile icon={tileIcon(StatsIcon, 'stats', 'teal')} label={tr('Статистика')} tint="stats" onClick={onOpenStats} />
+          <Tile icon={tileIcon(HelpIcon, 'help', 'blue')} label={tr('Как играть')} tint="help" onClick={onOpenHelp} />
         </nav>
 
         {(social.invite || social.share || social.favorites) && (

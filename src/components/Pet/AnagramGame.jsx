@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGameContext } from '../../context/GameContext.jsx';
 import { CoinIcon } from '../icons/Icon.jsx';
-import { pickRandomWord, normalizeWord } from '../../data/words.js';
+import { isValidWord, pickRandomWord, normalizeWord } from '../../data/words.js';
 import { tr } from '../../lib/lang.js';
 import { gameNow } from '../../lib/gameClock.js';
 import { Emoji, EmojiText } from '../icons/GameIcon.jsx';
@@ -91,7 +91,9 @@ export function AnagramGame({ onExit }) {
     if (phase !== 'playing') return;
     if (slots.some((s) => !s)) return;
     const assembled = slots.map((s) => s.ch).join('');
-    if (assembled === round.word) {
+    // Засчитываем любое настоящее слово из этих букв: LEAST, STEAL и SLATE одинаково
+    // верны, и отказ в таком случае выглядел бы ошибкой игры.
+    if (assembled === round.word || isValidWord(assembled, round.word.length)) {
       setSolved((n) => n + 1);
       setJustSolved(true);
       const t1 = setTimeout(() => setJustSolved(false), 320);
