@@ -19,12 +19,14 @@ import { auditFiles, collectFiles, kb, writeZip } from './lib/zip.mjs';
 const DIST = 'dist';
 const OUT = 'buklitsa-vk.zip';
 
-// --event-preview: ивент «Ночь тыкв» включён всегда, без дат и метки в
-// адресе (lib/events.js). Только для dev-адреса — npm run deploy:vk:dev:halloween.
-const eventPreview = process.argv.includes('--event-preview');
+// --event-preview[=<id>]: ивент включён всегда, без дат и метки в адресе
+// (lib/events.js). Без id — halloween, как раньше. Только для dev-адреса —
+// npm run deploy:vk:dev:<id>.
+const previewArg = process.argv.find((a) => a === '--event-preview' || a.startsWith('--event-preview='));
+const eventPreview = previewArg ? (previewArg.split('=')[1] || 'halloween') : null;
 if (eventPreview) {
-  process.env.VITE_EVENT_PREVIEW = 'halloween';
-  console.log('› ивент «Ночь тыкв» включён принудительно (сборка для dev-адреса)');
+  process.env.VITE_EVENT_PREVIEW = eventPreview;
+  console.log(`› ивент «${eventPreview}» включён принудительно (сборка для dev-адреса)`);
 }
 console.log('› vite build --mode vk');
 execFileSync(process.execPath, ['node_modules/vite/bin/vite.js', 'build', '--mode', 'vk'], { stdio: 'inherit' });
@@ -46,7 +48,7 @@ const problems = auditFiles(files, [
   // Боевая сборка не должна показывать ивент вне дат. Флаг ставит только
   // --event-preview (сборка для dev-адреса), но переменная могла остаться и в
   // окружении — проверяем результат, а не намерение.
-  ...(eventPreview ? [] : [[/VITE_EVENT_PREVIEW:"halloween"/, 'ивент включён принудительно (VITE_EVENT_PREVIEW) в боевой сборке']])
+  ...(eventPreview ? [] : [[/VITE_EVENT_PREVIEW:"[a-z]+"/, 'ивент включён принудительно (VITE_EVENT_PREVIEW) в боевой сборке']])
 ]);
 
 if (problems.length) {
