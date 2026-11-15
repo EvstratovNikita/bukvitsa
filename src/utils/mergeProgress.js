@@ -1,5 +1,6 @@
 import { energyCapFor, reconcilePetTimers } from '../constants/game.js';
-import { mergeHalloween, restoreEventItems } from '../lib/halloweenProgress.js';
+import { EVENT_DEFS } from '../data/events/index.js';
+import { merge as mergeEvent, restoreEventItems } from '../lib/eventProgress.js';
 
 // Слияние двух снимков прогресса — местного и облачного.
 //
@@ -242,10 +243,12 @@ export function mergeProgress(a, b) {
   out.altMode = mergeDayCounter(a.altMode, b.altMode, 'dayKey', ['plays', 'energyGranted']);
   out.adsDouble = mergeDayCounter(a.adsDouble, b.adsDouble, 'dayKey', ['count']);
   out.adEnergy = mergeDayCounter(a.adEnergy, b.adEnergy, 'dayKey', ['count']);
-  // Ивент «Ночь тыкв»: тыквы и счётчики — по максимуму, колода и выданные
-  // ступени — объединением.
-  const hw = mergeHalloween(a.halloween, b.halloween);
-  if (hw) out.halloween = hw;
+  // Сезонные ивенты: единицы и счётчики — по максимуму, колода, выданные
+  // ступени и полученное — объединением. Каждый ивент в своём поле.
+  for (const def of EVENT_DEFS) {
+    const ev = mergeEvent(def, a[def.id], b[def.id]);
+    if (ev) out[def.id] = ev;
+  }
 
   return restoreEventItems(out);
 }

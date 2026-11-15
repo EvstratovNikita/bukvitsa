@@ -7,7 +7,8 @@ import {
   EVENTS, activeEvent, eventActive, eventDaysLeft, eventDaysLeftAt, eventWindowOpen, parsePreview
 } from '../src/lib/events.js';
 import { getEvent, trackMax } from '../src/data/events/index.js';
-import { applyResult, merge, normalize } from '../src/lib/eventProgress.js';
+import { applyResult, merge, normalize, restoreEventItems } from '../src/lib/eventProgress.js';
+import { mergeProgress } from '../src/utils/mergeProgress.js';
 import { isValidWord } from '../src/data/words.js';
 
 let passed = 0;
@@ -113,6 +114,29 @@ test('зима: ступени выдаются один раз, предмет 
   assert.deepEqual(r.next.bought, ['w-mitten']);
   const again = applyResult(W, r.next, { won: true, attempts: 1, word: 'санки', today: D1 });
   assert.deepEqual(again.newSteps.map((s) => s.id), []);
+});
+
+test('слияние: Хэллоуин и зима в разных снимках не затирают друг друга', () => {
+  const a = { pet: { ownedDecorations: [] }, halloween: { earned: 40, bought: ['hw-pumpkin'] } };
+  const b = { pet: { ownedDecorations: [] }, winter: { earned: 10, iceWins: 1 } };
+  const m = mergeProgress(a, b);
+  assert.equal(m.halloween.earned, 40);
+  assert.equal(m.winter.earned, 10);
+  assert.equal(m.winter.iceWins, 1);
+  assert.ok(m.pet.ownedDecorations.includes('hw-pumpkin'));
+});
+
+test('восстановление: зимний bought возвращает зимний наряд и фон', () => {
+  const s = restoreEventItems({ pet: { ownedDecorations: [] }, inventory: [], winter: { bought: ['w-mitten', 'bg-w-morning'] } });
+  assert.ok(s.pet.ownedDecorations.includes('w-mitten'));
+  assert.ok(s.inventory.includes('bg-w-morning'));
+});
+
+test('старое сохранение с тропой Хэллоуина: выданное получено и после движка', () => {
+  const m = mergeProgress({ pet: { ownedDecorations: [] }, halloween: { pumpkins: 9, rewards: ['hw-t1'] } }, {});
+  assert.ok(m.halloween.bought.includes('hw-pumpkin'));
+  assert.ok(m.pet.ownedDecorations.includes('hw-pumpkin'));
+  assert.equal(m.halloween.earned, 9);
 });
 
 console.log(`${process.exitCode ? '✗' : '✓'} test-events: ${passed} passed`);

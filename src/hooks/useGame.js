@@ -496,7 +496,7 @@ export function useGame() {
           // статистику, как в режимах 4/6; опыт Букле — как за 5 букв, а то,
           // что не влезло в дневной лимит тыкв, — дополнительным опытом.
           stats.recordWin(nextGuesses.length, elapsedMs, 1, /* creditCoins */ false);
-          const hwRes = stats.recordHalloweenResult({ won: true, attempts: nextGuesses.length, word: normalizeWord(solution) });
+          const hwRes = stats.recordEventResult('halloween', { won: true, attempts: nextGuesses.length, word: normalizeWord(solution) });
           const hatched = Boolean(stats.stats.pet?.hatched);
           const bonusXp = hatched ? (pumpkinsFor(nextGuesses.length) - hwRes.gained) * HW_CAP_XP_PER_PUMPKIN : 0;
           setLastHw({ ...hwRes, bonusXp });
@@ -563,7 +563,7 @@ export function useGame() {
           });
         } else if (gameMode === 'halloween') {
           stats.recordLoss();
-          setLastHw(stats.recordHalloweenResult({ won: false, attempts: nextGuesses.length, word: normalizeWord(solution) }));
+          setLastHw(stats.recordEventResult('halloween', { won: false, attempts: nextGuesses.length, word: normalizeWord(solution) }));
         } else {
           stats.recordLoss();
           stats.awardWinServer?.({
