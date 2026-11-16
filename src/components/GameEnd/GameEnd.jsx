@@ -52,15 +52,15 @@ function Confetti({ count = 22, palette = CONFETTI_PALETTE }) {
 export function GameEnd() {
   const {
     status, solution, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, stats,
-    guesses, evaluations, gameMode, exitDailyMode, reset,
+    guesses, evaluations, gameMode, eventId, exitDailyMode, reset,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft, wordLength,
-    nextHalloweenRiddle, riddle,
+    nextEventRiddle, riddle,
     showToast
   } = useGameContext();
   // В Слове дня «бонус» — это вторая половина удвоенной награды; в обычной
   // игре раскладка приходит готовой, вычитать ничего не нужно.
   const bonus = Math.max(0, (lastEarned || 0) - (lastEarnedBase || 0));
-  const isHw = gameMode === 'halloween';
+  const isHw = eventId === 'halloween';
   const isAlt = gameMode !== 'daily' && !isHw && wordLength !== 5;
   const altPlays = (stats?.altMode?.plays || 0) % 5;
   const altGranted = stats?.altMode?.energyGranted || 0;
@@ -112,7 +112,7 @@ export function GameEnd() {
   const onContinue = () => {
     setClosed(true);
     if (isDaily) exitDailyMode();
-    else if (isHw) nextHalloweenRiddle();
+    else if (isHw) nextEventRiddle();
     else reset();
   };
 

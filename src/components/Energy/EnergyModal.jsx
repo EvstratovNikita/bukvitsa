@@ -40,7 +40,7 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
     stats,
     solution,
     status,
-    gameMode
+    gameMode, eventId
   } = useGameContext();
   const cap = energyMax || ENERGY_MAX;
   const [, setTick] = useState(0);
@@ -70,7 +70,7 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
   // режим 5 букв: после пополнения ведём туда, куда он и шёл.
   // В загадках ночи энергия не нужна — пополнение ничего не запускает, только
   // переход в режим 5 букв (pendingLength).
-  const needsStart = Boolean(pendingLength) || (gameMode !== 'halloween' && (!solution || status !== 'playing'));
+  const needsStart = Boolean(pendingLength) || (!eventId && (!solution || status !== 'playing'));
 
   const flash = (type, text, ms = 1600) => {
     setFeedback({ type, text });
@@ -117,7 +117,7 @@ export function EnergyModal({ onOpenModes, onPlayHalloween }) {
   const altCapped = (stats?.altMode?.energyGranted || 0) >= ALT_ENERGY_PER_DAY;
   const altLeft = 5 - altPlays;
   const onModes = () => { closeEnergyModal(); onOpenModes(); };
-  const showHw = Boolean(onPlayHalloween) && energy < 1 && gameMode !== 'halloween';
+  const showHw = Boolean(onPlayHalloween) && energy < 1 && !eventId;
   const onHw = () => { closeEnergyModal(); onPlayHalloween(); };
 
   return (

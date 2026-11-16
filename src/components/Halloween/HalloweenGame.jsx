@@ -70,13 +70,13 @@ export function PumpkinBadge({ onClick }) {
 // Итог загадки — для панели конца партии и окна победы: сколько тыкв,
 // что открылось на ленте, сколько ещё можно собрать сегодня, что дальше.
 export function HwRoundResult({ compact = false }) {
-  const { stats, lastHw, status } = useGameContext();
+  const { stats, lastEvent, status } = useGameContext();
   const hw = stats.halloween || {};
   const earned = hw.earned || 0;
   const won = status === GAME_STATUS.WON;
-  const gained = lastHw?.gained || 0;
-  const bonusXp = lastHw?.bonusXp || 0;
-  const opened = won ? (lastHw?.newSteps || []) : [];
+  const gained = lastEvent?.gained || 0;
+  const bonusXp = lastEvent?.bonusXp || 0;
+  const opened = won ? (lastEvent?.newSteps || []) : [];
   const today = earnedToday(hw, todayKey());
   const capped = today >= HW_DAILY_CAP;
   const next = nextStep(hw);

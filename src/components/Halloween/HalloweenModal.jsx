@@ -11,13 +11,13 @@ import { HwBadge, PumpkinIcon, stepInfo } from './HwIcons.jsx';
 // наряды Букли, фоны, стиль клеток и монеты за собранные тыквы. Тыквы не
 // тратятся: ступень открывается сама, когда набрано нужное число.
 export function HalloweenModal({ open, onClose, onPlay, onOpenAchievements }) {
-  const { stats, gameMode, status } = useGameContext();
+  const { stats, eventId, status } = useGameContext();
   if (!open) return null;
   const hw = stats.halloween || {};
   const earned = hw.earned || 0;
   const today = earnedToday(hw, todayKey());
   const days = halloweenDaysLeft();
-  const inMode = gameMode === 'halloween' && status === 'playing';
+  const inMode = eventId === 'halloween' && status === 'playing';
   const pct = Math.min(100, Math.round((today / HW_DAILY_CAP) * 100));
   const next = nextStep(hw);
   const got = new Set(hw.steps || []);

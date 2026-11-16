@@ -8,9 +8,10 @@ import { submitScore } from '../lib/leaderboard.js';
 import { evaluateGuess, mergeKeyboardStatuses } from '../utils/evaluator.js';
 import { isValidWord, normalizeWord } from '../data/words.js';
 import { pickNextWord, rememberWord } from '../lib/wordPicker.js';
-import { halloweenActive } from '../lib/events.js';
-import { HW_CAP_XP_PER_PUMPKIN, getRiddle } from '../data/halloween.js';
-import { nextRiddle, pumpkinsFor } from '../lib/halloweenProgress.js';
+import { activeEvent } from '../lib/events.js';
+import { getEvent, riddleOf } from '../data/events/index.js';
+import { nextRiddle } from '../lib/eventProgress.js';
+import { isEventMode, isLiveEventRound, restoredMode } from '../lib/eventRounds.js';
 import { pluralCoins } from '../utils/plural.js';
 import { storage } from '../utils/storage.js';
 import { useStats } from './useStats.js';
@@ -70,20 +71,19 @@ function takeRound(length) {
   return null;
 }
 
-// Партия «Загадок ночи» жива, только пока идёт ивент и слово есть в колоде:
-// после 3.11 отложенная загадка не должна вернуть игрока в пропавший режим.
-const isLiveHalloween = (round) =>
-  round?.gameMode === 'halloween' && halloweenActive() && Boolean(getRiddle(normalizeWord(round.solution || '')));
+// Отложенная загадка ивента лежит на той же полке: обычная — под ключом ev,
+// ледяная — под ice. Ключ hw остался от «Ночи тыкв» до движка ивентов и
+// читается как ev (isLiveEventRound отсеет его вне Хэллоуина).
+const eventShelf = (ice) => (ice ? 'ice' : 'ev');
 
-// Отложенная загадка лежит на той же полке под ключом hw.
-function takeHalloweenRound() {
+function takeEventRound(ice) {
   const rounds = readRounds();
-  const round = rounds.hw;
-  if (!round) return null;
-  delete rounds.hw;
+  const keys = ice ? ['ice'] : ['ev', 'hw'];
+  const found = keys.map((k) => rounds[k]).filter(Boolean);
+  if (found.length === 0) return null;
+  keys.forEach((k) => delete rounds[k]);
   storage.set(ROUNDS_KEY, rounds);
-  if (round.status === GAME_STATUS.PLAYING && isLiveHalloween(round)) return round;
-  return null;
+  return found.find((r) => r.status === GAME_STATUS.PLAYING && isLiveEventRound(r)) || null;
 }
 
 // Снимаем с полки отложенную обычную партию, если она ещё не доиграна.
@@ -93,21 +93,21 @@ function takeNormalBackup() {
   const backup = storage.get(STORAGE_KEYS.GAME_STATE + ':normal-backup', null);
   storage.remove(STORAGE_KEYS.GAME_STATE + ':normal-backup');
   if (!backup?.solution || backup.status !== GAME_STATUS.PLAYING) return null;
-  if (backup.gameMode === 'halloween' && !isLiveHalloween(backup)) return null;
+  if (isEventMode(backup.gameMode) && !isLiveEventRound(backup)) return null;
   return backup;
 }
 
 // Утром Слово дня вытесняет недоигранную загадку в normal-backup. Если игрок
-// идёт в загадки прямо из Слова дня, забираем её оттуда, а не начинаем новую.
-function takeHalloweenBackup() {
+// идёт в загадки прямо из Слова дня, забираем её оттуда, а не начинаем новую
+// (только того же вида: ледяная не подменяет обычную и наоборот).
+function takeEventBackup(ice) {
   const key = STORAGE_KEYS.GAME_STATE + ':normal-backup';
   const backup = storage.get(key, null);
-  if (!isLiveHalloween(backup) || backup.status !== GAME_STATUS.PLAYING) return null;
+  if (!isLiveEventRound(backup) || backup.status !== GAME_STATUS.PLAYING) return null;
+  if (Boolean(backup.ice) !== ice) return null;
   storage.remove(key);
   return backup;
 }
-
-const restoredMode = (round) => (round?.gameMode === 'halloween' ? 'halloween' : 'normal');
 
 export function useGame() {
   // Lazy-init from any persisted game so a page refresh resumes the same
@@ -122,8 +122,8 @@ export function useGame() {
   const savedGame = useMemo(() => {
     const raw = storage.get(STORAGE_KEYS.GAME_STATE, null);
     if (!raw || !raw.solution) return raw;
-    // Загадка ночи после конца ивента (или с чужим словом) не восстанавливается.
-    if (raw.gameMode === 'halloween' && !isLiveHalloween(raw)) {
+    // Загадка ивента после его конца (или с чужим словом) не восстанавливается.
+    if (isEventMode(raw.gameMode) && !isLiveEventRound(raw)) {
       storage.remove(STORAGE_KEYS.GAME_STATE);
       return null;
     }
@@ -174,11 +174,14 @@ export function useGame() {
   const [lastEarnedDeco, setLastEarnedDeco] = useState(() => savedGame?.lastEarnedDeco ?? 0);
   const [boostedLastWin, setBoostedLastWin] = useState(() => savedGame?.boostedLastWin ?? false);
   const [doubledLastWin, setDoubledLastWin] = useState(() => savedGame?.doubledLastWin ?? false);
-  // Итог последней загадки ночи: сколько тыкв и какие ступени тропы выданы.
-  // Хранится с доской — после перезагрузки панель конца партии та же.
-  const [lastHw, setLastHw] = useState(() => savedGame?.lastHw ?? null);
-  // Загадка ночи открыта за монеты (платная подсказка) — хранится с доской.
+  // Итог последней загадки ивента: сколько единиц и какие ступени ленты выданы.
+  // Хранится с доской — после перезагрузки панель конца партии та же
+  // (lastHw — имя из сохранений до движка ивентов).
+  const [lastEvent, setLastEvent] = useState(() => savedGame?.lastEvent ?? savedGame?.lastHw ?? null);
+  // Загадка открыта за монеты (платная подсказка) — хранится с доской.
   const [riddleShown, setRiddleShown] = useState(() => Boolean(savedGame?.riddleShown));
+  // Партия ивента идёт в «Ледяной гонке» — хранится с доской.
+  const [ice, setIce] = useState(() => Boolean(savedGame?.ice));
   const [doublingAd, setDoublingAd] = useState(false);
   const [hints, setHints] = useState(() => savedGame?.hints ?? Array((savedGame?.wordLength ?? 5)).fill(null));
   const [hintPickMode, setHintPickMode] = useState(false);
@@ -189,8 +192,10 @@ export function useGame() {
   // именно туда, а не перезапустить текущий формат.
   const [pendingLength, setPendingLength] = useState(null);
   // 'normal' = freeform play (energy-gated); 'daily' = one-shot daily word;
-  // 'halloween' = «Загадки ночи» (ивент, без энергии, награда — тыквы).
+  // id ивента ('halloween', 'winter') = загадки ивента (без энергии, награда —
+  // единицы ленты: тыквы, снежинки).
   const [gameMode, setGameMode] = useState(() => savedGame?.gameMode || 'normal');
+  const eventId = isEventMode(gameMode) ? gameMode : null;
   const isLocked = useRef(false);
   // Партия уже запускается — второй вызов в том же такте игнорируем, иначе
   // двойной тап списывает энергию дважды за один раунд.
@@ -241,7 +246,7 @@ export function useGame() {
     const fromCloud = storage.get(STORAGE_KEYS.GAME_STATE, null);
     if (fromCloud?.solution && fromCloud.status === GAME_STATUS.PLAYING
         && (fromCloud.gameMode !== 'daily' || isTodaysDaily(fromCloud))
-        && (fromCloud.gameMode !== 'halloween' || isLiveHalloween(fromCloud))) {
+        && (!isEventMode(fromCloud.gameMode) || isLiveEventRound(fromCloud))) {
       const len = (fromCloud.wordLength === 4 || fromCloud.wordLength === 6) ? fromCloud.wordLength : 5;
       gameStartRef.current = Date.now();
       setWordLength(len);
@@ -251,6 +256,7 @@ export function useGame() {
       setStatus(fromCloud.status);
       setHints(fromCloud.hints || Array(len).fill(null));
       setRiddleShown(Boolean(fromCloud.riddleShown));
+      setIce(Boolean(fromCloud.ice));
       setGameMode(fromCloud.gameMode === 'daily' ? 'daily' : restoredMode(fromCloud));
       return;
     }
@@ -270,10 +276,11 @@ export function useGame() {
       setHints(backup.hints || Array(restoreLen).fill(null));
       setGameMode(restoredMode(backup));
       setRiddleShown(Boolean(backup.riddleShown));
+      setIce(Boolean(backup.ice));
       return;
     }
     // Обычная партия могла остаться на полке, пока игрок разгадывал загадки
-    // ночи, а ивент тем временем закончился. Возвращаем её, а не берём новое
+    // ивента, а ивент тем временем закончился. Возвращаем её, а не берём новое
     // слово за энергию.
     const shelved = takeRound(wordLength);
     if (shelved) {
@@ -314,9 +321,9 @@ export function useGame() {
     if (normalizeWord(solution).length !== wordLength) return;
     storage.set(STORAGE_KEYS.GAME_STATE, {
       solution, guesses, evaluations, status, hints, gameMode, wordLength,
-      lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastHw, riddleShown
+      lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastEvent, riddleShown, ice
     });
-  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastHw, riddleShown]);
+  }, [solution, guesses, evaluations, status, hints, gameMode, wordLength, lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin, doubledLastWin, lastEvent, riddleShown, ice]);
 
   // Watchdog: if the solution length ever drifts from the active wordLength
   // (caused by a stale persisted blob, a race between setWordLength and
@@ -325,8 +332,8 @@ export function useGame() {
   useEffect(() => {
     if (!solution) return;
     if (normalizeWord(solution).length === wordLength) return;
-    // Загадку ночи не подменяем случайным словом — подгоняем длину под неё.
-    if (gameMode === 'halloween' && getRiddle(normalizeWord(solution))) {
+    // Загадку ивента не подменяем случайным словом — подгоняем длину под неё.
+    if (riddleOf(getEvent(gameMode), normalizeWord(solution))) {
       setWordLength(normalizeWord(solution).length);
       return;
     }
@@ -490,16 +497,17 @@ export function useGame() {
           setLastEarned(total);
           setDoubledLastWin(false);
           setBoostedLastWin(false);
-        } else if (gameMode === 'halloween') {
-          // Загадки ночи: монет за партию нет (режим бесплатный и
-          // безлимитный), награда — тыквы на ленту. Победа идёт в общую
+        } else if (eventId) {
+          // Загадки ивента: монет за партию нет (режим бесплатный и
+          // безлимитный), награда — единицы на ленту. Победа идёт в общую
           // статистику, как в режимах 4/6; опыт Букле — как за 5 букв, а то,
-          // что не влезло в дневной лимит тыкв, — дополнительным опытом.
+          // что не влезло в дневной лимит, — дополнительным опытом.
+          const def = getEvent(eventId);
           stats.recordWin(nextGuesses.length, elapsedMs, 1, /* creditCoins */ false);
-          const hwRes = stats.recordEventResult('halloween', { won: true, attempts: nextGuesses.length, word: normalizeWord(solution) });
+          const evRes = stats.recordEventResult(eventId, { won: true, attempts: nextGuesses.length, word: normalizeWord(solution), ice });
           const hatched = Boolean(stats.stats.pet?.hatched);
-          const bonusXp = hatched ? (pumpkinsFor(nextGuesses.length) - hwRes.gained) * HW_CAP_XP_PER_PUMPKIN : 0;
-          setLastHw({ ...hwRes, bonusXp });
+          const bonusXp = hatched ? (def.unitsFor(nextGuesses.length, { ice }) - evRes.gained) * def.capXpPerUnit : 0;
+          setLastEvent({ ...evRes, bonusXp });
           setLastEarned(0);
           setLastEarnedBase(0);
           setLastEarnedDeco(0);
@@ -561,9 +569,9 @@ export function useGame() {
             mode: 'daily', length: 5, won: false,
             attempts: nextGuesses.length, elapsedMs, evaluations: nextEvals
           });
-        } else if (gameMode === 'halloween') {
+        } else if (eventId) {
           stats.recordLoss();
-          setLastHw(stats.recordEventResult('halloween', { won: false, attempts: nextGuesses.length, word: normalizeWord(solution) }));
+          setLastEvent(stats.recordEventResult(eventId, { won: false, attempts: nextGuesses.length, word: normalizeWord(solution), ice }));
         } else {
           stats.recordLoss();
           stats.awardWinServer?.({
@@ -580,7 +588,7 @@ export function useGame() {
       }
       isLocked.current = false;
     }, ANIM.REVEAL_TOTAL_MS + 60);
-  }, [current, guesses, evaluations, solution, status, stats, showToast, gameMode, explainEmptyBoard]);
+  }, [current, guesses, evaluations, solution, status, stats, showToast, gameMode, eventId, ice, explainEmptyBoard]);
 
   const performReset = useCallback(() => {
     gameStartRef.current = Date.now();
@@ -597,7 +605,7 @@ export function useGame() {
     setLastEarnedDeco(0);
     setBoostedLastWin(false);
     setDoubledLastWin(false);
-    setLastHw(null);
+    setLastEvent(null);
     setHints(Array(wordLength).fill(null));
     setHintPickMode(false);
     isLocked.current = false;
@@ -606,16 +614,16 @@ export function useGame() {
   // Откладывает текущую партию на полку своего формата, чтобы вернуться к ней
   // потом бесплатно. Слово дня не откладываем: у него своя логика, и уход из
   // него означает, что сегодня к нему уже не вернуться.
-  // Недоигранная загадка ночи ложится на ту же полку под ключом hw.
+  // Недоигранная загадка ивента ложится на ту же полку под ключом ev (ice).
   const stashCurrentRound = useCallback(() => {
     if (!solution || status !== GAME_STATUS.PLAYING) return;
-    if (gameMode === 'halloween') {
-      stashRound('hw', { solution, guesses, evaluations, hints, status, wordLength, gameMode, riddleShown });
+    if (eventId) {
+      stashRound(eventShelf(ice), { solution, guesses, evaluations, hints, status, wordLength, gameMode, riddleShown, ice });
       return;
     }
     if (gameMode !== 'normal') return;
     stashRound(wordLength, { solution, guesses, evaluations, hints, status, wordLength });
-  }, [gameMode, solution, status, wordLength, guesses, evaluations, hints, riddleShown]);
+  }, [gameMode, eventId, ice, solution, status, wordLength, guesses, evaluations, hints, riddleShown]);
 
   // Ставит партию в выбранном формате: возвращает отложенную, если она есть,
   // иначе берёт новое слово. Энергию НЕ трогает — гейт живёт в setGameLength,
@@ -638,15 +646,18 @@ export function useGame() {
     setLastEarnedDeco(0);
     setBoostedLastWin(false);
     setDoubledLastWin(false);
-    setLastHw(null);
+    setLastEvent(null);
+    setIce(false);
     isLocked.current = false;
   }, []);
 
-  // ---------- Загадки ночи (ивент «Ночь тыкв») ----------
-  // Ставит на поле загадку: отложенную (saved) или новое слово колоды.
-  const applyRiddle = useCallback((word, saved = null) => {
+  // ---------- Загадки сезонного ивента ----------
+  // Ставит на поле загадку ивента id: отложенную (saved) или новое слово
+  // колоды. iceMode — партия в «Ледяной гонке».
+  const applyRiddle = useCallback((id, word, saved = null, iceMode = false) => {
     const len = word.length;
-    setGameMode('halloween');
+    setGameMode(id);
+    setIce(iceMode);
     setWordLength(len);
     gameStartRef.current = Date.now();
     setSolution(word);
@@ -663,7 +674,7 @@ export function useGame() {
     setLastEarnedDeco(0);
     setBoostedLastWin(false);
     setDoubledLastWin(false);
-    setLastHw(null);
+    setLastEvent(null);
     setRiddleShown(Boolean(saved?.riddleShown));
     isLocked.current = false;
   }, []);
@@ -673,20 +684,25 @@ export function useGame() {
   // Слово дня в процессе: подтверждение спрашивает App, здесь день только
   // помечается пропущенным — exitDailyMode не зовём, он списал бы энергию
   // за обычную партию, которую игрок даже не увидит.
-  const startHalloween = useCallback(() => {
-    if (!halloweenActive() || startingRef.current) return false;
-    if (gameMode === 'halloween') return true;
+  // { ice } — вход в «Ледяную гонку» (есть только у ивентов с def.ice).
+  // Из обычных загадок в гонку и обратно — так же: текущая ложится на свою полку.
+  const startEvent = useCallback(({ ice: iceMode = false } = {}) => {
+    const id = activeEvent()?.id;
+    const def = getEvent(id);
+    if (!def || startingRef.current) return false;
+    if (iceMode && !def.ice) return false;
+    if (gameMode === id && ice === iceMode) return true;
     if (gameMode === 'daily' && status === GAME_STATUS.PLAYING) {
       storage.set(STORAGE_KEYS.DAILY_SKIPPED, getDailyKey());
     }
     stashCurrentRound();
     startingRef.current = true;
-    const saved = takeHalloweenRound() || takeHalloweenBackup();
-    const word = saved ? normalizeWord(saved.solution) : nextRiddle(stats.stats.halloween?.seen).entry.word;
-    applyRiddle(word, saved);
+    const saved = takeEventRound(iceMode) || takeEventBackup(iceMode);
+    const word = saved ? normalizeWord(saved.solution) : nextRiddle(def, playerRef.current?.[id]?.seen).entry.word;
+    applyRiddle(id, word, saved, iceMode);
     setTimeout(() => { startingRef.current = false; }, 0);
     return true;
-  }, [gameMode, status, stashCurrentRound, applyRiddle, stats.stats.halloween?.seen]);
+  }, [gameMode, ice, status, stashCurrentRound, applyRiddle]);
 
   // Возврат из загадок в обычную игру, без анимации. Обычная партия берётся
   // по порядку: утренняя отложенная → с полки 5 букв → новое слово за
@@ -694,9 +710,10 @@ export function useGame() {
   // Слова дня.
   const leaveToNormal = useCallback(() => {
     setGameMode('normal');
-    setLastHw(null);
+    setLastEvent(null);
     const backup = takeNormalBackup();
-    if (backup && backup.gameMode !== 'halloween') {
+    setIce(false);
+    if (backup && !isEventMode(backup.gameMode)) {
       const len = (backup.wordLength === 4 || backup.wordLength === 6) ? backup.wordLength : 5;
       applyGameLength(len, backup);
       return;
@@ -719,8 +736,8 @@ export function useGame() {
 
   // Выход из режима по кнопке. Недоигранная загадка ложится на полку и
   // вернётся при следующем входе.
-  const exitHalloween = useCallback(() => {
-    if (gameMode !== 'halloween' || startingRef.current) return;
+  const exitEvent = useCallback(() => {
+    if (!eventId || startingRef.current) return;
     startingRef.current = true;
     stashCurrentRound();
     const go = () => {
@@ -731,21 +748,24 @@ export function useGame() {
     if (guesses.length === 0 && status === GAME_STATUS.PLAYING) { go(); return; }
     setIsClearing(true);
     setTimeout(go, ANIM.CLEAR_TOTAL_MS);
-  }, [gameMode, guesses.length, status, stashCurrentRound, leaveToNormal]);
+  }, [eventId, guesses.length, status, stashCurrentRound, leaveToNormal]);
 
   // «Следующая загадка» после конца партии. Как «Новая игра»: анимация
-  // очистки и счётчик межстраничной рекламы. Ивент кончился, пока игрок
-  // сидел в режиме, — уходим в обычную игру.
-  const nextHalloweenRiddle = useCallback(() => {
-    if (gameMode !== 'halloween' || startingRef.current) return;
+  // очистки и счётчик межстраничной рекламы. Остаётся в том же виде загадок
+  // (обычные или гонка). Ивент кончился, пока игрок сидел в режиме, — уходим
+  // в обычную игру.
+  const nextEventRiddle = useCallback(() => {
+    if (!eventId || startingRef.current) return;
     startingRef.current = true;
     const prev = normalizeWord(solution || '');
+    const id = eventId;
+    const iceMode = ice;
     maybeInterstitial().then(() => {
     setIsClearing(true);
     setTimeout(() => {
-      if (halloweenActive()) {
-        const seen = playerRef.current?.halloween?.seen || [];
-        applyRiddle(nextRiddle(seen, prev).entry.word);
+      if (activeEvent()?.id === id) {
+        const seen = playerRef.current?.[id]?.seen || [];
+        applyRiddle(id, nextRiddle(getEvent(id), seen, prev).entry.word, null, iceMode);
       } else {
         leaveToNormal();
       }
@@ -753,7 +773,7 @@ export function useGame() {
       startingRef.current = false;
     }, ANIM.CLEAR_TOTAL_MS);
     });
-  }, [gameMode, solution, maybeInterstitial, applyRiddle, leaveToNormal]);
+  }, [eventId, ice, solution, maybeInterstitial, applyRiddle, leaveToNormal]);
 
   const reset = useCallback(() => {
     // Одна партия — одно списание. Двойной тап по «Новой игре» успевал пройти
@@ -761,7 +781,7 @@ export function useGame() {
     // получал одну. Флаг снимаем, когда новая доска уже на месте.
     if (startingRef.current) return;
     // В режиме загадок «Новая игра» — это следующая загадка, без энергии.
-    if (gameMode === 'halloween') { nextHalloweenRiddle(); return; }
+    if (eventId) { nextEventRiddle(); return; }
     // Energy gate — only the canonical 5-letter mode costs energy.
     if (wordLength === 5) {
       if (!stats.consumeEnergy()) {
@@ -788,7 +808,7 @@ export function useGame() {
         startingRef.current = false;
       }, ANIM.CLEAR_TOTAL_MS);
     });
-  }, [guesses.length, current.length, hints, performReset, stats, wordLength, maybeInterstitial, gameMode, nextHalloweenRiddle]);
+  }, [guesses.length, current.length, hints, performReset, stats, wordLength, maybeInterstitial, eventId, nextEventRiddle]);
 
   // Called after the user successfully tops up energy from the modal. Spends
   // the freshly-acquired unit and starts a puzzle without a clearing animation
@@ -803,7 +823,7 @@ export function useGame() {
       // Партию, из которой игрок уходил, тоже кладём на полку — иначе она
       // потерялась бы при дозаправке.
       stashCurrentRound();
-      if (gameMode === 'halloween') setGameMode('normal');
+      if (eventId) { setGameMode('normal'); setIce(false); }
       applyGameLength(pendingLength);
       return true;
     }
@@ -817,7 +837,7 @@ export function useGame() {
       performReset();
     }
     return true;
-  }, [stats, solution, performReset, applyGameLength, pendingLength, stashCurrentRound, gameMode]);
+  }, [stats, solution, performReset, applyGameLength, pendingLength, stashCurrentRound, eventId]);
 
   // Закрыл модалку, не пополнив, — намерение сгорает: иначе следующая
   // дозаправка (из «Новой игры») утащила бы в режим 5 букв.
@@ -839,7 +859,7 @@ export function useGame() {
   // служат выходом для игрока с пустой шкалой.
   const setGameLength = useCallback((length) => {
     if (length !== 4 && length !== 5 && length !== 6) return;
-    if (gameMode !== 'halloween' && length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
+    if (!eventId && length === wordLength && solution && status === GAME_STATUS.PLAYING && guesses.length === 0) return;
     // Как и в reset: двойной тап по кнопке режима успевал списать дважды —
     // wordLength в том же такте ещё старый, и проверка выше не срабатывала.
     if (startingRef.current) return;
@@ -888,9 +908,10 @@ export function useGame() {
         setHints(backup.hints || Array(restoreLen).fill(null));
         setCurrent('');
         setRevealRow(-1);
-        // Утром отложенной могла оказаться загадка ночи — возвращаем её режим.
+        // Утром отложенной могла оказаться загадка ивента — возвращаем её режим.
         setGameMode(restoredMode(backup));
         setRiddleShown(Boolean(backup.riddleShown));
+        setIce(Boolean(backup.ice));
         isLocked.current = false;
         gameStartRef.current = Date.now();
         return;
@@ -1065,17 +1086,17 @@ export function useGame() {
 
   // Открыть загадку ночи — платная подсказка, один раз на слово.
   const revealRiddle = useCallback(() => {
-    if (gameMode !== 'halloween' || riddleShown || status !== GAME_STATUS.PLAYING) return false;
+    if (!eventId || riddleShown || status !== GAME_STATUS.PLAYING) return false;
     if (!stats.spendCoins(HINT_COST.RIDDLE)) { showToast('Недостаточно монет'); return false; }
     setRiddleShown(true);
     stats.recordHintUsed();
     return true;
-  }, [gameMode, riddleShown, status, stats, showToast]);
+  }, [eventId, riddleShown, status, stats, showToast]);
 
   // Загадка над полем — по загаданному слову: слова колоды уникальны.
   const riddle = useMemo(
-    () => (gameMode === 'halloween' && solution ? getRiddle(normalizeWord(solution)) : null),
-    [gameMode, solution]
+    () => (eventId && solution ? riddleOf(getEvent(eventId), normalizeWord(solution)) : null),
+    [eventId, solution]
   );
 
   return {
@@ -1098,14 +1119,16 @@ export function useGame() {
     gameMode,
     exitDailyMode,
     leaveDailyMode,
-    // Загадки ночи (ивент «Ночь тыкв»)
+    // Загадки сезонного ивента
+    eventId,
+    ice,
     riddle,
     riddleShown,
     revealRiddle,
-    lastHw,
-    startHalloween,
-    nextHalloweenRiddle,
-    exitHalloween,
+    lastEvent,
+    startEvent,
+    nextEventRiddle,
+    exitEvent,
     wordLength,
     setGameLength,
     hints,

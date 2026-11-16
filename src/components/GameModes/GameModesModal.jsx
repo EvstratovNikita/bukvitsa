@@ -27,8 +27,8 @@ const MODES = [
 // onPlayHalloween — есть только пока идёт ивент «Ночь тыкв»: карточка
 // «Загадки ночи» первой, в ивентовом оформлении.
 export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
-  const { setGameLength, wordLength, gameMode, exitHalloween } = useGameContext();
-  const inHw = gameMode === 'halloween';
+  const { setGameLength, wordLength, eventId, exitEvent } = useGameContext();
+  const inHw = eventId === 'halloween';
 
   const onPick = (length) => {
     setGameLength(length);
@@ -48,7 +48,7 @@ export function GameModesModal({ open, onClose, onPicked, onPlayHalloween }) {
           <button
             type="button"
             className="btn modes__back"
-            onClick={() => { exitHalloween(); onClose(); onPicked?.(); }}
+            onClick={() => { exitEvent(); onClose(); onPicked?.(); }}
             onMouseDown={(e) => e.preventDefault()}
           >
             ← Вернуться к обычной игре

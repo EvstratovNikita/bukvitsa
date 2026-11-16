@@ -10,6 +10,7 @@ import { getEvent, trackMax } from '../src/data/events/index.js';
 import { applyResult, merge, normalize, restoreEventItems } from '../src/lib/eventProgress.js';
 import { mergeProgress } from '../src/utils/mergeProgress.js';
 import { isValidWord } from '../src/data/words.js';
+import { isLiveEventRound, restoredMode } from '../src/lib/eventRounds.js';
 
 let passed = 0;
 const test = (name, fn) => {
@@ -137,6 +138,33 @@ test('старое сохранение с тропой Хэллоуина: вы
   assert.ok(m.halloween.bought.includes('hw-pumpkin'));
   assert.ok(m.pet.ownedDecorations.includes('hw-pumpkin'));
   assert.equal(m.halloween.earned, 9);
+});
+
+const windowId = (now) => EVENTS.find((e) => eventWindowOpen(e.id, now))?.id ?? null;
+const hwRound = { gameMode: 'halloween', solution: getEvent('halloween').riddles[0].word };
+const wRound = { gameMode: 'winter', solution: W.riddles[0].word.toUpperCase() };
+
+test('партия ивента: хэллоуинская при открытой зиме — мертва', () => {
+  assert.equal(isLiveEventRound(hwRound, windowId(t('2026-12-30T12:00:00Z'))), false);
+});
+
+test('партия ивента: зимняя после 12.01 — мертва, в окне — жива', () => {
+  assert.equal(windowId(t('2027-01-12T09:00:00Z')), null);
+  assert.equal(isLiveEventRound(wRound, windowId(t('2027-01-12T09:00:00Z'))), false);
+  assert.equal(isLiveEventRound(wRound, windowId(t('2026-12-30T12:00:00Z'))), true);
+});
+
+test('партия ивента: слово не из колоды и обычная партия — мертвы', () => {
+  assert.equal(isLiveEventRound({ gameMode: 'winter', solution: 'кошка' }, 'winter'), false);
+  assert.equal(isLiveEventRound({ gameMode: 'normal', solution: W.riddles[0].word }, 'winter'), false);
+  assert.equal(isLiveEventRound(null, 'winter'), false);
+});
+
+test('режим восстановления', () => {
+  assert.equal(restoredMode(wRound), 'winter');
+  assert.equal(restoredMode(hwRound), 'halloween');
+  assert.equal(restoredMode({ gameMode: 'normal' }), 'normal');
+  assert.equal(restoredMode(undefined), 'normal');
 });
 
 console.log(`${process.exitCode ? '✗' : '✓'} test-events: ${passed} passed`);

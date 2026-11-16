@@ -18,15 +18,15 @@ export function EndPanel() {
     status, reset, solution, evaluations, guesses,
     lastEarned, lastEarnedBase, lastEarnedDeco, boostedLastWin,
     doubledLastWin, doublingAd, doubleLastReward, adsDoubleLeft,
-    gameMode, exitDailyMode, wordLength, stats,
-    exitHalloween, nextHalloweenRiddle, riddle,
+    gameMode, eventId, exitDailyMode, wordLength, stats,
+    exitEvent, nextEventRiddle, riddle,
     showToast
   } = useGameContext();
   const [shareStatus, setShareStatus] = useState(null);
   if (status === GAME_STATUS.PLAYING) return null;
   const isWin = status === GAME_STATUS.WON;
   const isDaily = gameMode === 'daily';
-  const isHw = gameMode === 'halloween';
+  const isHw = eventId === 'halloween';
   const isAlt = !isDaily && !isHw && wordLength !== 5;
   // Alt-mode (4/6) series toward the next +1 energy refund. plays counts
   // completed rounds in the current local day; every 5 grants energy (≤3/day).
@@ -183,7 +183,7 @@ export function EndPanel() {
               <button
                 type="button"
                 className="btn btn--ghost end-panel__double"
-                onClick={exitHalloween}
+                onClick={exitEvent}
                 onMouseDown={(e) => e.preventDefault()}
               >
                 <span>К обычной игре</span>
@@ -191,7 +191,7 @@ export function EndPanel() {
               <button
                 type="button"
                 className="btn btn--primary end-panel__cta hw-next-btn"
-                onClick={nextHalloweenRiddle}
+                onClick={nextEventRiddle}
                 onMouseDown={(e) => e.preventDefault()}
               >
                 <RefreshIcon />

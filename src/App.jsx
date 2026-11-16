@@ -55,7 +55,7 @@ function GameShell() {
   useKeyboard(!homeOpen);
   useAuthRedirectFallback();
   useShopTheme();
-  const { stats, auth, showToast, status, gameMode, ready, leaveDailyMode, setPref, startHalloween } = useGameContext();
+  const { stats, auth, showToast, status, gameMode, eventId, ready, leaveDailyMode, setPref, startEvent } = useGameContext();
 
   // VK ждёт VKWebAppInit сразу после загрузки: без него площадка считает, что
   // приложение не стартовало, и не убирает свой лоадер. Вызов идемпотентный и
@@ -110,14 +110,14 @@ function GameShell() {
     setHwOpen(false);
     setModesOpen(false);
     if (dailyInProgress) { setDailyLeaveTo('halloween'); setDailyLeaveOpen(true); return; }
-    if (startHalloween?.()) setHomeOpen(false);
+    if (startEvent?.()) setHomeOpen(false);
   };
   const confirmDailyLeave = () => {
     setDailyLeaveOpen(false);
     if (dailyLeaveTo === 'halloween') {
       // Без exitDailyMode: он списал бы энергию за обычную партию, которую
-      // игрок не увидит. startHalloween сам пометит день пропущенным.
-      if (startHalloween?.()) setHomeOpen(false);
+      // игрок не увидит. startEvent сам пометит день пропущенным.
+      if (startEvent?.()) setHomeOpen(false);
       return;
     }
     leaveDailyMode?.();
@@ -185,7 +185,7 @@ function GameShell() {
     const t = setTimeout(() => setPetCovers(true), 360);
     return () => clearTimeout(t);
   }, [petOpen, homeOpen]);
-  const appClass = `app${homeOpen ? ' app--home' : ''}${petCovers && petOpen ? ' app--pet' : ''}${gameMode === 'halloween' ? ' app--hw' : ''}`;
+  const appClass = `app${homeOpen ? ' app--home' : ''}${petCovers && petOpen ? ' app--pet' : ''}${eventId === 'halloween' ? ' app--hw' : ''}`;
 
   return (
     <div className={appClass}>
@@ -198,12 +198,12 @@ function GameShell() {
       <div className="topbar">
         <Coins />
         {gameMode === 'daily' ? <DailyBadge />
-          : gameMode === 'halloween' ? <PumpkinBadge onClick={() => setHwOpen(true)} />
+          : eventId === 'halloween' ? <PumpkinBadge onClick={() => setHwOpen(true)} />
           : <EnergyBadge />}
         <HintButton />
       </div>
       <main className="main" data-tour="board">
-        {gameMode === 'halloween' && <RiddleCard />}
+        {eventId === 'halloween' && <RiddleCard />}
         <Board />
         <GameEnd />
       </main>
